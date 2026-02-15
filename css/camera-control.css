@@ -1,0 +1,209 @@
+/* 
+ * camera-control.css - Camera control UI styles
+ * Part of the Diablo Immortal CSS optimization
+ * This file contains styles for the camera control interface
+ */
+
+/* Camera Controls Container */
+#camera-controls {
+    display: grid;
+    grid-template-rows: repeat(1, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    pointer-events: auto;
+    position: relative;
+    z-index: 120; /* Higher than joystick overlay to ensure camera buttons work */
+}
+
+/* Common styles for camera buttons */
+#camera-control-button,
+#camera-mode-button,
+#portal-button {
+    width: 55px;
+    height: 55px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid #6b4c2a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    box-shadow: 0 0 10px rgba(255, 150, 0, 0.3);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    z-index: 50;
+}
+
+#camera-control-button:hover,
+#camera-mode-button:hover,
+#portal-button:hover {
+    background-color: rgba(30, 30, 30, 0.9);
+    border-color: #ff9600;
+    box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
+}
+
+#camera-control-button:active,
+#camera-mode-button:active,
+#portal-button:active {
+    transform: scale(0.95);
+}
+
+/* Active state for camera mode button */
+#camera-mode-button.active {
+    background-color: rgba(60, 30, 0, 0.9);
+    border-color: #ff9600;
+    box-shadow: 0 0 15px rgba(255, 150, 0, 0.7);
+}
+
+.camera-icon,
+.camera-mode-icon,
+.portal-icon {
+    font-size: 24px;
+    color: #ffcc66;
+    text-shadow: 1px 1px 2px black;
+    pointer-events: none;
+}
+
+/* Portal button specific styling */
+#portal-button {
+    background-color: rgba(40, 0, 40, 0.4); /* Purple tint for portal */
+    border-color: #8b00ff;
+    box-shadow: 0 0 10px rgba(139, 0, 255, 0.4);
+}
+
+#portal-button:hover {
+    background-color: rgba(60, 0, 60, 0.9);
+    border-color: #ff00ff;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+}
+
+.portal-icon {
+    color: #ff66ff !important;
+    animation: portalSpin 2s linear infinite;
+    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    text-align: center;
+    font-size: 28px; /* Slightly larger for the new spiral emoji */
+}
+
+@keyframes portalSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Alternative CSS-based portal spiral for perfect centering */
+.portal-icon.css-spiral {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    background: transparent;
+}
+
+.portal-icon.css-spiral::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid #ff66ff;
+    border-right: 2px solid #ff66ff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: portalSpin 2s linear infinite;
+}
+
+.portal-icon.css-spiral::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    border: 1px solid transparent;
+    border-bottom: 1px solid #ff66ff;
+    border-left: 1px solid #ff66ff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: portalSpin 1.5s linear infinite reverse;
+}
+
+/* Camera Control Indicator */
+#camera-control-indicator {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 200;
+    display: none; /* Initially hidden */
+}
+
+/* Base Circle */
+#camera-control-base {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+}
+
+/* Handle/Indicator */
+#camera-control-handle {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.8);
+    transform: translate(-50%, -50%);
+}
+
+/* Direction Arrows Container */
+#camera-control-arrows {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+/* Direction Arrow Styles */
+.camera-control-arrow {
+    position: absolute;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+/* Up Arrow */
+.camera-control-arrow.up {
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Right Arrow */
+.camera-control-arrow.right {
+    top: 50%;
+    left: calc(100% - 15px);
+    transform: translateY(-50%);
+}
+
+/* Down Arrow */
+.camera-control-arrow.down {
+    top: calc(100% - 15px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Left Arrow */
+.camera-control-arrow.left {
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+}
