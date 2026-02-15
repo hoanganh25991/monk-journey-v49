@@ -13,20 +13,9 @@ Monk Journey is an action RPG game where you play as a monk with powerful martia
 - [Monk Journey](#monk-journey)
   - [Overview](#overview)
   - [Features](#features)
-    - [01. Combat](#01-combat)
-    - [02. Fist Person View](#02-fist-person-view)
-    - [03. Skill Selection](#03-skill-selection)
-    - [04. Skill Tree](#04-skill-tree)
-    - [05. Inventory](#05-inventory)
-    - [06. Model Preview](#06-model-preview)
-    - [07. Skill Preview](#07-skill-preview)
-    - [08. Enemy Preview](#08-enemy-preview)
-    - [09. Orbit Control](#09-orbit-control)
-    - [10. Multi Player](#10-multi-player)
   - [Gameplay](#gameplay)
-    - [Controls](#controls)
-    - [Installation](#installation)
   - [Development](#development)
+  - [Google Play Store Listing](#google-play-store-listing)
   - [Credits](#credits)
   - [License](#license)
 
@@ -96,6 +85,40 @@ Monk Journey is built using:
 - Three.js for 3D rendering
 - JavaScript for game logic
 - HTML5 and CSS for UI elements
+
+## Google Play Store Listing
+
+Use the text below when uploading Monk Journey - LITE to Google Play Console.
+
+### Short description (max 80 characters)
+
+```
+Action RPG. Play as a monk, master martial arts, and conquer endless terrain.
+```
+*Character count: 68*
+
+### Long description (max 4000 characters)
+
+```
+Monk Journey - LITE is a free action RPG where you become a warrior monk. Battle through procedurally generated worlds, unlock powerful skills, and grow stronger with every fight.
+
+FIGHT AS A MONK
+• Control a monk with fast, satisfying martial arts combat
+• Use skills like Wave Strike, Cyclone Strike, Seven-Sided Strike, and Inner Sanctuary
+• Face varied enemies and clear the land of darkness
+
+EXPLORE & PROGRESS
+• Endless procedurally generated terrain to explore
+• Level up and improve your abilities
+• Collect gear and manage your inventory
+
+SMOOTH & ACCESSIBLE
+• Optimized for a range of devices
+• Adjustable quality and controls
+• Fullscreen landscape gameplay
+
+Download Monk Journey - LITE and start your journey today.
+```
 
 ## Credits
 
