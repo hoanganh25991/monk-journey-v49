@@ -387,11 +387,23 @@ export class Game {
      * Set up event listeners for window and document events
      */
     setupEventListeners() {
-        if (window.location.hostname == "localhost") {
-            return;
+        // Persistent fullscreen change listener - resizes canvas when fullscreen is toggled (e.g. via HUD button)
+        const fullscreenResizeHandler = () => {
+            if (this.renderer && this.camera) {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => this.adjustRendererSize());
+                });
+            }
+        };
+        document.addEventListener('fullscreenchange', fullscreenResizeHandler);
+        document.addEventListener('webkitfullscreenchange', fullscreenResizeHandler);
+        document.addEventListener('mozfullscreenchange', fullscreenResizeHandler);
+        document.addEventListener('MSFullscreenChange', fullscreenResizeHandler);
+
+        if (window.location.hostname !== "localhost") {
+            window.addEventListener('pagehide', () => this.pause(true));
+            window.addEventListener('blur', () => this.pause(true));
         }
-        window.addEventListener('pagehide', () => this.pause(true));
-        window.addEventListener('blur', () => this.pause(true));
     }
 
     /**
@@ -427,10 +439,14 @@ export class Game {
                         window.isFullscreenChange = false;
                     }, 100);
                     
-                    // Adjust renderer size to match new dimensions
                     if (this.isFullscreen()) {
-                        this.adjustRendererSize();
-                        resolve();
+                        // Defer resize until after browser has applied fullscreen layout (fixes white space at bottom)
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                this.adjustRendererSize();
+                                resolve();
+                            });
+                        });
                     } else {
                         reject(new Error("Failed to enter fullscreen mode"));
                     }
@@ -468,13 +484,15 @@ export class Game {
     
     /**
      * Adjust renderer size to match current window dimensions
+     * Uses fullscreen element dimensions when in fullscreen to avoid white space from canvas init timing
      */
     adjustRendererSize() {
         if (this.renderer && this.camera) {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
+            const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            const width = fsEl ? fsEl.clientWidth : window.innerWidth;
+            const height = fsEl ? fsEl.clientHeight : window.innerHeight;
             
-            console.debug(`Adjusting renderer size to ${width}x${height}`);
+            console.debug(`Adjusting renderer size to ${width}x${height}${fsEl ? ' (fullscreen)' : ''}`);
             
             // Update camera aspect ratio
             this.camera.aspect = width / height;
