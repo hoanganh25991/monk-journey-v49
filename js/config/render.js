@@ -97,35 +97,35 @@ export const RENDER_CONFIG = {
         }
     },
     
-    // Low quality - for tablets and mid-range mobile devices
+    // Low quality - for tablets and mid-range mobile (low-end tablet friendly)
     low: {
         init: {
             antialias: false,
             powerPreference: 'high-performance',
-            precision: 'lowp', // Changed from mediump for better performance
+            precision: 'lowp',
             stencil: false,
             logarithmicDepthBuffer: false,
             depth: true,
             alpha: false
         },
         settings: {
-            pixelRatio: Math.min(window.devicePixelRatio, 0.5), // Reduced from 0.6
+            pixelRatio: Math.min(window.devicePixelRatio, 0.4), // Aggressive for tablets
             shadowMapEnabled: false,
-            shadowMapSize: 0, // Reduced from 256
+            shadowMapSize: 0,
             shadowMapType: 'BasicShadowMap',
-            outputColorSpace: 'LinearSRGBColorSpace', // Changed to linear for performance
+            outputColorSpace: 'LinearSRGBColorSpace',
         },
         materials: {
-            particleCount: 0.1, // Reduced from 0.2
-            drawDistance: 0.2, // Reduced from 0.3
-            textureQuality: 0.2, // Reduced from 0.3
-            objectDetail: 0.3, // Reduced from 0.4
-            maxVisibleObjects: 100, // Reduced from 150
-            optimizedForLowEnd: true // Flag for additional optimizations
+            particleCount: 0.05,
+            drawDistance: 0.15,
+            textureQuality: 0.15,
+            objectDetail: 0.2,
+            maxVisibleObjects: 60,
+            optimizedForLowEnd: true
         }
     },
     
-    // Minimal quality - for any low-end device to achieve playable FPS
+    // Minimal quality - for low-end tablets (freezing fix)
     minimal: {
         init: {
             antialias: false,
@@ -137,22 +137,22 @@ export const RENDER_CONFIG = {
             alpha: false
         },
         settings: {
-            pixelRatio: 0.2, // Further reduced for more pixelated 8-bit look
+            pixelRatio: 0.25, // Very low for smooth FPS on weak tablets
             shadowMapEnabled: false,
             shadowMapSize: 0,
             shadowMapType: 'BasicShadowMap',
-            outputColorSpace: 'LinearSRGBColorSpace', // Linear for performance
-            pixelatedMode: true, // New flag for 8-bit rendering
-            colorPalette: 'limited', // Simulate limited color palette
-            dithering: true // Enable dithering for retro look
+            outputColorSpace: 'LinearSRGBColorSpace',
+            pixelatedMode: true,
+            colorPalette: 'limited',
+            dithering: true
         },
         materials: {
-            particleCount: 0.01, // Further reduced for 8-bit look
-            drawDistance: 0.1, // Further reduced for 8-bit look
-            textureQuality: 0.01, // Extremely low for pixelated textures
-            objectDetail: 0.05, // Further reduced for simpler geometry
-            maxVisibleObjects: 30, // Further reduced for performance
-            is8BitMode: true // Flag to indicate 8-bit rendering mode
+            particleCount: 0.01,
+            drawDistance: 0.08,
+            textureQuality: 0.05,
+            objectDetail: 0.05,
+            maxVisibleObjects: 25,
+            is8BitMode: true
         }
     }
 };

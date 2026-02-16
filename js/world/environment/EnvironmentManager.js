@@ -8,16 +8,19 @@ import { AncientTree } from './AncientTree.js';
 import { TreeCluster } from './TreeCluster.js';
 import { EnvironmentFactory } from './EnvironmentFactory.js';
 import { ENVIRONMENT_OBJECTS } from '../../config/environment.js';
+import { getPerformanceProfile } from '../../config/performance-profile.js';
 
 /**
  * Manages environment objects like trees, rocks, bushes, etc.
  * Simplified to focus only on loading environment objects from map data
  */
 export class EnvironmentManager {
-    constructor(scene, worldManager, game = null) {
+    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Initialize the environment factory
         this.environmentFactory = new EnvironmentFactory(scene, worldManager);
@@ -26,8 +29,9 @@ export class EnvironmentManager {
         this.environmentObjects = []; // Global list of all environment objects
         this.environmentObjectsByChunk = {}; // Objects organized by chunk
         
-        // Environment generation settings
-        this.environmentDensity = 1.0; // Default density factor (0.0 to 1.0)
+        // Environment generation settings (quality-aware for low-end tablets)
+        const densityMultiplier = this.performanceProfile?.environmentDensity ?? 1.0;
+        this.environmentDensity = densityMultiplier;
         this.visibleChunks = {}; // Track which chunks are currently visible
         
         // Get environment object types from factory and add traditional types
@@ -237,16 +241,15 @@ export class EnvironmentManager {
                 object.scale.set(scale, scale, scale);
             }
             
-            // Apply LOD if available and appropriate for this object type
-            // Skip LOD for very small objects or objects that don't benefit from it
+            // Apply LOD if available and LOD enabled for this quality level (disabled on minimal)
             const skipLodTypes = [
                 ENVIRONMENT_OBJECTS.FLOWER, 
                 ENVIRONMENT_OBJECTS.TALL_GRASS, 
                 ENVIRONMENT_OBJECTS.SMALL_MUSHROOM, 
                 ENVIRONMENT_OBJECTS.SMALL_PLANT
             ];
-            if (this.worldManager.lodManager && !skipLodTypes.includes(type) && scale > 0.5) {
-                // Apply LOD to the object
+            const lodEnabled = this.performanceProfile?.lodEnabled !== false;
+            if (lodEnabled && this.worldManager.lodManager && !skipLodTypes.includes(type) && scale > 0.5) {
                 object = this.worldManager.lodManager.applyLOD(object, type, position);
             }
             
@@ -640,11 +643,10 @@ export class EnvironmentManager {
             return;
         }
         
-        // Calculate number of objects to create based on density
-        // Apply the environment density setting as a multiplier
-        const baseCount = 10; // Base number of objects per chunk
+        // Calculate number of objects to create (quality-aware for low-end tablets)
+        const baseCount = 10;
         const densityFactor = zoneDensity.environment || 1.0;
-        const count = Math.floor(baseCount * densityFactor * this.environmentDensity * this.worldManager.worldScale);
+        const count = Math.max(1, Math.floor(baseCount * densityFactor * this.environmentDensity * this.worldManager.worldScale));
         
         // Generate random environment objects
         for (let i = 0; i < count; i++) {

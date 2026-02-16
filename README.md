@@ -86,9 +86,21 @@ Monk Journey is built using:
 - JavaScript for game logic
 - HTML5 and CSS for UI elements
 
-## Google Play Store Listing
+### Pre-generating maps
 
-Use the text below when uploading Monk Journey - LITE to Google Play Console.
+From the **project root**, generate map JSON files for each zone style and a mixed-zone map. The Maps UI (top-right) loads the manifest from `maps/index.json` and each map from `maps/<id>.json` (relative paths work when the app is served from a subpath).
+
+```bash
+node scripts/generate-maps.js
+```
+
+This creates:
+- `maps/default.json`, `maps/terrant.json`, `maps/forest.json`, `maps/desert.json`, `maps/mountains.json`, `maps/swamp.json`, `maps/magical.json`, `maps/mixed.json`
+- `maps/index.json` — manifest (title, description, size, thumbnail path) for list and detail view
+
+Optional: add thumbnail images under `maps/thumbnails/<id>.png` for each map.
+
+## Google Play Store Listing
 
 ### Short description (max 80 characters)
 
@@ -100,7 +112,7 @@ Action RPG. Play as a monk, master martial arts, and conquer endless terrain.
 ### Long description (max 4000 characters)
 
 ```
-Monk Journey - LITE is a free action RPG where you become a warrior monk. Battle through procedurally generated worlds, unlock powerful skills, and grow stronger with every fight.
+Monk Journey is a premium action RPG where you become a warrior monk. Battle through procedurally generated worlds, unlock powerful skills, and grow stronger with every fight.
 
 FIGHT AS A MONK
 • Control a monk with fast, satisfying martial arts combat
@@ -117,7 +129,7 @@ SMOOTH & ACCESSIBLE
 • Adjustable quality and controls
 • Fullscreen landscape gameplay
 
-Download Monk Journey - LITE and start your journey today.
+Download Monk Journey and start your journey today.
 ```
 
 ## Credits

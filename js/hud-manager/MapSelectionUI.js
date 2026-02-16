@@ -1,10 +1,13 @@
 import { UIComponent } from '../UIComponent.js';
 import { MAP_MANIFEST } from '../config/maps.js';
 
+/** Relative path to manifest so app works when loaded from a subpath */
+const MAP_MANIFEST_PATH = 'maps/index.json';
+
 /**
  * Map Selection UI component
- * Shows pre-generated maps, allows review and play
- * Map data is loaded from maps/ JSON files and buffered in memory - no localStorage
+ * Shows pre-generated maps (list + detail), allows select and play.
+ * Manifest loaded from maps/index.json; each map from maps/<id>.json (relative paths).
  */
 export class MapSelectionUI extends UIComponent {
     constructor(game) {
@@ -13,7 +16,7 @@ export class MapSelectionUI extends UIComponent {
         this.overlay = null;
         this.mapListEl = null;
         this.selectedMapId = null;
-        this.mapManifest = MAP_MANIFEST;
+        this.mapManifest = [];
     }
 
     init() {
@@ -28,12 +31,35 @@ export class MapSelectionUI extends UIComponent {
             }
 
             this.setupEventListeners();
-            this.populateMapList();
+            this.loadManifest().then(() => this.populateMapList());
             this.forceHide();
             return true;
         } catch (error) {
             console.error('Error initializing MapSelectionUI:', error);
             return false;
+        }
+    }
+
+    /** Load manifest from maps/index.json (relative); fallback to config MAP_MANIFEST */
+    async loadManifest() {
+        try {
+            const res = await fetch(MAP_MANIFEST_PATH);
+            if (res.ok) {
+                const list = await res.json();
+                this.mapManifest = Array.isArray(list) ? list : [];
+            }
+        } catch (e) {
+            console.warn('Could not load maps/index.json, using built-in manifest:', e.message);
+        }
+        if (this.mapManifest.length === 0) {
+            this.mapManifest = MAP_MANIFEST.map(m => ({
+                id: m.id,
+                path: m.path,
+                name: m.name,
+                description: m.description || '',
+                size: '-',
+                thumbnail: m.thumbnail || ''
+            }));
         }
     }
 
@@ -70,7 +96,10 @@ export class MapSelectionUI extends UIComponent {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
-            li.innerHTML = `<span class="map-icon">🗺️</span> <span class="map-list-name">${map.name}</span>`;
+            const thumb = map.thumbnail
+                ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
+                : '<span class="map-icon">🗺️</span>';
+            li.innerHTML = `${thumb} <span class="map-list-name">${map.name}</span>`;
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }
@@ -78,8 +107,7 @@ export class MapSelectionUI extends UIComponent {
             this.selectedMapId = this.mapManifest[0].id;
             const first = this.mapListEl.querySelector(`[data-map-id="${this.selectedMapId}"]`);
             if (first) first.classList.add('selected');
-            document.getElementById('selectedMapName').textContent = this.mapManifest[0].name;
-            document.getElementById('selectedMapDescription').textContent = this.mapManifest[0].description || '';
+            this.updateDetailPanel(this.mapManifest[0]);
         }
     }
 
@@ -88,12 +116,40 @@ export class MapSelectionUI extends UIComponent {
         document.querySelectorAll('.map-list-item').forEach(el => {
             el.classList.toggle('selected', el.dataset.mapId === mapEntry.id);
         });
+        this.updateDetailPanel(mapEntry);
+    }
+
+    updateDetailPanel(mapEntry) {
         document.getElementById('selectedMapName').textContent = mapEntry.name;
         document.getElementById('selectedMapDescription').textContent = mapEntry.description || '';
-        document.getElementById('mapSizeStat').textContent = '-';
+        document.getElementById('mapSizeStat').textContent = mapEntry.size || '-';
         document.getElementById('structuresStat').textContent = '-';
         document.getElementById('pathsStat').textContent = '-';
         document.getElementById('environmentStat').textContent = '-';
+        const previewEl = document.getElementById('map-preview-large');
+        if (previewEl) {
+            const placeholder = previewEl.querySelector('.map-preview-placeholder');
+            let img = previewEl.querySelector('.map-preview-img');
+            if (mapEntry.thumbnail) {
+                if (!img) {
+                    img = document.createElement('img');
+                    img.className = 'map-preview-img';
+                    img.alt = mapEntry.name;
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        if (placeholder) placeholder.style.display = 'flex';
+                    };
+                    previewEl.appendChild(img);
+                }
+                img.alt = mapEntry.name;
+                img.src = mapEntry.thumbnail;
+                img.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                if (img) img.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        }
     }
 
     async playSelectedMap() {

@@ -95,7 +95,7 @@ export class Game {
             this.difficulty = difficulty || 'medium';
             console.debug(`Game initialized with difficulty: ${this.difficulty}`);
             
-            // Load material quality setting (support 4 levels: high, medium, low, minimal)
+            // Load performance profile (support 4 levels: high, medium, low, minimal)
             const materialQuality = await storageService.loadData(STORAGE_KEYS.QUALITY_LEVEL);
             const validQualityLevels = ['high', 'medium', 'low', 'minimal'];
             this.materialQuality = validQualityLevels.includes(materialQuality) ? materialQuality : 'medium';
@@ -203,8 +203,8 @@ export class Game {
 
             
             // Initialize renderer with quality settings from storage
-            // Use stored quality level or 'high' as default
-            const qualityLevel = await storageService.loadData(STORAGE_KEYS.QUALITY_LEVEL) || 'high';
+            // Use stored quality level or 'medium' as default (better for tablets)
+            const qualityLevel = await storageService.loadData(STORAGE_KEYS.QUALITY_LEVEL) || 'medium';
             this.renderer = this.createRenderer(qualityLevel);
             
             this.updateLoadingProgress(10, 'Creating game world...', 'Setting up scene');
@@ -240,9 +240,10 @@ export class Game {
             
             this.updateLoadingProgress(20, 'Building world...', 'Generating terrain and environment');
             
-            // Initialize world with loading state
+            // Initialize world with loading state (pass quality for performance profile)
             this.isWorldLoading = true;
-            this.world = new WorldManager(this.scene, this.loadingManager, this);
+            const worldQuality = this.materialQuality || qualityLevel || 'medium';
+            this.world = new WorldManager(this.scene, this.loadingManager, this, worldQuality);
             
             // Show a more detailed loading message for terrain generation
             this.updateLoadingProgress(25, 'Generating terrain...', 'This may take a moment');
@@ -331,8 +332,9 @@ export class Game {
 
             this.updateLoadingProgress(100, 'Game ready!', 'Initialization complete');
             
-            // Apply performance optimizations to the scene
-            SceneOptimizer.optimizeScene(this.scene);
+            // Apply performance optimizations to the scene (use quality for low-end tablet support)
+            const initQuality = this.materialQuality || 'medium';
+            SceneOptimizer.optimizeScene(this.scene, initQuality);
             
             // Apply material quality setting once during initialization
             if (this.materialQuality) {
@@ -1087,9 +1089,9 @@ export class Game {
             this.world.lodManager.updateQualitySettings(quality);
         }
         
-        // Update performance manager settings
+        // Update performance manager (cache quality for getCurrentQualityLevel)
         if (this.performanceManager) {
-            this.performanceManager.updateQualitySettings(quality);
+            this.performanceManager.currentQualityLevel = quality;
         }
         
         console.debug(`Material quality updated to: ${quality}`);

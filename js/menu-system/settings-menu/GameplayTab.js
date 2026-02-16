@@ -347,12 +347,12 @@ export class GameplayTab extends SettingsTab {
                 this.materialQualitySelect.remove(0);
             }
             
-            // Define material quality options (4 levels)
+            // Define performance profile options (for low-end tablets)
             const materialQualityOptions = [
-                { value: 'high', name: 'High Quality (PBR Materials)' },
-                { value: 'medium', name: 'Medium Quality (Phong Materials)' },
-                { value: 'low', name: 'Low Quality (Optimized for Low-End Devices)' },
-                { value: 'minimal', name: '8-Bit Retro Mode (Pixelated Graphics)' }
+                { value: 'high', name: 'High — Desktop / Good tablets' },
+                { value: 'medium', name: 'Medium — Slower tablets' },
+                { value: 'low', name: 'Low — Low-end tablets (recommended if freezing)' },
+                { value: 'minimal', name: 'Minimal — Weak tablets (lowest quality)' }
             ];
             
             // Add material quality options
@@ -363,17 +363,17 @@ export class GameplayTab extends SettingsTab {
                 this.materialQualitySelect.appendChild(optionElement);
             }
             
-            // Set current material quality (default to 'high')
-            const currentMaterialQuality = this.loadSettingSync(STORAGE_KEYS.QUALITY_LEVEL, 'high');
+            // Set current performance profile (default to 'medium' for better tablet compatibility)
+            const currentMaterialQuality = this.loadSettingSync(STORAGE_KEYS.QUALITY_LEVEL, 'medium');
             
             console.debug(`Loading material quality setting: ${currentMaterialQuality}`);
             this.materialQualitySelect.value = currentMaterialQuality;
             
-            // If the value wasn't set correctly, explicitly set it to 'high'
+            // If the value wasn't set correctly, explicitly set it to 'medium'
             if (!this.materialQualitySelect.value) {
-                console.debug('Invalid material quality setting detected, defaulting to high');
-                this.materialQualitySelect.value = 'high';
-                this.saveSetting(STORAGE_KEYS.QUALITY_LEVEL, 'high');
+                console.debug('Invalid performance profile detected, defaulting to medium');
+                this.materialQualitySelect.value = 'medium';
+                this.saveSetting(STORAGE_KEYS.QUALITY_LEVEL, 'medium');
             }
             
             // Add change event listener

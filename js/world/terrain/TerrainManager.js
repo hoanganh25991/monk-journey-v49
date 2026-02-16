@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS } from '../../config/terrain.js';
+import { getPerformanceProfile } from '../../config/performance-profile.js';
 
 /**
  * Optimized Terrain Manager
@@ -8,19 +9,23 @@ import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS } from '../../config/terrain.js';
  * Combines all terrain functionality into a single, efficient class
  */
 export class TerrainManager {
-    constructor(scene, worldManager, game = null) {
+    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        const profile = getPerformanceProfile(this.qualityLevel);
         
-        // Terrain configuration
+        // Terrain configuration (quality-aware for low-end tablets)
         this.config = {
             chunkSize: TERRAIN_CONFIG?.chunkSize || 64,
-            viewDistance: TERRAIN_CONFIG?.chunkViewDistance || 3,
-            bufferDistance: TERRAIN_CONFIG?.bufferDistance || 5,
-            resolution: TERRAIN_CONFIG?.resolution || 32,
+            viewDistance: profile.viewDistance,
+            bufferDistance: profile.bufferDistance,
+            resolution: profile.terrainLod.nearResolution,
             height: TERRAIN_CONFIG?.height || 10,
-            size: TERRAIN_CONFIG?.size || 1000
+            size: TERRAIN_CONFIG?.size || 1000,
+            terrainLod: profile.terrainLod,
+            chunksPerFrame: profile.chunksPerFrame
         };
         
         // Core data structures - simplified
@@ -32,10 +37,10 @@ export class TerrainManager {
         this.playerChunk = { x: 0, z: 0 };
         this.movementDirection = new THREE.Vector3();
         
-        // Performance management
+        // Performance management (quality-aware)
         this.isProcessing = false;
-        this.maxProcessingTime = 5; // 5ms per frame - avoid zone-boundary freeze
-        this.maxQueueSize = 14; // Buffer more chunks so terrain ready before zone boundary
+        this.maxProcessingTime = this.qualityLevel === 'minimal' ? 3 : 5; // Less time per frame on minimal
+        this.maxQueueSize = this.qualityLevel === 'minimal' ? 8 : 14;
         
         // Base terrain
         this.baseTerrain = null;
@@ -164,7 +169,7 @@ export class TerrainManager {
      */
     updateVisibleChunks(centerChunk) {
         const viewDistance = this.config.viewDistance;
-        const maxVisiblePerFrame = 2; // Limit terrain chunks created per frame to avoid 3–5s freeze
+        const maxVisiblePerFrame = this.config.chunksPerFrame ?? 2;
         
         const needCreation = [];
         for (let x = centerChunk.x - viewDistance; x <= centerChunk.x + viewDistance; x++) {
@@ -277,22 +282,23 @@ export class TerrainManager {
     }
     
     /**
-     * Create a terrain chunk
+     * Create a terrain chunk (quality-aware resolution for low-end tablets)
      */
     createChunk(chunkX, chunkZ, isImmediate = false) {
         const worldX = chunkX * this.config.chunkSize;
         const worldZ = chunkZ * this.config.chunkSize;
         const chunkKey = `${chunkX},${chunkZ}`;
         
-        // Buffer chunks use lower resolution for performance (fewer vertices)
+        // Quality-aware resolution: immediate = near, buffered = far/buffer
+        const lod = this.config.terrainLod || { nearResolution: 32, midResolution: 16, farResolution: 8, bufferResolution: 6 };
         const resolution = isImmediate 
-            ? Math.floor(this.config.resolution / 2) 
-            : Math.floor(this.config.resolution / 4);
+            ? lod.nearResolution 
+            : lod.bufferResolution;
         const geometry = this.createTerrainGeometry(
             worldX, 
             worldZ, 
             this.config.chunkSize, 
-            Math.max(8, resolution)
+            Math.max(4, resolution)
         );
         
         // Get zone type for this position (lightweight - no ZoneManager)

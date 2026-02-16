@@ -11,6 +11,8 @@ import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
+import { getPerformanceProfile } from '../config/performance-profile.js';
+import { LodManager } from './LodManager.js';
 
 /**
  * Optimized World Manager
@@ -18,19 +20,23 @@ import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
  * Focuses on core responsibilities: coordination, performance monitoring, and object management
  */
 export class WorldManager {
-    constructor(scene, loadingManager, game) {
+    constructor(scene, loadingManager, game, qualityLevel = 'medium') {
         this.scene = scene;
         this.loadingManager = loadingManager;
         this.game = game;
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
-        // Core managers - only essential ones
-        this.terrainManager = new TerrainManager(scene, this, game);
+        // Core managers - only essential ones (pass quality for low-end tablet support)
+        this.terrainManager = new TerrainManager(scene, this, game, this.qualityLevel);
         this.lightingManager = new LightingManager(scene);
         this.skyManager = new SkyManager(scene);
         this.fogManager = new FogManager(scene, this, game);
-        this.structureManager = new StructureManager(scene, this, game);
-        this.environmentManager = new EnvironmentManager(scene, this, game);
+        this.structureManager = new StructureManager(scene, this, game, this.qualityLevel);
+        this.environmentManager = new EnvironmentManager(scene, this, game, this.qualityLevel);
         this.interactiveManager = new InteractiveObjectManager(scene, this, game);
+        // LodManager only when LOD is enabled (not on minimal - reduces overhead)
+        this.lodManager = this.performanceProfile.lodEnabled ? new LodManager(this, this.qualityLevel) : null;
         this.teleportManager = new TeleportManager(scene, this, game);
         
         // Performance monitoring
@@ -78,14 +84,25 @@ export class WorldManager {
     
     /**
      * Apply a pre-generated map - buffers map data in memory, no localStorage
-     * @param {Object} mapData - Map JSON (id, name, bounds, spawn, structures, environment)
+     * When map has structures[] or environment[], loads them; otherwise chunk gen will fill.
+     * @param {Object} mapData - Map JSON (id, name, bounds, spawn, zoneStyle?, structures, environment)
      */
     applyMap(mapData) {
         if (!mapData) {
             this.currentMap = null;
+            this.structureManager?.clear();
+            this.environmentManager?.clear();
             return;
         }
         this.currentMap = mapData;
+        this.structureManager?.clear();
+        this.environmentManager?.clear();
+        if (mapData.structures?.length) {
+            this.structureManager.loadFromMapData(mapData.structures);
+        }
+        if (mapData.environment?.length) {
+            this.environmentManager.loadFromMapData(mapData.environment);
+        }
         console.debug(`Map applied: ${mapData.name || mapData.id}`);
     }
     
@@ -110,6 +127,7 @@ export class WorldManager {
      * No ZoneManager needed - just distance check vs zone circles.
      */
     getZoneTypeAt(worldX, worldZ) {
+        if (this.currentMap?.zoneStyle) return this.currentMap.zoneStyle;
         if (!ZONE_DEFINITIONS || ZONE_DEFINITIONS.length === 0) return 'Terrant';
         const cx = (typeof worldX === 'number' ? worldX : (worldX?.x ?? 0));
         const cz = (typeof worldZ === 'number' ? worldZ : (worldX?.z ?? worldZ ?? 0));
@@ -205,7 +223,7 @@ export class WorldManager {
         const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
         const spaceRadius = PLAYER_SPACE_CHUNKS;
         const genDistance = spaceRadius; // Generate within space; throttle keeps it smooth
-        const maxStructureChunksPerFrame = 2;
+        const maxStructureChunksPerFrame = this.performanceProfile.structureChunksPerFrame;
         if (this.structureManager && this.structureManager.generateStructuresForChunk) {
             const structPending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
@@ -224,7 +242,7 @@ export class WorldManager {
             }
         }
         // Environment generation - throttled, prioritized by distance to avoid 3–5s freeze/flicker
-        const maxEnvChunksPerFrame = 2;
+        const maxEnvChunksPerFrame = this.performanceProfile.envChunksPerFrame;
         if (this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
             const pending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {

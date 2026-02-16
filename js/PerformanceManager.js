@@ -106,7 +106,12 @@ export class PerformanceManager {
     }
 
     getCurrentQualityLevel() {
-        return this.currentQualityLevel;
+        // Prefer game's materialQuality (from Settings) over cached value
+        if (this.game && this.game.materialQuality) {
+            return this.game.materialQuality;
+        }
+        const stored = localStorage.getItem(STORAGE_KEYS.QUALITY_LEVEL);
+        return ['high', 'medium', 'low', 'minimal'].includes(stored) ? stored : 'medium';
     }
 
     getCurrentPerformanceLevel() {

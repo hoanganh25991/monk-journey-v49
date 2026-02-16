@@ -8,16 +8,19 @@ import { DarkSanctum } from './DarkSanctum.js';
 import { Mountain } from './Mountain.js';
 import { Bridge } from './Bridge.js';
 import { Village } from './Village.js';
+import { getPerformanceProfile } from '../../config/performance-profile.js';
 
 /**
  * Manages structure loading and placement from map data
  * Simplified to focus only on loading existing structures from map data
  */
 export class StructureManager {
-    constructor(scene, worldManager, game = null) {
+    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Initialize structure factory
         this.structureFactory = new StructureFactory(scene, worldManager);
@@ -174,9 +177,10 @@ export class StructureManager {
             }
         });
         
-        // Reset structures collections
+        // Reset structures collections and chunk tracking so chunk gen can run again
         this.structures = [];
         this.specialStructures = {};
+        this.structuresPlaced = {};
         
         console.debug("All structures cleared");
     }
@@ -516,15 +520,18 @@ export class StructureManager {
             return;
         }
         
-        // Calculate probability of placing a structure in this chunk
-        // Apply the structure density setting as a multiplier
-        const baseProbability = 0.2; // Base probability of placing a structure
-        const densityFactor = zoneDensity.structures || 0.2;
-        const probability = baseProbability * densityFactor * this.worldManager.worldScale;
+        // Performance profile multiplier for structure density (low-end tablet support)
+        const profileMultiplier = this.performanceProfile?.structureDensity ?? 1.0;
         
-        // Mountains zone: explicit mountain generation like v42 - 2-4 BIG mountains per chunk
+        // Calculate probability of placing a structure in this chunk
+        const baseProbability = 0.2;
+        const densityFactor = zoneDensity.structures || 0.2;
+        const probability = baseProbability * densityFactor * this.worldManager.worldScale * profileMultiplier;
+        
+        // Mountains zone: explicit mountain generation (fewer on low-end)
         if (zoneType === 'Mountains') {
-            const mountainCount = Math.floor(2 + Math.random() * 3); // 2-4 per chunk
+            const maxMountains = profileMultiplier >= 0.5 ? 3 : (profileMultiplier >= 0.2 ? 2 : 1);
+            const mountainCount = Math.floor(1 + Math.random() * maxMountains);
             for (let i = 0; i < mountainCount; i++) {
                 const x = worldX + Math.random() * chunkSize * 0.8 + chunkSize * 0.1;
                 const z = worldZ + Math.random() * chunkSize * 0.8 + chunkSize * 0.1;
