@@ -46,6 +46,42 @@ export class MiniMapUI extends UIComponent {
         this.minScale = 0.5; // Minimum zoom level
         this.maxScale = 3.0; // Maximum zoom level
         this.defaultScale = 1.0; // Default zoom level
+        
+        // Auto-fit sizing to avoid overlap with bottom-right skills
+        this.MIN_MAP_SIZE = 80;
+        this.MAX_MAP_SIZE = 200;
+        this.MINIMAP_TOP = 60;
+        this.MARGIN = 20;
+        this.SKILLS_AREA_ESTIMATE = 260; // Fallback when right-side-ui not measurable
+    }
+    
+    /**
+     * Calculate maximum minimap size to fit in available space (avoid overlapping skills)
+     * @returns {number} Size in pixels (width and height - minimap is square)
+     */
+    getMaxMinimapSize() {
+        const rightSideUi = document.getElementById('right-side-ui');
+        let availableHeight = window.innerHeight - this.MINIMAP_TOP - this.MARGIN;
+        
+        if (rightSideUi) {
+            const rect = rightSideUi.getBoundingClientRect();
+            if (rect.height > 0 && rect.top > 0) {
+                // Skills area is visible - use actual top edge
+                availableHeight = rect.top - this.MINIMAP_TOP - this.MARGIN;
+            } else {
+                // HUD might be hidden - use estimate
+                availableHeight = window.innerHeight - this.MINIMAP_TOP - this.SKILLS_AREA_ESTIMATE - this.MARGIN;
+            }
+        } else {
+            availableHeight = window.innerHeight - this.MINIMAP_TOP - this.SKILLS_AREA_ESTIMATE - this.MARGIN;
+        }
+        
+        const availableWidth = window.innerWidth - 20; // Account for right margin
+        const sizeByHeight = Math.floor(availableHeight);
+        const sizeByWidth = Math.floor(Math.min(availableWidth, this.MAX_MAP_SIZE));
+        const fittedSize = Math.min(sizeByHeight, sizeByWidth, this.MAX_MAP_SIZE);
+        
+        return Math.max(this.MIN_MAP_SIZE, Math.min(fittedSize, this.MAX_MAP_SIZE));
     }
     
     /**
@@ -114,24 +150,28 @@ export class MiniMapUI extends UIComponent {
             e.preventDefault();
         });
         
-        // Set exact dimensions for both container and canvas
-        this.updateMapSize();
+        // Set exact dimensions for both container and canvas (auto-fit to avoid skills overlap)
+        this.recalculateAndUpdateMapSize();
+        
+        // Delayed recalculate when HUD becomes visible (layout may not be ready at init)
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => this.recalculateAndUpdateMapSize());
+        });
         
         // Add window resize listener to adjust map size on screen size changes
-        window.addEventListener('resize', () => {
-            // Check if we're on mobile
-            const mobile = window.innerWidth <= 768;
-            
-            // Update map size based on device
-            this.mapSize = mobile ? 100 : 200;
-            this.canvasSize = this.mapSize;
-            
-            // Update the map dimensions
-            this.updateMapSize();
-            
-            // Force a re-render of the map
-            this.renderMiniMap();
-        });
+        window.addEventListener('resize', () => this.recalculateAndUpdateMapSize());
+        
+        // Observe layout changes (e.g. when skills load) to recalculate available space
+        const hudContainer = document.getElementById('hud-container');
+        if (hudContainer && typeof ResizeObserver !== 'undefined') {
+            let resizeTimeout;
+            const resizeObserver = new ResizeObserver(() => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => this.recalculateAndUpdateMapSize(), 50);
+            });
+            resizeObserver.observe(hudContainer);
+            this._resizeObserver = resizeObserver;
+        }
         
         // Add CSS for map controls
         this.addMapControlStyles();
@@ -259,6 +299,20 @@ export class MiniMapUI extends UIComponent {
     }
     
     /**
+     * Recalculate minimap size to fit available space and update DOM
+     * Prevents overlap with bottom-right skills on small screens (e.g. POCO X7)
+     */
+    recalculateAndUpdateMapSize() {
+        const fittedSize = this.getMaxMinimapSize();
+        this.mapSize = fittedSize;
+        this.canvasSize = fittedSize;
+        this.updateMapSize();
+        if (this.visible) {
+            this.renderMiniMap();
+        }
+    }
+    
+    /**
      * Update the map size based on current settings
      */
     updateMapSize() {
@@ -267,6 +321,9 @@ export class MiniMapUI extends UIComponent {
         // Set exact dimensions for both container and canvas
         this.mapElement.style.width = `${this.mapSize}px`;
         this.mapElement.style.height = `${this.mapSize}px`;
+        
+        // Compact mode for small minimaps - scale down control buttons
+        this.mapElement.classList.toggle('minimap-compact', this.mapSize < 120);
         
         // Ensure canvas has the correct dimensions
         this.canvas.width = this.canvasSize;

@@ -4,7 +4,7 @@
  * This file contains styles for the mini map
  */
 
-/* Mini Map */
+/* Mini Map - size is set dynamically by JS to fit available space (avoid skills overlap) */
 #mini-map {
     position: absolute;
     top: 60px; /* Position below the right panel buttons */
@@ -12,6 +12,7 @@
     color: white;
     pointer-events: auto; /* Ensure clicks are registered */
     z-index: 50; /* Below UI Controls but above other elements */
+    /* Default size - overridden by MiniMapUI.recalculateAndUpdateMapSize() */
     width: 200px;
     height: 200px;
 }
@@ -62,15 +63,22 @@
     font-size: 16px !important;
 }
 
+/* Compact minimap - smaller control buttons when auto-scaled small */
+#mini-map.minimap-compact #mini-map-controls button {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    margin-bottom: 3px;
+}
+
+#mini-map.minimap-compact #mini-map-center-btn {
+    font-size: 12px !important;
+}
+
 @media (max-height: 430px) {
-    #mini-map {
+    /* Fallback for very short screens - JS auto-fit takes precedence when HUD visible */
+    #mini-map:not([style*="width"]) {
         width: 120px;
         height: 120px;
-    }
-    
-    #mini-map-controls button {
-        width: 20px;
-        height: 20px;
-        font-size: 12px;
     }
 }
