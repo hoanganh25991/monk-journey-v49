@@ -46,39 +46,39 @@ export const ZONE_STRUCTURE_DENSITY = {
 
 /**
  * Zone definitions with positions and radii
- * These define the physical layout of zones in the world
+ * Zones are 10x larger to reduce zone-boundary lag and make biome transitions feel natural
  */
 export const ZONE_DEFINITIONS = [
     // Central Terrant zone (starting area)
     {
         name: ZONE_TYPES.TERRANT,
         center: { x: 0, y: 0, z: 0 },
-        radius: 150,
+        radius: 1500,
         color: ZONE_COLORS.Terrant.soil
     },
-    // Four cardinal direction zones
+    // Four cardinal direction zones - 10x farther apart
     {
         name: ZONE_TYPES.FOREST,
-        center: { x: 200, y: 0, z: 0 },
-        radius: 120,
+        center: { x: 2000, y: 0, z: 0 },
+        radius: 1200,
         color: ZONE_COLORS.Forest.foliage
     },
     {
         name: ZONE_TYPES.DESERT,
-        center: { x: -200, y: 0, z: 0 },
-        radius: 120,
+        center: { x: -2000, y: 0, z: 0 },
+        radius: 1200,
         color: ZONE_COLORS.Desert.sand
     },
     {
         name: ZONE_TYPES.MOUNTAIN,
-        center: { x: 0, y: 0, z: 200 },
-        radius: 120,
+        center: { x: 0, y: 0, z: 2000 },
+        radius: 1200,
         color: ZONE_COLORS.Mountains.ice
     },
     {
         name: ZONE_TYPES.SWAMP,
-        center: { x: 0, y: 0, z: -200 },
-        radius: 120,
+        center: { x: 0, y: 0, z: -2000 },
+        radius: 1200,
         color: ZONE_COLORS.Swamp.vegetation
     }
 ];

@@ -34,8 +34,8 @@ export class TerrainManager {
         
         // Performance management
         this.isProcessing = false;
-        this.maxProcessingTime = 8; // 8ms per frame - leave headroom for 60fps
-        this.maxQueueSize = 12; // Fewer buffered chunks
+        this.maxProcessingTime = 5; // 5ms per frame - avoid zone-boundary freeze
+        this.maxQueueSize = 8; // Fewer queued chunks at zone boundaries
         
         // Base terrain
         this.baseTerrain = null;
@@ -160,19 +160,17 @@ export class TerrainManager {
     }
     
     /**
-     * Update visible chunks around player
+     * Update visible chunks around player - throttled to avoid zone-boundary freeze
      */
     updateVisibleChunks(centerChunk) {
         const viewDistance = this.config.viewDistance;
+        const maxVisiblePerFrame = 2; // Limit terrain chunks created per frame to avoid 3–5s freeze
         
+        const needCreation = [];
         for (let x = centerChunk.x - viewDistance; x <= centerChunk.x + viewDistance; x++) {
             for (let z = centerChunk.z - viewDistance; z <= centerChunk.z + viewDistance; z++) {
                 const chunkKey = `${x},${z}`;
-                
-                // Skip if already visible
                 if (this.chunks.has(chunkKey)) continue;
-                
-                // Check if in buffer, move to active
                 if (this.buffer.has(chunkKey)) {
                     const chunk = this.buffer.get(chunkKey);
                     this.buffer.delete(chunkKey);
@@ -180,9 +178,19 @@ export class TerrainManager {
                     this.scene.add(chunk);
                     continue;
                 }
-                
-                // Create immediately for visible chunks
-                this.createChunk(x, z, true);
+                const dx = x - centerChunk.x, dz = z - centerChunk.z;
+                needCreation.push({ x, z, chunkKey, dist: dx * dx + dz * dz });
+            }
+        }
+        needCreation.sort((a, b) => a.dist - b.dist);
+        for (let i = 0; i < Math.min(maxVisiblePerFrame, needCreation.length); i++) {
+            const c = needCreation[i];
+            this.createChunk(c.x, c.z, true);
+        }
+        for (let i = maxVisiblePerFrame; i < needCreation.length; i++) {
+            const c = needCreation[i];
+            if (!this.isInQueue(c.x, c.z)) {
+                this.queue.unshift({ x: c.x, z: c.z, chunkKey: c.chunkKey, priority: 999 });
             }
         }
     }
