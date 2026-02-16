@@ -89,7 +89,7 @@ export class GameplayTab extends SettingsTab {
         } else if (key === STORAGE_KEYS.CUSTOM_SKILLS && this.customSkillsCheckbox) {
             this.customSkillsCheckbox.checked = newValue === true || newValue === 'true';
         } else if (key === STORAGE_KEYS.CAMERA_ZOOM && this.cameraZoomSlider) {
-            const zoomValue = parseInt(newValue) || 20;
+            const zoomValue = parseInt(newValue) || 15;
             this.cameraZoomSlider.value = zoomValue;
             if (this.cameraZoomValue) {
                 this.cameraZoomValue.textContent = zoomValue;
@@ -240,7 +240,7 @@ export class GameplayTab extends SettingsTab {
             this.cameraZoomSlider.step = 1;  // 1 unit increments
             
             // Get stored zoom value synchronously or use default
-            const defaultZoom = 20; // Default camera distance
+            const defaultZoom = 15; // Default camera distance
             const storedZoom = this.loadSettingSync(STORAGE_KEYS.CAMERA_ZOOM, defaultZoom);
             const currentZoom = parseInt(storedZoom) || defaultZoom;
             
@@ -591,11 +591,11 @@ export class GameplayTab extends SettingsTab {
         }
         
         if (this.cameraZoomSlider) {
-            this.cameraZoomSlider.value = 20; // Default camera distance
+            this.cameraZoomSlider.value = 15; // Default camera distance
             
             // Update the display value
             if (this.cameraZoomValue) {
-                this.cameraZoomValue.textContent = 20;
+                this.cameraZoomValue.textContent = 15;
             }
         }
         
