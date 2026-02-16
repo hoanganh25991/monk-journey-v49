@@ -4,6 +4,7 @@ import { StructureManager } from './structures/StructureManager.js';
 import { EnvironmentManager } from './environment/EnvironmentManager.js';
 import { InteractiveObjectManager } from './interactive/InteractiveObjectManager.js';
 import { ZONE_DEFINITIONS, ZONE_DENSITIES } from '../config/density.js';
+import { PLAYER_SPACE_CHUNKS } from '../config/terrain.js';
 import { LightingManager } from './lighting/LightingManager.js';
 import { FogManager } from './environment/FogManager.js';
 import { SkyManager } from './environment/SkyManager.js';
@@ -198,11 +199,12 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
         
-        // Chunk-based structure + environment generation (like v42) - throttled to avoid freeze
+        // Virtual "player space" - only this bubble is kept; zone-agnostic (can span 2 zones)
         const chunkSize = this.terrainManager.terrainChunkSize || 64;
         const playerChunkX = Math.floor(playerPosition.x / chunkSize);
         const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
-        const genDistance = 2;
+        const spaceRadius = PLAYER_SPACE_CHUNKS;
+        const genDistance = spaceRadius; // Generate within space; throttle keeps it smooth
         const maxStructureChunksPerFrame = 2;
         if (this.structureManager && this.structureManager.generateStructuresForChunk) {
             const structPending = [];
@@ -240,9 +242,13 @@ export class WorldManager {
                 this.environmentManager.generateEnvironmentForChunk(c.x, c.z);
             }
         }
-        // Update environment visibility and cleanup
+        // Update environment visibility and cleanup (uses same space radius)
         if (this.environmentManager && this.environmentManager.updateForPlayer) {
-            this.environmentManager.updateForPlayer(playerPosition, 1.0);
+            this.environmentManager.updateForPlayer(playerPosition, 1.0, spaceRadius);
+        }
+        // Unload structures outside player space so we don't carry the whole zone
+        if (this.structureManager && this.structureManager.cleanupChunksOutsideSpace) {
+            this.structureManager.cleanupChunksOutsideSpace(playerChunkX, playerChunkZ, spaceRadius);
         }
         
         // Random world content generation - DISABLED for performance

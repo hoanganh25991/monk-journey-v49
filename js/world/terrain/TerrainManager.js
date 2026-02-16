@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ZONE_COLORS } from '../../config/colors.js';
-import { TERRAIN_CONFIG } from '../../config/terrain.js';
+import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS } from '../../config/terrain.js';
 
 /**
  * Optimized Terrain Manager
@@ -35,7 +35,7 @@ export class TerrainManager {
         // Performance management
         this.isProcessing = false;
         this.maxProcessingTime = 5; // 5ms per frame - avoid zone-boundary freeze
-        this.maxQueueSize = 8; // Fewer queued chunks at zone boundaries
+        this.maxQueueSize = 14; // Buffer more chunks so terrain ready before zone boundary
         
         // Base terrain
         this.baseTerrain = null;
@@ -864,10 +864,10 @@ export class TerrainManager {
     }
     
     /**
-     * Cleanup distant chunks to manage memory
+     * Cleanup chunks outside player space (zone-agnostic bubble)
      */
     cleanupDistantChunks(centerChunk) {
-        const cleanupDistance = this.config.bufferDistance + 2;
+        const cleanupDistance = (typeof PLAYER_SPACE_CHUNKS === 'number' ? PLAYER_SPACE_CHUNKS : this.config.bufferDistance) + 1;
         const chunksToRemove = [];
         
         // Check active chunks

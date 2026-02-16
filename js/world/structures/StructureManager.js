@@ -727,78 +727,42 @@ export class StructureManager {
     // Use structureFactory.createStructure() directly instead
     
     /**
-     * Remove structures in a specific chunk
+     * Remove structures in a specific chunk (supports structureData: { object, position, chunkKey })
      * @param {string} chunkKey - The chunk key (x,z format)
      * @param {boolean} disposeResources - Whether to dispose of geometries and materials
      */
     removeStructuresInChunk(chunkKey, disposeResources = false) {
-        // Check if we have structures in this chunk
-        if (this.structuresPlaced[chunkKey]) {
-            // Get structures in this chunk
-            const structuresToRemove = this.structures.filter(structure => {
-                // Check if structure has position data
-                if (structure.userData && structure.userData.chunkKey === chunkKey) {
-                    return true;
-                }
-                return false;
-            });
-            
-            // Remove structures from scene and dispose resources
-            structuresToRemove.forEach(structure => {
-                // Remove from scene
-                if (structure.parent) {
-                    this.scene.remove(structure);
-                }
-                
-                // Dispose of resources if requested
-                if (disposeResources) {
-                    // Dispose of geometry
-                    if (structure.geometry) {
-                        structure.geometry.dispose();
+        if (!this.structuresPlaced[chunkKey]) return;
+        const isInChunk = s => (s.chunkKey === chunkKey) || (s.object && s.object.userData && s.object.userData.chunkKey === chunkKey);
+        const structuresToRemove = this.structures.filter(isInChunk);
+        structuresToRemove.forEach(structureData => {
+            const obj = structureData.object || structureData;
+            if (obj.parent) this.scene.remove(obj);
+            if (disposeResources && obj.traverse) {
+                obj.traverse(o => {
+                    if (o.geometry) o.geometry.dispose();
+                    if (o.material) {
+                        if (Array.isArray(o.material)) o.material.forEach(m => m.dispose());
+                        else o.material.dispose();
                     }
-                    
-                    // Dispose of materials
-                    if (structure.material) {
-                        if (Array.isArray(structure.material)) {
-                            structure.material.forEach(material => {
-                                if (material.map) material.map.dispose();
-                                material.dispose();
-                            });
-                        } else {
-                            if (structure.material.map) structure.material.map.dispose();
-                            structure.material.dispose();
-                        }
-                    }
-                    
-                    // Handle child objects
-                    if (structure.children && structure.children.length > 0) {
-                        structure.children.forEach(child => {
-                            if (child.geometry) child.geometry.dispose();
-                            if (child.material) {
-                                if (Array.isArray(child.material)) {
-                                    child.material.forEach(material => {
-                                        if (material.map) material.map.dispose();
-                                        material.dispose();
-                                    });
-                                } else {
-                                    if (child.material.map) child.material.map.dispose();
-                                    child.material.dispose();
-                                }
-                            }
-                        });
-                    }
-                }
-            });
-            
-            // Remove structures from the structures array
-            this.structures = this.structures.filter(structure => {
-                return !(structure.userData && structure.userData.chunkKey === chunkKey);
-            });
-            
-            // Remove from structuresPlaced
-            delete this.structuresPlaced[chunkKey];
-            
-            // console.debug(`Removed ${structuresToRemove.length} structures from chunk ${chunkKey}`);
+                });
+            }
+        });
+        this.structures = this.structures.filter(s => !isInChunk(s));
+        delete this.structuresPlaced[chunkKey];
+    }
+
+    /**
+     * Unload chunks outside the player's virtual space (zone-agnostic bubble)
+     * Keeps only chunks within spaceRadius of (centerChunkX, centerChunkZ)
+     */
+    cleanupChunksOutsideSpace(centerChunkX, centerChunkZ, spaceRadius) {
+        for (const chunkKey of Object.keys(this.structuresPlaced)) {
+            const [x, z] = chunkKey.split(',').map(Number);
+            const dist = Math.max(Math.abs(x - centerChunkX), Math.abs(z - centerChunkZ));
+            if (dist > spaceRadius) {
+                this.removeStructuresInChunk(chunkKey, true);
+            }
         }
     }
     

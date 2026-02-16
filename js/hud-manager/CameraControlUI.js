@@ -75,6 +75,9 @@ export class CameraControlUI extends UIComponent {
         this.baseElement = null;
         this.handleElement = null;
         
+        // Timeout for click-hint auto-hide
+        this.clickHintTimeout = null;
+        
         console.debug("CameraControlUI initialized with camera mode support");
     }
     
@@ -517,9 +520,14 @@ export class CameraControlUI extends UIComponent {
                     
                     // If moved enough, activate camera control
                     if (dragDistanceX > minDragDistance || dragDistanceY > minDragDistance) {
+                        if (this.clickHintTimeout) {
+                            clearTimeout(this.clickHintTimeout);
+                            this.clickHintTimeout = null;
+                        }
                         this.cameraState.active = true;
-                        // Show the visual indicator since we confirmed it's a drag
-                        this.showVisualIndicator(this.cameraState.startX, this.cameraState.startY);
+                        // Show the visual indicator centered on the camera button
+                        const center = this.getCameraButtonCenter();
+                        if (center) this.showVisualIndicator(center.x, center.y);
                         console.debug("Camera drag activated after movement threshold");
                     }
                 }
@@ -539,9 +547,9 @@ export class CameraControlUI extends UIComponent {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a tap (not a drag), handle it as a quick camera reset
+                // If it was just a tap (not a drag), show 4-direction hint then hide (no camera effect)
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.resetCameraToDefault();
+                    this.showClickHint();
                 } else {
                     // Otherwise handle as camera control end
                     this.handleCameraControlEnd();
@@ -574,8 +582,13 @@ export class CameraControlUI extends UIComponent {
                     // If moved enough, activate camera control
                     if (dragDistanceX > minDragDistance || dragDistanceY > minDragDistance) {
                         this.cameraState.active = true;
-                        // Show the visual indicator since we confirmed it's a drag
-                        this.showVisualIndicator(this.cameraState.startX, this.cameraState.startY);
+                        if (this.clickHintTimeout) {
+                            clearTimeout(this.clickHintTimeout);
+                            this.clickHintTimeout = null;
+                        }
+                        // Show the visual indicator centered on the camera button
+                        const center = this.getCameraButtonCenter();
+                        if (center) this.showVisualIndicator(center.x, center.y);
                         console.debug("Camera drag activated after movement threshold");
                     }
                 }
@@ -593,9 +606,9 @@ export class CameraControlUI extends UIComponent {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a click (not a drag), handle it as a quick camera reset
+                // If it was just a click (not a drag), show 4-direction hint then hide (no camera effect)
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.resetCameraToDefault();
+                    this.showClickHint();
                 } else {
                     // Otherwise handle as camera control end
                     this.handleCameraControlEnd();
@@ -794,14 +807,27 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Show and position the visual indicator
-     * @param {number} x - X position
-     * @param {number} y - Y position
+     * Get the camera button center in client coordinates (so the 4-direction circle can share the same center).
+     * @returns {{ x: number, y: number } | null}
+     */
+    getCameraButtonCenter() {
+        if (!this.cameraButton) return null;
+        const rect = this.cameraButton.getBoundingClientRect();
+        return {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2
+        };
+    }
+    
+    /**
+     * Show and position the visual indicator (centered on the camera button).
+     * @param {number} x - X position (client; typically camera button center)
+     * @param {number} y - Y position (client; typically camera button center)
      */
     showVisualIndicator(x, y) {
         if (!this.indicatorContainer) return;
         
-        // Position the indicator container at the start position
+        // Position the indicator container so its center is at (x, y)
         this.indicatorContainer.style.left = `${x}px`;
         this.indicatorContainer.style.top = `${y}px`;
         
@@ -811,6 +837,25 @@ export class CameraControlUI extends UIComponent {
         
         // Show the indicator
         this.indicatorContainer.style.display = 'block';
+    }
+    
+    /**
+     * Show the 4-direction indicator briefly on click (no camera effect) to hint "hold and drag".
+     */
+    showClickHint() {
+        const center = this.getCameraButtonCenter();
+        if (!center || !this.indicatorContainer) return;
+        
+        if (this.clickHintTimeout) {
+            clearTimeout(this.clickHintTimeout);
+            this.clickHintTimeout = null;
+        }
+        
+        this.showVisualIndicator(center.x, center.y);
+        this.clickHintTimeout = setTimeout(() => {
+            this.indicatorContainer.style.display = 'none';
+            this.clickHintTimeout = null;
+        }, 800);
     }
     
     /**
@@ -1147,6 +1192,11 @@ export class CameraControlUI extends UIComponent {
         // Reset camera control state
         this.cameraState.active = false;
         
+        if (this.clickHintTimeout) {
+            clearTimeout(this.clickHintTimeout);
+            this.clickHintTimeout = null;
+        }
+        
         // Hide the visual indicator
         if (this.indicatorContainer) {
             this.indicatorContainer.style.display = 'none';
@@ -1474,6 +1524,11 @@ export class CameraControlUI extends UIComponent {
         // Hide the indicator instead of removing it
         if (this.indicatorContainer) {
             this.indicatorContainer.style.display = 'none';
+        }
+        
+        if (this.clickHintTimeout) {
+            clearTimeout(this.clickHintTimeout);
+            this.clickHintTimeout = null;
         }
     }
 }
