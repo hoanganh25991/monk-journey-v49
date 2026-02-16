@@ -8,11 +8,11 @@ export const TERRAIN_CONFIG = {
     height: 16, // Maximum terrain height (increased from 4)
 
     // Terrain chunk properties
-    chunkSize: 64, // Size of each terrain chunk (increased from 16)
-    chunkViewDistance: 3, // Reduced from 5 to 3 to improve performance
+    chunkSize: 64, // Size of each terrain chunk
+    chunkViewDistance: 2, // Reduced from 3 for performance - visible chunks around player
     
     // Terrain buffering properties
-    bufferDistance: 5, // Reduced from 12 for better performance
+    bufferDistance: 3, // Reduced from 5 for performance - fewer pre-generated chunks
     
     // Terrain caching properties
     cache: {

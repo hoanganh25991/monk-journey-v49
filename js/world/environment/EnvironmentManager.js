@@ -646,20 +646,12 @@ export class EnvironmentManager {
         // Handle the case when zoneType is a boolean (data-only flag)
         const dataOnly = typeof zoneType === 'boolean' ? zoneType : false;
         
-        // If zoneType is not provided or is a boolean, get it from the world manager
+        // If zoneType is not provided or is a boolean, get it from world coords
         if (!zoneType || typeof zoneType === 'boolean') {
-            // Calculate world coordinates for this chunk
             const chunkSize = this.worldManager.terrainManager.terrainChunkSize;
-            const worldX = chunkX * chunkSize;
-            const worldZ = chunkZ * chunkSize;
-            
-            // Get zone type from the world manager
-            if (this.worldManager && this.worldManager.terrainManager && this.worldManager.terrainManager.chunkManager) {
-                zoneType = this.worldManager.terrainManager.chunkManager.getZoneTypeAt(worldX, worldZ);
-            } else {
-                // Default to Forest if we can't determine zone type
-                zoneType = 'Forest';
-            }
+            const worldX = chunkX * chunkSize + chunkSize / 2;
+            const worldZ = chunkZ * chunkSize + chunkSize / 2;
+            zoneType = this.worldManager?.getZoneTypeAt?.(worldX, worldZ) ?? 'Terrant';
             
             // Get zone density from the world manager
             if (this.worldManager && this.worldManager.zoneDensities) {

@@ -147,10 +147,7 @@ export class FogManager {
         this.lastPlayerPosition.copy(playerPosition);
         
         // Get current zone at player position
-        let zone = null;
-        if (this.worldManager && this.worldManager.zoneManager) {
-            zone = this.worldManager.zoneManager.getZoneAt(playerPosition);
-        }
+        const zone = this.worldManager?.getZoneAt?.(playerPosition) ?? null;
         
         // Get current performance settings
         if (this.game && this.game.performanceManager) {

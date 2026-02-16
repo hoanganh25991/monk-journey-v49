@@ -469,22 +469,12 @@ export class StructureManager {
             return;
         }
         
-        // If zoneType is not provided or is a boolean, get it from the world manager
+        // If zoneType is not provided or is a boolean, get it from world coords
         if (!zoneType || typeof zoneType === 'boolean') {
-            // Calculate world coordinates for this chunk
             const chunkSize = this.worldManager.terrainManager.terrainChunkSize;
-            const worldX = chunkX * chunkSize;
-            const worldZ = chunkZ * chunkSize;
-            
-            // Get zone type from the world manager
-            if (this.worldManager && this.worldManager.terrainManager && this.worldManager.terrainManager.chunkManager) {
-                zoneType = this.worldManager.terrainManager.chunkManager.getZoneTypeAt(worldX, worldZ);
-            } else if (this.worldManager && this.worldManager.zoneManager && this.worldManager.zoneManager.getZoneTypeForChunk) {
-                zoneType = this.worldManager.zoneManager.getZoneTypeForChunk(chunkX, chunkZ);
-            } else {
-                // Default to Forest if we can't determine zone type
-                zoneType = 'Forest';
-            }
+            const worldX = chunkX * chunkSize + chunkSize / 2;
+            const worldZ = chunkZ * chunkSize + chunkSize / 2;
+            zoneType = this.worldManager?.getZoneTypeAt?.(worldX, worldZ) ?? 'Terrant';
             
             // Get zone density from the world manager
             if (this.worldManager && this.worldManager.zoneDensities) {
@@ -531,6 +521,26 @@ export class StructureManager {
         const baseProbability = 0.2; // Base probability of placing a structure
         const densityFactor = zoneDensity.structures || 0.2;
         const probability = baseProbability * densityFactor * this.worldManager.worldScale;
+        
+        // Mountains zone: explicit mountain generation like v42 - 2-4 BIG mountains per chunk
+        if (zoneType === 'Mountains') {
+            const mountainCount = Math.floor(2 + Math.random() * 3); // 2-4 per chunk
+            for (let i = 0; i < mountainCount; i++) {
+                const x = worldX + Math.random() * chunkSize * 0.8 + chunkSize * 0.1;
+                const z = worldZ + Math.random() * chunkSize * 0.8 + chunkSize * 0.1;
+                const mountain = this.structureFactory.createStructure(STRUCTURE_OBJECTS.MOUNTAIN, { x, z });
+                if (mountain) {
+                    mountain.userData.chunkKey = chunkKey;
+                    mountain.userData.structureType = 'mountain';
+                    this.structures.push({
+                        type: STRUCTURE_OBJECTS.MOUNTAIN,
+                        object: mountain,
+                        position: new THREE.Vector3(x, this.worldManager.getTerrainHeight(x, z), z),
+                        chunkKey
+                    });
+                }
+            }
+        }
         
         // Determine if we should place a structure in this chunk
         if (Math.random() < probability) {
@@ -707,40 +717,7 @@ export class StructureManager {
      * @returns {string} - The zone type (Forest, Desert, etc.)
      */
     getZoneTypeAt(x, z) {
-        try {
-            // Use the world manager to get the zone at this position
-            if (this.worldManager && this.worldManager.zoneManager) {
-                // Calculate which chunk this position is in
-                const terrainChunkSize = this.worldManager.terrainManager.terrainChunkSize;
-                const chunkX = Math.floor(x / terrainChunkSize);
-                const chunkZ = Math.floor(z / terrainChunkSize);
-                
-                // Try to get zone type from the zone manager's chunk cache
-                const zoneType = this.worldManager.zoneManager.getZoneTypeForChunk(chunkX, chunkZ);
-                if (zoneType) {
-                    return zoneType;
-                }
-                
-                // Fallback to position-based lookup
-                const position = new THREE.Vector3(x, 0, z);
-                const zone = this.worldManager.zoneManager.getZoneAt(position);
-                if (zone) {
-                    return zone.name;
-                }
-            } else if (this.worldManager && this.worldManager.getZoneAt) {
-                // Legacy method
-                const position = new THREE.Vector3(x, 0, z);
-                const zone = this.worldManager.getZoneAt(position);
-                if (zone) {
-                    return zone.name;
-                }
-            }
-        } catch (error) {
-            console.warn("Error getting zone type:", error);
-        }
-        
-        // Default to Terrant if no zone found or error
-        return 'Terrant';
+        return this.worldManager?.getZoneTypeAt?.(x, z) ?? 'Terrant';
     }
     
     // Note: createBuilding method has been removed

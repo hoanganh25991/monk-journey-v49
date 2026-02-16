@@ -46,27 +46,7 @@ export class StructureFactory {
      * @returns {string} - The zone type
      */
     getZoneTypeAt(x, z) {
-        try {
-            // Use the world manager to get the zone at this position
-            if (this.worldManager && this.worldManager.zoneManager) {
-                // Calculate which chunk this position is in
-                const terrainChunkSize = this.worldManager.terrainManager.terrainChunkSize;
-                const chunkX = Math.floor(x / terrainChunkSize);
-                const chunkZ = Math.floor(z / terrainChunkSize);
-                
-                // Try to get zone type from the zone manager's chunk cache
-                const zoneType = this.worldManager.zoneManager.getZoneTypeForChunk(chunkX, chunkZ);
-                if (zoneType) {
-                    return zoneType;
-                }
-            }
-            
-            // If we can't get a zone type, return a default
-            return 'Forest';
-        } catch (error) {
-            console.warn('Error getting zone type:', error);
-            return 'Forest';
-        }
+        return this.worldManager?.getZoneTypeAt?.(x, z) ?? 'Terrant';
     }
     
     /**

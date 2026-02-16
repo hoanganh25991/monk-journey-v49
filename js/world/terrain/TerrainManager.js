@@ -34,8 +34,8 @@ export class TerrainManager {
         
         // Performance management
         this.isProcessing = false;
-        this.maxProcessingTime = 16; // 16ms per frame for 60fps
-        this.maxQueueSize = 20;
+        this.maxProcessingTime = 8; // 8ms per frame - leave headroom for 60fps
+        this.maxQueueSize = 12; // Fewer buffered chunks
         
         // Base terrain
         this.baseTerrain = null;
@@ -129,8 +129,8 @@ export class TerrainManager {
         // Queue chunks for buffer
         this.queueBufferChunks(currentChunk);
         
-        // Process generation queue
-        if (!this.isProcessing) {
+        // Process generation queue (throttle - skip every other frame when queue is small)
+        if (!this.isProcessing && this.queue.length > 0) {
             this.processQueue();
         }
         
@@ -276,18 +276,19 @@ export class TerrainManager {
         const worldZ = chunkZ * this.config.chunkSize;
         const chunkKey = `${chunkX},${chunkZ}`;
         
-        // Create terrain geometry
+        // Buffer chunks use lower resolution for performance (fewer vertices)
+        const resolution = isImmediate 
+            ? Math.floor(this.config.resolution / 2) 
+            : Math.floor(this.config.resolution / 4);
         const geometry = this.createTerrainGeometry(
             worldX, 
             worldZ, 
             this.config.chunkSize, 
-            Math.floor(this.config.resolution / 2) // Lower resolution for chunks
+            Math.max(8, resolution)
         );
         
-        // Get zone type for this position
-        const position = new THREE.Vector3(worldX, 0, worldZ);
-        const zone = this.worldManager.getZoneAt(position);
-        const zoneType = zone ? zone.name : 'Terrant';
+        // Get zone type for this position (lightweight - no ZoneManager)
+        const zoneType = this.worldManager?.getZoneTypeAt?.(worldX, worldZ) ?? 'Terrant';
         
         // Create material
         const material = this.createTerrainMaterial(zoneType);
@@ -302,8 +303,7 @@ export class TerrainManager {
         // Color the terrain with enhanced noise
         this.colorTerrain(chunk, zoneType);
         
-        // Debug: Log terrain creation
-        console.log(`🌍 Created ${zoneType} terrain chunk at (${worldX}, ${worldZ})`);
+        // Chunk creation (verbose logging disabled for performance)
         
         if (isImmediate) {
             // Add to active chunks and scene immediately
@@ -435,33 +435,16 @@ export class TerrainManager {
             return 0;
         }
         
-        // Enhanced multi-octave noise for terrain height with natural variations
+        // 3-layer noise for smooth hills (reduced from 5 for performance)
         let height = 0;
         let amplitude = this.config.height || 10;
-        let frequency = 0.005; // Start with lower frequency for larger features
+        let frequency = 0.005;
         
-        // Layer 1: Large rolling hills
         height += this.improvedNoise(x * frequency, z * frequency) * amplitude;
-        
-        // Layer 2: Medium variations
-        amplitude *= 0.6;
-        frequency *= 2.5;
+        amplitude *= 0.6; frequency *= 2.5;
         height += this.improvedNoise(x * frequency, z * frequency) * amplitude;
-        
-        // Layer 3: Small details
-        amplitude *= 0.5;
-        frequency *= 3;
+        amplitude *= 0.5; frequency *= 3;
         height += this.improvedNoise(x * frequency, z * frequency) * amplitude;
-        
-        // Layer 4: Fine details
-        amplitude *= 0.4;
-        frequency *= 2;
-        height += this.improvedNoise(x * frequency, z * frequency) * amplitude;
-        
-        // Layer 5: Ridge noise for variety
-        amplitude *= 0.3;
-        frequency *= 1.5;
-        height += Math.abs(this.improvedNoise(x * frequency, z * frequency)) * amplitude;
         
         // Final validation
         return isFinite(height) ? height : 0;
@@ -515,14 +498,7 @@ export class TerrainManager {
     rawNoise(x, z) {
         // Simple hash function for consistent pseudo-random values
         let n = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453;
-        const result = 2 * (n - Math.floor(n)) - 1; // Return value between -1 and 1
-        
-        // Debug: Occasional logging
-        if (Math.random() < 0.0001) {
-            console.log(`🔧 Raw noise at (${x}, ${z}): ${result.toFixed(3)}`);
-        }
-        
-        return result;
+        return 2 * (n - Math.floor(n)) - 1; // Return value between -1 and 1
     }
     
     /**
@@ -565,26 +541,7 @@ export class TerrainManager {
             side: THREE.FrontSide,
         });
         
-        // Optional: Add custom shader uniforms for advanced effects
-        material.onBeforeCompile = (shader) => {
-            // Add time uniform for animated effects if needed
-            shader.uniforms.time = { value: 0 };
-            
-            // Modify vertex shader to add subtle movement
-            shader.vertexShader = shader.vertexShader.replace(
-                '#include <begin_vertex>',
-                `
-                #include <begin_vertex>
-                // Add subtle terrain animation based on world position
-                float wave = sin(position.x * 0.01 + position.z * 0.01) * 0.1;
-                transformed.y += wave * 0.02;
-                `
-            );
-            
-            // Store reference for potential animation updates
-            material.userData.shader = shader;
-        };
-        
+        // Shader onBeforeCompile removed for performance - wave animation caused compilation stalls
         this.textureCache.set(cacheKey, material);
         return material;
     }
@@ -626,56 +583,33 @@ export class TerrainManager {
                 }
             }
             
-            // Generate biome-specific patterns
-            const biomePattern = this.createBiomePattern(x, z, zoneType);
+            // Generate biome-specific patterns (simplified - only for main zones)
+            const biomePattern = zoneType === 'Terrant' || zoneType === 'Forest' || zoneType === 'Desert' 
+                ? this.createBiomePattern(x, z, zoneType) : { variation: 0.3 };
             
-            // Generate multiple noise layers for color variation (reduced frequency for larger areas)
-            const colorNoise1 = this.improvedNoise(x * 0.005, z * 0.005); // Very large patterns (400% larger areas)
-            const colorNoise2 = this.improvedNoise(x * 0.01 , z * 0.01 );   // Large patterns (500% larger areas)
-            const colorNoise3 = this.improvedNoise(x * 0.02 , z * 0.02 );   // Medium patterns (500% larger areas)
-            const colorNoise4 = this.improvedNoise(x * 0.04 , z * 0.04 );   // Fine details (500% larger areas)
-            
-            // Combine noise for complex patterns - ENHANCED for more visibility
-            const combinedNoise = (colorNoise1 * 0.5 + colorNoise2 * 0.4 + colorNoise3 * 0.3 + colorNoise4 * 0.2);
+            // Consolidated noise - 2 calls instead of 8+ for performance
+            const colorNoise1 = this.improvedNoise(x * 0.005, z * 0.005);
+            const colorNoise2 = this.improvedNoise(x * 0.02, z * 0.02);
+            const combinedNoise = colorNoise1 * 0.6 + colorNoise2 * 0.4;
             
             // Height-based color mixing
             const heightFactor = Math.max(0, Math.min(1, (y + 5) / 15)); // Normalize height to 0-1
             
-            // Debug: Log noise values occasionally
-            if (Math.random() < 0.001) { // Log 0.1% of vertices for debugging
-                console.log(`🎨 Noise at (${x}, ${z}): combined=${combinedNoise.toFixed(3)}, height=${heightFactor.toFixed(3)}, zone=${zoneType}`);
-            }
-            
-            // Start with base color
+            // Start with base color - reuse combinedNoise for variation (reduces noise calls)
             let finalColor = baseColor.clone();
             
-            // Apply aggressive noise-based color variation (reduced frequency for larger areas)
-            const majorNoise = this.improvedNoise(x * 0.003, z * 0.003);  // Much larger major patterns
-            const minorNoise = this.improvedNoise(x * 0.015, z * 0.015);  // Larger minor patterns
-            const detailNoise = this.improvedNoise(x * 0.03, z * 0.03);   // Larger detail patterns
-            
-            // Create dramatic color variations based on noise
-            if (majorNoise > 0.3) {
-                // High noise areas - darker, rockier colors
+            // Single-pass color variation using combinedNoise
+            if (combinedNoise > 0.3) {
                 finalColor.multiplyScalar(0.6);
-                const rockInfluence = Math.min(1, majorNoise * 2);
-                finalColor.lerp(rockColor, rockInfluence * 0.7);
-            } else if (majorNoise < -0.3) {
-                // Low noise areas - lighter, sandier colors  
+                finalColor.lerp(rockColor, Math.min(1, combinedNoise * 2) * 0.7);
+            } else if (combinedNoise < -0.3) {
                 finalColor.multiplyScalar(1.4);
-                const lightColor = new THREE.Color(0xF5DEB3); // Wheat
-                finalColor.lerp(lightColor, Math.abs(majorNoise) * 0.8);
+                finalColor.lerp(new THREE.Color(0xF5DEB3), Math.abs(combinedNoise) * 0.8);
             }
-            
-            // Add medium-scale variations
-            if (Math.abs(minorNoise) > 0.4) {
-                const accentInfluence = Math.min(1, Math.abs(minorNoise) * 1.5);
-                finalColor.lerp(accentColor, accentInfluence * 0.6);
+            if (Math.abs(combinedNoise) > 0.4) {
+                finalColor.lerp(accentColor, Math.min(1, Math.abs(combinedNoise) * 1.5) * 0.6);
             }
-            
-            // Add fine details
-            const detailInfluence = detailNoise * 0.3;
-            finalColor.multiplyScalar(1 + detailInfluence);
+            finalColor.multiplyScalar(1 + combinedNoise * 0.15);
             
             // Apply biome-specific coloring based on patterns
             this.applyBiomeColoring(finalColor, biomePattern, zoneType, zoneColors, heightFactor);
@@ -692,21 +626,8 @@ export class TerrainManager {
                 finalColor.lerp(rockColor, rockMixAmount);
             }
             
-            // Add dramatic brightness variation based on noise - ENHANCED
-            const brightnessVariation = 1 + (combinedNoise * 0.6); // Double the variation
-            finalColor.multiplyScalar(Math.max(0.3, Math.min(1.8, brightnessVariation)));
-            
-            // Add subtle color temperature variation (reduced frequency for larger areas)
-            const temperatureNoise = this.improvedNoise(x * 0.002, z * 0.002);  // Much larger temperature zones
-            if (temperatureNoise > 0) {
-                // Warmer tones
-                finalColor.r = Math.min(1, finalColor.r * (1 + temperatureNoise * 0.1));
-                finalColor.g = Math.min(1, finalColor.g * (1 + temperatureNoise * 0.05));
-            } else {
-                // Cooler tones
-                finalColor.b = Math.min(1, finalColor.b * (1 + Math.abs(temperatureNoise) * 0.1));
-                finalColor.g = Math.min(1, finalColor.g * (1 + Math.abs(temperatureNoise) * 0.05));
-            }
+            // Brightness variation using combinedNoise (skip extra temperatureNoise call)
+            finalColor.multiplyScalar(Math.max(0.3, Math.min(1.8, 1 + combinedNoise * 0.4)));
             
             colors.push(finalColor.r, finalColor.g, finalColor.b);
         }
@@ -825,22 +746,10 @@ export class TerrainManager {
     }
     
     /**
-     * Get noise value for texture/pattern generation
+     * Get noise value for texture/pattern generation (simplified - 1 octave for performance)
      */
-    getTextureNoise(x, z, scale = 1, octaves = 3) {
-        let noise = 0;
-        let amplitude = 1;
-        let frequency = scale;
-        let maxValue = 0;
-        
-        for (let i = 0; i < octaves; i++) {
-            noise += this.improvedNoise(x * frequency, z * frequency) * amplitude;
-            maxValue += amplitude;
-            amplitude *= 0.5;
-            frequency *= 2;
-        }
-        
-        return noise / maxValue; // Normalize to -1 to 1
+    getTextureNoise(x, z, scale = 1, octaves = 1) {
+        return this.improvedNoise(x * scale, z * scale);
     }
     
     /**
@@ -861,32 +770,14 @@ export class TerrainManager {
         return patterns[zoneType] || patterns['Terrant'];
     }
     
-    /**
-     * Forest pattern - clustered vegetation areas
-     */
     createForestPattern(x, z) {
-        const density = this.getTextureNoise(x * 0.03, z * 0.03, 1, 4);
-        const clearings = this.getTextureNoise(x * 0.015, z * 0.015, 1, 2);
-        
-        return {
-            vegetation: Math.max(0, density * 0.8 + clearings * 0.2),
-            clearings: Math.max(0, -clearings * 0.6),
-            density: density
-        };
+        const n = this.getTextureNoise(x * 0.03, z * 0.03);
+        return { vegetation: Math.max(0, n * 0.8), clearings: Math.max(0, -n * 0.4), density: n };
     }
     
-    /**
-     * Desert pattern - dunes and rocky outcrops
-     */
     createDesertPattern(x, z) {
-        const dunes = this.getTextureNoise(x * 0.02, z * 0.02, 1, 3);
-        const rocks = this.getTextureNoise(x * 0.08, z * 0.08, 1, 2);
-        
-        return {
-            sand: Math.max(0, dunes * 0.7),
-            rocks: Math.max(0, rocks * 0.5),
-            windPattern: this.getTextureNoise(x * 0.1, z * 0.05, 1, 1)
-        };
+        const n = this.getTextureNoise(x * 0.02, z * 0.02);
+        return { sand: Math.max(0, n * 0.7), rocks: Math.max(0, -n * 0.4), windPattern: n * 0.3 };
     }
     
     /**
@@ -959,18 +850,9 @@ export class TerrainManager {
         };
     }
     
-    /**
-     * Default pattern for Terrant and other zones
-     */
     createDefaultPattern(x, z) {
-        const base = this.getTextureNoise(x * 0.03, z * 0.03, 1, 3);
-        const details = this.getTextureNoise(x * 0.1, z * 0.1, 1, 2);
-        
-        return {
-            base: base * 0.5,
-            details: details * 0.3,
-            variation: Math.abs(base * 0.4)
-        };
+        const n = this.getTextureNoise(x * 0.03, z * 0.03);
+        return { base: n * 0.5, details: n * 0.2, variation: Math.abs(n * 0.4) };
     }
     
     /**
@@ -1019,9 +901,7 @@ export class TerrainManager {
             // Don't dispose material (reused from cache)
         }
         
-        if (chunksToRemove.length > 0) {
-            console.debug(`🧹 Cleaned up ${chunksToRemove.length} distant chunks`);
-        }
+        // Chunk cleanup complete (debug logging disabled for performance)
     }
     
     /**

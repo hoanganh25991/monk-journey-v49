@@ -3,14 +3,13 @@ import { TerrainManager } from './terrain/TerrainManager.js';
 import { StructureManager } from './structures/StructureManager.js';
 import { EnvironmentManager } from './environment/EnvironmentManager.js';
 import { InteractiveObjectManager } from './interactive/InteractiveObjectManager.js';
-import { ZoneManager } from './zones/ZoneManager.js';
+import { ZONE_DEFINITIONS, ZONE_DENSITIES } from '../config/density.js';
 import { LightingManager } from './lighting/LightingManager.js';
 import { FogManager } from './environment/FogManager.js';
 import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
-import { ZONE_STRUCTURE_DENSITY } from '../config/density.js';
 
 /**
  * Optimized World Manager
@@ -31,7 +30,6 @@ export class WorldManager {
         this.structureManager = new StructureManager(scene, this, game);
         this.environmentManager = new EnvironmentManager(scene, this, game);
         this.interactiveManager = new InteractiveObjectManager(scene, this, game);
-        this.zoneManager = new ZoneManager(scene, this, game);
         this.teleportManager = new TeleportManager(scene, this, game);
         
         // Performance monitoring
@@ -62,14 +60,8 @@ export class WorldManager {
         
         // Compatibility for StructureManager/EnvironmentManager chunk generation
         this.worldScale = 1.0;
-        this.zoneDensities = {
-            Terrant: { structures: ZONE_STRUCTURE_DENSITY.TERRANT, structureTypes: ['house', 'tower', 'ruins'] },
-            Forest: { structures: ZONE_STRUCTURE_DENSITY.FOREST, structureTypes: ['house', 'tower'] },
-            Desert: { structures: ZONE_STRUCTURE_DENSITY.DESERT, structureTypes: ['ruins', 'house'] },
-            Mountain: { structures: ZONE_STRUCTURE_DENSITY.MOUNTAIN, structureTypes: ['tower', 'ruins'] },
-            Swamp: { structures: ZONE_STRUCTURE_DENSITY.SWAMP, structureTypes: ['house', 'ruins'] },
-            Magical: { structures: ZONE_STRUCTURE_DENSITY.MAGICAL, structureTypes: ['tower', 'house', 'ruins'] }
-        };
+        // Use full ZONE_DENSITIES so structure + environment use all config (Forest trees, Desert rocks, etc.)
+        this.zoneDensities = ZONE_DENSITIES;
         
         // Simple caching for commonly accessed data
         this.cache = {
@@ -89,18 +81,42 @@ export class WorldManager {
     }
     
     /**
-     * Get the zone at a specific position
+     * Get zone type at world coordinates - lightweight, uses ZONE_DEFINITIONS directly.
+     * No ZoneManager needed - just distance check vs zone circles.
+     */
+    getZoneTypeAt(worldX, worldZ) {
+        if (!ZONE_DEFINITIONS || ZONE_DEFINITIONS.length === 0) return 'Terrant';
+        const cx = (typeof worldX === 'number' ? worldX : (worldX?.x ?? 0));
+        const cz = (typeof worldZ === 'number' ? worldZ : (worldX?.z ?? worldZ ?? 0));
+        for (const zone of ZONE_DEFINITIONS) {
+            const dx = cx - zone.center.x, dz = cz - zone.center.z;
+            if (dx * dx + dz * dz <= zone.radius * zone.radius) return zone.name;
+        }
+        let best = ZONE_DEFINITIONS[0];
+        let bestDist = Infinity;
+        for (const zone of ZONE_DEFINITIONS) {
+            const dx = cx - zone.center.x, dz = cz - zone.center.z;
+            const d = dx * dx + dz * dz;
+            if (d < bestDist) { bestDist = d; best = zone; }
+        }
+        return best.name;
+    }
+    
+    /**
+     * Get the zone at a specific position - minimal object for compatibility
      */
     getZoneAt(position) {
-        return this.zoneManager.getZoneAt(position);
+        const x = position?.x ?? 0, z = position?.z ?? 0;
+        const name = this.getZoneTypeAt(x, z);
+        return { name, center: { x, y: 0, z }, radius: 1 };
     }
     
     /**
      * Get the current zone type at a specific position
      */
     getCurrentZoneType(position) {
-        const zone = this.getZoneAt(position);
-        return zone ? zone.name : 'Terrant';
+        const x = position?.x ?? 0, z = position?.z ?? 0;
+        return this.getZoneTypeAt(x, z);
     }
     
     /**
@@ -124,7 +140,6 @@ export class WorldManager {
             
             // Initialize other managers
             this.structureManager.init();
-            this.zoneManager.init();
             this.interactiveManager.init();
             this.teleportManager.init();
             
@@ -159,14 +174,14 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
         
-        // Chunk-based structure generation (like v42) - lighter than random spawning
+        // Chunk-based structure + environment generation (like v42) - lighter than random spawning
         const chunkSize = this.terrainManager.terrainChunkSize || 64;
         const playerChunkX = Math.floor(playerPosition.x / chunkSize);
         const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
-        const structureGenDistance = 2;
+        const genDistance = 2;
         if (this.structureManager && this.structureManager.generateStructuresForChunk) {
-            for (let x = playerChunkX - structureGenDistance; x <= playerChunkX + structureGenDistance; x++) {
-                for (let z = playerChunkZ - structureGenDistance; z <= playerChunkZ + structureGenDistance; z++) {
+            for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
+                for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
                     const chunkKey = `${x},${z}`;
                     if (!this.structureManager.structuresPlaced[chunkKey]) {
                         this.structureManager.generateStructuresForChunk(x, z);
@@ -174,8 +189,18 @@ export class WorldManager {
                 }
             }
         }
-        
-        // Update environment for visible chunks
+        // Environment generation (trees, rocks, bushes, etc.) - same chunk loop
+        if (this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
+            for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
+                for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
+                    const chunkKey = `${x},${z}`;
+                    if (!this.environmentManager.environmentObjectsByChunk[chunkKey]) {
+                        this.environmentManager.generateEnvironmentForChunk(x, z);
+                    }
+                }
+            }
+        }
+        // Update environment visibility and cleanup
         if (this.environmentManager && this.environmentManager.updateForPlayer) {
             this.environmentManager.updateForPlayer(playerPosition, 1.0);
         }

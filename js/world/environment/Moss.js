@@ -26,8 +26,8 @@ export class Moss extends EnvironmentObject {
         this.zoneType = 'Forest'; // Default to Forest
         
         // Try to get the zone type from the zone manager
-        if (worldManager && worldManager.zoneManager) {
-            const zone = worldManager.zoneManager.getZoneAt(position);
+        if (worldManager && worldManager.getZoneAt) {
+            const zone = worldManager.getZoneAt(position);
             if (zone && zone.name) {
                 this.zoneType = zone.name;
             }

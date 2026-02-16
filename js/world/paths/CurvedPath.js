@@ -14,7 +14,7 @@ export class CurvedPath extends Path {
      */
     createPath(points, width, options = {}) {
         // Get zone information for coloring
-        const zoneAt = this.worldManager.zoneManager.getZoneAt(points[0]);
+        const zoneAt = this.worldManager?.getZoneAt?.(points[0]);
         const zoneName = zoneAt ? zoneAt.name : 'Terrant';
         
         // Get theme colors
