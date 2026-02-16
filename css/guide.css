@@ -1,4 +1,5 @@
-/* HUD Guide overlay styles - step-by-step UI introduction */
+/* HUD Guide overlay styles - step-by-step UI introduction
+   Uses theme variables from variables.css */
 
 .guide-overlay {
   position: fixed;
@@ -21,11 +22,11 @@
 
 .guide-focus {
   position: absolute;
-  border: 3px solid rgba(255, 204, 0, 0.9);
+  border: 3px solid var(--theme-gold-border);
   border-radius: 12px;
   box-shadow:
-    0 0 0 4px rgba(255, 204, 0, 0.25),
-    0 0 22px rgba(255, 204, 0, 0.35),
+    0 0 0 4px rgba(var(--theme-gold-rgb), 0.25),
+    0 0 22px rgba(var(--theme-gold-rgb), 0.35),
     0 12px 36px rgba(0, 0, 0, 0.45);
   pointer-events: none;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -52,8 +53,8 @@
 
 .guide-tooltip {
   position: absolute;
-  background: rgba(30, 25, 20, 0.95);
-  border: 3px solid rgba(255, 204, 0, 0.5);
+  background: var(--theme-bg-dark);
+  border: 3px solid var(--theme-gold-border-subtle);
   border-radius: 16px;
   padding: 20px;
   max-width: 350px;
@@ -84,7 +85,7 @@
 .guide-tooltip-title {
   font-size: 20px;
   font-weight: bold;
-  color: rgba(255, 204, 0, 0.95);
+  color: var(--theme-gold);
 }
 
 .guide-close {
@@ -146,15 +147,15 @@
 }
 
 #guideNext {
-  background: linear-gradient(135deg, rgba(255, 204, 0, 0.8) 0%, rgba(255, 180, 0, 0.9) 100%);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  color: #2a2000;
+  background-color: rgba(var(--theme-gold-rgb), 0.7);
+  border: 2px solid var(--theme-gold-border);
+  color: var(--theme-gold-text);
 }
 
 #guideNext:hover {
-  background: linear-gradient(135deg, rgba(255, 210, 0, 0.9) 0%, rgba(255, 190, 0, 1) 100%);
+  background-color: var(--theme-gold-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 204, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(var(--theme-gold-rgb), 0.4);
 }
 
 #guideNext:disabled {

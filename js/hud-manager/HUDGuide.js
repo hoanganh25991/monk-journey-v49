@@ -89,8 +89,39 @@ export function startHUDGuide() {
       get el() {
         return document.getElementById('camera-control-button') || document.getElementById('camera-controls');
       },
-      title: 'Camera Controls (Bottom-Right)',
-      desc: 'Toggle first-person view and orbit camera. Use the teleport button when near a portal.',
+      title: 'Camera Toggle (Bottom-Right)',
+      desc: 'Switch between orbit (third-person) and free camera modes.',
+    },
+    {
+      key: 'firstPerson',
+      get el() {
+        return document.getElementById('camera-mode-button');
+      },
+      title: 'First Person View',
+      desc: 'Tap the eye button to enter first-person view. Tap again to return to orbit camera.',
+    },
+    {
+      key: 'teleport',
+      get el() {
+        return (
+          document.getElementById('teleport-button-slot') ||
+          document.getElementById('inventory-teleport') ||
+          document.getElementById('portal-button')
+        );
+      },
+      title: 'Teleport',
+      desc: 'Teleport to origin, or use the portal when near one to travel to another location.',
+    },
+    {
+      key: 'joystick',
+      get el() {
+        return (
+          document.getElementById('virtual-joystick-container') ||
+          document.getElementById('joystick-interaction-overlay')
+        );
+      },
+      title: 'Joystick (Bottom-Left)',
+      desc: 'Drag to move your character. On desktop, use WASD to move.',
     },
     {
       key: 'skills',
@@ -100,21 +131,6 @@ export function startHUDGuide() {
       title: 'Skills (Bottom-Right)',
       desc: 'Tap skills to use them in combat. Cooldowns show on each skill.',
     },
-    ...(isTouchDevice()
-      ? [
-          {
-            key: 'joystick',
-            get el() {
-              return (
-                document.getElementById('virtual-joystick-container') ||
-                document.getElementById('joystick-interaction-overlay')
-              );
-            },
-            title: 'Joystick (Bottom-Left)',
-            desc: 'Drag to move your character. On desktop, use WASD to move.',
-          },
-        ]
-      : []),
   ].filter((s) => s.el);
 
   if (!steps.length) return;

@@ -1,6 +1,6 @@
 /* 
  * death-screen.css - Death Screen UI styles
- * Part of the Monk Journey game
+ * Part of the Monk Journey game - uses theme variables from variables.css
  */
 
 #death-screen {
@@ -10,7 +10,8 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
     z-index: 200; /* Same as game menu */
     position: fixed;
     top: 0;
@@ -22,19 +23,22 @@
     flex-direction: column;
     align-items: center;
     padding: 2rem;
-    border-radius: 10px;
-    background: radial-gradient(circle, rgba(50, 0, 0, 0.8) 0%, rgba(20, 0, 0, 0.9) 100%);
-    border: 3px solid #800000;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+    border-radius: 12px;
+    background: var(--theme-bg-dark);
+    border: 3px solid var(--theme-gold-border-subtle);
+    box-shadow:
+        0 0 0 1px rgba(var(--theme-gold-rgb), 0.15),
+        0 0 30px rgba(var(--theme-gold-rgb), 0.2),
+        0 8px 32px rgba(0, 0, 0, 0.8);
     max-width: 90%;
     width: 400px;
 }
 
 #death-screen h1 {
-    color: #ff0000;
+    color: var(--theme-gold);
     font-size: 48px;
     margin-bottom: 2rem;
-    text-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+    text-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.5);
     animation: pulse 2s infinite;
 }
 
@@ -46,7 +50,7 @@
 }
 
 #death-screen .death-message {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.9);
     font-size: 18px;
     margin-bottom: 2rem;
     text-align: center;
@@ -54,17 +58,17 @@
 }
 
 #death-screen .death-stats {
-    background-color: rgba(0, 0, 0, 0.5);
-    border: 1px solid #800000;
-    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--theme-gold-border-subtle);
+    border-radius: 8px;
     padding: 1rem;
     margin-bottom: 2rem;
     width: 100%;
-    color: #cccccc;
+    color: rgba(255, 255, 255, 0.85);
 }
 
 #death-screen .death-stats-title {
-    color: #ff6666;
+    color: var(--theme-gold);
     font-size: 16px;
     margin-bottom: 0.5rem;
     text-align: center;
@@ -78,11 +82,11 @@
 }
 
 #death-screen .death-stats-label {
-    color: #ff9999;
+    color: rgba(255, 230, 150, 0.9);
 }
 
 #death-screen .death-stats-value {
-    color: #ffffff;
+    color: rgba(255, 255, 255, 0.95);
     font-weight: bold;
 }
 

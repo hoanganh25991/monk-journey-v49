@@ -4,6 +4,16 @@
  */
 
 :root {
+    /* Theme colors - gold/amber monk aesthetic */
+    --theme-gold: #ffcc00;
+    --theme-gold-rgb: 255, 204, 0;
+    --theme-gold-border: rgba(255, 230, 150, 0.8);
+    --theme-gold-border-subtle: rgba(255, 204, 0, 0.5);
+    --theme-gold-hover: rgba(255, 215, 0, 0.8);
+    --theme-gold-text: #4a3000;
+    --theme-orange: #ff6600;
+    --theme-bg-dark: rgba(30, 25, 20, 0.95);
+    
     /* Padding variables */
     --padding-small: 5px;
     --padding-medium: 15px;
