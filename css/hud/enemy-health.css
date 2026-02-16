@@ -7,7 +7,7 @@
 /* Enemy Health */
 #enemy-health-container {
     position: absolute;
-    top: 1.2rem;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     width: 300px;
