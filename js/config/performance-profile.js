@@ -121,12 +121,13 @@ export const LOD_ENABLED = {
 /**
  * LOD distances for enemies (meters from camera)
  * When beyond highDetailDistance, use low-poly proxy; beyond hideDistance, hide entirely
+ * Multiplied 3x from original for better visibility of enemies at distance
  */
 export const ENEMY_LOD_DISTANCES = {
-    high: { highDetail: 50, hide: 200 },
-    medium: { highDetail: 40, hide: 150 },
-    low: { highDetail: 30, hide: 100 },
-    minimal: { highDetail: 20, hide: 80 }
+    high: { highDetail: 150, hide: 600 },
+    medium: { highDetail: 120, hide: 450 },
+    low: { highDetail: 90, hide: 300 },
+    minimal: { highDetail: 60, hide: 240 }
 };
 
 /**

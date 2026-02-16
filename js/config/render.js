@@ -17,27 +17,27 @@ export const FOG_CONFIG = {
     enabled: true,
     type: 'exp2', // 'exp2' for exponential squared fog (more realistic), 'exp' for exponential, 'linear' for linear
     color: 0x87CEEB, // Lighter blue-gray color for a brighter atmosphere 0x87CEEB 0xFFD39B 0xE8C49A 0xF8D98D 0xF6C75B #FFCC00B3 #FFCC00 #FFDD00
-    density: 0.0075, // Reduced base fog density for lighter atmosphere
+    density: 0.003, // Reduced fog density for clearer visibility (was 0.0075)
     near: 10, // For linear fog only - increased distance where fog begins
-    far: 50, // For linear fog only - increased distance where fog is fully opaque
+    far: 80, // For linear fog only - increased distance where fog is fully opaque (was 50)
     
     // Fog transition settings
     transitionSpeed: 0.05, // How quickly fog color transitions between zones
     
     // Distance-based fog settings
-    distanceFalloff: 1.5, // Controls how quickly visibility drops with distance
-    maxVisibleDistance: 16 * 2, // Maximum distance at which objects are still visible
-    darkeningFactor: 0.7, // How much darker distant objects become (0-1)
+    distanceFalloff: 0.7, // Controls how quickly visibility drops with distance (lower = clearer view, was 1.5)
+    maxVisibleDistance: 16 * 6, // Maximum distance at which objects are still visible (was 16*2)
+    darkeningFactor: 0.85, // How much darker distant objects become (0-1, higher = brighter)
     
     // PERFORMANCE FIX: Add frustum culling distance
     frustumCullingDistance: 16 * 4, // Objects beyond this distance are not rendered at all
     
-    // Quality level adjustments - PERFORMANCE FIX: More aggressive fog for performance
+    // Quality level adjustments - reduced for better visibility
     qualityMultipliers: {
-        high: 0.9, // Slightly reduced fog density for high quality (better visibility)
-        medium: 1.4, // Increased from 1.2 to help cull distant objects and improve performance
-        low: 1.5, // Reduced from 2.2 to prevent darkening
-        minimal: 2.0 // Reduced from 6.0 to prevent excessive darkening while still improving performance
+        high: 0.5, // Reduced fog for high quality (was 0.9)
+        medium: 0.7, // Reduced fog for medium (was 1.4)
+        low: 0.85, // Reduced fog for low (was 1.5)
+        minimal: 1.0 // Reduced fog for minimal (was 2.0)
     }
 };
 
