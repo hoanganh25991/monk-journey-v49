@@ -17,27 +17,27 @@ export const FOG_CONFIG = {
     enabled: true,
     type: 'exp2', // 'exp2' for exponential squared fog (more realistic), 'exp' for exponential, 'linear' for linear
     color: 0x87CEEB, // Lighter blue-gray color for a brighter atmosphere 0x87CEEB 0xFFD39B 0xE8C49A 0xF8D98D 0xF6C75B #FFCC00B3 #FFCC00 #FFDD00
-    density: 0.003, // Reduced fog density for clearer visibility (was 0.0075)
-    near: 10, // For linear fog only - increased distance where fog begins
-    far: 80, // For linear fog only - increased distance where fog is fully opaque (was 50)
+    density: 0.00525, // Midpoint between original (0.0075) and reduced (0.003)
+    near: 10, // For linear fog only - distance where fog begins
+    far: 65, // For linear fog only - midpoint between original (50) and increased (80)
     
     // Fog transition settings
     transitionSpeed: 0.05, // How quickly fog color transitions between zones
     
     // Distance-based fog settings
-    distanceFalloff: 0.7, // Controls how quickly visibility drops with distance (lower = clearer view, was 1.5)
-    maxVisibleDistance: 16 * 6, // Maximum distance at which objects are still visible (was 16*2)
-    darkeningFactor: 0.85, // How much darker distant objects become (0-1, higher = brighter)
+    distanceFalloff: 1.1, // Midpoint between original (1.5) and reduced (0.7)
+    maxVisibleDistance: 16 * 4, // Midpoint between original (16*2) and increased (16*6)
+    darkeningFactor: 0.78, // Midpoint between original (0.7) and brighter (0.85)
     
     // PERFORMANCE FIX: Add frustum culling distance
     frustumCullingDistance: 16 * 4, // Objects beyond this distance are not rendered at all
     
-    // Quality level adjustments - reduced for better visibility
+    // Quality level adjustments - midpoint between original and reduced
     qualityMultipliers: {
-        high: 0.5, // Reduced fog for high quality (was 0.9)
-        medium: 0.7, // Reduced fog for medium (was 1.4)
-        low: 0.85, // Reduced fog for low (was 1.5)
-        minimal: 1.0 // Reduced fog for minimal (was 2.0)
+        high: 0.7, // Midpoint (original 0.9, reduced 0.5)
+        medium: 1.05, // Midpoint (original 1.4, reduced 0.7)
+        low: 1.2, // Midpoint (original 1.5, reduced 0.85)
+        minimal: 1.5 // Midpoint (original 2.0, reduced 1.0)
     }
 };
 
