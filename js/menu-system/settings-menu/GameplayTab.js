@@ -6,6 +6,7 @@
 import { SettingsTab } from './SettingsTab.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
 import { DIFFICULTY_SCALING } from '../../config/game-balance.js';
+import { getSourceVersion } from '../../config/version.js';
 import storageService from '../../save-manager/StorageService.js';
 import googleAuthManager from '../../save-manager/GoogleAuthManager.js';
 
@@ -431,98 +432,22 @@ export class GameplayTab extends SettingsTab {
      * @private
      */
     initializeReleaseSettings() {
-        // Display current version (simplified)
+        // Display current version (YYYYMMDDTHHMMSS format)
         if (this.currentVersionSpan) {
-            // Set a default version immediately
-            this.currentVersionSpan.textContent = 'Fetching...';
-            
-            // Fetch the actual version in the background
-            this.fetchCacheVersion()
-                .then(version => {
-                    this.currentVersionSpan.textContent = version;
-                })
-                .catch(error => {
-                    this.currentVersionSpan.textContent = 'Failed to fetch';
-                    console.error('Error setting version display:', error);
-                });
+            this.currentVersionSpan.textContent = getSourceVersion();
         }
         
-        // Set up update button with simplified functionality
+        // Set up update button: load latest code with cache-busting (bypasses service worker)
         if (this.updateToLatestButton) {
             this.updateToLatestButton.addEventListener('click', () => {
-                // Show loading state
                 this.updateToLatestButton.textContent = 'Updating...';
                 this.updateToLatestButton.disabled = true;
                 
-                // Use Promise chain for better error handling
-                Promise.resolve()
-                    .then(async () => {
-                        // Unregister all service workers
-                        if ('serviceWorker' in navigator) {
-                            const registrations = await navigator.serviceWorker.getRegistrations();
-                            for (const registration of registrations) {
-                                await registration.unregister();
-                                console.debug('Service worker unregistered');
-                            }
-                        }
-                        
-                        // Clear all caches
-                        if ('caches' in window) {
-                            const cacheNames = await caches.keys();
-                            await Promise.all(
-                                cacheNames.map(cacheName => {
-                                    console.debug(`Deleting cache: ${cacheName}`);
-                                    return caches.delete(cacheName);
-                                })
-                            );
-                            console.debug('All caches cleared');
-                        }
-                        
-                        // Force reload the page from server (bypass cache)
-                        console.debug('Reloading page...');
-                        window.location.reload(true);
-                    })
-                    .catch(error => {
-                        console.error('Error updating to latest version:', error);
-                        
-                        // Reset button state
-                        this.updateToLatestButton.textContent = 'Update to Latest';
-                        this.updateToLatestButton.disabled = false;
-                        
-                        // Show error message
-                        alert('Failed to update to the latest version. Please try again later.');
-                    });
+                // Reload with cache-busting URL to fetch latest code from server
+                const url = new URL(window.location.href);
+                url.searchParams.set('v', Date.now());
+                window.location.replace(url.toString());
             });
-        }
-    }
-    
-    /**
-     * Fetch the cache version from the service worker
-     * @returns {Promise<string>} - The cache version
-     * @private
-     */
-    async fetchCacheVersion() {
-        try {
-            // Try to get the cache version from the service worker
-            const response = await fetch('service-worker.js');
-            if (!response.ok) {
-                return 'Current Version';
-            }
-            
-            // Get the text content
-            const text = await response.text();
-            
-            // Extract the cache version using regex
-            const versionMatch = text.match(/const CACHE_VERSION = ['"](\d+)['"]/);
-            if (versionMatch && versionMatch[1]) {
-                return versionMatch[1];
-            } else {
-                // If we can't find the version, just return a generic message
-                return 'Current Version';
-            }
-        } catch (error) {
-            console.error('Error fetching cache version:', error);
-            return 'Current Version';
         }
     }
     
