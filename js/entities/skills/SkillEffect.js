@@ -107,13 +107,24 @@ export class SkillEffect {
         return effectGroup;
     }
 
+    /** Temp vector for LOD distance check (reused to avoid allocation) */
+    static _lodCheckPos = new THREE.Vector3();
+
     /**
      * Update the effect
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
         if (!this.isActive || !this.effect) return;
-        
+
+        // LOD: hide effect when far from camera (saves GPU, particles still tick for collisions)
+        const lodConfig = this.skill?.game?.world?.performanceProfile?.skillEffectLod;
+        if (lodConfig && this.skill?.game?.camera) {
+            this.effect.getWorldPosition(SkillEffect._lodCheckPos);
+            const dist = SkillEffect._lodCheckPos.distanceTo(this.skill.game.camera.position);
+            this.effect.visible = dist <= (lodConfig.hide ?? 120);
+        }
+
         this.elapsedTime += delta;
         
         // Check if effect has expired

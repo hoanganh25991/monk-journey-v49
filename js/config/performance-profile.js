@@ -119,6 +119,28 @@ export const LOD_ENABLED = {
 };
 
 /**
+ * LOD distances for enemies (meters from camera)
+ * When beyond highDetailDistance, use low-poly proxy; beyond hideDistance, hide entirely
+ */
+export const ENEMY_LOD_DISTANCES = {
+    high: { highDetail: 50, hide: 200 },
+    medium: { highDetail: 40, hide: 150 },
+    low: { highDetail: 30, hide: 100 },
+    minimal: { highDetail: 20, hide: 80 }
+};
+
+/**
+ * LOD distances for skill effects (meters from camera)
+ * When beyond highDetailDistance, hide effect (saves particles/geometry updates)
+ */
+export const SKILL_EFFECT_LOD_DISTANCES = {
+    high: { highDetail: 80, hide: 150 },
+    medium: { highDetail: 60, hide: 120 },
+    low: { highDetail: 40, hide: 80 },
+    minimal: { highDetail: 25, hide: 50 }
+};
+
+/**
  * Shadow casting - disable for distant objects on low/minimal
  */
 export const SHADOW_CASTER_DISTANCE = {
@@ -145,6 +167,8 @@ export function getPerformanceProfile(qualityLevel) {
         structureChunksPerFrame: STRUCTURE_CHUNKS_PER_FRAME[level],
         envChunksPerFrame: ENV_CHUNKS_PER_FRAME[level],
         lodEnabled: LOD_ENABLED[level],
-        shadowCasterDistance: SHADOW_CASTER_DISTANCE[level]
+        shadowCasterDistance: SHADOW_CASTER_DISTANCE[level],
+        enemyLod: ENEMY_LOD_DISTANCES[level],
+        skillEffectLod: SKILL_EFFECT_LOD_DISTANCES[level]
     };
 }

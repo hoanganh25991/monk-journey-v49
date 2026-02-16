@@ -212,9 +212,16 @@ export class EnemyManager {
         let bossAlive = false;
         
         // Update enemies
+        const camera = this.game?.camera;
+        const profile = this.game?.world?.performanceProfile;
+        const lodEnabled = profile?.lodEnabled && profile?.enemyLod;
         for (const [id, enemy] of this.enemies.entries()) {
             // Update enemy
             enemy.update(delta);
+            // Update LOD for distant enemies (reduces draw calls)
+            if (lodEnabled && camera && enemy.updateLOD) {
+                enemy.updateLOD(camera);
+            }
             
             // Check if this is a boss and it's alive
             if (enemy.isBoss && !enemy.isDead()) {
@@ -297,10 +304,9 @@ export class EnemyManager {
         
         // Create enemy (async - lazy-loads model module)
         const enemy = new Enemy(this.scene, this.player, scaledEnemyType);
-        await enemy.init();
-        
-        // Set world reference before positioning so terrain height can be calculated properly
         enemy.world = this.game.world;
+        enemy.game = this.game; // For LOD and other game refs
+        await enemy.init();
 
         // Get terrain height and calculate proper Y position
         let terrainHeight = null;

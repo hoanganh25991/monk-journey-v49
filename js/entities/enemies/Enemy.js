@@ -120,8 +120,54 @@ export class Enemy {
             this.modelGroup.scale.set(this.scale, this.scale, this.scale);
         }
         
+        // Apply LOD when enabled (reduces geometry for distant enemies)
+        const profile = this.game?.world?.performanceProfile;
+        if (profile?.lodEnabled && profile?.enemyLod) {
+            this._setupLOD(profile.enemyLod);
+        }
+        
         // Add model to scene
         this.scene.add(this.modelGroup);
+    }
+
+    /**
+     * Setup LOD (Level of Detail) - shows low-poly proxy when far from camera
+     * @param {Object} lodConfig - { highDetail, hide } distances in meters
+     */
+    _setupLOD(lodConfig) {
+        const highDetailDist = lodConfig.highDetail ?? 50;
+        const hideDist = lodConfig.hide ?? 200;
+        if (this.modelGroup.children.length === 0) return;
+
+        const fullDetailGroup = new THREE.Group();
+        while (this.modelGroup.children.length > 0) {
+            fullDetailGroup.add(this.modelGroup.children[0]);
+        }
+
+        const lowPolyGeo = new THREE.BoxGeometry(0.8, 1.2, 0.6);
+        const lowPolyMat = new THREE.MeshBasicMaterial({
+            color: this.color || 0xcccccc,
+            transparent: true,
+            opacity: 0.9
+        });
+        const lowPolyMesh = new THREE.Mesh(lowPolyGeo, lowPolyMat);
+        lowPolyMesh.position.y = 0.6;
+        lowPolyMesh.castShadow = false;
+        lowPolyMesh.receiveShadow = false;
+
+        this.lodObject = new THREE.LOD();
+        this.lodObject.addLevel(fullDetailGroup, 0);
+        this.lodObject.addLevel(lowPolyMesh, highDetailDist);
+        this.modelGroup.add(this.lodObject);
+    }
+
+    /**
+     * Update LOD based on camera distance (call each frame when LOD is enabled)
+     * @param {THREE.Camera} camera
+     */
+    updateLOD(camera) {
+        if (!this.lodObject || !this.modelGroup) return;
+        this.lodObject.update(camera);
     }
     
     /**
