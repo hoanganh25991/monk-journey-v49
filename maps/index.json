@@ -5,7 +5,10 @@
     "name": "Default World",
     "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
     "size": "2500x2500",
-    "thumbnail": "maps/thumbnails/default.png"
+    "thumbnail": "maps/thumbnails/default.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "terrant",
@@ -13,7 +16,10 @@
     "name": "Terrant",
     "description": "Central plains. Gentle terrain, villages and temples.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/terrant.png"
+    "thumbnail": "maps/thumbnails/terrant.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "forest",
@@ -21,7 +27,10 @@
     "name": "Forest",
     "description": "Dense woodland. Ancient trees, ruins, and fairy circles.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/forest.png"
+    "thumbnail": "maps/thumbnails/forest.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "desert",
@@ -29,7 +38,10 @@
     "name": "Desert",
     "description": "Sands and ruins. Oases, shrines, and forgotten statues.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/desert.png"
+    "thumbnail": "maps/thumbnails/desert.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "mountains",
@@ -37,7 +49,10 @@
     "name": "Mountains",
     "description": "Peaks and ice. Caves, crystals, and alpine flora.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/mountains.png"
+    "thumbnail": "maps/thumbnails/mountains.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "swamp",
@@ -45,7 +60,10 @@
     "name": "Swamp",
     "description": "Murky wetlands. Lily pads, glowing mushrooms, dark sanctums.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/swamp.png"
+    "thumbnail": "maps/thumbnails/swamp.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "magical",
@@ -53,7 +71,10 @@
     "name": "Magical",
     "description": "Enchanted realm. Portals, rune stones, and ancient artifacts.",
     "size": "800x800",
-    "thumbnail": "maps/thumbnails/magical.png"
+    "thumbnail": "maps/thumbnails/magical.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   },
   {
     "id": "mixed",
@@ -61,6 +82,119 @@
     "name": "Mixed Realms",
     "description": "Multiple biomes in one world. Travel from Terrant to Forest, Desert, Mountains, and Swamp.",
     "size": "2500x2500",
-    "thumbnail": "maps/thumbnails/mixed.png"
+    "thumbnail": "maps/thumbnails/mixed.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "highland-vale",
+    "path": "maps/highland-vale.json",
+    "name": "Highland Vale",
+    "description": "Windswept highlands. Stone circles and lone towers under the snow.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/highland-vale.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "ember-wastes",
+    "path": "maps/ember-wastes.json",
+    "name": "Ember Wastes",
+    "description": "Scorched badlands. Ancient ruins and obsidian formations.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/ember-wastes.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "whisper-woods",
+    "path": "maps/whisper-woods.json",
+    "name": "Whisper Woods",
+    "description": "A misty forest where ancient trees guard forgotten paths.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/whisper-woods.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "crimson-bog",
+    "path": "maps/crimson-bog.json",
+    "name": "Crimson Bog",
+    "description": "Blood-red waters and twisted roots. Dark sanctums rise from the mire.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/crimson-bog.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "sky-prairie",
+    "path": "maps/sky-prairie.json",
+    "name": "Sky Prairie",
+    "description": "Open grasslands under a vast sky. Villages and temples dot the plains.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/sky-prairie.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "veil-garden",
+    "path": "maps/veil-garden.json",
+    "name": "Veil Garden",
+    "description": "A garden between worlds. Glowing flowers and hidden portals.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/veil-garden.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "frost-hollow",
+    "path": "maps/frost-hollow.json",
+    "name": "Frost Hollow",
+    "description": "A frozen basin surrounded by peaks. Ice caves and crystal outcrops.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/frost-hollow.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "sand-shrine",
+    "path": "maps/sand-shrine.json",
+    "name": "Sand Shrine",
+    "description": "Dunes and buried temples. Shrines and forgotten statues await.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/sand-shrine.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "thorn-marsh",
+    "path": "maps/thorn-marsh.json",
+    "name": "Thorn Marsh",
+    "description": "Thorny wetlands and murky pools. Ruins and lily-covered paths.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/thorn-marsh.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
+  },
+  {
+    "id": "eldritch-grove",
+    "path": "maps/eldritch-grove.json",
+    "name": "Eldritch Grove",
+    "description": "Otherworldly grove. Rune stones and fairy circles under strange light.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/eldritch-grove.png",
+    "structures": "NA",
+    "paths": "NA",
+    "environment": "NA"
   }
 ]

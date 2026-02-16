@@ -1,0 +1,20 @@
+{
+  "id": "highland-vale",
+  "name": "Highland Vale",
+  "description": "Windswept highlands. Stone circles and lone towers under the snow.",
+  "type": "single",
+  "zoneStyle": "Mountains",
+  "bounds": {
+    "minX": -400,
+    "maxX": 400,
+    "minZ": -400,
+    "maxZ": 400
+  },
+  "spawn": {
+    "x": 0,
+    "y": 1,
+    "z": -13
+  },
+  "structures": [],
+  "environment": []
+}

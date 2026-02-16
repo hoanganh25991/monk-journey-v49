@@ -1,0 +1,20 @@
+{
+  "id": "sky-prairie",
+  "name": "Sky Prairie",
+  "description": "Open grasslands under a vast sky. Villages and temples dot the plains.",
+  "type": "single",
+  "zoneStyle": "Terrant",
+  "bounds": {
+    "minX": -400,
+    "maxX": 400,
+    "minZ": -400,
+    "maxZ": 400
+  },
+  "spawn": {
+    "x": 0,
+    "y": 1,
+    "z": -13
+  },
+  "structures": [],
+  "environment": []
+}
