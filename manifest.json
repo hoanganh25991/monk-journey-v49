@@ -5,8 +5,8 @@
   "start_url": "monk-journey",
   "display": "fullscreen",
   "orientation": "landscape",
-  "background_color": "#fef9c3",
-  "theme_color": "#fef9c3",
+  "background_color": "#EDE4C8",
+  "theme_color": "#EDE4C8",
   "icons": [
     {
       "src": "images/logo-192.png",
