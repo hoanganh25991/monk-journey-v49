@@ -15,9 +15,27 @@
     z-index: 120; /* Higher than joystick overlay to ensure camera buttons work */
 }
 
+/* Teleport slot - both buttons overlap, one visible at a time */
+#teleport-button-slot {
+    position: relative;
+    width: 55px;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#teleport-button-slot #inventory-teleport,
+#teleport-button-slot #portal-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
 /* Common styles for camera buttons */
 #camera-control-button,
 #camera-mode-button,
+#inventory-teleport,
 #portal-button {
     width: 55px;
     height: 55px;
@@ -38,6 +56,7 @@
 
 #camera-control-button:hover,
 #camera-mode-button:hover,
+#inventory-teleport:hover,
 #portal-button:hover {
     background-color: rgba(30, 30, 30, 0.9);
     border-color: #ff9600;
@@ -46,6 +65,7 @@
 
 #camera-control-button:active,
 #camera-mode-button:active,
+#inventory-teleport:active,
 #portal-button:active {
     transform: scale(0.95);
 }
@@ -66,7 +86,22 @@
     pointer-events: none;
 }
 
-/* Portal button specific styling */
+/* Teleport to origin - static (same look as camera/eye when idle) */
+#inventory-teleport .teleport-icon-static {
+    font-size: 24px;
+    color: #ffcc66;
+    text-shadow: 1px 1px 2px black;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 1;
+    text-align: center;
+}
+
+/* Portal button (shown when near portal) - purple + circle rotation */
 #portal-button {
     background-color: rgba(40, 0, 40, 0.4); /* Purple tint for portal */
     border-color: #8b00ff;

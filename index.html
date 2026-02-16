@@ -206,8 +206,14 @@
                 <div id="camera-mode-button">
                     <div class="camera-mode-icon">👀</div>
                 </div>
-                <div id="portal-button" style="display: none;">
-                    <div class="portal-icon">𖣐</div>
+                <!-- Single slot: inventory-teleport (static) or portal-button (purple + rotation) when near portal -->
+                <div id="teleport-button-slot">
+                    <div id="inventory-teleport" title="Teleport to Origin">
+                        <div class="teleport-icon-static">𖣐</div>
+                    </div>
+                    <div id="portal-button" style="display: none;">
+                        <div class="portal-icon">𖣐</div>
+                    </div>
                 </div>
             </div>
             
@@ -258,7 +264,6 @@
             <div id="inventory-header">
                 <div id="inventory-title">Character Inventory</div>
                 <div id="inventory-gold">Gold: <span id="gold-value">0</span></div>
-                <button id="inventory-teleport" class="circle-btn" title="Teleport to Origin">𖣐</button>
                 <button id="inventory-save" class="circle-btn" title="Save Inventory">💾</button>
             </div>
             <div id="inventory-container">
@@ -381,6 +386,7 @@
 
         <!-- Top Right UI (Home Button, Full Screen Button and Mini Map) -->
         <div id="top-right-container">
+            <button id="hud-guide-button" class="circle-btn" title="HUD Guide">ℹ️</button>
             <button id="map-selector-button" class="circle-btn" title="Map Selector">🗺️</button>
             <button id="inventory-button" class="circle-btn" title="Inventory">🎒</button>
             <button id="skill-tree-button" class="circle-btn" title="Skill Tree">🌲</button>
@@ -529,6 +535,24 @@
         <div id="save-operation-text" class="progress-text">Initializing...</div>
         <div class="progress-bar-container">
             <div id="save-operation-bar" class="progress-bar"></div>
+        </div>
+    </div>
+
+    <!-- HUD Guide Overlay (step-by-step UI introduction) -->
+    <div id="guideOverlayRoot" class="guide-overlay hidden" role="dialog" aria-modal="true">
+        <div class="guide-blocker"></div>
+        <div class="guide-focus"></div>
+        <div class="guide-hand">👉</div>
+        <div class="guide-tooltip">
+            <div class="guide-tooltip-header">
+                <div class="guide-tooltip-title"></div>
+                <button class="guide-close" aria-label="Close guide">✕</button>
+            </div>
+            <div class="guide-tooltip-body"></div>
+            <div class="guide-nav">
+                <button class="secondary" id="guidePrev">Previous</button>
+                <button class="primary" id="guideNext">Next</button>
+            </div>
         </div>
     </div>
 

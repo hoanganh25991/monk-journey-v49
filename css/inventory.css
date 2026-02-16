@@ -482,7 +482,3 @@
 .btn-text {
     font-weight: bold;
 }
-
-#inventory-teleport {
-    margin-right: var(--padding-medium);
-}

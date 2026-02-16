@@ -225,12 +225,15 @@ export class PortalButton extends UIComponent {
     }
     
     /**
-     * Show the portal button
+     * Show the portal button (replaces inventory-teleport in same slot)
      */
     showButton() {
         if (!this.portalButton || this.isVisible) return;
         
-        this.portalButton.style.display = 'block';
+        const inventoryTeleport = document.getElementById('inventory-teleport');
+        if (inventoryTeleport) inventoryTeleport.style.display = 'none';
+        
+        this.portalButton.style.display = 'flex';
         this.isVisible = true;
         
         // Update button text/icon based on nearby portal
@@ -251,13 +254,16 @@ export class PortalButton extends UIComponent {
     }
     
     /**
-     * Hide the portal button
+     * Hide the portal button (restore inventory-teleport in same slot)
      */
     hideButton() {
         if (!this.portalButton || !this.isVisible) return;
         
         this.portalButton.style.display = 'none';
         this.isVisible = false;
+        
+        const inventoryTeleport = document.getElementById('inventory-teleport');
+        if (inventoryTeleport) inventoryTeleport.style.display = 'flex';
         
         console.debug('Portal button hidden');
     }

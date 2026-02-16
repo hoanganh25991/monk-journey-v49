@@ -73,14 +73,18 @@ export class InventoryUI extends UIComponent {
             console.warn('Save inventory button not found');
         }
         
-        // Add click event to teleport to origin
+        // Add click/touch event to teleport to origin (button is in camera-controls, always visible)
         const teleportButton = document.getElementById('inventory-teleport');
         if (teleportButton) {
-            teleportButton.addEventListener('click', () => {
+            const handleTeleport = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 this.teleportToOrigin();
-            });
+            };
+            teleportButton.addEventListener('click', handleTeleport);
+            teleportButton.addEventListener('touchend', handleTeleport);
         } else {
-            console.warn('Teleport inventory button not found');
+            console.warn('Teleport button not found');
         }
         
         // Add click event to close popup when clicking outside
@@ -1164,8 +1168,13 @@ export class InventoryUI extends UIComponent {
         
         this.isPortalActive = true;
         
-        // Close inventory
-        this.toggleInventory();
+        // Close inventory only if it's open (don't toggle - teleport button is now outside inventory)
+        if (this.isInventoryOpen) {
+            this.hideItemPopup();
+            this.hide();
+            this.isInventoryOpen = false;
+            this.game.resume(false);
+        }
 
         // Show countdown and set auto-teleport (non-cancellable)
         if (this.game.hudManager) {

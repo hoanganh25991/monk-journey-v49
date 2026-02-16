@@ -18,6 +18,7 @@ import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
 
 import { InventoryButton } from './InventoryButton.js';
+import './HUDGuide.js'; // Registers click handler for hud-guide-button
 
 /**
  * HUD Manager
@@ -425,6 +426,7 @@ export class HUDManager {
         const skillTreeButton = document.getElementById('skill-tree-button');
         const inventoryButton = document.getElementById('inventory-button');
         const mapSelectorButton = document.getElementById('map-selector-button');
+        const hudGuideButton = document.getElementById('hud-guide-button');
         
         if (homeButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
             homeButton.style.display = 'none';
@@ -444,6 +446,10 @@ export class HUDManager {
         
         if (mapSelectorButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
             mapSelectorButton.style.display = 'none';
+        }
+        
+        if (hudGuideButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
+            hudGuideButton.style.display = 'none';
         }
     }
     
@@ -479,6 +485,11 @@ export class HUDManager {
         const mapSelectorButton = document.getElementById('map-selector-button');
         if (mapSelectorButton) {
             mapSelectorButton.style.display = 'block';
+        }
+        
+        const hudGuideButton = document.getElementById('hud-guide-button');
+        if (hudGuideButton) {
+            hudGuideButton.style.display = 'block';
         }
     }
     

@@ -84,6 +84,7 @@
 /* Import difficulty menu styles */
 @import 'difficulty-menu.css';
 @import 'map-selector.css';
+@import 'guide.css';
 
 /* Import status effects styles */
 @import 'hud/status-effects.css';
