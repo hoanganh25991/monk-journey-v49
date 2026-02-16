@@ -1,0 +1,66 @@
+[
+  {
+    "id": "default",
+    "path": "maps/default.json",
+    "name": "Default World",
+    "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
+    "size": "2500x2500",
+    "thumbnail": "maps/thumbnails/default.png"
+  },
+  {
+    "id": "terrant",
+    "path": "maps/terrant.json",
+    "name": "Terrant",
+    "description": "Central plains. Gentle terrain, villages and temples.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/terrant.png"
+  },
+  {
+    "id": "forest",
+    "path": "maps/forest.json",
+    "name": "Forest",
+    "description": "Dense woodland. Ancient trees, ruins, and fairy circles.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/forest.png"
+  },
+  {
+    "id": "desert",
+    "path": "maps/desert.json",
+    "name": "Desert",
+    "description": "Sands and ruins. Oases, shrines, and forgotten statues.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/desert.png"
+  },
+  {
+    "id": "mountains",
+    "path": "maps/mountains.json",
+    "name": "Mountains",
+    "description": "Peaks and ice. Caves, crystals, and alpine flora.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/mountains.png"
+  },
+  {
+    "id": "swamp",
+    "path": "maps/swamp.json",
+    "name": "Swamp",
+    "description": "Murky wetlands. Lily pads, glowing mushrooms, dark sanctums.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/swamp.png"
+  },
+  {
+    "id": "magical",
+    "path": "maps/magical.json",
+    "name": "Magical",
+    "description": "Enchanted realm. Portals, rune stones, and ancient artifacts.",
+    "size": "800x800",
+    "thumbnail": "maps/thumbnails/magical.png"
+  },
+  {
+    "id": "mixed",
+    "path": "maps/mixed.json",
+    "name": "Mixed Realms",
+    "description": "Multiple biomes in one world. Travel from Terrant to Forest, Desert, Mountains, and Swamp.",
+    "size": "2500x2500",
+    "thumbnail": "maps/thumbnails/mixed.png"
+  }
+]

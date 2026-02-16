@@ -1,8 +1,8 @@
 {
-  "id": "default",
-  "name": "Default World",
-  "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
-  "type": "procedural",
+  "id": "mixed",
+  "name": "Mixed Realms",
+  "description": "Multiple biomes in one world. Travel from Terrant to Forest, Desert, Mountains, and Swamp.",
+  "type": "mixed",
   "bounds": {
     "minX": -1250,
     "maxX": 1250,

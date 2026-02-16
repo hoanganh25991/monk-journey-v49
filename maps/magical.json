@@ -1,0 +1,20 @@
+{
+  "id": "magical",
+  "name": "Magical",
+  "description": "Enchanted realm. Portals, rune stones, and ancient artifacts.",
+  "type": "single",
+  "zoneStyle": "Magical",
+  "bounds": {
+    "minX": -400,
+    "maxX": 400,
+    "minZ": -400,
+    "maxZ": 400
+  },
+  "spawn": {
+    "x": 0,
+    "y": 1,
+    "z": -13
+  },
+  "structures": [],
+  "environment": []
+}
