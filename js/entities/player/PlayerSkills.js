@@ -665,7 +665,41 @@ export class PlayerSkills {
                     
                     return true;
                 } else {
-                    // No enemy found in any range, show notification
+                    // No enemy found - for Deadly Reach (ranged energy attack), allow casting in player direction
+                    if (skillTemplate.name === "Deadly Reach" || skillTemplate.stationaryAttack) {
+                        console.debug(`No enemy in range, casting ${skillTemplate.name} in player direction`);
+                        this.broadcastSkillCast(skillTemplate.name, null);
+                        
+                        // Use mana
+                        this.playerStats.setMana(this.playerStats.getMana() - skillTemplate.manaCost);
+                        
+                        // Start cooldown
+                        skillTemplate.startCooldown();
+                        
+                        // Create skill instance (no target - will fire in player direction)
+                        const skillConfig = SKILLS.find(config => config.name === skillTemplate.name);
+                        const newSkillInstance = new Skill(skillConfig, this.game);
+                        newSkillInstance.game = this.game;
+                        newSkillInstance.targetEnemy = null; // Fire in player direction
+                        
+                        // Create skill effect at current position with player rotation
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+                        
+                        // Add skill effect to scene
+                        this.scene.add(skillEffect);
+                        
+                        // Play sound
+                        if (this.game && this.game.audioManager) {
+                            this.game.audioManager.playSound('playerAttack');
+                        }
+                        
+                        // Add to active skills
+                        this.activeSkills.push(newSkillInstance);
+                        
+                        return true;
+                    }
+                    
+                    // For other skills (e.g. Fist of Thunder), show notification
                     if (this.game && this.game.hudManager) {
                         this.game.hudManager.showNotification('No enemy in range');
                     }
