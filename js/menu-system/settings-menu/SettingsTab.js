@@ -103,7 +103,8 @@ export class SettingsTab extends UIComponent {
      * @returns {*} The loaded data or default value
      */
     loadSettingSync(key, defaultValue = null) {
-        return storageService.loadDataSync(key, defaultValue);
+        const result = storageService.loadDataSync(key);
+        return result !== null && result !== undefined ? result : defaultValue;
     }
     
     /**
