@@ -689,7 +689,6 @@ export class EnvironmentManager {
             return;
         }
         
-        console.debug(`Generating environment for chunk ${chunkKey} (${zoneType})`);
         
         // Initialize array for this chunk
         this.environmentObjectsByChunk[chunkKey] = [];
@@ -746,7 +745,7 @@ export class EnvironmentManager {
             }
         }
         
-        console.warn(`🌳 CREATED ENVIRONMENT: ${this.environmentObjectsByChunk[chunkKey].length} objects for chunk ${chunkKey}`);
+        console.debug(`🌳 Created ${this.environmentObjectsByChunk[chunkKey].length} env objects for ${chunkKey}`);
     }
     
     /**

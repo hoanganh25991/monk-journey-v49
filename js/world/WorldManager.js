@@ -198,30 +198,46 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
         
-        // Chunk-based structure + environment generation (like v42) - lighter than random spawning
+        // Chunk-based structure + environment generation (like v42) - throttled to avoid freeze
         const chunkSize = this.terrainManager.terrainChunkSize || 64;
         const playerChunkX = Math.floor(playerPosition.x / chunkSize);
         const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
         const genDistance = 2;
+        const maxStructureChunksPerFrame = 2;
         if (this.structureManager && this.structureManager.generateStructuresForChunk) {
+            const structPending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
                 for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
                     const chunkKey = `${x},${z}`;
                     if (!this.structureManager.structuresPlaced[chunkKey]) {
-                        this.structureManager.generateStructuresForChunk(x, z);
+                        const dx = x - playerChunkX, dz = z - playerChunkZ;
+                        structPending.push({ x, z, dist: dx * dx + dz * dz });
                     }
                 }
             }
+            structPending.sort((a, b) => a.dist - b.dist);
+            for (let i = 0; i < Math.min(maxStructureChunksPerFrame, structPending.length); i++) {
+                const c = structPending[i];
+                this.structureManager.generateStructuresForChunk(c.x, c.z);
+            }
         }
-        // Environment generation (trees, rocks, bushes, etc.) - same chunk loop
+        // Environment generation - throttled, prioritized by distance to avoid 3–5s freeze/flicker
+        const maxEnvChunksPerFrame = 2;
         if (this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
+            const pending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
                 for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
                     const chunkKey = `${x},${z}`;
                     if (!this.environmentManager.environmentObjectsByChunk[chunkKey]) {
-                        this.environmentManager.generateEnvironmentForChunk(x, z);
+                        const dx = x - playerChunkX, dz = z - playerChunkZ;
+                        pending.push({ x, z, dist: dx * dx + dz * dz });
                     }
                 }
+            }
+            pending.sort((a, b) => a.dist - b.dist);
+            for (let i = 0; i < Math.min(maxEnvChunksPerFrame, pending.length); i++) {
+                const c = pending[i];
+                this.environmentManager.generateEnvironmentForChunk(c.x, c.z);
             }
         }
         // Update environment visibility and cleanup
