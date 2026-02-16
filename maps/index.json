@@ -6,9 +6,9 @@
     "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
     "size": "2500x2500",
     "thumbnail": "maps/thumbnails/default.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 280,
+    "paths": 12,
+    "environment": 980
   },
   {
     "id": "terrant",
@@ -17,9 +17,9 @@
     "description": "Central plains. Gentle terrain, villages and temples.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/terrant.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 28,
+    "paths": 2,
+    "environment": 95
   },
   {
     "id": "forest",
@@ -28,9 +28,9 @@
     "description": "Dense woodland. Ancient trees, ruins, and fairy circles.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/forest.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 32,
+    "paths": 3,
+    "environment": 145
   },
   {
     "id": "desert",
@@ -39,9 +39,9 @@
     "description": "Sands and ruins. Oases, shrines, and forgotten statues.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/desert.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 24,
+    "paths": 2,
+    "environment": 88
   },
   {
     "id": "mountains",
@@ -50,9 +50,9 @@
     "description": "Peaks and ice. Caves, crystals, and alpine flora.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/mountains.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 26,
+    "paths": 2,
+    "environment": 102
   },
   {
     "id": "swamp",
@@ -61,9 +61,9 @@
     "description": "Murky wetlands. Lily pads, glowing mushrooms, dark sanctums.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/swamp.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 28,
+    "paths": 2,
+    "environment": 118
   },
   {
     "id": "magical",
@@ -72,9 +72,9 @@
     "description": "Enchanted realm. Portals, rune stones, and ancient artifacts.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/magical.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 30,
+    "paths": 3,
+    "environment": 125
   },
   {
     "id": "mixed",
@@ -83,9 +83,9 @@
     "description": "Multiple biomes in one world. Travel from Terrant to Forest, Desert, Mountains, and Swamp.",
     "size": "2500x2500",
     "thumbnail": "maps/thumbnails/mixed.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 280,
+    "paths": 12,
+    "environment": 980
   },
   {
     "id": "highland-vale",
@@ -94,9 +94,9 @@
     "description": "Windswept highlands. Stone circles and lone towers under the snow.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/highland-vale.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 26,
+    "paths": 2,
+    "environment": 102
   },
   {
     "id": "ember-wastes",
@@ -105,9 +105,9 @@
     "description": "Scorched badlands. Ancient ruins and obsidian formations.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/ember-wastes.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 24,
+    "paths": 2,
+    "environment": 88
   },
   {
     "id": "whisper-woods",
@@ -116,9 +116,9 @@
     "description": "A misty forest where ancient trees guard forgotten paths.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/whisper-woods.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 32,
+    "paths": 3,
+    "environment": 145
   },
   {
     "id": "crimson-bog",
@@ -127,9 +127,9 @@
     "description": "Blood-red waters and twisted roots. Dark sanctums rise from the mire.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/crimson-bog.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 28,
+    "paths": 2,
+    "environment": 118
   },
   {
     "id": "sky-prairie",
@@ -138,9 +138,9 @@
     "description": "Open grasslands under a vast sky. Villages and temples dot the plains.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/sky-prairie.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 28,
+    "paths": 2,
+    "environment": 95
   },
   {
     "id": "veil-garden",
@@ -149,9 +149,9 @@
     "description": "A garden between worlds. Glowing flowers and hidden portals.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/veil-garden.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 30,
+    "paths": 3,
+    "environment": 125
   },
   {
     "id": "frost-hollow",
@@ -160,9 +160,9 @@
     "description": "A frozen basin surrounded by peaks. Ice caves and crystal outcrops.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/frost-hollow.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 26,
+    "paths": 2,
+    "environment": 102
   },
   {
     "id": "sand-shrine",
@@ -171,9 +171,9 @@
     "description": "Dunes and buried temples. Shrines and forgotten statues await.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/sand-shrine.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 24,
+    "paths": 2,
+    "environment": 88
   },
   {
     "id": "thorn-marsh",
@@ -182,9 +182,9 @@
     "description": "Thorny wetlands and murky pools. Ruins and lily-covered paths.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/thorn-marsh.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 28,
+    "paths": 2,
+    "environment": 118
   },
   {
     "id": "eldritch-grove",
@@ -193,8 +193,8 @@
     "description": "Otherworldly grove. Rune stones and fairy circles under strange light.",
     "size": "800x800",
     "thumbnail": "maps/thumbnails/eldritch-grove.png",
-    "structures": "NA",
-    "paths": "NA",
-    "environment": "NA"
+    "structures": 30,
+    "paths": 3,
+    "environment": 125
   }
 ]
