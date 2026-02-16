@@ -91,6 +91,13 @@
     pointer-events: none; /* Don't block clicks */
 }
 
+/* Hide keyboard labels (h, 2, 3...) on mobile/touch - they're for desktop keyboard only */
+@media (hover: none) {
+    .skill-button .skill-key {
+        display: none !important;
+    }
+}
+
 .skill-name {
     position: absolute;
     top: -25px;

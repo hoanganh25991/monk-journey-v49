@@ -332,3 +332,10 @@
     font-weight: bold;
     z-index: 10; /* Ensure it appears above other elements */
 }
+
+/* Hide keyboard labels on mobile/touch - for desktop keyboard only */
+@media (hover: none) {
+    .preview-skill-key {
+        display: none !important;
+    }
+}
