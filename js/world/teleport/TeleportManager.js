@@ -190,13 +190,8 @@ export class TeleportManager {
         // Reset active portal
         this.activePortal = null;
         
-        // Create default portals if none exist
-        if (this.portals.length === 0) {
-            this.createDefaultPortals();
-            this.createMultiplierPortals();
-            // Also create a teleport network
-            this.createTeleportNetwork(3, 2000, 200, 0);
-        }
+        // Default portals removed - no portals created on init (reduces complexity, improves performance)
+        // Portals can be added dynamically via createPortal() or createTeleportNetwork() when needed
         
         // Re-setup touch/click events to ensure they're properly bound
         this.setupTouchClickEvents();
@@ -493,14 +488,7 @@ export class TeleportManager {
             size
         );
         
-        // Create particle effect for the portal
-        const particles = this.portalModelFactory.createPortalParticles(
-            sourcePosition, 
-            color || this.portalModelFactory.portalColor, 
-            size || this.portalModelFactory.portalRadius
-        );
-        
-        // Create portal object
+        // Create portal object (particles removed - caused size flickering)
         const portal = {
             id: `portal_${this.portals.length}`,
             sourceName: sourceName || `Portal ${this.portals.length + 1}`,
@@ -508,7 +496,7 @@ export class TeleportManager {
             sourcePosition: sourcePosition.clone(),
             targetPosition: targetPosition.clone(),
             mesh: portalMesh,
-            particles: particles,
+            particles: null,
             creationTime: Date.now(),
             lastInteractionTime: 0,
             color: color || this.portalModelFactory.portalColor,
@@ -583,9 +571,8 @@ export class TeleportManager {
             // Cyclone spiral rotation - continuous smooth rotation on Y-axis
             portal.mesh.cycloneMesh.rotation.y += this.rotationSpeed * 4; // Slightly faster for more visible spiral
             
-            // Add pulsing scale effect for dynamic visual
-            const pulseScale = 1 + Math.sin(time * 2) * 0.12;
-            portal.mesh.cycloneMesh.scale.set(pulseScale, pulseScale, pulseScale);
+            // Fixed scale - no pulsing to prevent flickering
+            portal.mesh.cycloneMesh.scale.set(1, 1, 1);
             
             // Ensure the spiral never stops - force continuous rotation
             if (portal.mesh.cycloneMesh.rotation.y > Math.PI * 2) {
@@ -597,9 +584,8 @@ export class TeleportManager {
             // Inner ring counter-rotation - smooth continuous rotation
             portal.mesh.innerRingMesh.rotation.y -= this.rotationSpeed * 3; // Counter-rotation for hypnotic effect
             
-            // Add breathing effect
-            const breatheScale = 1 + Math.sin(time * 1.5) * 0.18;
-            portal.mesh.innerRingMesh.scale.set(breatheScale, breatheScale, breatheScale);
+            // Fixed scale - no breathing effect to prevent flickering
+            portal.mesh.innerRingMesh.scale.set(1, 1, 1);
             
             // Ensure the inner ring never stops - force continuous rotation
             if (portal.mesh.innerRingMesh.rotation.y < -Math.PI * 2) {
@@ -607,64 +593,7 @@ export class TeleportManager {
             }
         }
         
-        // Outer ring removed for cleaner look
-        
-        // Enhanced particle animations
-        this.animatePortalParticles(portal, time);
-    }
-    
-    /**
-     * Animate portal particles with spiral effects
-     * @param {Object} portal - The portal object
-     * @param {number} time - Current time in seconds
-     */
-    animatePortalParticles(portal, time) {
-        if (!portal.particles) return;
-        
-        // Animate spiral particles (main cyclone effect)
-        if (portal.particles.spiralParticles) {
-            const spiralGeometry = portal.particles.spiralParticles.geometry;
-            const positions = spiralGeometry.attributes.position;
-            const angles = spiralGeometry.attributes.angle;
-            const speeds = spiralGeometry.attributes.speed;
-            
-            if (positions && angles && speeds) {
-                const posArray = positions.array;
-                const angleArray = angles.array;
-                const speedArray = speeds.array;
-                const particleCount = posArray.length / 3;
-                
-                for (let i = 0; i < particleCount; i++) {
-                    const ix = i * 3;
-                    const iy = i * 3 + 1;
-                    const iz = i * 3 + 2;
-                    
-                    // Update angle for continuous spiral motion
-                    angleArray[i] += speedArray[i] * 0.025; // Slightly faster spiral motion
-                    
-                    // Calculate spiral position
-                    const spiralPosition = (i / particleCount);
-                    const currentAngle = angleArray[i] + time * this.animationSpeed * 2.5; // Enhanced spiral speed
-                    const baseRadius = portal.size || this.portalModelFactory?.portalRadius || 3;
-                    const spiralRadius = baseRadius * (1 - spiralPosition * 0.7) * (0.85 + Math.sin(time + i) * 0.15);
-                    
-                    // Spiral inward motion - continuous smooth rotation
-                    posArray[ix] = Math.cos(currentAngle) * spiralRadius;
-                    posArray[iy] = Math.sin(time * 2.2 + i) * 0.15; // Gentle vertical movement
-                    posArray[iz] = Math.sin(currentAngle) * spiralRadius;
-                    
-                    // Keep angle values manageable to prevent overflow
-                    if (angleArray[i] > Math.PI * 4) {
-                        angleArray[i] -= Math.PI * 4;
-                    }
-                }
-                
-                positions.needsUpdate = true;
-                angles.needsUpdate = true;
-            }
-        }
-        
-        // Outer and ambient particles removed for cleaner portal effect
+        // Particle animations removed - caused size flickering
     }
     
     /**

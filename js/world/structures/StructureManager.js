@@ -479,6 +479,8 @@ export class StructureManager {
             // Get zone type from the world manager
             if (this.worldManager && this.worldManager.terrainManager && this.worldManager.terrainManager.chunkManager) {
                 zoneType = this.worldManager.terrainManager.chunkManager.getZoneTypeAt(worldX, worldZ);
+            } else if (this.worldManager && this.worldManager.zoneManager && this.worldManager.zoneManager.getZoneTypeForChunk) {
+                zoneType = this.worldManager.zoneManager.getZoneTypeForChunk(chunkX, chunkZ);
             } else {
                 // Default to Forest if we can't determine zone type
                 zoneType = 'Forest';

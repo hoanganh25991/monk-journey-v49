@@ -17,7 +17,7 @@ export const TERRAIN_CONFIG = {
     // Terrain caching properties
     cache: {
         maxCachedChunks: 100, // Maximum number of chunks to keep in memory
-        saveToLocalStorage: true, // Whether to save terrain to localStorage
+        saveToLocalStorage: false, // Disabled - terrain storage caused game stutter
         localStorageKey: 'monk_journey_terrain_cache'
     }
 };

@@ -59,6 +59,10 @@ export class TerrainManager {
         
         // Debug/testing configuration
         this.useTestPattern = false; // Set to true to use checkerboard test pattern instead of biome coloring
+        
+        // Compatibility aliases for StructureManager, EnvironmentManager, etc.
+        this.terrainChunkSize = this.config.chunkSize;
+        this.terrainChunkViewDistance = this.config.viewDistance;
     }
     
     /**
@@ -1094,6 +1098,13 @@ export class TerrainManager {
     
     isInQueue(x, z) {
         return this.queue.some(item => item.x === x && item.z === z);
+    }
+    
+    /**
+     * Get terrain chunks as plain object (compatibility for ZoneManager, TeleportManager)
+     */
+    get terrainChunks() {
+        return Object.fromEntries(this.chunks);
     }
     
     /**

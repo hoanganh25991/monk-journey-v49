@@ -10,6 +10,7 @@ import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
+import { ZONE_STRUCTURE_DENSITY } from '../config/density.js';
 
 /**
  * Optimized World Manager
@@ -44,19 +45,31 @@ export class WorldManager {
             lastAdjustment: 0
         };
         
-        // Object generation settings - simplified with higher probabilities for testing
+        // Object generation - DISABLED for smoother gameplay (complexity caused stutter)
+        // StructureManager and EnvironmentManager handle chunk-based generation instead
         this.generation = {
-            enabled: true,
-            updateDistance: 50, // How far player must move before updating
+            enabled: false,
+            updateDistance: 200,
             lastPosition: new THREE.Vector3(),
-            structureProbability: 0.8, // Increased for testing
-            environmentProbability: 0.9, // Increased for testing  
-            interactiveProbability: 0.5, // Increased for testing
-            generatedObjects: new Set() // Track to prevent duplicates
+            structureProbability: 0,
+            environmentProbability: 0,
+            interactiveProbability: 0,
+            generatedObjects: new Set()
         };
         
         // Enemy management reference
         this.enemyManager = null;
+        
+        // Compatibility for StructureManager/EnvironmentManager chunk generation
+        this.worldScale = 1.0;
+        this.zoneDensities = {
+            Terrant: { structures: ZONE_STRUCTURE_DENSITY.TERRANT, structureTypes: ['house', 'tower', 'ruins'] },
+            Forest: { structures: ZONE_STRUCTURE_DENSITY.FOREST, structureTypes: ['house', 'tower'] },
+            Desert: { structures: ZONE_STRUCTURE_DENSITY.DESERT, structureTypes: ['ruins', 'house'] },
+            Mountain: { structures: ZONE_STRUCTURE_DENSITY.MOUNTAIN, structureTypes: ['tower', 'ruins'] },
+            Swamp: { structures: ZONE_STRUCTURE_DENSITY.SWAMP, structureTypes: ['house', 'ruins'] },
+            Magical: { structures: ZONE_STRUCTURE_DENSITY.MAGICAL, structureTypes: ['tower', 'house', 'ruins'] }
+        };
         
         // Simple caching for commonly accessed data
         this.cache = {
@@ -128,87 +141,12 @@ export class WorldManager {
     }
     
     /**
-     * Generate initial content around spawn point
+     * Generate initial content - simplified for performance
+     * Heavy random object generation removed - StructureManager/EnvironmentManager handle chunk-based generation
      */
     async generateInitialContent() {
-        console.log('🎯 Generating initial world content...');
-        
-        const spawnRadius = 100;
-        const objectCount = {
-            structures: 0,
-            environment: 0,
-            interactive: 0
-        };
-        
-        // Generate objects in a reasonable area around spawn
-        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-            for (let radius = 20; radius <= spawnRadius; radius += 20) {
-                const x = Math.cos(angle) * radius;
-                const z = Math.sin(angle) * radius;
-                const position = new THREE.Vector3(x, 0, z);
-                
-                // Check zone for appropriate content
-                const zone = this.getZoneAt(position);
-                const zoneType = zone ? zone.name : 'Terrant';
-                
-                console.debug(`🎲 Generating at (${x.toFixed(1)}, ${z.toFixed(1)}) in zone: ${zoneType}`);
-                
-                // Generate based on probabilities
-                const structureRoll = Math.random();
-                const environmentRoll = Math.random();
-                const interactiveRoll = Math.random();
-                
-                console.debug(`🎲 Rolls - Structure: ${structureRoll.toFixed(3)} (threshold: ${this.generation.structureProbability}), Environment: ${environmentRoll.toFixed(3)} (threshold: ${this.generation.environmentProbability}), Interactive: ${interactiveRoll.toFixed(3)} (threshold: ${this.generation.interactiveProbability})`);
-                
-                if (structureRoll < this.generation.structureProbability) {
-                    console.debug('🏗️ Creating structure...');
-                    await this.createStructureAt(position, zoneType);
-                    objectCount.structures++;
-                }
-                
-                if (environmentRoll < this.generation.environmentProbability) {
-                    console.debug('🌳 Creating environment object...');
-                    await this.createEnvironmentObjectAt(position, zoneType);
-                    objectCount.environment++;
-                }
-                
-                if (interactiveRoll < this.generation.interactiveProbability) {
-                    console.debug('⚡ Creating interactive object...');
-                    await this.createInteractiveObjectAt(position, zoneType);
-                    objectCount.interactive++;
-                }
-            }
-        }
-        
-        console.log(`📊 Generated initial content:`, objectCount);
-        
-        // Add a test structure at origin for easy visibility
-        console.log('🧪 Creating test structure at origin...');
-        const testPosition = new THREE.Vector3(0, 0, 0);
-        await this.createStructureAt(testPosition, 'Terrant');
-        
-        // Add a test environment object nearby
-        console.log('🧪 Creating test environment object...');
-        const testEnvPosition = new THREE.Vector3(10, 0, 0);
-        await this.createEnvironmentObjectAt(testEnvPosition, 'Forest');
-        
-        console.log('🧪 Test objects creation complete');
-        
-        // Force create some objects for testing - bypass probability
-        console.log('🧪 Force creating test objects...');
-        for (let i = 0; i < 5; i++) {
-            const angle = (i / 5) * Math.PI * 2;
-            const radius = 15;
-            const x = Math.cos(angle) * radius;
-            const z = Math.sin(angle) * radius;
-            
-            console.log(`🧪 Force creating structure ${i + 1} at (${x.toFixed(1)}, ${z.toFixed(1)})`);
-            await this.createStructureAt(new THREE.Vector3(x, 0, z), 'Terrant');
-            
-            console.log(`🧪 Force creating environment object ${i + 1} at (${(x + 5).toFixed(1)}, ${z.toFixed(1)})`);
-            await this.createEnvironmentObjectAt(new THREE.Vector3(x + 5, 0, z), 'Forest');
-        }
-        console.log('🧪 Force creation complete');
+        console.log('🎯 World content handled by StructureManager and EnvironmentManager (chunk-based)');
+        // No random object spawning - reduces complexity and improves game smoothness
     }
     
     /**
@@ -221,7 +159,28 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
         
-        // Check if player moved enough to trigger world updates
+        // Chunk-based structure generation (like v42) - lighter than random spawning
+        const chunkSize = this.terrainManager.terrainChunkSize || 64;
+        const playerChunkX = Math.floor(playerPosition.x / chunkSize);
+        const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
+        const structureGenDistance = 2;
+        if (this.structureManager && this.structureManager.generateStructuresForChunk) {
+            for (let x = playerChunkX - structureGenDistance; x <= playerChunkX + structureGenDistance; x++) {
+                for (let z = playerChunkZ - structureGenDistance; z <= playerChunkZ + structureGenDistance; z++) {
+                    const chunkKey = `${x},${z}`;
+                    if (!this.structureManager.structuresPlaced[chunkKey]) {
+                        this.structureManager.generateStructuresForChunk(x, z);
+                    }
+                }
+            }
+        }
+        
+        // Update environment for visible chunks
+        if (this.environmentManager && this.environmentManager.updateForPlayer) {
+            this.environmentManager.updateForPlayer(playerPosition, 1.0);
+        }
+        
+        // Random world content generation - DISABLED for performance
         const distanceMoved = playerPosition.distanceTo(this.generation.lastPosition);
         if (distanceMoved > this.generation.updateDistance) {
             this.updateWorldContent(playerPosition);
