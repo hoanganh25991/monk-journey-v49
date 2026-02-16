@@ -417,7 +417,7 @@ export class CameraControlUI extends UIComponent {
         
         // Set tooltip for camera button (desktop hover + reinforces tap message)
         if (this.cameraButton) {
-            this.cameraButton.title = 'HOLD & DRAG to change';
+            this.cameraButton.title = 'Hold then drag to change';
         }
         
         // Update the camera mode button UI based on current mode
@@ -562,7 +562,7 @@ export class CameraControlUI extends UIComponent {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a tap (not a drag), show tooltip "HOLD & DRAG to change"
+                // If it was just a tap (not a drag), show tooltip "Hold then drag to change"
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
                     this.showCameraHintTooltip();
                 } else {
@@ -622,7 +622,7 @@ export class CameraControlUI extends UIComponent {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a click (not a drag), show tooltip "HOLD & DRAG to change"
+                // If it was just a click (not a drag), show tooltip "Hold then drag to change"
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
                     this.showCameraHintTooltip();
                 } else {
@@ -869,14 +869,14 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Create the camera hint tooltip element (text: "HOLD & DRAG to change")
+     * Create the camera hint tooltip element (text: "Hold then drag to change")
      */
     createCameraHintTooltip() {
         if (this.cameraHintTooltip) return;
         const tooltip = document.createElement('div');
         tooltip.id = 'camera-hint-tooltip';
         tooltip.className = 'camera-hint-tooltip';
-        tooltip.textContent = 'HOLD & DRAG to change';
+        tooltip.textContent = 'Hold then drag to change';
         tooltip.style.cssText = `
             position: fixed;
             z-index: 300;
@@ -897,7 +897,7 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Show tooltip "HOLD & DRAG to change" when user clicks/taps without dragging.
+     * Show tooltip "Hold then drag to change" when user clicks/taps without dragging.
      * Replaces the old 4-direction indicator that showed then disappeared.
      */
     showCameraHintTooltip() {
