@@ -278,6 +278,35 @@ export class MiniMapUI extends UIComponent {
     }
     
     /**
+     * Get the effective look direction for the minimap
+     * Uses camera rotation from CameraControlUI when available (synced with camera control),
+     * otherwise derives from actual camera position, then falls back to player rotation
+     * @returns {{ angle: number, fromCamera: boolean }} Rotation and source for direction indicator
+     */
+    getMinimapDirectionRotation() {
+        const player = this.game?.player;
+        const camera = this.game?.camera;
+        if (!player || !camera) return { angle: 0, fromCamera: false };
+
+        // Prefer camera control state - this is the current rotation when user has used camera button
+        const cameraControl = this.game?.hudManager?.components?.cameraControlUI;
+        if (cameraControl?.cameraState?.rotationY !== undefined) {
+            return { angle: cameraControl.cameraState.rotationY, fromCamera: true };
+        }
+        // Derive from actual camera position (works when PlayerMovement controls camera)
+        const playerPos = player.getPosition();
+        const dx = camera.position.x - playerPos.x;
+        const dz = camera.position.z - playerPos.z;
+        const distSq = dx * dx + dz * dz;
+        if (distSq > 0.01) {
+            const angle = Math.atan2(dx, dz);
+            return { angle, fromCamera: true };
+        }
+        // Fallback to player rotation
+        return { angle: player.getRotation().y, fromCamera: false };
+    }
+    
+    /**
      * Update the mini map
      * @param {number} delta - Time since last update in seconds
      */
@@ -291,7 +320,7 @@ export class MiniMapUI extends UIComponent {
         
         // Only render every renderInterval ms for performance
         if (currentTime - this.lastRenderTime >= this.renderInterval) {
-            // Check if player has moved significantly before rendering
+            // Check if player has moved significantly or camera/player rotated before rendering
             const player = this.game.player;
             if (player) {
                 // Store last position for movement detection
@@ -300,16 +329,16 @@ export class MiniMapUI extends UIComponent {
                     this._lastPlayerPos.copy(player.getPosition());
                     this.renderMiniMap();
                 } else {
-                    // Only render if player has moved at least 1 unit or rotated
+                    // Only render if player has moved at least 1 unit or direction changed
                     const currentPos = player.getPosition();
-                    const currentRot = player.getRotation().y;
+                    const { angle: currentRot } = this.getMinimapDirectionRotation();
                     
-                    if (!this._lastPlayerRot) {
+                    if (this._lastPlayerRot === undefined) {
                         this._lastPlayerRot = currentRot;
                     }
                     
                     const hasMoved = this._lastPlayerPos.distanceTo(currentPos) > 1;
-                    const hasRotated = Math.abs(this._lastPlayerRot - currentRot) > 0.1;
+                    const hasRotated = Math.abs((this._lastPlayerRot ?? currentRot) - currentRot) > 0.1;
                     
                     if (hasMoved || hasRotated) {
                         this.renderMiniMap();
@@ -395,16 +424,16 @@ export class MiniMapUI extends UIComponent {
         this.ctx.arc(offsetCenterX, offsetCenterY, 4, 0, Math.PI * 2);
         this.ctx.stroke();
         
-        // Draw player direction indicator
-        const playerRotation = player.getRotation().y;
+        // Draw player direction indicator - use camera rotation when available so it stays synced with camera control
+        const { angle: directionRotation, fromCamera } = this.getMinimapDirectionRotation();
+        // Camera: rotationY = angle from player to camera; forward = opposite. Player: atan2(x,z) convention
+        const arrowX = fromCamera ? -Math.cos(directionRotation) : Math.sin(directionRotation);
+        const arrowY = fromCamera ? -Math.sin(directionRotation) : Math.cos(directionRotation);
         this.ctx.strokeStyle = '#00ff00';
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();
         this.ctx.moveTo(offsetCenterX, offsetCenterY);
-        this.ctx.lineTo(
-            offsetCenterX + Math.sin(playerRotation) * 10,
-            offsetCenterY + Math.cos(playerRotation) * 10
-        );
+        this.ctx.lineTo(offsetCenterX + arrowX * 10, offsetCenterY + arrowY * 10);
         this.ctx.stroke();
         
         // Restore context and draw border

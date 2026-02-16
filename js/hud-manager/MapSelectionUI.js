@@ -58,7 +58,10 @@ export class MapSelectionUI extends UIComponent {
                 name: m.name,
                 description: m.description || '',
                 size: '-',
-                thumbnail: m.thumbnail || ''
+                thumbnail: m.thumbnail || '',
+                structures: 'NA',
+                paths: 'NA',
+                environment: 'NA',
             }));
         }
     }
@@ -123,9 +126,9 @@ export class MapSelectionUI extends UIComponent {
         document.getElementById('selectedMapName').textContent = mapEntry.name;
         document.getElementById('selectedMapDescription').textContent = mapEntry.description || '';
         document.getElementById('mapSizeStat').textContent = mapEntry.size || '-';
-        document.getElementById('structuresStat').textContent = '-';
-        document.getElementById('pathsStat').textContent = '-';
-        document.getElementById('environmentStat').textContent = '-';
+        document.getElementById('structuresStat').textContent = mapEntry.structures ?? 'NA';
+        document.getElementById('pathsStat').textContent = mapEntry.paths ?? 'NA';
+        document.getElementById('environmentStat').textContent = mapEntry.environment ?? 'NA';
         const previewEl = document.getElementById('map-preview-large');
         if (previewEl) {
             const placeholder = previewEl.querySelector('.map-preview-placeholder');
@@ -157,19 +160,31 @@ export class MapSelectionUI extends UIComponent {
         if (!entry || !this.game) return;
 
         const overlayEl = document.getElementById('mapLoadingOverlay');
+        const loadingTextEl = overlayEl?.querySelector('.loading-text');
+        const setLoadingText = (text) => {
+            if (loadingTextEl) loadingTextEl.textContent = text;
+        };
+
         if (overlayEl) overlayEl.style.display = 'flex';
 
         try {
+            setLoadingText('Downloading map...');
             const mapData = await this.game.loadAndApplyMap(entry.path);
             if (mapData.bounds) {
                 const w = (mapData.bounds.maxX - mapData.bounds.minX) || 0;
                 const h = (mapData.bounds.maxZ - mapData.bounds.minZ) || 0;
                 document.getElementById('mapSizeStat').textContent = `${w}x${h}`;
             }
+
+            setLoadingText('Loading world...');
             if (this.game.player && mapData.spawn) {
                 const s = mapData.spawn;
                 this.game.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
             }
+
+            setLoadingText('Preparing...');
+            await this.game.waitForMapReady();
+
             if (this.game.hudManager?.showNotification) {
                 this.game.hudManager.showNotification(`Map loaded: ${mapData.name || entry.name}`);
             }

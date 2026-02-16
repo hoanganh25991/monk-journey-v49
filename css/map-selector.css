@@ -154,13 +154,14 @@
 /* Play button container in map detail */
 #mapPlayButtons {
     display: flex;
+    justify-content: flex-end;
     gap: var(--padding-medium);
     margin-top: var(--padding-medium);
 }
 
 .play-map-btn {
-    padding: 10px 24px;
-    font-weight: bold;
+    /* Matches settings-button; floated right */
+    margin-left: auto;
 }
 
 /* Return to Procedural Map button */

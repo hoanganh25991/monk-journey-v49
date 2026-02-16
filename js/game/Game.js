@@ -677,7 +677,32 @@ export class Game {
         if (this.world) this.world.applyMap(mapData);
         return mapData;
     }
-    
+
+    /**
+     * Wait for world/terrain to be ready after a map load (e.g. spawn chunk generated).
+     * Call after setting player position so terrain updates; then waits for initial gen to settle.
+     * @returns {Promise<void>}
+     */
+    waitForMapReady() {
+        return new Promise((resolve) => {
+            let frames = 0;
+            const onFrame = () => {
+                frames++;
+                if (frames < 3) {
+                    requestAnimationFrame(onFrame);
+                    return;
+                }
+                const tm = this.world?.terrainManager;
+                if (!tm || typeof tm.waitForInitialGeneration !== 'function') {
+                    resolve();
+                    return;
+                }
+                tm.waitForInitialGeneration().then(resolve).catch(() => resolve());
+            };
+            requestAnimationFrame(onFrame);
+        });
+    }
+
     /**
      * Pause the game
      * Properly pauses all game systems including physics, animations, and timers
