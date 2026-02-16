@@ -15,7 +15,7 @@ Monk Journey is an action RPG game where you play as a monk with powerful martia
   - [Features](#features)
   - [Gameplay](#gameplay)
   - [Development](#development)
-  - [Google Play Store Listing](#google-play-store-listing)
+  - [Google Play](#google-play)
   - [Credits](#credits)
   - [License](#license)
 
@@ -100,7 +100,9 @@ This creates:
 
 Optional: add thumbnail images under `maps/thumbnails/<id>.png` for each map.
 
-## Google Play Store Listing
+## Google Play
+
+https://play.google.com/store/apps/details?id=io.github.hoanganh25991.monkjourneyv49
 
 ### Short description (max 80 characters)
 
