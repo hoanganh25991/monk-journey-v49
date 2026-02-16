@@ -666,11 +666,10 @@ export class CameraControlUI extends UIComponent {
             const dy = cameraPosition.y - (playerPosition.y + 20); // Adjust for height offset
             const verticalAngle = Math.atan2(dy, horizontalDistance);
             
-            // Store the calculated angles
-            this.cameraState.rotationY = horizontalAngle;
-            this.cameraState.rotationX = verticalAngle;
-            
-            // Store the original rotation values at the start of the drag
+            // Only store the original rotation values for when we actually drag.
+            // Do NOT update rotationX/rotationY here - that would cause the camera to jump
+            // on a simple click/tap (when cameraUpdatePending is true, the update loop
+            // would apply these values). Only update rotation when user actually drags.
             this.cameraState.originalRotationX = verticalAngle;
             this.cameraState.originalRotationY = horizontalAngle;
             
@@ -690,10 +689,7 @@ export class CameraControlUI extends UIComponent {
         } else {
             // Fallback to using camera rotation directly if we can't calculate from position
             if (this.game && this.game.camera) {
-                this.cameraState.rotationX = this.game.camera.rotation.x;
-                this.cameraState.rotationY = this.game.camera.rotation.y;
-                
-                // Store the original rotation values at the start of the drag
+                // Only store original values - don't update rotationX/rotationY to avoid camera jump on click
                 this.cameraState.originalRotationX = this.game.camera.rotation.x;
                 this.cameraState.originalRotationY = this.game.camera.rotation.y;
                 
