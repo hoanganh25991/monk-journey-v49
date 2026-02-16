@@ -17,6 +17,8 @@ export class SceneOptimizer {
         // Apply scene-wide optimizations
         scene.traverse(object => {
             if (object.isMesh) {
+                const isPlayerModel = object.userData && object.userData.isPlayerModel;
+
                 // Enable frustum culling
                 object.frustumCulled = true;
                 
@@ -47,13 +49,13 @@ export class SceneOptimizer {
                         // Only use fog if scene has fog
                         material.fog = !!scene.fog;
                         
-                        // Optimize textures if present
+                        // Optimize textures if present (player model keeps smoother filtering)
                         if (material.map) {
                             // Disable anisotropic filtering for low-end devices
                             material.map.anisotropy = 1;
                             
-                            // For minimal quality, use nearest neighbor filtering for 8-bit look
-                            if (qualityLevel === 'minimal') {
+                            // For minimal quality, use nearest neighbor filtering for 8-bit look (except player)
+                            if (qualityLevel === 'minimal' && !isPlayerModel) {
                                 // Force nearest neighbor filtering for pixelated 8-bit look
                                 material.map.minFilter = THREE.NearestFilter;
                                 material.map.magFilter = THREE.NearestFilter;
@@ -72,16 +74,16 @@ export class SceneOptimizer {
                                     // you would actually resize the texture
                                     console.debug(`Reducing texture resolution for 8-bit mode: ${material.map.name || 'unnamed texture'}`);
                                 }
-                            } else if (qualityLevel === 'low') {
-                                // For low quality, use linear filtering without mipmaps
+                            } else if (qualityLevel === 'low' || isPlayerModel) {
+                                // For low quality or player model, use linear filtering for smoother look
                                 material.map.minFilter = THREE.LinearFilter;
                                 material.map.magFilter = THREE.LinearFilter;
                                 material.map.generateMipmaps = false;
                             }
                         }
                         
-                        // For minimal quality, use flat shading and other 8-bit style enhancements
-                        if (qualityLevel === 'minimal') {
+                        // For minimal quality, use flat shading and other 8-bit style enhancements (except player)
+                        if (qualityLevel === 'minimal' && !isPlayerModel) {
                             // Force flat shading for blocky look
                             material.flatShading = true;
                             
@@ -107,8 +109,8 @@ export class SceneOptimizer {
                             // Enable dithering for retro look
                             material.dithering = true;
                         } 
-                        // For low quality, just use flat shading
-                        else if (qualityLevel === 'low') {
+                        // For low quality, use flat shading (except player model for smoother appearance)
+                        else if (qualityLevel === 'low' && !isPlayerModel) {
                             material.flatShading = true;
                         }
                     });

@@ -100,13 +100,15 @@ export class VirtualJoystickUI extends UIComponent {
         // This allows the joystick to respond to touches anywhere on the left half of the screen
         
         // Touch start event on overlay
+        // Use changedTouches (not touches[0]) - when holding skill on right, touches[0] is the
+        // skill finger; we need the touch that just landed on the overlay (left side)
         this.joystickOverlay.addEventListener('touchstart', (event) => {
             event.preventDefault();
             event.stopPropagation();
             
             // Only respond if joystick is not already active
-            if (!this.joystickState.active) {
-                const touch = event.touches[0];
+            if (!this.joystickState.active && event.changedTouches.length > 0) {
+                const touch = event.changedTouches[0];
                 // Only respond to touches on the left half of the screen
                 if (this.isOnLeftHalfOfScreen(touch.clientX)) {
                     this.joystickState.touchId = touch.identifier;

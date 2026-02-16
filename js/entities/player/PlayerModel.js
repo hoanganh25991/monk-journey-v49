@@ -142,11 +142,13 @@ export class PlayerModel {
             // Store the loaded model
             this.gltfModel = gltf.scene;
             
-            // Apply shadows to all meshes in the model
+            // Apply shadows and mark as player model (for quality exclusion on mobile)
             this.gltfModel.traverse((node) => {
                 if (node.isMesh) {
                     node.castShadow = true;
                     node.receiveShadow = true;
+                    node.userData = node.userData || {};
+                    node.userData.isPlayerModel = true;
                 }
             });
             

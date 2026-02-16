@@ -54,7 +54,7 @@ export const RENDER_CONFIG = {
             alpha: false
         },
         settings: {
-            pixelRatio: Math.min(window.devicePixelRatio, 1.5),
+            pixelRatio: Math.min(window.devicePixelRatio, 2),
             shadowMapEnabled: true,
             shadowMapSize: 1024,
             shadowMapType: 'PCFSoftShadowMap',
@@ -81,7 +81,7 @@ export const RENDER_CONFIG = {
             alpha: false
         },
         settings: {
-            pixelRatio: Math.min(window.devicePixelRatio, 0.6), // Reduced from 0.7 for better performance
+            pixelRatio: Math.min(window.devicePixelRatio, 0.85), // Improved from 0.6 for smoother model on mobile
             shadowMapEnabled: false, // Disabled shadows to reduce GPU load
             shadowMapSize: 0, // Reduced from 256 to match disabled shadows
             shadowMapType: 'BasicShadowMap', // Lighter shadow type if shadows are re-enabled
@@ -90,7 +90,7 @@ export const RENDER_CONFIG = {
         materials: {
             particleCount: 0.3, // Reduced from 0.5 to prevent particle buildup
             drawDistance: 0.5, // Reduced from 0.6 to cull distant objects sooner
-            textureQuality: 0.4, // Reduced from 0.5 for memory efficiency
+            textureQuality: 0.55, // Improved from 0.4 for smoother model on mobile
             objectDetail: 0.5, // Reduced from 0.6 for simpler geometry
             maxVisibleObjects: 200, // Reduced from 250 to prevent object accumulation
             memoryOptimized: true // Flag for additional memory management
@@ -109,7 +109,7 @@ export const RENDER_CONFIG = {
             alpha: false
         },
         settings: {
-            pixelRatio: Math.min(window.devicePixelRatio, 0.4), // Aggressive for tablets
+            pixelRatio: Math.min(window.devicePixelRatio, 0.55), // Improved from 0.4 for less blur on low
             shadowMapEnabled: false,
             shadowMapSize: 0,
             shadowMapType: 'BasicShadowMap',

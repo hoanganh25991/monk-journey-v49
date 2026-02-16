@@ -1153,8 +1153,14 @@ export class Game {
                 
                 let newMaterial;
                 
+                // Player model gets one quality level higher for smoother appearance on mobile
+                const isPlayerModel = object.userData && object.userData.isPlayerModel;
+                const effectiveQuality = isPlayerModel && quality !== 'high'
+                    ? (quality === 'minimal' ? 'low' : quality === 'low' ? 'medium' : 'high')
+                    : quality;
+
                 // Apply quality settings based on the 4 quality levels
-                switch (quality) {
+                switch (effectiveQuality) {
                     case 'high':
                         // Keep original material (highest quality)
                         newMaterial = material;
@@ -1167,7 +1173,7 @@ export class Game {
                         
                     case 'low':
                         // Create MeshLambertMaterial (performance-focused with lighting)
-                        newMaterial = this.createLambertMaterial(material);
+                        newMaterial = this.createLambertMaterial(material, isPlayerModel);
                         break;
                         
                     case 'minimal':
@@ -1268,7 +1274,7 @@ export class Game {
      * @returns {THREE.MeshLambertMaterial} - The new Lambert material
      * @private
      */
-    createLambertMaterial(originalMaterial) {
+    createLambertMaterial(originalMaterial, isPlayerModel = false) {
         // Create new Lambert material (simple lighting, good performance)
         const lambertMaterial = new THREE.MeshLambertMaterial({
             fog: true // Ensure fog works properly
@@ -1287,8 +1293,8 @@ export class Game {
             
             // Check if we need to create a downscaled version of the texture
             if (!originalTexture.userData || !originalTexture.userData.isDownscaled) {
-                // Get the texture quality level from config
-                const textureQuality = RENDER_CONFIG.low.materials.textureQuality;
+                // Get the texture quality level from config (use higher for player model)
+                const textureQuality = isPlayerModel ? 0.5 : RENDER_CONFIG.low.materials.textureQuality;
                 
                 // Only downscale if quality is below threshold
                 if (textureQuality < 0.5) {
@@ -1332,8 +1338,8 @@ export class Game {
             lambertMaterial.emissive.copy(originalMaterial.emissive);
         }
         
-        // Disable expensive material features
-        lambertMaterial.flatShading = true;
+        // Use smooth shading for player model to avoid square-like appearance; flat for others
+        lambertMaterial.flatShading = !isPlayerModel;
         
         // Copy relevant userData
         lambertMaterial.userData = { 
@@ -1466,10 +1472,10 @@ export class Game {
         downscaledTexture.center = originalTexture.center.clone();
         downscaledTexture.rotation = originalTexture.rotation;
         
-        // Set performance-optimized settings
+        // Set performance-optimized settings (LinearFilter for smoother look vs NearestFilter pixelation)
         downscaledTexture.generateMipmaps = false;
-        downscaledTexture.minFilter = THREE.NearestFilter;
-        downscaledTexture.magFilter = THREE.NearestFilter;
+        downscaledTexture.minFilter = THREE.LinearFilter;
+        downscaledTexture.magFilter = THREE.LinearFilter;
         downscaledTexture.anisotropy = 1;
         
         // Mark as downscaled to prevent re-processing
