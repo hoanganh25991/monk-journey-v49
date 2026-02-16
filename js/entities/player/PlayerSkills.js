@@ -699,11 +699,45 @@ export class PlayerSkills {
                         return true;
                     }
                     
-                    // For other skills (e.g. Fist of Thunder), show notification
+                    // For Fist of Thunder (teleport skill), dash forward in player direction
+                    if (skillTemplate.name === "Fist of Thunder") {
+                        const dashDistance = 8; // Distance to teleport when no enemy
+                        const direction = new THREE.Vector3(
+                            Math.sin(this.playerRotation.y),
+                            0,
+                            Math.cos(this.playerRotation.y)
+                        );
+                        const teleportPosition = new THREE.Vector3(
+                            this.playerPosition.x + direction.x * dashDistance,
+                            this.playerPosition.y,
+                            this.playerPosition.z + direction.z * dashDistance
+                        );
+                        
+                        console.debug('No enemy in range, dashing forward with Fist of Thunder');
+                        this.broadcastSkillCast(skillTemplate.name, null);
+                        
+                        this.playerStats.setMana(this.playerStats.getMana() - skillTemplate.manaCost);
+                        skillTemplate.startCooldown();
+                        
+                        const skillConfig = SKILLS.find(config => config.name === skillTemplate.name);
+                        const newSkillInstance = new Skill(skillConfig, this.game);
+                        newSkillInstance.game = this.game;
+                        newSkillInstance.targetEnemy = null;
+                        
+                        this.playerPosition.copy(teleportPosition);
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+                        this.scene.add(skillEffect);
+                        
+                        if (this.game && this.game.audioManager) {
+                            this.game.audioManager.playSound('playerAttack');
+                        }
+                        this.activeSkills.push(newSkillInstance);
+                        return true;
+                    }
+                    
                     if (this.game && this.game.hudManager) {
                         this.game.hudManager.showNotification('No enemy in range');
                     }
-                    
                     return false;
                 }
             }
