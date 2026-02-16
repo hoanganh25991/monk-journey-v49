@@ -276,16 +276,16 @@ export class Player {
      * @param {number} skillIndex - The index of the skill to use
      * @returns {boolean} True if the skill was used successfully
      */
-    useSkill(skillIndex) {
+    async useSkill(skillIndex) {
         return this.skills.useSkill(skillIndex);
     }
     
     /**
      * Uses the player's primary attack
      * 
-     * @returns {boolean} True if the primary attack was used successfully
+     * @returns {Promise<boolean>} True if the primary attack was used successfully
      */
-    usePrimaryAttack() {
+    async usePrimaryAttack() {
         return this.skills.usePrimaryAttack();
     }
     

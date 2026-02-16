@@ -280,7 +280,7 @@ export class WaveManager {
         console.debug(`Enemy count check: ${currentEnemyCount}/${this.enemiesPerWave}, need to spawn: ${needed}`);
         
         if (needed > 0) {
-            this.spawnEnemies(needed);
+            void this.spawnEnemies(needed);
         }
         
         // Update display
@@ -338,14 +338,14 @@ export class WaveManager {
      */
     spawnInitialWave() {
         console.debug(`Spawning initial wave of ${this.enemiesPerWave} enemies`);
-        this.spawnEnemies(this.enemiesPerWave);
+        void this.spawnEnemies(this.enemiesPerWave);
     }
     
     /**
      * Spawn a specific number of enemies around the player
      * @param {number} count - Number of enemies to spawn
      */
-    spawnEnemies(count) {
+    async spawnEnemies(count) {
         if (!this.game.enemyManager || !this.game.player) return;
         
         const playerPosition = this.game.player.getPosition();
@@ -358,8 +358,8 @@ export class WaveManager {
         const waveMultiplier = 1 + (this.currentWave - 1) * this.waveStrengthIncrease;
         const finalDifficulty = this.portalDifficulty * waveMultiplier;
         
-        // Spawn enemies in rings around the player
-        this.spawnEnemiesInRings(playerPosition, count, enemyTypes, finalDifficulty);
+        // Spawn enemies in rings around the player (async)
+        await this.spawnEnemiesInRings(playerPosition, count, enemyTypes, finalDifficulty);
     }
     
     /**
@@ -369,7 +369,7 @@ export class WaveManager {
      * @param {Array} enemyTypes - Array of enemy types to choose from
      * @param {number} difficultyMultiplier - Difficulty multiplier for enemy stats
      */
-    spawnEnemiesInRings(centerPosition, totalCount, enemyTypes, difficultyMultiplier) {
+    async spawnEnemiesInRings(centerPosition, totalCount, enemyTypes, difficultyMultiplier) {
         const rings = [
             { distance: 15, count: 0.35 }, // 35% in inner ring
             { distance: 25, count: 0.30 }, // 30% in middle ring
@@ -405,9 +405,9 @@ export class WaveManager {
                 // Select random enemy type
                 const enemyType = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
                 
-                // Spawn enemy with modified stats
+                // Spawn enemy with modified stats (async)
                 const enemyPosition = new THREE.Vector3(x, y, z);
-                const enemy = this.game.enemyManager.spawnEnemy(enemyType, enemyPosition);
+                const enemy = await this.game.enemyManager.spawnEnemy(enemyType, enemyPosition);
                 
                 if (enemy) {
                     // Apply difficulty scaling

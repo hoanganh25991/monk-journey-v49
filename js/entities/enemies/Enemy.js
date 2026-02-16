@@ -83,9 +83,9 @@ export class Enemy {
         this.initialYPosition = null;
     }
     
-    init() {
-        // Create enemy model
-        this.createModel();
+    async init() {
+        // Create enemy model (async - lazy-loads model module)
+        await this.createModel();
     }
     
     applyBehaviorSettings() {
@@ -105,12 +105,12 @@ export class Enemy {
                                 ENEMY_BEHAVIOR_SETTINGS.aggressionSettings.aggressionTimeout;
     }
 
-    createModel() {
+    async createModel() {
         // Create a group for the enemy
         this.modelGroup = new THREE.Group();
         
-        // Create the appropriate model using the factory
-        this.model = EnemyModelFactory.createModel(this, this.modelGroup);
+        // Create the appropriate model using the factory (async - lazy-loads model module)
+        this.model = await EnemyModelFactory.createModelAsync(this, this.modelGroup);
         
         // Create the actual 3D model
         this.model.createModel();

@@ -99,9 +99,9 @@ export class InteractionResultHandler {
             this.game.hudManager.showNotification(result.message, 5);
         }
         
-        // Spawn the boss if enemy manager exists
+        // Spawn the boss if enemy manager exists (async - fire and forget)
         if (this.game && this.game.enemyManager && interactiveObject && interactiveObject.position) {
-            this.game.enemyManager.spawnBoss(
+            void this.game.enemyManager.spawnBoss(
                 result.bossType,
                 interactiveObject.position
             );

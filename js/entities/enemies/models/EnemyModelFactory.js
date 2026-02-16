@@ -1,173 +1,52 @@
-import { SkeletonModel } from './SkeletonModel.js';
-import { SkeletonArcherModel } from './SkeletonArcherModel.js';
-import { ZombieModel } from './ZombieModel.js';
-import { ZombieBruteModel } from './ZombieBruteModel.js';
-import { DemonModel } from './DemonModel.js';
-import { FrostTitanModel } from './FrostTitanModel.js';
-import { NecromancerModel } from './NecromancerModel.js';
-import { ShadowBeastModel } from './ShadowBeastModel.js';
-import { InfernalGolemModel } from './InfernalGolemModel.js';
-import { FireElementalModel } from './FireElementalModel.js';
-import { FrostElementalModel } from './FrostElementalModel.js';
-import { CorruptedTreantModel } from './CorruptedTreantModel.js';
-import { AncientTreantModel } from './AncientTreantModel.js';
-import { SwampWitchModel } from './SwampWitchModel.js';
-import { MountainTrollModel } from './MountainTrollModel.js';
-import { VoidWraithModel } from './VoidWraithModel.js';
-import { SwampHorrorModel } from './SwampHorrorModel.js';
-import { InfernoLordModel } from './InfernoLordModel.js';
-import { SpiderQueenModel } from './SpiderQueenModel.js';
-import { FrostMonarchModel } from './FrostMonarchModel.js';
-import { AncientConstructModel } from './AncientConstructModel.js';
-import { AncientYetiModel } from './AncientYetiModel.js';
-import { MoltenBehemothModel } from './MoltenBehemothModel.js';
-import { SimpleEnemyModel } from './SimpleEnemyModel.js';
 import { DefaultModel } from './DefaultModel.js';
+import { ENEMY_MODEL_REGISTRY } from './EnemyModelRegistry.js';
 
 /**
- * Factory class for creating enemy models
+ * Factory class for creating enemy models.
+ * Uses dynamic import() for lazy-loading - only loads model modules when first needed.
+ * Caches loaded modules to prevent flickering on subsequent spawns.
  */
 export class EnemyModelFactory {
+    /** Cache: module path -> loaded module (exports) */
+    static _moduleCache = new Map();
+
     /**
-     * Create an appropriate model for the given enemy type
-     * @param {Object} enemy - The enemy instance
-     * @param {THREE.Group} modelGroup - The THREE.js group to add model parts to
-     * @returns {EnemyModel} The created model instance
+     * Load a model class by path and cache it.
+     * @param {string} modulePath - Path relative to this file (e.g. './SkeletonModel.js')
+     * @param {string} exportName - Name of the exported class
+     * @returns {Promise<Function>} The model class constructor
      */
-    static createModel(enemy, modelGroup) {
-        switch (enemy.type) {
-            // Skeleton types
-            case 'skeleton':
-            case 'skeleton_king':
-                return new SkeletonModel(enemy, modelGroup);
-                
-            case 'skeleton_archer':
-                return new SkeletonArcherModel(enemy, modelGroup);
-                
-            // Zombie types
-            case 'zombie':
-                return new ZombieModel(enemy, modelGroup);
-                
-            case 'zombie_brute':
-                return new ZombieBruteModel(enemy, modelGroup);
-                
-            // Demon types
-            case 'demon':
-            case 'demon_lord':
-            case 'demon_scout':      // Added demon scout
-            case 'ash_demon':        // Added ash demon
-            case 'flame_imp':        // Added flame imp (smaller demon)
-                return new DemonModel(enemy, modelGroup);
-                
-            // Boss types
-            case 'frost_titan':
-                return new FrostTitanModel(enemy, modelGroup);
-                
-            case 'frost_monarch':
-                return new FrostMonarchModel(enemy, modelGroup);
-                
-            // Caster types
-            case 'necromancer':
-            case 'necromancer_lord':
-                return new NecromancerModel(enemy, modelGroup);
-                
-            case 'swamp_witch':
-            case 'blood_cultist':    // Added blood cultist (similar to witch)
-            case 'plague_lord':      // Added plague lord (similar to necromancer)
-                return new SwampWitchModel(enemy, modelGroup);
-                
-            // Beast types
-            case 'shadow_beast':
-            case 'shadow_stalker':   // Added shadow stalker
-                return new ShadowBeastModel(enemy, modelGroup);
-                
-            // Elemental types
-            case 'fire_elemental':
-                return new FireElementalModel(enemy, modelGroup);
-                
-            case 'frost_elemental':
-                return new FrostElementalModel(enemy, modelGroup);
-                
-            // Golem types
-            case 'infernal_golem':
-            case 'lava_golem':       // Added lava golem
-            case 'ice_golem':        // Added ice golem
-                return new InfernalGolemModel(enemy, modelGroup);
-                
-            case 'ancient_construct':
-                return new AncientConstructModel(enemy, modelGroup);
-                
-            // Plant types
-            case 'corrupted_treant':
-                return new CorruptedTreantModel(enemy, modelGroup);
-                
-            case 'ancient_treant':
-                return new AncientTreantModel(enemy, modelGroup);
-                
-            // Mountain creatures
-            case 'mountain_troll':
-            case 'snow_troll':       // Added snow troll
-                return new MountainTrollModel(enemy, modelGroup);
-                
-            case 'ancient_yeti':
-                return new AncientYetiModel(enemy, modelGroup);
-                
-            // Dark Sanctum creatures
-            case 'void_wraith':
-            case 'void_harbinger':   // Added void harbinger
-            case 'frozen_revenant':  // Added frozen revenant
-            case 'cursed_spirit':    // Added cursed spirit
-                return new VoidWraithModel(enemy, modelGroup);
-                
-            // Swamp creatures
-            case 'swamp_horror':
-                return new SwampHorrorModel(enemy, modelGroup);
-                
-            // Fire bosses
-            case 'inferno_lord':
-                return new InfernoLordModel(enemy, modelGroup);
-                
-            // Molten creatures
-            case 'molten_behemoth':
-                return new MoltenBehemothModel(enemy, modelGroup);
-                
-            // Spider creatures
-            case 'spider_queen':
-                return new SpiderQueenModel(enemy, modelGroup);
-                
-            // Use SimpleEnemyModel for these animal-like enemy types
-            case 'forest_spider':
-            case 'feral_wolf':
-            case 'hellhound':
-            case 'winter_wolf':
-            case 'poison_toad':
-            case 'bog_lurker':
-            case 'ruin_crawler':
-            case 'harpy':            // Added harpy
-            case 'ancient_guardian': // Added ancient guardian
-                return new SimpleEnemyModel(enemy, modelGroup);
-                
-            // Default fallback
-            default:
-                console.warn(`No specific model implementation for enemy type: ${enemy.type}, using default model`);
-                return new DefaultModel(enemy, modelGroup);
+    static async _loadModelClass(modulePath, exportName) {
+        const cacheKey = modulePath;
+        let mod = this._moduleCache.get(cacheKey);
+        if (!mod) {
+            mod = await import(/* webpackChunkName: "enemy-model-[request]" */ modulePath);
+            this._moduleCache.set(cacheKey, mod);
         }
+        return mod[exportName];
     }
-    
+
     /**
-     * Load a model from a GLB file (for future implementation)
+     * Create an appropriate model for the given enemy type (async - lazy-loads model module).
      * @param {Object} enemy - The enemy instance
      * @param {THREE.Group} modelGroup - The THREE.js group to add model parts to
-     * @param {string} path - Path to the GLB file
-     * @returns {Promise} - Promise that resolves when the model is loaded
+     * @returns {Promise<EnemyModel>} The created model instance
      */
-    static async loadModelFromGLB(enemy, modelGroup, path) {
-        // This is a placeholder for future implementation
-        // Will be used to load models from GLB files
-        console.debug(`Loading model from ${path} for ${enemy.type} - not yet implemented`);
-        
-        // For now, fall back to the default model creation
-        const model = this.createModel(enemy, modelGroup);
-        return model;
+    static async createModelAsync(enemy, modelGroup) {
+        const entry = ENEMY_MODEL_REGISTRY[enemy.type];
+        if (entry) {
+            const ModelClass = await this._loadModelClass(`./${entry.path}`, entry.exportName);
+            return new ModelClass(enemy, modelGroup);
+        }
+        console.warn(`No model registry for enemy type: ${enemy.type}, using default model`);
+        return new DefaultModel(enemy, modelGroup);
+    }
+
+    /**
+     * Dispose shared resources. Called when clearing enemies.
+     */
+    static disposeSharedResources() {
+        // Clear module cache to free memory when changing scenes
+        this._moduleCache.clear();
     }
 }

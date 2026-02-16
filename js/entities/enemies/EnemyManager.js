@@ -163,9 +163,9 @@ export class EnemyManager {
     
     async init() {
         // Initialize enemy pools first
-        // Spawn initial enemies
+        // Spawn initial enemies (async - fire and forget, they appear as models load)
         for (let i = 0; i < this.maxEnemies / 2; i++) {
-            this.spawnEnemy();
+            void this.spawnEnemy();
         }
         
         return true;
@@ -187,10 +187,10 @@ export class EnemyManager {
                 // Chance to spawn a dangerous large group instead of a single enemy
                 if (Math.random() < this.dangerousGroupChance) {
                     console.debug('Spawning a dangerous large group of enemies!');
-                    this.spawnDangerousGroup();
+                    void this.spawnDangerousGroup();
                 } else {
                     // Regular single enemy spawn
-                    this.spawnEnemy();
+                    void this.spawnEnemy();
                 }
                 this.spawnTimer = 0;
             }
@@ -199,7 +199,7 @@ export class EnemyManager {
             if (this.enemyKillCount >= this.killsPerBossSpawn) {
                 console.debug(`Spawning boss after ${this.enemyKillCount} enemy kills.`);
                 this.enemyKillCount = 0; // Reset kill counter
-                this.spawnRandomBoss();
+                void this.spawnRandomBoss();
                 
                 // Play boss theme if available
                 if (this.game && this.game.audioManager) {
@@ -272,7 +272,7 @@ export class EnemyManager {
         }
     }
     
-    spawnEnemy(specificType = null, position = null, enemyId = null) {
+    async spawnEnemy(specificType = null, position = null, enemyId = null) {
         let enemyType;
         
         if (specificType) {
@@ -295,9 +295,9 @@ export class EnemyManager {
         // Get position
         const spawnPosition = position ? position.clone() : this.getRandomSpawnPosition();
         
-        // Create enemy
+        // Create enemy (async - lazy-loads model module)
         const enemy = new Enemy(this.scene, this.player, scaledEnemyType);
-        enemy.init();
+        await enemy.init();
         
         // Set world reference before positioning so terrain height can be calculated properly
         enemy.world = this.game.world;
@@ -420,8 +420,8 @@ export class EnemyManager {
                     enemy.updateHealthBar();
                 }
             } else {
-                // Create new enemy
-                this.createEnemyFromData(enemyData);
+                // Create new enemy (async - fire and forget)
+                void this.createEnemyFromData(enemyData);
             }
         });
         
@@ -450,11 +450,11 @@ export class EnemyManager {
     }
     
     /**
-     * Create enemy from network data - simplified
+     * Create enemy from network data - simplified (async)
      * @param {Object} enemyData - Enemy data received from host
-     * @returns {Enemy} The created enemy
+     * @returns {Promise<Enemy>} The created enemy
      */
-    createEnemyFromData(enemyData) {
+    async createEnemyFromData(enemyData) {
         // Find enemy type
         let enemyType = this.enemyTypes.find(t => t.type === enemyData.type);
         
@@ -474,8 +474,8 @@ export class EnemyManager {
         // Create position vector
         const positionVector = new THREE.Vector3(position.x, position.y, position.z);
         
-        // Spawn enemy with the specified ID
-        const enemy = this.spawnEnemy(enemyType.type, positionVector, enemyData.id);
+        // Spawn enemy with the specified ID (async)
+        const enemy = await this.spawnEnemy(enemyType.type, positionVector, enemyData.id);
         
         // Update enemy properties
         if (enemyData.health !== undefined) {
@@ -584,7 +584,7 @@ export class EnemyManager {
      * Spawns a dangerous large group of enemies (10-20) in a single location
      * Creates a concentrated threat that feels dangerous
      */
-    spawnDangerousGroup() {
+    async spawnDangerousGroup() {
         // Get player position
         const playerPosition = this.player.getPosition().clone();
         const groupSize = 20 + Math.floor(Math.random() * this.enemyGroupSize.max / 2);
@@ -629,7 +629,7 @@ export class EnemyManager {
             // Don't set Y position here - let the spawnEnemy method handle terrain height
             // This ensures consistent terrain height calculation
             const position = new THREE.Vector3(x, 0, z);
-            this.spawnEnemy(groupEnemyType, position);
+            await this.spawnEnemy(groupEnemyType, position);
         }
         
         // Play a warning sound if available
@@ -1021,7 +1021,7 @@ export class EnemyManager {
         return fixedCount;
     }
     
-    spawnBoss(bossType, position) {
+    async spawnBoss(bossType, position) {
         // Find the boss type
         const bossConfig = this.bossTypes.find(type => type.type === bossType);
         
@@ -1053,8 +1053,8 @@ export class EnemyManager {
         //     }
         // }
         
-        // Use the existing spawnEnemy method to ensure consistent positioning
-        const boss = this.spawnEnemy(bossType, spawnPosition, `boss_${this.nextEnemyId++}`);
+        // Use the existing spawnEnemy method to ensure consistent positioning (async)
+        const boss = await this.spawnEnemy(bossType, spawnPosition, `boss_${this.nextEnemyId++}`);
         
         if (!boss) {
             console.warn(`Failed to spawn boss ${bossType}`);
@@ -1087,7 +1087,7 @@ export class EnemyManager {
      * @param {string} [zone=null] - Optional zone to spawn a boss from
      * @returns {Enemy} The spawned boss instance
      */
-    spawnRandomBoss(position = null, zone = null) {
+    async spawnRandomBoss(position = null, zone = null) {
         // Try to get the current zone if not specified
         let currentZone = zone;
         if (!currentZone && position && this.game && this.game.world) {
@@ -1108,8 +1108,8 @@ export class EnemyManager {
             spawnPosition = this.getRandomSpawnPosition();
         }
         
-        // Spawn the boss using the existing spawnBoss method
-        const boss = this.spawnBoss(randomBossType.type, spawnPosition);
+        // Spawn the boss using the existing spawnBoss method (async)
+        const boss = await this.spawnBoss(randomBossType.type, spawnPosition);
         
         return boss;
     }
@@ -1218,7 +1218,7 @@ export class EnemyManager {
         }
     }
     
-    spawnEnemiesAroundPlayer(playerPosition) {
+    async spawnEnemiesAroundPlayer(playerPosition) {
         // Check if we're in a multiplier zone (higher enemy density)
         let inMultiplierZone = false;
         let multiplierValue = 1;
@@ -1323,7 +1323,7 @@ export class EnemyManager {
                 // Don't set Y position here - let the spawnEnemy method handle terrain height
                 // This ensures consistent terrain height calculation
                 const position = new THREE.Vector3(x, 0, z);
-                this.spawnEnemy(groupEnemyType, position);
+                await this.spawnEnemy(groupEnemyType, position);
             }
         }
         
@@ -1342,7 +1342,7 @@ export class EnemyManager {
                     this.game.teleportManager.activeMultiplier > 1) {
                     
                     console.debug(`Spawning additional wave of enemies in multiplier zone`);
-                    this.spawnEnemiesAroundPlayer(this.player.getPosition());
+                    void this.spawnEnemiesAroundPlayer(this.player.getPosition());
                 }
             }, waveDelay);
         }

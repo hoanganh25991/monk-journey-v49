@@ -102,8 +102,19 @@ export class Skill {
         // This helps with tracking which skill instance has hit which enemies
         this.instanceId = `${this.name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         
-        // Create the appropriate effect handler
-        this.effectHandler = SkillEffectFactory.createEffect(this);
+        // Effect handler is lazy-loaded on first use (avoids loading all effect modules at startup)
+        this.effectHandler = null;
+    }
+
+    /**
+     * Ensure effect handler exists. Lazy-loads via SkillEffectFactory.createEffectAsync.
+     * @returns {Promise<Object>} The effect handler
+     */
+    async ensureEffectHandler() {
+        if (!this.effectHandler) {
+            this.effectHandler = await SkillEffectFactory.createEffectAsync(this);
+        }
+        return this.effectHandler;
     }
     
     /**
@@ -133,12 +144,15 @@ export class Skill {
     }
     
     /**
-     * Create the skill effect
+     * Create the skill effect (async - lazy-loads effect module on first use)
      * @param {THREE.Vector3} playerPosition - Position of the player
      * @param {Object} playerRotation - Rotation of the player
-     * @returns {THREE.Group} - The created effect
+     * @returns {Promise<THREE.Group>} - The created effect
      */
-    createEffect(playerPosition, playerRotation) {
+    async createEffect(playerPosition, playerRotation) {
+        // Lazy-load effect handler on first use
+        await this.ensureEffectHandler();
+
         // Reset the effect handler first to ensure a clean state
         if (this.effectHandler) {
             this.effectHandler.reset();

@@ -517,7 +517,7 @@ export class RemotePlayer {
         try {
             // Import necessary modules
             import('../entities/skills/Skill.js').then(({ Skill }) => {
-                import('../config/skills.js').then(({ SKILLS }) => {
+                import('../config/skills.js').then(async ({ SKILLS }) => {
                     // Find the skill configuration
                     const skillConfig = SKILLS.find(config => config.name === skillName);
                     
@@ -570,9 +570,9 @@ export class RemotePlayer {
                         console.debug(`[RemotePlayer ${this.peerId}] Creating skill effect for: ${skillName}`);
                     }
                     
-                    // Create the skill effect - even if target enemy wasn't found
+                    // Create the skill effect - even if target enemy wasn't found (async - lazy-loads effect module)
                     // This ensures skills are still cast visually even if the target is gone
-                    const skillEffect = skill.createEffect(position, rotation);
+                    const skillEffect = await skill.createEffect(position, rotation);
                     
                     // Add the effect to the scene
                     if (skillEffect) {

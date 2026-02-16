@@ -1,0 +1,56 @@
+/**
+ * Registry mapping enemy types to their model module paths.
+ * Used for lazy-loading models via dynamic import() - avoids loading all 24
+ * model classes at startup for significant performance improvement.
+ */
+
+/** enemy type -> { modulePath, exportName } */
+export const ENEMY_MODEL_REGISTRY = {
+    skeleton: { path: 'SkeletonModel.js', exportName: 'SkeletonModel' },
+    skeleton_king: { path: 'SkeletonModel.js', exportName: 'SkeletonModel' },
+    skeleton_archer: { path: 'SkeletonArcherModel.js', exportName: 'SkeletonArcherModel' },
+    zombie: { path: 'ZombieModel.js', exportName: 'ZombieModel' },
+    zombie_brute: { path: 'ZombieBruteModel.js', exportName: 'ZombieBruteModel' },
+    demon: { path: 'DemonModel.js', exportName: 'DemonModel' },
+    demon_lord: { path: 'DemonModel.js', exportName: 'DemonModel' },
+    demon_scout: { path: 'DemonModel.js', exportName: 'DemonModel' },
+    ash_demon: { path: 'DemonModel.js', exportName: 'DemonModel' },
+    flame_imp: { path: 'DemonModel.js', exportName: 'DemonModel' },
+    frost_titan: { path: 'FrostTitanModel.js', exportName: 'FrostTitanModel' },
+    frost_monarch: { path: 'FrostMonarchModel.js', exportName: 'FrostMonarchModel' },
+    necromancer: { path: 'NecromancerModel.js', exportName: 'NecromancerModel' },
+    necromancer_lord: { path: 'NecromancerModel.js', exportName: 'NecromancerModel' },
+    swamp_witch: { path: 'SwampWitchModel.js', exportName: 'SwampWitchModel' },
+    blood_cultist: { path: 'SwampWitchModel.js', exportName: 'SwampWitchModel' },
+    plague_lord: { path: 'SwampWitchModel.js', exportName: 'SwampWitchModel' },
+    shadow_beast: { path: 'ShadowBeastModel.js', exportName: 'ShadowBeastModel' },
+    shadow_stalker: { path: 'ShadowBeastModel.js', exportName: 'ShadowBeastModel' },
+    fire_elemental: { path: 'FireElementalModel.js', exportName: 'FireElementalModel' },
+    frost_elemental: { path: 'FrostElementalModel.js', exportName: 'FrostElementalModel' },
+    infernal_golem: { path: 'InfernalGolemModel.js', exportName: 'InfernalGolemModel' },
+    lava_golem: { path: 'InfernalGolemModel.js', exportName: 'InfernalGolemModel' },
+    ice_golem: { path: 'InfernalGolemModel.js', exportName: 'InfernalGolemModel' },
+    ancient_construct: { path: 'AncientConstructModel.js', exportName: 'AncientConstructModel' },
+    corrupted_treant: { path: 'CorruptedTreantModel.js', exportName: 'CorruptedTreantModel' },
+    ancient_treant: { path: 'AncientTreantModel.js', exportName: 'AncientTreantModel' },
+    mountain_troll: { path: 'MountainTrollModel.js', exportName: 'MountainTrollModel' },
+    snow_troll: { path: 'MountainTrollModel.js', exportName: 'MountainTrollModel' },
+    ancient_yeti: { path: 'AncientYetiModel.js', exportName: 'AncientYetiModel' },
+    void_wraith: { path: 'VoidWraithModel.js', exportName: 'VoidWraithModel' },
+    void_harbinger: { path: 'VoidWraithModel.js', exportName: 'VoidWraithModel' },
+    frozen_revenant: { path: 'VoidWraithModel.js', exportName: 'VoidWraithModel' },
+    cursed_spirit: { path: 'VoidWraithModel.js', exportName: 'VoidWraithModel' },
+    swamp_horror: { path: 'SwampHorrorModel.js', exportName: 'SwampHorrorModel' },
+    inferno_lord: { path: 'InfernoLordModel.js', exportName: 'InfernoLordModel' },
+    molten_behemoth: { path: 'MoltenBehemothModel.js', exportName: 'MoltenBehemothModel' },
+    spider_queen: { path: 'SpiderQueenModel.js', exportName: 'SpiderQueenModel' },
+    forest_spider: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    feral_wolf: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    hellhound: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    winter_wolf: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    poison_toad: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    bog_lurker: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    ruin_crawler: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    harpy: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' },
+    ancient_guardian: { path: 'SimpleEnemyModel.js', exportName: 'SimpleEnemyModel' }
+};

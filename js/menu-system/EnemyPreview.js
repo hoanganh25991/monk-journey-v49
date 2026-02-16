@@ -157,10 +157,10 @@ export class EnemyPreview {
     }
     
     /**
-     * Load an enemy model
+     * Load an enemy model (async - lazy-loads model module)
      * @param {Object} enemy - The enemy object
      */
-    loadEnemyModel(enemy) {
+    async loadEnemyModel(enemy) {
         if (!enemy) return;
         
         this.currentEnemy = enemy;
@@ -180,10 +180,9 @@ export class EnemyPreview {
         // Create a group to hold the model
         this.currentModel = new THREE.Group();
         
-        // Use EnemyModelFactory to create the appropriate model for this enemy type
         try {
-            // Create a model using the factory
-            const model = EnemyModelFactory.createModel(enemy, this.currentModel);
+            // Create a model using the factory (async - lazy-loads model module)
+            const model = await EnemyModelFactory.createModelAsync(enemy, this.currentModel);
             
             // Call createModel() to build the actual geometry
             model.createModel();

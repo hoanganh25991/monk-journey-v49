@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { Skill } from '../skills/Skill.js';
-import { SkillEffectFactory } from '../skills/SkillEffectFactory.js';
 import { SKILLS, BATTLE_SKILLS } from '../../config/skills.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
 
@@ -337,7 +336,7 @@ export class PlayerSkills {
      * @param {number} skillIndex - Index of the skill in the skills array
      * @returns {boolean} - True if skill was successfully used, false otherwise
      */
-    useSkill(skillIndex) {
+    async useSkill(skillIndex) {
         console.debug('PlayerSkills.useSkill called with index:', skillIndex);
         
         // Check if skill index is valid
@@ -441,9 +440,6 @@ export class PlayerSkills {
         
         const newSkillInstance = new Skill(skillConfigCopy, this.game);
         
-        // Create a new effect handler for the new skill instance
-        newSkillInstance.effectHandler = SkillEffectFactory.createEffect(newSkillInstance);
-        
         // Pass game reference to the new skill instance
         newSkillInstance.game = this.game;
         
@@ -482,8 +478,8 @@ export class PlayerSkills {
         // Log the final direction that will be used
         console.debug(`Final rotation for skill cast: ${this.playerRotation.y.toFixed(2)} radians`);
         
-        // Create the skill effect with the player's position and rotation
-        const skillEffect = newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+        // Create the skill effect (async - lazy-loads effect module on first use)
+        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
         
         // Add skill effect to scene
         if (skillEffect) {
@@ -513,7 +509,7 @@ export class PlayerSkills {
      * Uses teleport for distant enemies and normal attack for close enemies
      * @returns {boolean} - True if primary attack was successfully used, false otherwise
      */
-    usePrimaryAttack() {
+    async usePrimaryAttack() {
         // Find the Fist of Thunder skill (should be the last skill in the array)
         // This is the basic attack skill with the "h" key
         const primaryAttackSkill = this.skills.find(skill => skill.primaryAttack === true);
@@ -558,9 +554,6 @@ export class PlayerSkills {
                 const skillConfig = SKILLS.find(config => config.name === skillTemplate.name);
                 const newSkillInstance = new Skill(skillConfig, this.game);
                 
-                // Create a new effect handler for the new skill instance
-                newSkillInstance.effectHandler = SkillEffectFactory.createEffect(newSkillInstance);
-                
                 // Pass game reference to the new skill instance
                 newSkillInstance.game = this.game;
                 
@@ -576,8 +569,8 @@ export class PlayerSkills {
                 // Update player rotation to face enemy
                 this.playerRotation.y = Math.atan2(direction.x, direction.z);
                 
-                // Create skill effect at the current position (no teleport needed since enemy is in melee range)
-                const skillEffect = newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+                // Create skill effect at the current position (async - lazy-loads effect module)
+                const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                 
                 // Add skill effect to scene
                 this.scene.add(skillEffect);
@@ -621,9 +614,6 @@ export class PlayerSkills {
                     const skillConfig = SKILLS.find(config => config.name === skillTemplate.name);
                     const newSkillInstance = new Skill(skillConfig, this.game);
                     
-                    // Create a new effect handler for the new skill instance
-                    newSkillInstance.effectHandler = SkillEffectFactory.createEffect(newSkillInstance);
-                    
                     // Pass game reference to the new skill instance
                     newSkillInstance.game = this.game;
                     
@@ -638,8 +628,8 @@ export class PlayerSkills {
                             console.debug(`Primary attack ${skillTemplate.name} has stationaryAttack flag or is Deadly Reach, player will not move`);
                         }
                         
-                        // Create skill effect at the current position (no teleport)
-                        const skillEffect = newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+                        // Create skill effect at the current position (async - lazy-loads effect module)
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
                         this.scene.add(skillEffect);
@@ -658,8 +648,8 @@ export class PlayerSkills {
                         // Teleport player
                         this.playerPosition.copy(teleportPosition);
                         
-                        // Create skill effect at the new position
-                        const skillEffect = newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
+                        // Create skill effect at the new position (async - lazy-loads effect module)
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
                         this.scene.add(skillEffect);

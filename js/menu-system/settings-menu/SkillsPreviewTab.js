@@ -336,8 +336,8 @@ export class SkillsPreviewTab extends SettingsTab {
             skillData.variant = this.currentVariant;
         }
         
-        // Create the skill effect
-        this.skillPreview.createSkillEffect(skillData);
+        // Create the skill effect (async - fire and forget)
+        void this.skillPreview.createSkillEffect(skillData);
     }
     
     /**
@@ -406,8 +406,8 @@ export class SkillsPreviewTab extends SettingsTab {
             skillData.variant = this.currentVariant;
         }
         
-        // Play the skill effect
-        this.skillPreview.createSkillEffect(skillData);
+        // Play the skill effect (async - fire and forget)
+        void this.skillPreview.createSkillEffect(skillData);
         
         // Set a timeout to replay the skill effect
         this.currentSkillEffect = setTimeout(() => {

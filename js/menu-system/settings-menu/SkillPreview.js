@@ -320,7 +320,7 @@ export class SkillPreview {
     setDefaultSkill() {
         if (SKILLS && SKILLS.length > 0) {
             console.debug('SkillPreview: Setting up default skill:', SKILLS[0].name);
-            this.createSkillEffect(SKILLS[0]);
+            void this.createSkillEffect(SKILLS[0]);
             
             // Force the skill to play immediately
             if (this.currentSkill) {
@@ -334,10 +334,10 @@ export class SkillPreview {
     }
     
     /**
-     * Create and display a skill effect
+     * Create and display a skill effect (async - lazy-loads effect module)
      * @param {Object} skillData - The skill data from SKILLS array
      */
-    createSkillEffect(skillData) {
+    async createSkillEffect(skillData) {
         // Remove existing skill effect if any
         this.removeSkillEffect();
         
@@ -391,8 +391,8 @@ export class SkillPreview {
             // Increased to match the doubled character size
             characterPosition.y += 1.0;
             
-            // Create the skill effect
-            const effect = skill.createEffect(
+            // Create the skill effect (async - lazy-loads effect module)
+            const effect = await skill.createEffect(
                 characterPosition,
                 { y: 0 } // Forward direction
             );
@@ -590,7 +590,7 @@ export class SkillPreview {
                     
                     // Recreate the skill effect to restart the animation
                     console.debug('Auto-playing skill effect:', this.currentSkillData.name);
-                    this.createSkillEffect(this.currentSkillData);
+                    void this.createSkillEffect(this.currentSkillData);
                 }
             }
             
@@ -630,7 +630,7 @@ export class SkillPreview {
             this.autoPlayTimer = this.autoPlayInterval; // Set to trigger immediate replay
             
             // Force recreate the skill effect
-            this.createSkillEffect(this.currentSkillData);
+            void this.createSkillEffect(this.currentSkillData);
         }
     }
     
