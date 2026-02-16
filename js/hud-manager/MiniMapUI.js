@@ -279,30 +279,13 @@ export class MiniMapUI extends UIComponent {
     
     /**
      * Get the effective look direction for the minimap
-     * Uses camera rotation from CameraControlUI when available (synced with camera control),
-     * otherwise derives from actual camera position, then falls back to player rotation
-     * @returns {{ angle: number, fromCamera: boolean }} Rotation and source for direction indicator
+     * Always use player rotation - it's updated by both joystick/arrows AND camera control (setLookDirection)
+     * @returns {{ angle: number, fromCamera: boolean }} Rotation for direction indicator (fromCamera=false uses sin/cos formula)
      */
     getMinimapDirectionRotation() {
         const player = this.game?.player;
-        const camera = this.game?.camera;
-        if (!player || !camera) return { angle: 0, fromCamera: false };
-
-        // Prefer camera control state - this is the current rotation when user has used camera button
-        const cameraControl = this.game?.hudManager?.components?.cameraControlUI;
-        if (cameraControl?.cameraState?.rotationY !== undefined) {
-            return { angle: cameraControl.cameraState.rotationY, fromCamera: true };
-        }
-        // Derive from actual camera position (works when PlayerMovement controls camera)
-        const playerPos = player.getPosition();
-        const dx = camera.position.x - playerPos.x;
-        const dz = camera.position.z - playerPos.z;
-        const distSq = dx * dx + dz * dz;
-        if (distSq > 0.01) {
-            const angle = Math.atan2(dx, dz);
-            return { angle, fromCamera: true };
-        }
-        // Fallback to player rotation
+        if (!player) return { angle: 0, fromCamera: false };
+        // Player rotation is the single source of truth - updated by movement AND camera control
         return { angle: player.getRotation().y, fromCamera: false };
     }
     
@@ -316,43 +299,14 @@ export class MiniMapUI extends UIComponent {
             return;
         }
         
-        const currentTime = Date.now();
-        
-        // Only render every renderInterval ms for performance
-        if (currentTime - this.lastRenderTime >= this.renderInterval) {
-            // Check if player has moved significantly or camera/player rotated before rendering
-            const player = this.game.player;
-            if (player) {
-                // Store last position for movement detection
-                if (!this._lastPlayerPos) {
-                    this._lastPlayerPos = new THREE.Vector3();
-                    this._lastPlayerPos.copy(player.getPosition());
-                    this.renderMiniMap();
-                } else {
-                    // Only render if player has moved at least 1 unit or direction changed
-                    const currentPos = player.getPosition();
-                    const { angle: currentRot } = this.getMinimapDirectionRotation();
-                    
-                    if (this._lastPlayerRot === undefined) {
-                        this._lastPlayerRot = currentRot;
-                    }
-                    
-                    const hasMoved = this._lastPlayerPos.distanceTo(currentPos) > 1;
-                    const hasRotated = Math.abs((this._lastPlayerRot ?? currentRot) - currentRot) > 0.1;
-                    
-                    if (hasMoved || hasRotated) {
-                        this.renderMiniMap();
-                        this._lastPlayerPos.copy(currentPos);
-                        this._lastPlayerRot = currentRot;
-                    }
-                }
-            } else {
-                // No player, just render on interval
-                this.renderMiniMap();
-            }
-            
-            this.lastRenderTime = currentTime;
+        const player = this.game.player;
+        if (!player) {
+            return;
         }
+        
+        // Render every frame - ensures direction updates immediately with joystick/arrow keys
+        // (Throttling was causing direction indicator to not update when player rotates)
+        this.renderMiniMap();
     }
     
     /**
