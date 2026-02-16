@@ -75,8 +75,13 @@ export class CameraControlUI extends UIComponent {
         this.baseElement = null;
         this.handleElement = null;
         
-        // Timeout for click-hint auto-hide
-        this.clickHintTimeout = null;
+        // Tooltip for "HOLD & DRAG" hint (replaces click-hint indicator)
+        this.cameraHintTooltip = null;
+        this.cameraHintTooltipTimeout = null;
+        
+        // Track if current interaction is touch (for mobile sensitivity)
+        this.cameraState.isTouch = false;
+        this.cameraState.touchId = null; // Track which touch is controlling camera
         
         console.debug("CameraControlUI initialized with camera mode support");
     }
@@ -410,6 +415,11 @@ export class CameraControlUI extends UIComponent {
             this.indicatorContainer.style.display = 'none';
         }
         
+        // Set tooltip for camera button (desktop hover + reinforces tap message)
+        if (this.cameraButton) {
+            this.cameraButton.title = 'HOLD & DRAG to change';
+        }
+        
         // Update the camera mode button UI based on current mode
         this.updateCameraModeButtonUI();
     }
@@ -465,6 +475,8 @@ export class CameraControlUI extends UIComponent {
             event.stopPropagation();
             
             const touch = event.touches[0];
+            this.cameraState.isTouch = true;
+            this.cameraState.touchId = touch.identifier;
             
             // Store touch start position but don't activate camera control yet
             // We'll wait for movement to confirm it's a drag and not a tap
@@ -486,6 +498,7 @@ export class CameraControlUI extends UIComponent {
         this.cameraButton.addEventListener('mousedown', (event) => {
             event.preventDefault();
             event.stopPropagation();
+            this.cameraState.isTouch = false;
             
             // Store mouse start position but don't activate camera control yet
             // We'll wait for movement to confirm it's a drag and not a click
@@ -510,20 +523,19 @@ export class CameraControlUI extends UIComponent {
         // Touch move event on document (to allow dragging outside the button)
         document.addEventListener('touchmove', (event) => {
             if (this.cameraState.potentialDrag || this.cameraState.active) {
-                const touch = event.touches[0];
+                const touch = this.findCameraTouch(event.touches);
+                if (!touch) return;
                 
                 // If we have a potential drag, check if it's moved enough to be considered a drag
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
                     const dragDistanceX = Math.abs(touch.clientX - this.cameraState.startX);
                     const dragDistanceY = Math.abs(touch.clientY - this.cameraState.startY);
-                    const minDragDistance = 10; // Threshold to distinguish drag from tap
+                    // Higher threshold on mobile for more deliberate drag (avoids accidental activation)
+                    const minDragDistance = 18;
                     
                     // If moved enough, activate camera control
                     if (dragDistanceX > minDragDistance || dragDistanceY > minDragDistance) {
-                        if (this.clickHintTimeout) {
-                            clearTimeout(this.clickHintTimeout);
-                            this.clickHintTimeout = null;
-                        }
+                        this.hideCameraHintTooltip();
                         this.cameraState.active = true;
                         // Show the visual indicator centered on the camera button
                         const center = this.getCameraButtonCenter();
@@ -543,30 +555,37 @@ export class CameraControlUI extends UIComponent {
         
         // Touch end event on document
         document.addEventListener('touchend', (event) => {
-            if (this.cameraState.potentialDrag || this.cameraState.active) {
+            // Check if our camera touch ended (or all touches ended)
+            const ourTouchEnded = this.cameraState.touchId === null ||
+                Array.from(event.changedTouches).some(t => t.identifier === this.cameraState.touchId);
+            if ((this.cameraState.potentialDrag || this.cameraState.active) && ourTouchEnded) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a tap (not a drag), show 4-direction hint then hide (no camera effect)
+                // If it was just a tap (not a drag), show tooltip "HOLD & DRAG to change"
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.showClickHint();
+                    this.showCameraHintTooltip();
                 } else {
                     // Otherwise handle as camera control end
                     this.handleCameraControlEnd();
                 }
                 
-                // Reset potential drag state
+                // Reset potential drag state and touch tracking
                 this.cameraState.potentialDrag = false;
+                this.cameraState.touchId = null;
             }
         });
         
         // Touch cancel event on document
-        document.addEventListener('touchcancel', () => {
-            if (this.cameraState.potentialDrag || this.cameraState.active) {
+        document.addEventListener('touchcancel', (event) => {
+            const ourTouchCancelled = this.cameraState.touchId === null ||
+                Array.from(event.changedTouches || []).some(t => t.identifier === this.cameraState.touchId);
+            if ((this.cameraState.potentialDrag || this.cameraState.active) && ourTouchCancelled) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 this.handleCameraControlEnd();
                 this.cameraState.potentialDrag = false;
+                this.cameraState.touchId = null;
             }
         });
         
@@ -577,15 +596,12 @@ export class CameraControlUI extends UIComponent {
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
                     const dragDistanceX = Math.abs(event.clientX - this.cameraState.startX);
                     const dragDistanceY = Math.abs(event.clientY - this.cameraState.startY);
-                    const minDragDistance = 10; // Threshold to distinguish drag from click
+                    const minDragDistance = 10; // Threshold to distinguish drag from click (desktop)
                     
                     // If moved enough, activate camera control
                     if (dragDistanceX > minDragDistance || dragDistanceY > minDragDistance) {
+                        this.hideCameraHintTooltip();
                         this.cameraState.active = true;
-                        if (this.clickHintTimeout) {
-                            clearTimeout(this.clickHintTimeout);
-                            this.clickHintTimeout = null;
-                        }
                         // Show the visual indicator centered on the camera button
                         const center = this.getCameraButtonCenter();
                         if (center) this.showVisualIndicator(center.x, center.y);
@@ -606,9 +622,9 @@ export class CameraControlUI extends UIComponent {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a click (not a drag), show 4-direction hint then hide (no camera effect)
+                // If it was just a click (not a drag), show tooltip "HOLD & DRAG to change"
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.showClickHint();
+                    this.showCameraHintTooltip();
                 } else {
                     // Otherwise handle as camera control end
                     this.handleCameraControlEnd();
@@ -807,6 +823,19 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
+     * Find the touch that belongs to our camera control (by touchId)
+     * @param {TouchList} touches - The touches from the event
+     * @returns {Touch|null} The matching touch or null
+     */
+    findCameraTouch(touches) {
+        if (!touches || this.cameraState.touchId === null) return touches?.[0] ?? null;
+        for (let i = 0; i < touches.length; i++) {
+            if (touches[i].identifier === this.cameraState.touchId) return touches[i];
+        }
+        return null;
+    }
+    
+    /**
      * Get the camera button center in client coordinates (so the 4-direction circle can share the same center).
      * @returns {{ x: number, y: number } | null}
      */
@@ -840,22 +869,65 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Show the 4-direction indicator briefly on click (no camera effect) to hint "hold and drag".
+     * Create the camera hint tooltip element (text: "HOLD & DRAG to change")
      */
-    showClickHint() {
-        const center = this.getCameraButtonCenter();
-        if (!center || !this.indicatorContainer) return;
+    createCameraHintTooltip() {
+        if (this.cameraHintTooltip) return;
+        const tooltip = document.createElement('div');
+        tooltip.id = 'camera-hint-tooltip';
+        tooltip.className = 'camera-hint-tooltip';
+        tooltip.textContent = 'HOLD & DRAG to change';
+        tooltip.style.cssText = `
+            position: fixed;
+            z-index: 300;
+            background: rgba(0, 0, 0, 0.85);
+            color: #ffcc66;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            pointer-events: none;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            border: 1px solid #6b4c2a;
+        `;
+        document.body.appendChild(tooltip);
+        this.cameraHintTooltip = tooltip;
+    }
+    
+    /**
+     * Show tooltip "HOLD & DRAG to change" when user clicks/taps without dragging.
+     * Replaces the old 4-direction indicator that showed then disappeared.
+     */
+    showCameraHintTooltip() {
+        this.createCameraHintTooltip();
+        if (!this.cameraHintTooltip || !this.cameraButton) return;
         
-        if (this.clickHintTimeout) {
-            clearTimeout(this.clickHintTimeout);
-            this.clickHintTimeout = null;
+        this.hideCameraHintTooltip();
+        
+        const rect = this.cameraButton.getBoundingClientRect();
+        this.cameraHintTooltip.style.left = `${rect.left + rect.width / 2}px`;
+        this.cameraHintTooltip.style.top = `${rect.top - 8}px`;
+        this.cameraHintTooltip.style.transform = 'translate(-50%, -100%)';
+        this.cameraHintTooltip.style.display = 'block';
+        
+        this.cameraHintTooltipTimeout = setTimeout(() => {
+            this.hideCameraHintTooltip();
+        }, 2000);
+    }
+    
+    /**
+     * Hide the camera hint tooltip
+     */
+    hideCameraHintTooltip() {
+        if (this.cameraHintTooltipTimeout) {
+            clearTimeout(this.cameraHintTooltipTimeout);
+            this.cameraHintTooltipTimeout = null;
         }
-        
-        this.showVisualIndicator(center.x, center.y);
-        this.clickHintTimeout = setTimeout(() => {
-            this.indicatorContainer.style.display = 'none';
-            this.clickHintTimeout = null;
-        }, 800);
+        if (this.cameraHintTooltip) {
+            this.cameraHintTooltip.style.display = 'none';
+        }
     }
     
     /**
@@ -875,10 +947,11 @@ export class CameraControlUI extends UIComponent {
         const totalDeltaX = clientX - this.cameraState.startX;
         const totalDeltaY = clientY - this.cameraState.startY;
         
-        // Calculate new rotation based on delta and sensitivity
-        // Use different sensitivity for horizontal and vertical movement
-        const horizontalSensitivity = 0.005; // Reduced for left/right movement
-        const verticalSensitivity = 0.005;   // Reduced for up/down movement
+        // Use lower sensitivity on mobile/touch for better control (avoids "too much" movement)
+        const isTouch = this.cameraState.isTouch;
+        const baseSensitivity = isTouch ? 0.002 : 0.005;
+        const horizontalSensitivity = baseSensitivity;
+        const verticalSensitivity = baseSensitivity;
         
         // Calculate horizontal rotation (around Y axis) from the original rotation
         const rotationY = this.cameraState.originalRotationY - totalDeltaX * horizontalSensitivity;
@@ -1192,10 +1265,7 @@ export class CameraControlUI extends UIComponent {
         // Reset camera control state
         this.cameraState.active = false;
         
-        if (this.clickHintTimeout) {
-            clearTimeout(this.clickHintTimeout);
-            this.clickHintTimeout = null;
-        }
+        this.hideCameraHintTooltip();
         
         // Hide the visual indicator
         if (this.indicatorContainer) {
@@ -1526,9 +1596,6 @@ export class CameraControlUI extends UIComponent {
             this.indicatorContainer.style.display = 'none';
         }
         
-        if (this.clickHintTimeout) {
-            clearTimeout(this.clickHintTimeout);
-            this.clickHintTimeout = null;
-        }
+        this.hideCameraHintTooltip();
     }
 }
