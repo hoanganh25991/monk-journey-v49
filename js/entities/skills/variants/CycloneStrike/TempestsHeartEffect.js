@@ -370,21 +370,26 @@ export class TempestsHeartEffect extends CycloneStrikeEffect {
     }
     
     /**
-     * Clean up resources when the effect is destroyed
+     * Clean up resources when the effect is disposed.
+     * Lightning bolts are added directly to the scene (not the effect group),
+     * so they must be explicitly removed and disposed here.
      */
-    destroy() {
-        super.destroy();
-        
-        // Clean up lightning bolts
-        this.lightningBolts.forEach(boltData => {
-            if (this.skill.game.scene) {
-                this.skill.game.scene.remove(boltData.bolt);
-            }
-            
-            boltData.bolt.geometry.dispose();
-            boltData.bolt.material.dispose();
-        });
-        
-        this.lightningBolts = [];
+    dispose() {
+        // Clean up lightning bolts FIRST - they are in scene, not in effect group
+        if (this.lightningBolts && this.lightningBolts.length > 0) {
+            this.lightningBolts.forEach(boltData => {
+                if (boltData.bolt) {
+                    if (this.skill?.game?.scene && boltData.bolt.parent) {
+                        this.skill.game.scene.remove(boltData.bolt);
+                    }
+                    if (boltData.bolt.geometry) boltData.bolt.geometry.dispose();
+                    if (boltData.bolt.material) boltData.bolt.material.dispose();
+                }
+            });
+            this.lightningBolts = [];
+        }
+        this.vortexMesh = null;
+        this.energyRings = [];
+        super.dispose();
     }
 }
