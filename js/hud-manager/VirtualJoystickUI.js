@@ -102,6 +102,8 @@ export class VirtualJoystickUI extends UIComponent {
         // Touch start event on overlay
         // Use changedTouches (not touches[0]) - when holding skill on right, touches[0] is the
         // skill finger; we need the touch that just landed on the overlay (left side)
+        // passive: false is REQUIRED on real Android - without it, preventDefault() is ignored
+        // and Chrome fires touchcancel ~200ms later, killing joystick movement
         this.joystickOverlay.addEventListener('touchstart', (event) => {
             event.preventDefault();
             event.stopPropagation();
@@ -115,7 +117,7 @@ export class VirtualJoystickUI extends UIComponent {
                     this.handleJoystickStart(touch.clientX, touch.clientY);
                 }
             }
-        });
+        }, { passive: false });
         
         // Mouse down event on overlay (for testing on desktop)
         this.joystickOverlay.addEventListener('mousedown', (event) => {
@@ -147,6 +149,7 @@ export class VirtualJoystickUI extends UIComponent {
         }, { passive: false });
         
         // Touch end event on document
+        // passive: false required so preventDefault() works on real Android
         document.addEventListener('touchend', (event) => {
             if (this.joystickState.active && this.joystickState.touchId !== null) {
                 // Check if our joystick touch ended
@@ -158,7 +161,7 @@ export class VirtualJoystickUI extends UIComponent {
                     }
                 }
             }
-        });
+        }, { passive: false });
         
         // Touch cancel event on document
         document.addEventListener('touchcancel', (event) => {
@@ -172,7 +175,7 @@ export class VirtualJoystickUI extends UIComponent {
                     }
                 }
             }
-        });
+        }, { passive: false });
         
         // Mouse move handler (defined as property to allow removal)
         this.handleMouseMove = (event) => {
