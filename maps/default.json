@@ -1,0 +1,15 @@
+{
+  "id": "default",
+  "name": "Default World",
+  "description": "The classic procedurally generated world. Terrain, structures, and environment generate as you explore.",
+  "type": "procedural",
+  "bounds": {
+    "minX": -256,
+    "maxX": 256,
+    "minZ": -256,
+    "maxZ": 256
+  },
+  "spawn": { "x": 0, "y": 1, "z": -13 },
+  "structures": [],
+  "environment": []
+}

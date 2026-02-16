@@ -1,202 +1,183 @@
 import { UIComponent } from '../UIComponent.js';
+import { MAP_MANIFEST } from '../config/maps.js';
 
 /**
  * Map Selection UI component
- * Handles the map selector button and displays a coming soon modal
+ * Shows pre-generated maps, allows review and play
+ * Map data is loaded from maps/ JSON files and buffered in memory - no localStorage
  */
 export class MapSelectionUI extends UIComponent {
-    /**
-     * Create a new MapSelectionUI component
-     * @param {Object} game - Reference to the game instance
-     */
     constructor(game) {
-        super('map-selection-modal', game);
+        super('map-selector-overlay', game);
         this.mapSelectorButton = null;
-        this.modal = null;
-        this.okButton = null;
+        this.overlay = null;
+        this.mapListEl = null;
+        this.selectedMapId = null;
+        this.mapManifest = MAP_MANIFEST;
     }
-    
-    /**
-     * Initialize the component
-     * @returns {boolean} - True if initialization was successful
-     */
+
     init() {
         try {
-            // Get references to DOM elements
             this.mapSelectorButton = document.getElementById('map-selector-button');
-            this.modal = document.getElementById('map-selection-modal');
-            this.okButton = document.getElementById('map-selection-ok-btn');
-            
-            if (!this.mapSelectorButton) {
-                console.error('Map selector button not found');
+            this.overlay = document.getElementById('map-selector-overlay');
+            this.mapListEl = document.getElementById('map-list');
+
+            if (!this.mapSelectorButton || !this.overlay || !this.mapListEl) {
+                console.error('Map selector elements not found');
                 return false;
             }
-            
-            if (!this.modal) {
-                console.error('Map selection modal not found');
-                return false;
-            }
-            
-            if (!this.okButton) {
-                console.error('Map selection OK button not found');
-                return false;
-            }
-            
-            // Set up event listeners
+
             this.setupEventListeners();
-            
-            // Initially hide the modal and ensure it doesn't block interactions
+            this.populateMapList();
             this.forceHide();
-            
-            console.log('MapSelectionUI initialized successfully');
             return true;
         } catch (error) {
             console.error('Error initializing MapSelectionUI:', error);
             return false;
         }
     }
-    
-    /**
-     * Set up event listeners
-     */
+
     setupEventListeners() {
-        // Map selector button click handler
-        this.mapSelectorButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.showMapSelectionModal();
+        this.mapSelectorButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.show();
         });
-        
-        // OK button click handler
-        this.okButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.hide();
-        });
-        
-        // Modal overlay click handler (close modal when clicking outside)
-        this.modal.addEventListener('click', (event) => {
-            if (event.target === this.modal) {
-                this.hide();
-            }
-        });
-        
-        // Escape key handler
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && this.isVisible()) {
-                this.hide();
-            }
+
+        const closeBtn = document.getElementById('closeMapSelector');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hide());
+        }
+
+        const clearBtn = document.getElementById('clearCurrentMap');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearCurrentMap());
+        }
+
+        const playBtn = document.getElementById('playMapButton');
+        if (playBtn) {
+            playBtn.addEventListener('click', () => this.playSelectedMap());
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isVisible()) this.hide();
         });
     }
-    
-    /**
-     * Show the map selection modal
-     */
-    showMapSelectionModal() {
-        console.log('Showing map selection modal');
-        
-        // Clear any stuck touches before showing modal
-        // if (touchManager.hasActiveTouches()) {
-        //     console.debug('MapSelectionUI: Clearing stuck touches before showing modal');
-        //     touchManager.clearAllTouches(); // Removed TouchManager dependency
-        // }
-        
-        this.show();
-        
-        // Focus the OK button for keyboard navigation
-        setTimeout(() => {
-            if (this.okButton) {
-                this.okButton.focus();
-            }
-        }, 100);
-    }
-    
-    /**
-     * Show the modal
-     */
-    show() {
-        if (this.modal) {
-            this.modal.style.display = 'flex';
-            this.modal.style.visibility = 'visible';
-            this.modal.style.pointerEvents = 'auto';
-            // Add a slight delay to trigger CSS animations
-            setTimeout(() => {
-                this.modal.classList.add('show');
-            }, 10);
+
+    populateMapList() {
+        this.mapListEl.innerHTML = '';
+        for (const map of this.mapManifest) {
+            const li = document.createElement('div');
+            li.className = 'map-list-item';
+            li.dataset.mapId = map.id;
+            li.innerHTML = `<span class="map-icon">🗺️</span> <span class="map-list-name">${map.name}</span>`;
+            li.addEventListener('click', () => this.selectMap(map));
+            this.mapListEl.appendChild(li);
+        }
+        if (this.mapManifest.length > 0) {
+            this.selectedMapId = this.mapManifest[0].id;
+            const first = this.mapListEl.querySelector(`[data-map-id="${this.selectedMapId}"]`);
+            if (first) first.classList.add('selected');
+            document.getElementById('selectedMapName').textContent = this.mapManifest[0].name;
+            document.getElementById('selectedMapDescription').textContent = this.mapManifest[0].description || '';
         }
     }
-    
-    /**
-     * Hide the modal
-     */
+
+    selectMap(mapEntry) {
+        this.selectedMapId = mapEntry.id;
+        document.querySelectorAll('.map-list-item').forEach(el => {
+            el.classList.toggle('selected', el.dataset.mapId === mapEntry.id);
+        });
+        document.getElementById('selectedMapName').textContent = mapEntry.name;
+        document.getElementById('selectedMapDescription').textContent = mapEntry.description || '';
+        document.getElementById('mapSizeStat').textContent = '-';
+        document.getElementById('structuresStat').textContent = '-';
+        document.getElementById('pathsStat').textContent = '-';
+        document.getElementById('environmentStat').textContent = '-';
+    }
+
+    async playSelectedMap() {
+        const entry = this.mapManifest.find(m => m.id === this.selectedMapId);
+        if (!entry || !this.game) return;
+
+        const overlayEl = document.getElementById('mapLoadingOverlay');
+        if (overlayEl) overlayEl.style.display = 'flex';
+
+        try {
+            const mapData = await this.game.loadAndApplyMap(entry.path);
+            if (mapData.bounds) {
+                const w = (mapData.bounds.maxX - mapData.bounds.minX) || 0;
+                const h = (mapData.bounds.maxZ - mapData.bounds.minZ) || 0;
+                document.getElementById('mapSizeStat').textContent = `${w}x${h}`;
+            }
+            if (this.game.player && mapData.spawn) {
+                const s = mapData.spawn;
+                this.game.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
+            }
+            if (this.game.hudManager?.showNotification) {
+                this.game.hudManager.showNotification(`Map loaded: ${mapData.name || entry.name}`);
+            }
+            this.hide();
+        } catch (err) {
+            console.error('Failed to load map:', err);
+            if (this.game.hudManager?.showNotification) {
+                this.game.hudManager.showNotification('Failed to load map', 3000);
+            }
+        } finally {
+            if (overlayEl) overlayEl.style.display = 'none';
+        }
+    }
+
+    clearCurrentMap() {
+        if (this.game?.world) {
+            this.game.world.applyMap(null);
+            if (this.game.hudManager?.showNotification) {
+                this.game.hudManager.showNotification('Returned to procedural world');
+            }
+        }
+        this.hide();
+    }
+
+    show() {
+        if (this.overlay) {
+            this.overlay.style.display = 'flex';
+            this.overlay.style.visibility = 'visible';
+            this.overlay.style.pointerEvents = 'auto';
+            this.overlay.classList.add('show');
+        }
+    }
+
     hide() {
-        if (this.modal) {
-            this.modal.classList.remove('show');
-            // Immediately disable pointer events to prevent blocking
-            this.modal.style.pointerEvents = 'none';
-            
-            // Clear any stuck touches when hiding modal
-            // if (touchManager.hasActiveTouches()) {
-            //     console.debug('MapSelectionUI: Clearing stuck touches after hiding modal');
-            //     touchManager.clearAllTouches(); // Removed TouchManager dependency
-            // }
-            
-            // Wait for animation to complete before hiding
+        if (this.overlay) {
+            this.overlay.classList.remove('show');
+            this.overlay.style.pointerEvents = 'none';
             setTimeout(() => {
-                this.modal.style.display = 'none';
-                this.modal.style.visibility = 'hidden';
+                this.overlay.style.display = 'none';
+                this.overlay.style.visibility = 'hidden';
             }, 300);
         }
     }
-    
-    /**
-     * Force hide the modal immediately without animation
-     * Used during initialization to ensure modal doesn't block interactions
-     */
+
     forceHide() {
-        if (this.modal) {
-            this.modal.classList.remove('show');
-            this.modal.style.display = 'none';
-            this.modal.style.visibility = 'hidden';
-            this.modal.style.pointerEvents = 'none';
+        if (this.overlay) {
+            this.overlay.classList.remove('show');
+            this.overlay.style.display = 'none';
+            this.overlay.style.visibility = 'hidden';
+            this.overlay.style.pointerEvents = 'none';
         }
     }
-    
-    /**
-     * Check if the modal is visible
-     * @returns {boolean} - True if modal is visible
-     */
+
     isVisible() {
-        if (!this.modal) return false;
-        const computedStyle = window.getComputedStyle(this.modal);
-        return computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden';
+        if (!this.overlay) return false;
+        const s = window.getComputedStyle(this.overlay);
+        return s.display !== 'none' && s.visibility !== 'hidden';
     }
-    
-    /**
-     * Update the component
-     * @param {number} delta - Time since last update in seconds
-     */
-    update(delta) {
-        // No continuous updates needed for this component
-    }
-    
-    /**
-     * Cleanup the component
-     */
+
+    update(delta) {}
+
     cleanup() {
-        // Remove event listeners if needed
         if (this.mapSelectorButton) {
-            this.mapSelectorButton.removeEventListener('click', this.showMapSelectionModal);
+            this.mapSelectorButton.replaceWith(this.mapSelectorButton.cloneNode(true));
         }
-        
-        if (this.okButton) {
-            this.okButton.removeEventListener('click', this.hide);
-        }
-        
-        if (this.modal) {
-            this.modal.removeEventListener('click', this.hide);
-        }
-        
-        console.log('MapSelectionUI cleaned up');
     }
 }

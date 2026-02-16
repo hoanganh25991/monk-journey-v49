@@ -14,10 +14,10 @@ export const TERRAIN_CONFIG = {
     // Terrain buffering properties
     bufferDistance: 3, // Reduced from 5 for performance - fewer pre-generated chunks
     
-    // Terrain caching properties
+    // Terrain caching - in-memory only. NEVER save terrain to localStorage (huge CPU lock from JSON.stringify)
     cache: {
-        maxCachedChunks: 100, // Maximum number of chunks to keep in memory
-        saveToLocalStorage: false, // Disabled - terrain storage caused game stutter
-        localStorageKey: 'monk_journey_terrain_cache'
+        maxCachedChunks: 100,
+        saveToLocalStorage: false, // MUST stay false - terrain serialization causes game freeze
+        localStorageKey: 'monk_journey_terrain_cache' // Unused when saveToLocalStorage is false
     }
 };

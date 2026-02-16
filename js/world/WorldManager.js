@@ -70,6 +70,30 @@ export class WorldManager {
             lastCacheUpdate: 0,
             cacheInterval: 500 // Update cache every 500ms
         };
+        
+        // Current map (from maps/ JSON) - buffered in memory, never saved to localStorage
+        this.currentMap = null;
+    }
+    
+    /**
+     * Apply a pre-generated map - buffers map data in memory, no localStorage
+     * @param {Object} mapData - Map JSON (id, name, bounds, spawn, structures, environment)
+     */
+    applyMap(mapData) {
+        if (!mapData) {
+            this.currentMap = null;
+            return;
+        }
+        this.currentMap = mapData;
+        console.debug(`Map applied: ${mapData.name || mapData.id}`);
+    }
+    
+    /**
+     * Get map bounds for boundary loop (endless feel)
+     * @returns {{ minX: number, maxX: number, minZ: number, maxZ: number }|null}
+     */
+    getMapBounds() {
+        return this.currentMap?.bounds || null;
     }
     
     /**

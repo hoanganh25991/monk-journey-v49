@@ -60,6 +60,7 @@ import storageService from '../save-manager/StorageService.js';
 export class Game {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
+        this.gameContainer = document.getElementById('game-container');
         this.clock = new THREE.Clock();
         this.disableFullScreen = false; // Set to true to disable fullscreen functionality
         
@@ -415,13 +416,17 @@ export class Game {
             console.warn('Fullscreen request is ignored when fullscreen is disabled.');
             return Promise.resolve();
         }
+        if (window.location.hostname === 'localhost') {
+            console.debug('Fullscreen skipped on localhost (development)');
+            return Promise.resolve();
+        }
         console.debug("Requesting fullscreen mode...");
         
         // Set a flag to prevent pause on visibility change
         window.isFullscreenChange = true;
         
-        // Different browsers have different fullscreen APIs
-        const element = document.documentElement; // Use the entire document for fullscreen
+        // Fullscreen document (HUD is outside game-container; fullscreening game-container would hide HUD)
+        const element = document.documentElement;
         
         // Create a promise to handle fullscreen request
         const fullscreenPromise = new Promise((resolve, reject) => {
@@ -441,12 +446,15 @@ export class Game {
                     
                     if (this.isFullscreen()) {
                         // Defer resize until after browser has applied fullscreen layout (fixes white space at bottom)
+                        const doResize = () => {
+                            this.adjustRendererSize();
+                            // Delayed second resize - canvas pre-init may have wrong size; fullscreen layout applies async
+                            setTimeout(() => this.adjustRendererSize(), 100);
+                        };
                         requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                                this.adjustRendererSize();
-                                resolve();
-                            });
+                            requestAnimationFrame(doResize);
                         });
+                        resolve();
                     } else {
                         reject(new Error("Failed to enter fullscreen mode"));
                     }
@@ -484,13 +492,17 @@ export class Game {
     
     /**
      * Adjust renderer size to match current window dimensions
-     * Uses fullscreen element dimensions when in fullscreen to avoid white space from canvas init timing
+     * Uses canvas container (game-container) dimensions when in fullscreen - matches actual canvas display area, fixes whitespace from pre-init
      */
     adjustRendererSize() {
         if (this.renderer && this.camera) {
             const fsEl = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
-            const width = fsEl ? fsEl.clientWidth : window.innerWidth;
-            const height = fsEl ? fsEl.clientHeight : window.innerHeight;
+            // In fullscreen: use game-container (canvas parent) - reflects actual canvas display size after layout
+            const container = this.gameContainer || this.canvas?.parentElement;
+            const w = fsEl && container ? (container.offsetWidth || container.clientWidth) : (fsEl ? (fsEl.offsetWidth || fsEl.clientWidth) : window.innerWidth);
+            const h = fsEl && container ? (container.offsetHeight || container.clientHeight) : (fsEl ? (fsEl.offsetHeight || fsEl.clientHeight) : window.innerHeight);
+            const width = w > 0 ? w : window.innerWidth;
+            const height = h > 0 ? h : window.innerHeight;
             
             console.debug(`Adjusting renderer size to ${width}x${height}${fsEl ? ' (fullscreen)' : ''}`);
             
@@ -604,9 +616,6 @@ export class Game {
         // Make sure the canvas is visible
         this.canvas.style.display = 'block';
         
-        // Adjust renderer size before entering fullscreen
-        this.adjustRendererSize();
-        
         // Reset camera position if needed
         this.camera.position.set(0, 10, 20);
         this.camera.lookAt(0, 0, 0);
@@ -622,6 +631,9 @@ export class Game {
             console.debug("Starting loaded game - keeping saved player position");
         }
         
+        // Apply default map (bounds for boundary loop) - load from maps/default.json
+        this.loadAndApplyMap('maps/default.json').catch(() => {});
+        
         // Start the game loop
         this.state.setRunning();
         this.clock.start();
@@ -632,17 +644,16 @@ export class Game {
         // Start background music
         this.audioManager.playMusic();
         
-        // Request fullscreen mode after game is started (if enabled)
+        // Request fullscreen first, then size - avoids whitespace from canvas pre-init with wrong dimensions
         if (requestFullscreenMode) {
             console.debug("Requesting fullscreen mode as part of game start");
-            this.requestFullscreen().catch(error => {
+            this.requestFullscreen().then(() => {
+                this.adjustRendererSize(); // Size after fullscreen applied
+            }).catch(error => {
                 console.warn("Could not enter fullscreen mode:", error);
-                // Even if fullscreen fails, make sure the renderer is properly sized
                 this.adjustRendererSize();
             });
         } else {
-            console.debug("Skipping fullscreen request as it was disabled");
-            // Make sure the renderer is properly sized even without fullscreen
             this.adjustRendererSize();
         }
         
@@ -650,6 +661,19 @@ export class Game {
         this.events.dispatch('gameStateChanged', 'running');
         
         console.debug("Game started successfully");
+    }
+    
+    /**
+     * Load map JSON and apply to world - buffers in memory, no localStorage
+     * @param {string} path - Path to map JSON (e.g. 'maps/default.json')
+     * @returns {Promise<Object>} Resolved with map data
+     */
+    async loadAndApplyMap(path) {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`Failed to load map: ${path}`);
+        const mapData = await res.json();
+        if (this.world) this.world.applyMap(mapData);
+        return mapData;
     }
     
     /**
@@ -772,6 +796,19 @@ export class Game {
         
         // Update world based on player position
         this.world.update(this.player.getPosition(), delta);
+        
+        // Boundary loop: wrap player when hitting map bounds for endless feel
+        const bounds = this.world.getMapBounds();
+        if (bounds) {
+            const pos = this.player.getPosition();
+            let wrap = false;
+            let nx = pos.x, nz = pos.z;
+            if (pos.x < bounds.minX) { nx = bounds.maxX - (bounds.minX - pos.x); wrap = true; }
+            else if (pos.x > bounds.maxX) { nx = bounds.minX + (pos.x - bounds.maxX); wrap = true; }
+            if (pos.z < bounds.minZ) { nz = bounds.maxZ - (bounds.minZ - pos.z); wrap = true; }
+            else if (pos.z > bounds.maxZ) { nz = bounds.minZ + (pos.z - bounds.maxZ); wrap = true; }
+            if (wrap) this.player.setPosition(nx, pos.y, nz);
+        }
         
         // Update enemies
         this.enemyManager.update(delta);

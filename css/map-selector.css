@@ -151,6 +151,18 @@
     display: none; /* Hide the buttons as they're now in the header */
 }
 
+/* Play button container in map detail */
+#mapPlayButtons {
+    display: flex;
+    gap: var(--padding-medium);
+    margin-top: var(--padding-medium);
+}
+
+.play-map-btn {
+    padding: 10px 24px;
+    font-weight: bold;
+}
+
 /* Return to Procedural Map button */
 .return-to-map-button {
     background-color: rgba(255, 204, 0, 0.7); /* Match settings-button */
