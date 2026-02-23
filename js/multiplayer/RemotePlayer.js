@@ -516,7 +516,7 @@ export class RemotePlayer {
         
         try {
             // Import necessary modules
-            import('../entities/skills/Skill.js').then(({ Skill }) => {
+            import('../skills/Skill.js').then(({ Skill }) => {
                 import('../config/skills.js').then(async ({ SKILLS }) => {
                     // Find the skill configuration
                     const skillConfig = SKILLS.find(config => config.name === skillName);

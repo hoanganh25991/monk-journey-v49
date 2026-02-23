@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { WorldManager } from '../world/WorldManager.js';
-import { Player } from '../entities/player/Player.js';
+import { Player } from '../player/Player.js';
 import { InputHandler } from '../InputHandler.js';
 import { HUDManager } from '../hud-manager/HUDManager.js';
-import { EnemyManager } from '../entities/enemies/EnemyManager.js';
+import { EnemyManager } from '../enemies/EnemyManager.js';
 import { CollisionManager } from '../CollisionManager.js';
 import { QuestManager } from '../QuestManager.js';
 import { AudioManager } from '../AudioManager.js';
@@ -20,8 +20,8 @@ import { RENDER_CONFIG } from '../config/render.js';
 import { MenuManager } from '../menu-system/MenuManager.js';
 import { InteractionSystem } from '../interaction/InteractionSystem.js';
 import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
-import { ItemGenerator } from '../entities/items/ItemGenerator.js';
-import { ItemDropManager } from '../entities/items/ItemDropManager.js';
+import { ItemGenerator } from '../items/ItemGenerator.js';
+import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import storageService from '../save-manager/StorageService.js';
 

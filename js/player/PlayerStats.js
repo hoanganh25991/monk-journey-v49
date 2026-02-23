@@ -1,10 +1,10 @@
 /**
  * PlayerStats.js
  * Handles player statistics, experience, and leveling
- * @module entities/player/PlayerStats
+ * @module player/PlayerStats
  */
 
-import { PLAYER_PROGRESSION } from '../../config/game-balance.js';
+import { PLAYER_PROGRESSION } from '../config/game-balance.js';
 const {DEFAULT_PLAYER_STATS, LEVEL_UP_EXPERIENCE_MULTIPLIER, LEVEL_UP_STAT_INCREASES, RESOURCE_REGENERATION, STAT_SCALING, EXPERIENCE_SCALING} = PLAYER_PROGRESSION
 
 /**

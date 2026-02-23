@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { BleedingEffect } from './entities/skills/BleedingEffect.js';
-import { SkillEffectFactory } from './entities/skills/SkillEffectFactory.js';
+import { BleedingEffect } from './skills/BleedingEffect.js';
+import { SkillEffectFactory } from './skills/SkillEffectFactory.js';
 
 /**
  * EffectsManager

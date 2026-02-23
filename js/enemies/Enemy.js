@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
-import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../../config/enemy-behavior.js';
-import { ENEMY_CONFIG } from '../../config/game-balance.js';
+import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
+import { ENEMY_CONFIG } from '../config/game-balance.js';
 
 export class Enemy {
     // Static counter for generating unique IDs

@@ -4,7 +4,7 @@
  */
 
 import * as THREE from 'three';
-import GeometryFactory from '../../utils/GeometryFactory.js';
+import GeometryFactory from '../utils/GeometryFactory.js';
 
 export class PlayerAttackEffect {
     constructor(scene) {

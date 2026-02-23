@@ -6,8 +6,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
-import { ItemGenerator } from '../entities/items/ItemGenerator.js';
-import { ItemModelFactory } from '../entities/items/models/ItemModelFactory.js';
+import { ItemGenerator } from '../items/ItemGenerator.js';
+import { ItemModelFactory } from '../items/models/ItemModelFactory.js';
 
 export class ItemPreview {
     /**

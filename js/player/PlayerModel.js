@@ -19,8 +19,8 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../../config/player-models.js';
-import * as AnimationUtils from '../../utils/AnimationUtils.js';
+import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
+import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
 
 /**

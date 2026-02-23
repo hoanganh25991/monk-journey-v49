@@ -11,7 +11,7 @@ import {
     BOSS_DROP_TABLE,
     COMBAT_BALANCE, 
     DIFFICULTY_SCALING 
-} from '../../config/game-balance.js';
+} from '../config/game-balance.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 
 /**

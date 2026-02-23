@@ -5,7 +5,7 @@
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { Skill } from '../../entities/skills/Skill.js';
+import { Skill } from '../../skills/Skill.js';
 import { SKILLS } from '../../config/skills.js';
 import { CAMERA_CONFIG } from '../../config/skill-preview.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';

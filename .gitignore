@@ -1,8 +1,6 @@
 .vs-code
+.env
 docs
 progress
 scripts
 tiktok-ads
-.env
-monk-journey-videos
-

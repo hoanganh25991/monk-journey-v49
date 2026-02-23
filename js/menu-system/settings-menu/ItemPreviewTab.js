@@ -5,7 +5,7 @@
 
 import { SettingsTab } from './SettingsTab.js';
 import { ItemPreview } from '../ItemPreview.js';
-import { ItemGenerator } from '../../entities/items/ItemGenerator.js';
+import { ItemGenerator } from '../../items/ItemGenerator.js';
 import { ITEM_TEMPLATES } from '../../config/items.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
 

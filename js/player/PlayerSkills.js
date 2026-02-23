@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Skill } from '../skills/Skill.js';
-import { SKILLS, BATTLE_SKILLS } from '../../config/skills.js';
-import { STORAGE_KEYS } from '../../config/storage-keys.js';
+import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
+import { STORAGE_KEYS } from '../config/storage-keys.js';
 
 /**
  * @typedef {Object} SkillTreeEntry
