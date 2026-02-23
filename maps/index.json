@@ -4,11 +4,11 @@
     "path": "maps/default.json",
     "name": "Default World",
     "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
-    "size": "2500x2500",
+    "size": "1200x1200",
     "thumbnail": "maps/thumbnails/default.png",
-    "structures": 280,
-    "paths": 12,
-    "environment": 980
+    "structures": 65,
+    "paths": 4,
+    "environment": 230
   },
   {
     "id": "terrant",

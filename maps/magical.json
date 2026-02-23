@@ -15,6 +15,1278 @@
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "tower",
+      "position": {
+        "x": -265,
+        "z": 282
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 0.9378492245450616
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": -141,
+        "z": -66
+      },
+      "rotation": 2.764601535159018,
+      "scale": 1.1664264818653465
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -48,
+        "z": 170
+      },
+      "rotation": 3.581415625092364,
+      "scale": 0.8657425234094263
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 100,
+        "z": -314
+      },
+      "rotation": 3.392920065876977,
+      "scale": 1.1956066807731986
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 227,
+        "z": -248
+      },
+      "rotation": 3.141592653589793,
+      "scale": 1.190131832100451
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -257,
+        "z": -44
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 0.9066874762997031
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": 194,
+        "z": -328
+      },
+      "rotation": 4.9637163926718735,
+      "scale": 0.9638430783525109
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -229,
+        "z": -263
+      },
+      "rotation": 1.382300767579509,
+      "scale": 1.078385909460485
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 290,
+        "z": -76
+      },
+      "rotation": 6.283185307179586,
+      "scale": 0.8375537523999811
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 275,
+        "z": 239
+      },
+      "rotation": 0.5026548245743669,
+      "scale": 1.0446924587711692
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 261,
+        "z": -219
+      },
+      "rotation": 4.523893421169302,
+      "scale": 1.0035429069772364
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -316,
+        "z": 241
+      },
+      "rotation": 0.5026548245743669,
+      "scale": 1.0511210402473807
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": 111,
+        "z": 163
+      },
+      "rotation": 3.141592653589793,
+      "scale": 0.9394411573186517
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -63,
+        "z": 190
+      },
+      "rotation": 3.330088212805181,
+      "scale": 0.8109590074047447
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 3,
+        "z": 65
+      },
+      "rotation": 1.1938052083641213,
+      "scale": 0.9519806811586022
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 104,
+        "z": -344
+      },
+      "rotation": 4.209734155810323,
+      "scale": 1.061517151258886
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -185,
+        "z": 330
+      },
+      "rotation": 5.403539364174444,
+      "scale": 1.120745218731463
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 161,
+        "z": 30
+      },
+      "rotation": 0.12566370614359174,
+      "scale": 0.9203797003254295
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -266,
+        "z": 68
+      },
+      "rotation": 1.319468914507713,
+      "scale": 0.8419200727716089
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 216,
+        "z": -121
+      },
+      "rotation": 1.319468914507713,
+      "scale": 1.0416543206200004
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -183,
+        "z": -265
+      },
+      "rotation": 2.638937829015426,
+      "scale": 0.9720421085134149
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 78,
+        "z": -255
+      },
+      "rotation": 2.57610597594363,
+      "scale": 0.9722221156582237
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -116,
+        "z": -347
+      },
+      "rotation": 3.392920065876977,
+      "scale": 0.971749753691256
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -119,
+        "z": 298
+      },
+      "rotation": 0.5654866776461628,
+      "scale": 1.1079876264557242
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -227,
+        "z": 285
+      },
+      "rotation": 2.764601535159018,
+      "scale": 1.0495329985395074
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -338,
+        "z": 136
+      },
+      "rotation": 2.9530970943744053,
+      "scale": 0.8501288315281272
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -55,
+        "z": 58
+      },
+      "rotation": 0.7539822368615503,
+      "scale": 0.9054833957925439
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -20,
+        "z": 239
+      },
+      "rotation": 2.0734511513692637,
+      "scale": 0.9613471468910575
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 329,
+        "z": -164
+      },
+      "rotation": 4.209734155810323,
+      "scale": 1.0750440606847407
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 90,
+        "z": -331
+      },
+      "rotation": 2.4504422698000385,
+      "scale": 0.9221174260601401
+    }
+  ],
+  "environment": [
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 281,
+        "z": -157
+      },
+      "scale": 1.2920567536726595
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": 325,
+        "z": 126
+      },
+      "scale": 0.7274648094549775
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 64,
+        "z": -228
+      },
+      "scale": 0.7577802443876862
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 12,
+        "z": -185
+      },
+      "scale": 0.7409620428457856
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -26,
+        "z": 20
+      },
+      "scale": 1.0755941892042755
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -232,
+        "z": 319
+      },
+      "scale": 0.8008856678381562
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -58,
+        "z": 93
+      },
+      "scale": 1.1966704631224274
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 335,
+        "z": 333
+      },
+      "scale": 0.9834075594320892
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 79,
+        "z": 38
+      },
+      "scale": 1.1221809411421417
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -245,
+        "z": -184
+      },
+      "scale": 1.2146995926275848
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -44,
+        "z": -278
+      },
+      "scale": 0.7032974982634186
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": -152,
+        "z": -18
+      },
+      "scale": 1.2709336424246431
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 45,
+        "z": 270
+      },
+      "scale": 0.8411920094862579
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -265,
+        "z": -291
+      },
+      "scale": 0.7782815838232636
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 276,
+        "z": -251
+      },
+      "scale": 1.0870363498106599
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": 157,
+        "z": -148
+      },
+      "scale": 1.0129152918234468
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 40,
+        "z": -354
+      },
+      "scale": 0.8420023942366242
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": -123,
+        "z": -352
+      },
+      "scale": 0.7010066414251923
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 349,
+        "z": -174
+      },
+      "scale": 1.157262017764151
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -7,
+        "z": 315
+      },
+      "scale": 0.8187275076285004
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 234,
+        "z": -23
+      },
+      "scale": 1.1339870953932403
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 349,
+        "z": 7
+      },
+      "scale": 0.9922497654333711
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 346,
+        "z": 325
+      },
+      "scale": 0.9233495021238922
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 244,
+        "z": 301
+      },
+      "scale": 1.297745289839804
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 75,
+        "z": 195
+      },
+      "scale": 1.1265211129561066
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -120,
+        "z": -285
+      },
+      "scale": 1.0613859558477996
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": -287,
+        "z": 175
+      },
+      "scale": 0.9946738028898834
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": 358,
+        "z": 183
+      },
+      "scale": 1.259343638457358
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -268,
+        "z": -48
+      },
+      "scale": 0.8289794469252229
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 80,
+        "z": -137
+      },
+      "scale": 0.9177902126684785
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 61,
+        "z": -250
+      },
+      "scale": 0.7806099200621247
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -215,
+        "z": 331
+      },
+      "scale": 0.7128975534811616
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 93,
+        "z": 337
+      },
+      "scale": 0.850737097300589
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": -324,
+        "z": 104
+      },
+      "scale": 1.170837535895407
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 118,
+        "z": 139
+      },
+      "scale": 0.8905328536406159
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": 133,
+        "z": -323
+      },
+      "scale": 0.8677820349112153
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -113,
+        "z": 283
+      },
+      "scale": 1.2011690640822053
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 278,
+        "z": 88
+      },
+      "scale": 1.2299029255285858
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 52,
+        "z": 275
+      },
+      "scale": 0.7338176036253571
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": 131,
+        "z": 32
+      },
+      "scale": 1.1333720827475189
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": 4,
+        "z": 161
+      },
+      "scale": 1.2896503472700713
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -106,
+        "z": 187
+      },
+      "scale": 1.1043613815680144
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 33,
+        "z": -193
+      },
+      "scale": 0.9198391700163483
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -53,
+        "z": 327
+      },
+      "scale": 0.9190426969900727
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": -108,
+        "z": 341
+      },
+      "scale": 1.1255559468641876
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 133,
+        "z": 51
+      },
+      "scale": 0.8035879040136933
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 230,
+        "z": -171
+      },
+      "scale": 0.8579725528135895
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -249,
+        "z": 214
+      },
+      "scale": 0.8341688776388764
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": -281,
+        "z": -244
+      },
+      "scale": 0.7182608628645539
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": -276,
+        "z": 53
+      },
+      "scale": 0.936957492865622
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 90,
+        "z": -10
+      },
+      "scale": 1.1575927520170808
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -289,
+        "z": 63
+      },
+      "scale": 0.8881256246939301
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -346,
+        "z": 217
+      },
+      "scale": 1.2771400952711702
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 275,
+        "z": -158
+      },
+      "scale": 0.9138451481238007
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -218,
+        "z": -58
+      },
+      "scale": 1.228074767626822
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -4,
+        "z": 246
+      },
+      "scale": 1.0902879381552337
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": -134,
+        "z": -66
+      },
+      "scale": 1.0115686440840364
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -204,
+        "z": -208
+      },
+      "scale": 0.7436258697882294
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 197,
+        "z": 57
+      },
+      "scale": 1.078793599642813
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": 55,
+        "z": -305
+      },
+      "scale": 0.8500308180227876
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": -195,
+        "z": -1
+      },
+      "scale": 1.1309215093031524
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": -106,
+        "z": 272
+      },
+      "scale": 1.035674657858908
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": 61,
+        "z": -15
+      },
+      "scale": 0.7191242480650544
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 55,
+        "z": 220
+      },
+      "scale": 0.7767292642965913
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 357,
+        "z": 63
+      },
+      "scale": 1.0445736909285186
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 19,
+        "z": 214
+      },
+      "scale": 1.1993665123358368
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": 265,
+        "z": 99
+      },
+      "scale": 0.7584417128935456
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 167,
+        "z": 32
+      },
+      "scale": 0.879758276976645
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 254,
+        "z": -222
+      },
+      "scale": 0.7619001889601349
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": 340,
+        "z": -10
+      },
+      "scale": 1.2440764332190155
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 256,
+        "z": 48
+      },
+      "scale": 1.2061209941282867
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -161,
+        "z": 224
+      },
+      "scale": 1.1684928560629486
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -338,
+        "z": 235
+      },
+      "scale": 0.8922760033980012
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 305,
+        "z": -30
+      },
+      "scale": 1.1791794205084443
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 203,
+        "z": 205
+      },
+      "scale": 0.871537091769278
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -40,
+        "z": -275
+      },
+      "scale": 1.0523080015555024
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 191,
+        "z": -355
+      },
+      "scale": 0.8450761342421174
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 84,
+        "z": -194
+      },
+      "scale": 1.014050474204123
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": 276,
+        "z": 220
+      },
+      "scale": 0.9640650058165192
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": -22,
+        "z": 348
+      },
+      "scale": 1.140578713454306
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -150,
+        "z": -181
+      },
+      "scale": 1.2296755814924836
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -157,
+        "z": -131
+      },
+      "scale": 0.7580645943060517
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -77,
+        "z": -254
+      },
+      "scale": 0.8930797362700105
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 62,
+        "z": 304
+      },
+      "scale": 0.8426799917593598
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 247,
+        "z": -312
+      },
+      "scale": 0.8554493451490998
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": -246,
+        "z": -190
+      },
+      "scale": 1.0205967808142304
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 32,
+        "z": -128
+      },
+      "scale": 1.2679562831297515
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -339,
+        "z": -36
+      },
+      "scale": 0.7679868364706635
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 111,
+        "z": 344
+      },
+      "scale": 0.931772425211966
+    },
+    {
+      "type": "ancient_artifact",
+      "position": {
+        "x": -16,
+        "z": 1
+      },
+      "scale": 1.2110220337286592
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 53,
+        "z": 251
+      },
+      "scale": 0.8980696463957428
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": -337,
+        "z": -301
+      },
+      "scale": 0.9258742475882172
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": 330,
+        "z": -2
+      },
+      "scale": 0.8680198216810822
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -19,
+        "z": 93
+      },
+      "scale": 0.7387153530493378
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 154,
+        "z": -187
+      },
+      "scale": 0.992794826067984
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": 238,
+        "z": -120
+      },
+      "scale": 0.725717225112021
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 355,
+        "z": -258
+      },
+      "scale": 1.2735665345564484
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -84,
+        "z": -263
+      },
+      "scale": 0.8130517387762666
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -216,
+        "z": -349
+      },
+      "scale": 0.9615068221464753
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 114,
+        "z": 159
+      },
+      "scale": 0.7768907690420747
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 353,
+        "z": -54
+      },
+      "scale": 0.9577875638380646
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -44,
+        "z": 24
+      },
+      "scale": 0.8434061909094452
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -168,
+        "z": 134
+      },
+      "scale": 0.8135806346312164
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 180,
+        "z": 187
+      },
+      "scale": 1.0887698793783782
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -227,
+        "z": 262
+      },
+      "scale": 1.1300579095259309
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 270,
+        "z": -115
+      },
+      "scale": 0.8391537094488739
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -254,
+        "z": 195
+      },
+      "scale": 1.1583912635222076
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -115,
+        "z": 335
+      },
+      "scale": 1.070729556120932
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": 223,
+        "z": 340
+      },
+      "scale": 1.199752571620047
+    },
+    {
+      "type": "magic_circle",
+      "position": {
+        "x": 307,
+        "z": -307
+      },
+      "scale": 0.8096692943945527
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -305,
+        "z": 204
+      },
+      "scale": 0.8053137088194489
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": 117,
+        "z": 255
+      },
+      "scale": 0.7321447992697357
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -287,
+        "z": -167
+      },
+      "scale": 1.1762465501204131
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 236,
+        "z": -183
+      },
+      "scale": 0.7643279457464813
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -151,
+        "z": -186
+      },
+      "scale": 0.9637229705229401
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": 325,
+        "z": 317
+      },
+      "scale": 1.2823906088247896
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -148,
+        "z": -168
+      },
+      "scale": 1.0689148450270294
+    },
+    {
+      "type": "magic_circle",
+      "position": {
+        "x": 226,
+        "z": -90
+      },
+      "scale": 0.7125046635046601
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -345,
+        "z": 114
+      },
+      "scale": 1.0429940486326812
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -42,
+        "z": 173
+      },
+      "scale": 0.9308419847860931
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 88,
+        "z": -13
+      },
+      "scale": 0.8871324563398957
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -276,
+        "z": 343
+      },
+      "scale": 1.2635744476690887
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": 2,
+        "z": 37
+      },
+      "scale": 1.0525019431486724
+    },
+    {
+      "type": "mysterious_portal",
+      "position": {
+        "x": -95,
+        "z": 195
+      },
+      "scale": 0.8868739271536469
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": -131,
+        "z": -50
+      },
+      "scale": 1.240274384059012
+    }
+  ]
 }

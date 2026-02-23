@@ -104,6 +104,41 @@ export class EnvironmentManager {
 
         console.debug(`Successfully loaded ${this.environmentObjects.length} environment objects`);
     }
+
+    /**
+     * Add a chunk of environment objects from map data without clearing (for deferred loading).
+     * Call clear() once before the first chunk, then call this with slices of the full array.
+     * @param {Array} environmentDataSlice - Slice of environment object data from map
+     */
+    addEnvironmentFromMapDataChunk(environmentDataSlice) {
+        if (!environmentDataSlice || !Array.isArray(environmentDataSlice) || environmentDataSlice.length === 0) return;
+        environmentDataSlice.forEach(envData => {
+            if (envData.position && envData.type) {
+                const object = this.createEnvironmentObject(
+                    envData.type,
+                    envData.position.x,
+                    envData.position.z,
+                    envData.scale || 1.0
+                );
+                if (object) {
+                    if (envData.rotation !== undefined) object.rotation.y = envData.rotation;
+                    this.environmentObjects.push({
+                        type: envData.type,
+                        object: object,
+                        position: new THREE.Vector3(
+                            envData.position.x,
+                            envData.position.y || 0,
+                            envData.position.z
+                        ),
+                        scale: envData.scale || 1.0,
+                        id: envData.id,
+                        groupId: envData.groupId
+                    });
+                    this.addToTypeCollection(envData.type, object);
+                }
+            }
+        });
+    }
     
     /**
      * Add object to the appropriate type-specific collection

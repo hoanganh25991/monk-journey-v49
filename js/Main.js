@@ -22,6 +22,7 @@ import GeometryFactory from './utils/GeometryFactory.js';
         if (args[0] && typeof args[0] === 'string' && 
             (args[0].includes("THREE.Material: 'roughness' is not a property of THREE.MeshLambertMaterial") ||
              args[0].includes("THREE.Material: 'metalness' is not a property of THREE.MeshLambertMaterial") ||
+             args[0].includes("THREE.Material: 'shininess' is not a property of THREE.MeshLambertMaterial") ||
              args[0].includes("THREE.Material: 'emissive' is not a property of THREE.MeshBasicMaterial") ||
              args[0].includes("THREE.Material: 'emissiveIntensity' is not a property of THREE.MeshBasicMaterial"))) {
             // Suppress this specific warning

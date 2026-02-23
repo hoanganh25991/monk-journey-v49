@@ -15,6 +15,1456 @@
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "tower",
+      "position": {
+        "x": 232,
+        "z": -140
+      },
+      "rotation": 3.8955748904513436,
+      "scale": 0.9091038558632136
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -84,
+        "z": -142
+      },
+      "rotation": 2.8902652413026098,
+      "scale": 0.9174697365611792
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 317,
+        "z": 346
+      },
+      "rotation": 5.026548245743669,
+      "scale": 0.9073666784912349
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 169,
+        "z": 118
+      },
+      "rotation": 0,
+      "scale": 1.054297360405326
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 328,
+        "z": 270
+      },
+      "rotation": 2.8902652413026098,
+      "scale": 1.0278161618858577
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -151,
+        "z": -177
+      },
+      "rotation": 0.5026548245743669,
+      "scale": 1.1560293879359962
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 165,
+        "z": 201
+      },
+      "rotation": 4.775220833456485,
+      "scale": 1.042461583390832
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 110,
+        "z": -163
+      },
+      "rotation": 0.4398229715025711,
+      "scale": 0.8660862293094397
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -266,
+        "z": 191
+      },
+      "rotation": 5.592034923389832,
+      "scale": 0.9018278453499079
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -120,
+        "z": -264
+      },
+      "rotation": 1.5079644737231006,
+      "scale": 1.1806226696819069
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 64,
+        "z": -296
+      },
+      "rotation": 6.220353454107791,
+      "scale": 0.9724554751068354
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": -4,
+        "z": 330
+      },
+      "rotation": 1.9477874452256718,
+      "scale": 0.8110278692096472
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 220,
+        "z": -347
+      },
+      "rotation": 0.3141592653589793,
+      "scale": 1.0744006250053646
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 336,
+        "z": -125
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 0.9464253630489111
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -178,
+        "z": 236
+      },
+      "rotation": 5.089380098815465,
+      "scale": 1.118735072389245
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -244,
+        "z": 88
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 0.8161730613559485
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 157,
+        "z": 164
+      },
+      "rotation": 4.209734155810323,
+      "scale": 0.9450462196022272
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 220,
+        "z": 266
+      },
+      "rotation": 0.06283185307179587,
+      "scale": 0.8523632492870092
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -304,
+        "z": 105
+      },
+      "rotation": 3.958406743523139,
+      "scale": 0.958937093988061
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -259,
+        "z": -202
+      },
+      "rotation": 2.827433388230814,
+      "scale": 1.0523225869983435
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 111,
+        "z": -192
+      },
+      "rotation": 0.7539822368615503,
+      "scale": 1.1695263478904963
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 11,
+        "z": -16
+      },
+      "rotation": 2.701769682087222,
+      "scale": 0.9411121096462012
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -311,
+        "z": 146
+      },
+      "rotation": 6.157521601035994,
+      "scale": 1.0269482586532832
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 33,
+        "z": 247
+      },
+      "rotation": 0.25132741228718347,
+      "scale": 1.1340272273868324
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 49,
+        "z": 245
+      },
+      "rotation": 2.0734511513692637,
+      "scale": 0.8598527286201716
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 264,
+        "z": -48
+      },
+      "rotation": 6.094689747964199,
+      "scale": 0.8990977253764868
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 256,
+        "z": 222
+      },
+      "rotation": 3.141592653589793,
+      "scale": 0.9129052851349115
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -261,
+        "z": 220
+      },
+      "rotation": 1.0053096491487339,
+      "scale": 0.9195877637714148
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 36,
+        "z": -286
+      },
+      "rotation": 5.592034923389832,
+      "scale": 1.184287080541253
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 212,
+        "z": 143
+      },
+      "rotation": 2.324778563656447,
+      "scale": 0.8564958777278662
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 196,
+        "z": -81
+      },
+      "rotation": 5.9061941887488105,
+      "scale": 0.8631948921829462
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -209,
+        "z": 1
+      },
+      "rotation": 4.838052686528282,
+      "scale": 0.9110549774020911
+    }
+  ],
+  "environment": [
+    {
+      "type": "forest_shrine",
+      "position": {
+        "x": -356,
+        "z": -47
+      },
+      "scale": 0.8876020583324133
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 286,
+        "z": -324
+      },
+      "scale": 0.8949168178252875
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -85,
+        "z": 225
+      },
+      "scale": 0.8067981514148413
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -296,
+        "z": 36
+      },
+      "scale": 1.0087196919135748
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": -351,
+        "z": 67
+      },
+      "scale": 0.840842572133988
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -346,
+        "z": -153
+      },
+      "scale": 1.2980154248885811
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": -117,
+        "z": -15
+      },
+      "scale": 1.1297743829898534
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": -313,
+        "z": -340
+      },
+      "scale": 0.7403430792503058
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 120,
+        "z": -146
+      },
+      "scale": 1.2886326464824378
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -17,
+        "z": 115
+      },
+      "scale": 0.7882417174987495
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -221,
+        "z": 359
+      },
+      "scale": 1.0074564251117408
+    },
+    {
+      "type": "tree_cluster",
+      "position": {
+        "x": -86,
+        "z": -216
+      },
+      "scale": 1.1692504021339118
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": 343,
+        "z": 116
+      },
+      "scale": 1.2512847813777626
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 201,
+        "z": 206
+      },
+      "scale": 1.0859081956557928
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 329,
+        "z": -9
+      },
+      "scale": 1.260156777780503
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 33,
+        "z": 133
+      },
+      "scale": 1.0157541605643927
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 322,
+        "z": 219
+      },
+      "scale": 0.9491114768199622
+    },
+    {
+      "type": "forest_shrine",
+      "position": {
+        "x": -48,
+        "z": -156
+      },
+      "scale": 0.9113273593597113
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 99,
+        "z": -314
+      },
+      "scale": 0.9081879409961402
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": -312,
+        "z": -290
+      },
+      "scale": 0.8001668545417487
+    },
+    {
+      "type": "forest_flower",
+      "position": {
+        "x": 65,
+        "z": 247
+      },
+      "scale": 1.2024252328090368
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": 322,
+        "z": 192
+      },
+      "scale": 0.7848117086105049
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -185,
+        "z": 247
+      },
+      "scale": 0.7718624147586524
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": -36,
+        "z": -320
+      },
+      "scale": 1.0428009840659795
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": 295,
+        "z": 283
+      },
+      "scale": 1.0315385493449867
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": 236,
+        "z": 255
+      },
+      "scale": 1.2266737434081731
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 201,
+        "z": 320
+      },
+      "scale": 1.0714926990680396
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": -212,
+        "z": -232
+      },
+      "scale": 1.0639690491370857
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 299,
+        "z": -306
+      },
+      "scale": 1.2567639264278112
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 61,
+        "z": -242
+      },
+      "scale": 0.9572259637527167
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -175,
+        "z": -11
+      },
+      "scale": 0.8273912939243018
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 246,
+        "z": -302
+      },
+      "scale": 0.7839835497550666
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": 83,
+        "z": 2
+      },
+      "scale": 0.898413864057511
+    },
+    {
+      "type": "tree_cluster",
+      "position": {
+        "x": 162,
+        "z": -134
+      },
+      "scale": 1.0967808696441352
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": 131,
+        "z": 58
+      },
+      "scale": 0.859870699327439
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": 262,
+        "z": -87
+      },
+      "scale": 0.7231569859199225
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -347,
+        "z": -148
+      },
+      "scale": 0.7768008622340857
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 185,
+        "z": 301
+      },
+      "scale": 0.9656509610824286
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": -315,
+        "z": -109
+      },
+      "scale": 0.7892434152774512
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": 202,
+        "z": 140
+      },
+      "scale": 0.8018018576316535
+    },
+    {
+      "type": "forest_flower",
+      "position": {
+        "x": -268,
+        "z": 50
+      },
+      "scale": 1.1122374209575354
+    },
+    {
+      "type": "rare_plant",
+      "position": {
+        "x": -225,
+        "z": 69
+      },
+      "scale": 1.0841487380675972
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -68,
+        "z": 293
+      },
+      "scale": 0.8358219417743384
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -287,
+        "z": 101
+      },
+      "scale": 0.9402306648902594
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 329,
+        "z": -42
+      },
+      "scale": 0.9250360402278601
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 17,
+        "z": 335
+      },
+      "scale": 0.7725867005996405
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 159,
+        "z": -91
+      },
+      "scale": 1.2199187788181005
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -121,
+        "z": 242
+      },
+      "scale": 1.0587559076957405
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 7,
+        "z": -339
+      },
+      "scale": 1.0355092200450597
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -162,
+        "z": 102
+      },
+      "scale": 1.151277348678559
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": -350,
+        "z": 262
+      },
+      "scale": 0.9618464264087379
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": 346,
+        "z": 286
+      },
+      "scale": 1.0776900860480962
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 213,
+        "z": -35
+      },
+      "scale": 1.0639694604091345
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": 323,
+        "z": -186
+      },
+      "scale": 0.9405331823043525
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -148,
+        "z": -4
+      },
+      "scale": 0.88191738454625
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 40,
+        "z": -42
+      },
+      "scale": 0.9173456999473273
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 233,
+        "z": 232
+      },
+      "scale": 1.2307292613200844
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": -322,
+        "z": -83
+      },
+      "scale": 1.260666701477021
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": 50,
+        "z": -82
+      },
+      "scale": 1.2004441532306371
+    },
+    {
+      "type": "tree_cluster",
+      "position": {
+        "x": 47,
+        "z": -297
+      },
+      "scale": 1.0980352493934333
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 71,
+        "z": -172
+      },
+      "scale": 1.156101122777909
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": -292,
+        "z": 135
+      },
+      "scale": 0.8319904061965644
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 250,
+        "z": 110
+      },
+      "scale": 0.9377392324618995
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": 12,
+        "z": -35
+      },
+      "scale": 0.9400712343864143
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": -266,
+        "z": 277
+      },
+      "scale": 1.0603975447826086
+    },
+    {
+      "type": "tree_cluster",
+      "position": {
+        "x": 59,
+        "z": 192
+      },
+      "scale": 0.7748167964629828
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -263,
+        "z": -63
+      },
+      "scale": 0.9141151222400367
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 301,
+        "z": -253
+      },
+      "scale": 0.9637661549262702
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -53,
+        "z": 224
+      },
+      "scale": 1.1639310273341834
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -343,
+        "z": -188
+      },
+      "scale": 1.0094583722762762
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": -42,
+        "z": 203
+      },
+      "scale": 0.7498843225650489
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": -161,
+        "z": 216
+      },
+      "scale": 1.0894325110130012
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -4,
+        "z": -248
+      },
+      "scale": 1.087014070432633
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 307,
+        "z": 160
+      },
+      "scale": 0.8562276336364447
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 196,
+        "z": 274
+      },
+      "scale": 1.265359333436936
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -288,
+        "z": -346
+      },
+      "scale": 1.2373828026466072
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -114,
+        "z": -334
+      },
+      "scale": 1.0499591740779577
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 215,
+        "z": 240
+      },
+      "scale": 0.8354370805434882
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -261,
+        "z": 233
+      },
+      "scale": 0.8808526548556983
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 286,
+        "z": -53
+      },
+      "scale": 0.727929529827088
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": 343,
+        "z": 50
+      },
+      "scale": 1.2730788382701577
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -254,
+        "z": -224
+      },
+      "scale": 0.8673992129974066
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 32,
+        "z": 164
+      },
+      "scale": 1.0166767868213356
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": -234,
+        "z": 98
+      },
+      "scale": 1.2813851925544442
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -67,
+        "z": 269
+      },
+      "scale": 0.7766855630092322
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -14,
+        "z": -67
+      },
+      "scale": 0.8724265309982001
+    },
+    {
+      "type": "fern",
+      "position": {
+        "x": -359,
+        "z": 152
+      },
+      "scale": 1.2931442293338478
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -42,
+        "z": -167
+      },
+      "scale": 1.018062290828675
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": 101,
+        "z": -312
+      },
+      "scale": 0.9810918482951819
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": -139,
+        "z": -284
+      },
+      "scale": 0.7708315345458686
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 10,
+        "z": 282
+      },
+      "scale": 0.7305674823932349
+    },
+    {
+      "type": "forest_flower",
+      "position": {
+        "x": -213,
+        "z": 314
+      },
+      "scale": 1.0582733246497809
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 133,
+        "z": -170
+      },
+      "scale": 0.9066101941280067
+    },
+    {
+      "type": "forest_debris",
+      "position": {
+        "x": -264,
+        "z": 288
+      },
+      "scale": 1.082926723640412
+    },
+    {
+      "type": "tree_cluster",
+      "position": {
+        "x": -293,
+        "z": -83
+      },
+      "scale": 0.7492590459994971
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 340,
+        "z": -172
+      },
+      "scale": 0.7223307940177619
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": 35,
+        "z": 59
+      },
+      "scale": 0.7735531005077063
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": -22,
+        "z": -66
+      },
+      "scale": 1.1290245982818305
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": 175,
+        "z": -138
+      },
+      "scale": 0.9695314201526344
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -179,
+        "z": 258
+      },
+      "scale": 1.130547198932618
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -188,
+        "z": -258
+      },
+      "scale": 0.802233067434281
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 230,
+        "z": -181
+      },
+      "scale": 0.829437658470124
+    },
+    {
+      "type": "rare_plant",
+      "position": {
+        "x": -18,
+        "z": 202
+      },
+      "scale": 1.0116971048526464
+    },
+    {
+      "type": "forest_flower",
+      "position": {
+        "x": 37,
+        "z": -112
+      },
+      "scale": 1.0032350393943488
+    },
+    {
+      "type": "forest_shrine",
+      "position": {
+        "x": 190,
+        "z": -320
+      },
+      "scale": 1.2129625949077307
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 140,
+        "z": -334
+      },
+      "scale": 0.7044784042052924
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -148,
+        "z": 301
+      },
+      "scale": 1.0960686000995337
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": -88,
+        "z": -116
+      },
+      "scale": 0.8607068154029548
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -266,
+        "z": -40
+      },
+      "scale": 1.0260541829280554
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 73,
+        "z": -79
+      },
+      "scale": 1.274459335487336
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": -209,
+        "z": 243
+      },
+      "scale": 0.842958405893296
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": -186,
+        "z": -32
+      },
+      "scale": 1.2232750269584356
+    },
+    {
+      "type": "forest_flower",
+      "position": {
+        "x": -110,
+        "z": -55
+      },
+      "scale": 1.0618203314952552
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -325,
+        "z": 307
+      },
+      "scale": 1.2596929523162543
+    },
+    {
+      "type": "fairy_circle",
+      "position": {
+        "x": -194,
+        "z": 113
+      },
+      "scale": 1.072679022233933
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 106,
+        "z": -133
+      },
+      "scale": 0.8112521740607916
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -56,
+        "z": -280
+      },
+      "scale": 0.9405735406093299
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 30,
+        "z": -171
+      },
+      "scale": 1.1804917546920477
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -100,
+        "z": -6
+      },
+      "scale": 0.8055429491214454
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -284,
+        "z": 23
+      },
+      "scale": 0.7449507567100226
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -99,
+        "z": 89
+      },
+      "scale": 0.8826263102702796
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": 65,
+        "z": -349
+      },
+      "scale": 0.9571682426147162
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 81,
+        "z": -28
+      },
+      "scale": 0.8618626865558325
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": -272,
+        "z": 162
+      },
+      "scale": 0.9446832749061286
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -233,
+        "z": -303
+      },
+      "scale": 1.1082911404781042
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 145,
+        "z": 218
+      },
+      "scale": 1.1100349160842597
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": 354,
+        "z": 131
+      },
+      "scale": 0.8619507345370948
+    },
+    {
+      "type": "overgrown_ruin",
+      "position": {
+        "x": -212,
+        "z": 8
+      },
+      "scale": 0.7307622286491096
+    },
+    {
+      "type": "forest_shrine",
+      "position": {
+        "x": 268,
+        "z": 68
+      },
+      "scale": 1.237880531232804
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -83,
+        "z": -186
+      },
+      "scale": 0.9594042751006782
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 4,
+        "z": -166
+      },
+      "scale": 1.026119593065232
+    },
+    {
+      "type": "forest_shrine",
+      "position": {
+        "x": 262,
+        "z": 5
+      },
+      "scale": 1.2235001179389655
+    },
+    {
+      "type": "treehouse",
+      "position": {
+        "x": -31,
+        "z": -154
+      },
+      "scale": 0.8917069825343787
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -255,
+        "z": 323
+      },
+      "scale": 1.0255888196639715
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": -243,
+        "z": -112
+      },
+      "scale": 0.9746817621402442
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 76,
+        "z": -123
+      },
+      "scale": 1.1432094427756965
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": 315,
+        "z": -165
+      },
+      "scale": 0.8900829943828285
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -5,
+        "z": 30
+      },
+      "scale": 1.22890104977414
+    },
+    {
+      "type": "glowing_flowers",
+      "position": {
+        "x": 339,
+        "z": -345
+      },
+      "scale": 0.9279497417621314
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 314,
+        "z": 70
+      },
+      "scale": 1.0102027031593024
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -127,
+        "z": 121
+      },
+      "scale": 0.8533210667781531
+    },
+    {
+      "type": "ancient_tree",
+      "position": {
+        "x": 313,
+        "z": 99
+      },
+      "scale": 0.8896534654311835
+    },
+    {
+      "type": "magical_flower",
+      "position": {
+        "x": 314,
+        "z": -60
+      },
+      "scale": 1.1062360319308935
+    },
+    {
+      "type": "berry_bush",
+      "position": {
+        "x": -97,
+        "z": 307
+      },
+      "scale": 0.7447923990897833
+    },
+    {
+      "type": "rare_plant",
+      "position": {
+        "x": 88,
+        "z": 67
+      },
+      "scale": 1.0017336997203528
+    }
+  ]
 }

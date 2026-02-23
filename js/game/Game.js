@@ -654,26 +654,37 @@ export class Game {
 
         const handleMapLoadError = (err) => {
             console.error('Failed to load map:', err);
-            try {
-                localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, 'maps/default.json');
-            } catch (e) {}
-            if (loadingTextEl) loadingTextEl.textContent = 'Map unavailable. Using Default World. Reloading...';
+            if (loadingTextEl) loadingTextEl.textContent = 'Selected map unavailable. Loading Default World for this session...';
             if (this.hudManager?.showNotification) {
-                this.hudManager.showNotification('Failed to load map. Using Default World. Reloading...', 4000);
+                this.hudManager.showNotification('Could not load selected map. Using Default World for this session.', 4000);
             }
-            setTimeout(() => location.reload(), 2000);
+            // Load default map so the game can run; do NOT overwrite localStorage so user's choice is kept for next time
+            this.loadAndApplyMap('maps/default.json')
+                .then((mapData) => {
+                    runAfterMapLoaded(mapData);
+                })
+                .catch((fallbackErr) => {
+                    console.error('Failed to load default map:', fallbackErr);
+                    try {
+                        localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, 'maps/default.json');
+                    } catch (e) {}
+                    if (loadingTextEl) loadingTextEl.textContent = 'Map unavailable. Reloading...';
+                    setTimeout(() => location.reload(), 2000);
+                });
         };
 
         this.loadAndApplyMap(path).then(runAfterMapLoaded).catch(handleMapLoadError);
     }
     
     /**
-     * Load map JSON and apply to world - buffers in memory, no localStorage
+     * Load map JSON and apply to world - buffers in memory, no localStorage.
+     * Uses base-relative URL so the selected map loads correctly when the app is served from a subpath.
      * @param {string} path - Path to map JSON (e.g. 'maps/default.json')
      * @returns {Promise<Object>} Resolved with map data
      */
     async loadAndApplyMap(path) {
-        const res = await fetch(path);
+        const url = path.startsWith('http') ? path : new URL(path, window.location.href).href;
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`Failed to load map: ${path}`);
         const mapData = await res.json();
         if (this.world) this.world.applyMap(mapData);

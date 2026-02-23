@@ -549,8 +549,6 @@ export class TerrainManager {
             vertexColors: true,
             transparent: false,
             opacity: 1.0,
-            // Add slight roughness variation for more realistic appearance
-            shininess: 0,
             flatShading: false, // Smooth shading for better noise visualization
             side: THREE.FrontSide,
         });

@@ -147,6 +147,50 @@ export class StructureManager {
 
         console.debug(`Successfully loaded ${this.structures.length} structures`);
     }
+
+    /**
+     * Add a chunk of structures from map data without clearing (for deferred loading).
+     * Call clear() once before the first chunk, then call this with slices of the full array.
+     * @param {Array} structuresDataSlice - Slice of structure data from map
+     */
+    addStructuresFromMapDataChunk(structuresDataSlice) {
+        if (!structuresDataSlice || !Array.isArray(structuresDataSlice) || structuresDataSlice.length === 0) return;
+        structuresDataSlice.forEach(structureData => {
+            if (structureData.type && structureData.position) {
+                const params = {
+                    x: structureData.position.x,
+                    z: structureData.position.z,
+                    width: structureData.width,
+                    depth: structureData.depth,
+                    height: structureData.height,
+                    style: structureData.type,
+                    scale: structureData.scale
+                };
+                const structure = this.structureFactory.createStructure(structureData.type, params);
+                if (!structure) return;
+                if (structureData.rotation !== undefined) structure.rotation.y = structureData.rotation;
+                const structureInfo = {
+                    type: structureData.type,
+                    object: structure,
+                    position: new THREE.Vector3(
+                        structureData.position.x,
+                        structureData.position.y || 0,
+                        structureData.position.z
+                    ),
+                    id: structureData.id,
+                    groupId: structureData.groupId
+                };
+                this.structures.push(structureInfo);
+                if (structureData.isSpecial) {
+                    this.specialStructures[structureData.id] = {
+                        x: structureData.position.x,
+                        z: structureData.position.z,
+                        type: structureData.type
+                    };
+                }
+            }
+        });
+    }
     
     /**
      * Clear all structures

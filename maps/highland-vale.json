@@ -15,6 +15,1058 @@
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "bridge",
+      "position": {
+        "x": 349,
+        "z": -63
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 0.8465710507705808
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -296,
+        "z": -251
+      },
+      "rotation": 1.7592918860102844,
+      "scale": 0.9455543799325824
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": -253,
+        "z": -49
+      },
+      "rotation": 3.455751918948773,
+      "scale": 1.1133166359737516
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -163,
+        "z": 301
+      },
+      "rotation": 1.5079644737231006,
+      "scale": 1.0423287494108082
+    },
+    {
+      "type": "mountain",
+      "position": {
+        "x": 89,
+        "z": 92
+      },
+      "rotation": 5.403539364174444,
+      "scale": 1.1150752292945982
+    },
+    {
+      "type": "mountain",
+      "position": {
+        "x": -7,
+        "z": -176
+      },
+      "rotation": 5.529203070318036,
+      "scale": 0.8666786117479206
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 75,
+        "z": 305
+      },
+      "rotation": 2.1362830044410597,
+      "scale": 0.9607030319049955
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -182,
+        "z": -38
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 0.9705876095220447
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -290,
+        "z": -153
+      },
+      "rotation": 3.518583772020569,
+      "scale": 1.1920640574768187
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": -133,
+        "z": -136
+      },
+      "rotation": 5.15221195188726,
+      "scale": 0.9386565728113055
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 159,
+        "z": 57
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.1027801321819426
+    },
+    {
+      "type": "mountain",
+      "position": {
+        "x": 174,
+        "z": -102
+      },
+      "rotation": 0.06283185307179587,
+      "scale": 0.9693535191938282
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -239,
+        "z": -228
+      },
+      "rotation": 5.15221195188726,
+      "scale": 0.8569808946922421
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -132,
+        "z": 106
+      },
+      "rotation": 4.523893421169302,
+      "scale": 0.8562636537477375
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 179,
+        "z": 191
+      },
+      "rotation": 4.0212385965949355,
+      "scale": 1.0080537961795928
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -62,
+        "z": -284
+      },
+      "rotation": 0.25132741228718347,
+      "scale": 1.1693393690511584
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 316,
+        "z": 300
+      },
+      "rotation": 1.0681415022205298,
+      "scale": 1.0173941003158689
+    },
+    {
+      "type": "mountain",
+      "position": {
+        "x": 53,
+        "z": -208
+      },
+      "rotation": 3.267256359733385,
+      "scale": 1.0361502451822162
+    },
+    {
+      "type": "mountain",
+      "position": {
+        "x": -336,
+        "z": 330
+      },
+      "rotation": 5.277875658030852,
+      "scale": 1.173154883272946
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -72,
+        "z": -50
+      },
+      "rotation": 0.06283185307179587,
+      "scale": 0.9231330497190356
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -78,
+        "z": -21
+      },
+      "rotation": 4.461061568097506,
+      "scale": 1.1089970337226989
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 342,
+        "z": 310
+      },
+      "rotation": 6.031857894892402,
+      "scale": 0.8168417377397419
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -57,
+        "z": -218
+      },
+      "rotation": 5.654866776461628,
+      "scale": 0.9228392528370023
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 303,
+        "z": 307
+      },
+      "rotation": 1.0053096491487339,
+      "scale": 1.0051974518224598
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 150,
+        "z": 20
+      },
+      "rotation": 3.707079331235956,
+      "scale": 0.8956080542877317
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": 168,
+        "z": -52
+      },
+      "rotation": 0.6911503837897545,
+      "scale": 1.0587385220453145
+    }
+  ],
+  "environment": [
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": -236,
+        "z": 32
+      },
+      "scale": 1.2553488669916986
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 174,
+        "z": 178
+      },
+      "scale": 0.9726258335635065
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": -215,
+        "z": 276
+      },
+      "scale": 1.0677340684458612
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": 229,
+        "z": -142
+      },
+      "scale": 0.7243161497637629
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": -163,
+        "z": 132
+      },
+      "scale": 0.8228896556422114
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 127,
+        "z": -336
+      },
+      "scale": 0.9408471642062067
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 40,
+        "z": 134
+      },
+      "scale": 1.152456253580749
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": 258,
+        "z": -141
+      },
+      "scale": 0.8288595018908381
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": 332,
+        "z": 274
+      },
+      "scale": 1.038074487261474
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 112,
+        "z": 167
+      },
+      "scale": 0.944993787817657
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": -246,
+        "z": 5
+      },
+      "scale": 0.8113849816843867
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": -283,
+        "z": -230
+      },
+      "scale": 0.7958906469866633
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": 44,
+        "z": -319
+      },
+      "scale": 0.9540283618494867
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": -357,
+        "z": 192
+      },
+      "scale": 1.2381907043978573
+    },
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": -116,
+        "z": -166
+      },
+      "scale": 0.8976452527567744
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 280,
+        "z": 254
+      },
+      "scale": 0.8785345850512385
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -69,
+        "z": -263
+      },
+      "scale": 0.8238762794062495
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -322,
+        "z": -319
+      },
+      "scale": 0.8735629139468073
+    },
+    {
+      "type": "alpine_flower",
+      "position": {
+        "x": -54,
+        "z": 283
+      },
+      "scale": 1.0643620667979121
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": 25,
+        "z": -184
+      },
+      "scale": 0.7299163160845636
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": 228,
+        "z": -334
+      },
+      "scale": 0.9007432399317622
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": -268,
+        "z": 20
+      },
+      "scale": 0.7042354164645075
+    },
+    {
+      "type": "alpine_flower",
+      "position": {
+        "x": 177,
+        "z": -142
+      },
+      "scale": 0.9646604238077998
+    },
+    {
+      "type": "mountain_pass",
+      "position": {
+        "x": -93,
+        "z": -162
+      },
+      "scale": 1.203160840086639
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": -268,
+        "z": 132
+      },
+      "scale": 0.8377542434260249
+    },
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": 42,
+        "z": -289
+      },
+      "scale": 0.9833332119509577
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 92,
+        "z": -59
+      },
+      "scale": 0.8516653237864374
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": 164,
+        "z": 264
+      },
+      "scale": 0.7513931570574641
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": 118,
+        "z": 359
+      },
+      "scale": 0.8880342898890375
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": 123,
+        "z": 139
+      },
+      "scale": 0.763981300406158
+    },
+    {
+      "type": "alpine_flower",
+      "position": {
+        "x": -71,
+        "z": -243
+      },
+      "scale": 0.9785017667338252
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 310,
+        "z": 319
+      },
+      "scale": 0.8277382669970392
+    },
+    {
+      "type": "mountain_pass",
+      "position": {
+        "x": 184,
+        "z": 289
+      },
+      "scale": 0.7047083793208002
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": 213,
+        "z": -193
+      },
+      "scale": 0.8993046818301081
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": -77,
+        "z": -31
+      },
+      "scale": 0.9982947526499628
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -137,
+        "z": -54
+      },
+      "scale": 1.0853211699053644
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 165,
+        "z": -132
+      },
+      "scale": 1.1409015117213128
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": -172,
+        "z": 99
+      },
+      "scale": 1.0424283562228083
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": 311,
+        "z": -200
+      },
+      "scale": 1.1641692815348506
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": -222,
+        "z": -191
+      },
+      "scale": 1.1772668657824397
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": 298,
+        "z": -242
+      },
+      "scale": 1.2497386870905758
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -77,
+        "z": 238
+      },
+      "scale": 0.8464773235842585
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": -112,
+        "z": -85
+      },
+      "scale": 1.1292503533884881
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 292,
+        "z": -149
+      },
+      "scale": 0.7567003546282649
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": 99,
+        "z": -96
+      },
+      "scale": 1.2843449054285885
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": 15,
+        "z": 169
+      },
+      "scale": 1.1645765839144586
+    },
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": 331,
+        "z": 257
+      },
+      "scale": 1.146662968210876
+    },
+    {
+      "type": "alpine_flower",
+      "position": {
+        "x": 201,
+        "z": 16
+      },
+      "scale": 1.27674663644284
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -196,
+        "z": 249
+      },
+      "scale": 0.8978451667353511
+    },
+    {
+      "type": "mountain_cave",
+      "position": {
+        "x": 340,
+        "z": -165
+      },
+      "scale": 1.049851137213409
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": -283,
+        "z": 51
+      },
+      "scale": 0.8695321260020137
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -258,
+        "z": 249
+      },
+      "scale": 1.1905307112261652
+    },
+    {
+      "type": "crystal_outcrop",
+      "position": {
+        "x": -351,
+        "z": 17
+      },
+      "scale": 0.9433644710108637
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -305,
+        "z": -100
+      },
+      "scale": 0.7554259834811091
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -279,
+        "z": -41
+      },
+      "scale": 1.1509828267619013
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -130,
+        "z": -228
+      },
+      "scale": 0.7511775789782404
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": -129,
+        "z": -129
+      },
+      "scale": 1.0740278182551264
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": -244,
+        "z": 307
+      },
+      "scale": 1.1344261227175592
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -140,
+        "z": -74
+      },
+      "scale": 1.044140070490539
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 102,
+        "z": -30
+      },
+      "scale": 0.8118122396990657
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -14,
+        "z": -244
+      },
+      "scale": 0.9429602084681391
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": 38,
+        "z": 281
+      },
+      "scale": 1.2399765549227595
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -351,
+        "z": -105
+      },
+      "scale": 0.8021288571879267
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -46,
+        "z": 65
+      },
+      "scale": 1.0255596933886408
+    },
+    {
+      "type": "ice_formation",
+      "position": {
+        "x": 230,
+        "z": 336
+      },
+      "scale": 0.8032866416499018
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 59,
+        "z": -235
+      },
+      "scale": 0.7252022800967097
+    },
+    {
+      "type": "waterfall",
+      "position": {
+        "x": 47,
+        "z": -190
+      },
+      "scale": 1.2780741868540644
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": -338,
+        "z": 3
+      },
+      "scale": 1.045544940046966
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 119,
+        "z": 113
+      },
+      "scale": 0.9081321178004145
+    },
+    {
+      "type": "mountain_cave",
+      "position": {
+        "x": 54,
+        "z": 143
+      },
+      "scale": 1.0432282982394099
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -153,
+        "z": 336
+      },
+      "scale": 0.9251010594889522
+    },
+    {
+      "type": "mountain_cave",
+      "position": {
+        "x": 183,
+        "z": -273
+      },
+      "scale": 1.1248929796740412
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": -110,
+        "z": -248
+      },
+      "scale": 0.9106216369196772
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": 260,
+        "z": -81
+      },
+      "scale": 1.24717960935086
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 8,
+        "z": -26
+      },
+      "scale": 1.1963344750925897
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": 313,
+        "z": -99
+      },
+      "scale": 0.9167288122698665
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": -221,
+        "z": -84
+      },
+      "scale": 1.0638801990076898
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 193,
+        "z": -244
+      },
+      "scale": 0.9901812134310602
+    },
+    {
+      "type": "mountain_cave",
+      "position": {
+        "x": 44,
+        "z": 110
+      },
+      "scale": 1.1448994336649774
+    },
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": 288,
+        "z": -253
+      },
+      "scale": 1.2741774378344415
+    },
+    {
+      "type": "small_crystal",
+      "position": {
+        "x": 22,
+        "z": -170
+      },
+      "scale": 1.0210328040644525
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 89,
+        "z": 318
+      },
+      "scale": 1.1253581104800103
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": 193,
+        "z": -33
+      },
+      "scale": 1.0239209352061152
+    },
+    {
+      "type": "mountain_pass",
+      "position": {
+        "x": 344,
+        "z": -69
+      },
+      "scale": 1.2503638563677668
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": 136,
+        "z": 156
+      },
+      "scale": 1.0352044520899653
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": 184,
+        "z": 109
+      },
+      "scale": 0.7058353004977107
+    },
+    {
+      "type": "mountain_cave",
+      "position": {
+        "x": -30,
+        "z": 209
+      },
+      "scale": 1.086523979716003
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -2,
+        "z": -325
+      },
+      "scale": 1.098413067869842
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": 356,
+        "z": 119
+      },
+      "scale": 0.759520143084228
+    },
+    {
+      "type": "pine_tree",
+      "position": {
+        "x": -4,
+        "z": -208
+      },
+      "scale": 1.1847377834841608
+    },
+    {
+      "type": "ice_shard",
+      "position": {
+        "x": 333,
+        "z": 60
+      },
+      "scale": 0.9858335671946405
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 206,
+        "z": -356
+      },
+      "scale": 1.0714500723406672
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": 199,
+        "z": -337
+      },
+      "scale": 1.0471048770472406
+    },
+    {
+      "type": "alpine_flower",
+      "position": {
+        "x": -241,
+        "z": 32
+      },
+      "scale": 1.015190559439361
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": 76,
+        "z": 183
+      },
+      "scale": 0.9749746976420283
+    },
+    {
+      "type": "crystal_formation",
+      "position": {
+        "x": -236,
+        "z": -219
+      },
+      "scale": 0.8225998697802424
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -99,
+        "z": 171
+      },
+      "scale": 0.9510836539790033
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": -290,
+        "z": 53
+      },
+      "scale": 1.0503186283633112
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 156,
+        "z": -199
+      },
+      "scale": 0.707072371058166
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 348,
+        "z": 30
+      },
+      "scale": 1.2049874601885677
+    },
+    {
+      "type": "mountain_rock",
+      "position": {
+        "x": -301,
+        "z": 147
+      },
+      "scale": 0.7245814738795161
+    },
+    {
+      "type": "snow_patch",
+      "position": {
+        "x": 86,
+        "z": -203
+      },
+      "scale": 0.9432469902560114
+    }
+  ]
 }

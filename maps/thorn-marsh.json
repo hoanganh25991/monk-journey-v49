@@ -15,6 +15,1204 @@
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "tower",
+      "position": {
+        "x": -119,
+        "z": 9
+      },
+      "rotation": 4.9637163926718735,
+      "scale": 0.8113327533006669
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": 75,
+        "z": -345
+      },
+      "rotation": 3.392920065876977,
+      "scale": 1.005721852183342
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 349,
+        "z": 271
+      },
+      "rotation": 5.592034923389832,
+      "scale": 1.0748256236314775
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -162,
+        "z": -106
+      },
+      "rotation": 2.0106192982974678,
+      "scale": 1.1490389794111253
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -244,
+        "z": -310
+      },
+      "rotation": 0.25132741228718347,
+      "scale": 1.1021154910326005
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 29,
+        "z": -320
+      },
+      "rotation": 4.523893421169302,
+      "scale": 1.1514595001935959
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -173,
+        "z": 245
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 1.060682824254036
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 36,
+        "z": 77
+      },
+      "rotation": 0.6911503837897545,
+      "scale": 1.1814404457807541
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -155,
+        "z": 147
+      },
+      "rotation": 4.900884539600077,
+      "scale": 1.121133092045784
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 27,
+        "z": -120
+      },
+      "rotation": 2.324778563656447,
+      "scale": 0.8543138474225999
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -29,
+        "z": 314
+      },
+      "rotation": 5.717698629533424,
+      "scale": 0.9571967631578446
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -272,
+        "z": 338
+      },
+      "rotation": 3.958406743523139,
+      "scale": 0.9322867363691331
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -328,
+        "z": 346
+      },
+      "rotation": 4.39822971502571,
+      "scale": 0.8457293063402176
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -2,
+        "z": 83
+      },
+      "rotation": 0.25132741228718347,
+      "scale": 1.0244411438703538
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 347,
+        "z": 101
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.1667111903429033
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 202,
+        "z": -150
+      },
+      "rotation": 3.141592653589793,
+      "scale": 0.886734101176262
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 248,
+        "z": -131
+      },
+      "rotation": 2.5132741228718345,
+      "scale": 1.1032478839159012
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -213,
+        "z": 206
+      },
+      "rotation": 2.701769682087222,
+      "scale": 0.9219976395368576
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -91,
+        "z": -155
+      },
+      "rotation": 5.026548245743669,
+      "scale": 0.9415698558092118
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -143,
+        "z": -27
+      },
+      "rotation": 3.078760800517997,
+      "scale": 1.079938790202141
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -131,
+        "z": 308
+      },
+      "rotation": 2.1362830044410597,
+      "scale": 1.171032574772835
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -152,
+        "z": 254
+      },
+      "rotation": 2.324778563656447,
+      "scale": 0.9571395844221116
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -202,
+        "z": -307
+      },
+      "rotation": 5.026548245743669,
+      "scale": 1.1841165095567705
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -196,
+        "z": 56
+      },
+      "rotation": 3.015928947446201,
+      "scale": 1.0970570534467698
+    },
+    {
+      "type": "dark_sanctum",
+      "position": {
+        "x": -279,
+        "z": -331
+      },
+      "rotation": 5.340707511102648,
+      "scale": 1.1764271289110184
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -151,
+        "z": 317
+      },
+      "rotation": 4.900884539600077,
+      "scale": 1.0900232285261156
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -156,
+        "z": -292
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 0.8466949015855789
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -334,
+        "z": 232
+      },
+      "rotation": 2.9530970943744053,
+      "scale": 0.8732451409101487
+    }
+  ],
+  "environment": [
+    {
+      "type": "water",
+      "position": {
+        "x": -99,
+        "z": 99
+      },
+      "scale": 0.926597694400698
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -244,
+        "z": -27
+      },
+      "scale": 0.9908175923861562
+    },
+    {
+      "type": "swamp_debris",
+      "position": {
+        "x": 187,
+        "z": -269
+      },
+      "scale": 0.7736444392241537
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": 228,
+        "z": 149
+      },
+      "scale": 1.0424366333521902
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 70,
+        "z": -138
+      },
+      "scale": 0.9286150732077658
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -27,
+        "z": 41
+      },
+      "scale": 1.2276631572283803
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": -87,
+        "z": -285
+      },
+      "scale": 1.099126783851534
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -62,
+        "z": -273
+      },
+      "scale": 0.7666143515147268
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": -191,
+        "z": 220
+      },
+      "scale": 1.2177967586554588
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 80,
+        "z": 272
+      },
+      "scale": 0.9044074037112295
+    },
+    {
+      "type": "swamp_debris",
+      "position": {
+        "x": 299,
+        "z": -301
+      },
+      "scale": 0.8422421851195394
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 87,
+        "z": 134
+      },
+      "scale": 0.7111595013178884
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 216,
+        "z": 345
+      },
+      "scale": 0.9550802507437766
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 94,
+        "z": 198
+      },
+      "scale": 1.2819878318347038
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 281,
+        "z": 298
+      },
+      "scale": 0.9639281430281699
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": -30,
+        "z": 183
+      },
+      "scale": 0.9370095827616751
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": 227,
+        "z": 130
+      },
+      "scale": 1.1014030494727194
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": 31,
+        "z": 73
+      },
+      "scale": 1.2213419415988027
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": 236,
+        "z": -37
+      },
+      "scale": 1.2251221575774252
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": 326,
+        "z": 127
+      },
+      "scale": 0.9051020958460867
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": 219,
+        "z": 189
+      },
+      "scale": 0.8177026548422872
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -91,
+        "z": 150
+      },
+      "scale": 0.7834072330035269
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -180,
+        "z": 29
+      },
+      "scale": 0.7867617287673055
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -270,
+        "z": 220
+      },
+      "scale": 1.2763745405711233
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -150,
+        "z": -305
+      },
+      "scale": 1.06491656685248
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": -255,
+        "z": -38
+      },
+      "scale": 1.2291212060488759
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 131,
+        "z": -332
+      },
+      "scale": 1.2097843565978108
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": -360,
+        "z": -6
+      },
+      "scale": 0.9117644169367849
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 216,
+        "z": -20
+      },
+      "scale": 1.003982285503298
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": 274,
+        "z": -238
+      },
+      "scale": 0.8194213607348502
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": 106,
+        "z": 213
+      },
+      "scale": 1.0551275410689414
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 73,
+        "z": -297
+      },
+      "scale": 1.0722092249430715
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": 253,
+        "z": 219
+      },
+      "scale": 0.9958373107947409
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": 75,
+        "z": -197
+      },
+      "scale": 0.8152451970614493
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 121,
+        "z": 118
+      },
+      "scale": 1.2837287821806966
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 326,
+        "z": 320
+      },
+      "scale": 1.218646464589983
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 340,
+        "z": 303
+      },
+      "scale": 0.8014191427268087
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": -116,
+        "z": 339
+      },
+      "scale": 1.2775302150286734
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -167,
+        "z": -4
+      },
+      "scale": 1.056525579933077
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -305,
+        "z": -62
+      },
+      "scale": 0.8120136358775198
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 132,
+        "z": 127
+      },
+      "scale": 0.7816652812995016
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -283,
+        "z": 182
+      },
+      "scale": 1.0672139146365225
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 339,
+        "z": -261
+      },
+      "scale": 0.7344554343260824
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 357,
+        "z": 249
+      },
+      "scale": 1.1132482388056815
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": 6,
+        "z": 303
+      },
+      "scale": 1.2975132265128195
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": 313,
+        "z": 306
+      },
+      "scale": 0.8452337958849966
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -144,
+        "z": -39
+      },
+      "scale": 1.2784558453597128
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": 170,
+        "z": 68
+      },
+      "scale": 0.983287773374468
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 340,
+        "z": 5
+      },
+      "scale": 0.9099004783667624
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": 247,
+        "z": 243
+      },
+      "scale": 1.2725273587740957
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": 201,
+        "z": -165
+      },
+      "scale": 1.2494643130339682
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -130,
+        "z": -352
+      },
+      "scale": 1.0830697395838795
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 71,
+        "z": -155
+      },
+      "scale": 1.17976453686133
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": 256,
+        "z": 248
+      },
+      "scale": 1.2100321033038197
+    },
+    {
+      "type": "swamp_debris",
+      "position": {
+        "x": 311,
+        "z": -25
+      },
+      "scale": 1.0084183373488484
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 193,
+        "z": -40
+      },
+      "scale": 0.8735316374339163
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 294,
+        "z": -283
+      },
+      "scale": 1.2680429019965231
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 358,
+        "z": -148
+      },
+      "scale": 0.718685529474169
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": -157,
+        "z": 272
+      },
+      "scale": 0.9162554183043539
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": -282,
+        "z": -180
+      },
+      "scale": 1.0156109669245779
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -52,
+        "z": 233
+      },
+      "scale": 0.935673073772341
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -151,
+        "z": 29
+      },
+      "scale": 1.059425137285143
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -108,
+        "z": -99
+      },
+      "scale": 0.7339130559004843
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": -100,
+        "z": 198
+      },
+      "scale": 0.9702452280558644
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 128,
+        "z": -152
+      },
+      "scale": 1.1435925521887838
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 187,
+        "z": 313
+      },
+      "scale": 1.0931884267367422
+    },
+    {
+      "type": "mushroom_cluster",
+      "position": {
+        "x": 118,
+        "z": 195
+      },
+      "scale": 0.8223287501372396
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": 37,
+        "z": -90
+      },
+      "scale": 0.7983719208277762
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -227,
+        "z": -106
+      },
+      "scale": 1.0527388372458517
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": -53,
+        "z": 236
+      },
+      "scale": 0.8809128978289663
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": 175,
+        "z": 326
+      },
+      "scale": 0.94244000101462
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": 145,
+        "z": -72
+      },
+      "scale": 1.1609285452403126
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -22,
+        "z": 263
+      },
+      "scale": 1.0240494289435444
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -133,
+        "z": 52
+      },
+      "scale": 1.0835360505618155
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": -278,
+        "z": 188
+      },
+      "scale": 0.8551843085326254
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": 242,
+        "z": -216
+      },
+      "scale": 0.9188526012934743
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": -320,
+        "z": 131
+      },
+      "scale": 0.8184618272818625
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": -35,
+        "z": 13
+      },
+      "scale": 1.1619953849352895
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": -145,
+        "z": -326
+      },
+      "scale": 0.9214991726912558
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": 343,
+        "z": -267
+      },
+      "scale": 0.7330815889872611
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": -23,
+        "z": 108
+      },
+      "scale": 0.7969135322608053
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": 255,
+        "z": -347
+      },
+      "scale": 1.1772284009493887
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 230,
+        "z": 116
+      },
+      "scale": 0.9023220934905112
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -253,
+        "z": 27
+      },
+      "scale": 1.2645530083216725
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": -195,
+        "z": 90
+      },
+      "scale": 0.7203420438803732
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": 36,
+        "z": -56
+      },
+      "scale": 1.1901725986041127
+    },
+    {
+      "type": "glowing_mushroom",
+      "position": {
+        "x": -215,
+        "z": -31
+      },
+      "scale": 1.1585905709303914
+    },
+    {
+      "type": "swamp_debris",
+      "position": {
+        "x": -90,
+        "z": 200
+      },
+      "scale": 0.7742043592967093
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": 262,
+        "z": -32
+      },
+      "scale": 0.949684862140566
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": 45,
+        "z": -299
+      },
+      "scale": 1.2617654778994618
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": 337,
+        "z": -154
+      },
+      "scale": 0.8512421050108969
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": 129,
+        "z": -216
+      },
+      "scale": 1.1229731419123707
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": 283,
+        "z": 355
+      },
+      "scale": 1.245879487041384
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 298,
+        "z": -104
+      },
+      "scale": 0.8529445388354361
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": 103,
+        "z": 358
+      },
+      "scale": 0.9412141957320272
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": -300,
+        "z": -247
+      },
+      "scale": 1.1717968561686574
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 247,
+        "z": -294
+      },
+      "scale": 0.7698634185828268
+    },
+    {
+      "type": "giant_mushroom",
+      "position": {
+        "x": 92,
+        "z": 62
+      },
+      "scale": 1.224647281412035
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": 178,
+        "z": -39
+      },
+      "scale": 1.1894443430937827
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 81,
+        "z": -360
+      },
+      "scale": 0.9816130020655691
+    },
+    {
+      "type": "bog_pit",
+      "position": {
+        "x": -191,
+        "z": 73
+      },
+      "scale": 1.0825741567648945
+    },
+    {
+      "type": "water",
+      "position": {
+        "x": 164,
+        "z": -268
+      },
+      "scale": 1.2378112056292592
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 221,
+        "z": -15
+      },
+      "scale": 0.756870047096163
+    },
+    {
+      "type": "swamp_tree",
+      "position": {
+        "x": -152,
+        "z": -303
+      },
+      "scale": 1.2133590796031057
+    },
+    {
+      "type": "fallen_log",
+      "position": {
+        "x": 67,
+        "z": -91
+      },
+      "scale": 0.7449492015875876
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": -189,
+        "z": -120
+      },
+      "scale": 0.9533738114871084
+    },
+    {
+      "type": "moss",
+      "position": {
+        "x": -112,
+        "z": 326
+      },
+      "scale": 1.2044288077391685
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -261,
+        "z": 179
+      },
+      "scale": 0.7279725887812674
+    },
+    {
+      "type": "lily_pad",
+      "position": {
+        "x": -43,
+        "z": -173
+      },
+      "scale": 0.7179260530509054
+    },
+    {
+      "type": "magical_stone",
+      "position": {
+        "x": -230,
+        "z": 39
+      },
+      "scale": 1.0322725989855825
+    },
+    {
+      "type": "small_mushroom",
+      "position": {
+        "x": 276,
+        "z": 155
+      },
+      "scale": 1.0930581250227986
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": -230,
+        "z": -103
+      },
+      "scale": 0.786391029600054
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": -143,
+        "z": -279
+      },
+      "scale": 0.7624422111548483
+    },
+    {
+      "type": "swamp_light",
+      "position": {
+        "x": 57,
+        "z": -259
+      },
+      "scale": 0.9354450681246816
+    },
+    {
+      "type": "swamp_plant",
+      "position": {
+        "x": 322,
+        "z": 87
+      },
+      "scale": 0.7836954989470541
+    },
+    {
+      "type": "rune_stone",
+      "position": {
+        "x": -42,
+        "z": -174
+      },
+      "scale": 0.8495519020594656
+    },
+    {
+      "type": "mushroom",
+      "position": {
+        "x": 143,
+        "z": 204
+      },
+      "scale": 1.2394351758994162
+    },
+    {
+      "type": "swamp_debris",
+      "position": {
+        "x": -30,
+        "z": -40
+      },
+      "scale": 0.7238287189044058
+    }
+  ]
 }

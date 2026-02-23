@@ -84,7 +84,7 @@ export class WorldManager {
     
     /**
      * Apply a pre-generated map - buffers map data in memory, no localStorage
-     * When map has structures[] or environment[], loads them; otherwise chunk gen will fill.
+     * When map has structures[] or environment[], loads them in chunks over frames to avoid main-thread lag.
      * @param {Object} mapData - Map JSON (id, name, bounds, spawn, zoneStyle?, structures, environment)
      */
     applyMap(mapData) {
@@ -97,13 +97,42 @@ export class WorldManager {
         this.currentMap = mapData;
         this.structureManager?.clear();
         this.environmentManager?.clear();
-        if (mapData.structures?.length) {
-            this.structureManager.loadFromMapData(mapData.structures);
+
+        const structures = mapData.structures && Array.isArray(mapData.structures) ? mapData.structures : [];
+        const environment = mapData.environment && Array.isArray(mapData.environment) ? mapData.environment : [];
+
+        if (structures.length === 0 && environment.length === 0) {
+            console.debug(`Map applied: ${mapData.name || mapData.id}`);
+            return;
         }
-        if (mapData.environment?.length) {
-            this.environmentManager.loadFromMapData(mapData.environment);
-        }
-        console.debug(`Map applied: ${mapData.name || mapData.id}`);
+
+        const STRUCT_CHUNK = 10;
+        const ENV_CHUNK = 30;
+        let sIdx = 0;
+        let eIdx = 0;
+
+        const tick = () => {
+            if (sIdx < structures.length) {
+                const chunk = structures.slice(sIdx, sIdx + STRUCT_CHUNK);
+                sIdx += chunk.length;
+                if (this.structureManager?.addStructuresFromMapDataChunk) {
+                    this.structureManager.addStructuresFromMapDataChunk(chunk);
+                }
+            }
+            if (eIdx < environment.length) {
+                const chunk = environment.slice(eIdx, eIdx + ENV_CHUNK);
+                eIdx += chunk.length;
+                if (this.environmentManager?.addEnvironmentFromMapDataChunk) {
+                    this.environmentManager.addEnvironmentFromMapDataChunk(chunk);
+                }
+            }
+            if (sIdx < structures.length || eIdx < environment.length) {
+                requestAnimationFrame(tick);
+            } else {
+                console.debug(`Map applied: ${mapData.name || mapData.id} (${structures.length} structures, ${environment.length} environment)`);
+            }
+        };
+        requestAnimationFrame(tick);
     }
     
     /**
@@ -223,8 +252,18 @@ export class WorldManager {
         const playerChunkZ = Math.floor(playerPosition.z / chunkSize);
         const spaceRadius = PLAYER_SPACE_CHUNKS;
         const genDistance = spaceRadius; // Generate within space; throttle keeps it smooth
+
+        // Self-defined maps (type "single" or with zoneStyle): everything comes from the map JSON.
+        // No procedural generation — if structures[] / environment[] are empty, the map is empty.
+        // Procedural maps (e.g. Default): only skip procedural gen when the map file defines its own data.
+        const isSelfDefinedMap = this.currentMap?.type === 'single' || this.currentMap?.zoneStyle != null;
+        const mapHasStructures = (this.currentMap?.structures?.length ?? 0) > 0;
+        const mapHasEnvironment = (this.currentMap?.environment?.length ?? 0) > 0;
+        const skipProceduralStructures = isSelfDefinedMap || mapHasStructures;
+        const skipProceduralEnvironment = isSelfDefinedMap || mapHasEnvironment;
+
         const maxStructureChunksPerFrame = this.performanceProfile.structureChunksPerFrame;
-        if (this.structureManager && this.structureManager.generateStructuresForChunk) {
+        if (!skipProceduralStructures && this.structureManager && this.structureManager.generateStructuresForChunk) {
             const structPending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
                 for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
@@ -243,7 +282,7 @@ export class WorldManager {
         }
         // Environment generation - throttled, prioritized by distance to avoid 3–5s freeze/flicker
         const maxEnvChunksPerFrame = this.performanceProfile.envChunksPerFrame;
-        if (this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
+        if (!skipProceduralEnvironment && this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
             const pending = [];
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
                 for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {

@@ -15,6 +15,928 @@
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "altar",
+      "position": {
+        "x": 95,
+        "z": -156
+      },
+      "rotation": 5.7805304826052195,
+      "scale": 0.8985851384699345
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -345,
+        "z": -21
+      },
+      "rotation": 1.5707963267948966,
+      "scale": 0.9798691771924496
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": -237,
+        "z": -110
+      },
+      "rotation": 2.4504422698000385,
+      "scale": 1.0138973094522954
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 64,
+        "z": 22
+      },
+      "rotation": 0.7539822368615503,
+      "scale": 0.8289563439786435
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": -85,
+        "z": -80
+      },
+      "rotation": 3.518583772020569,
+      "scale": 1.099769935756922
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -10,
+        "z": -287
+      },
+      "rotation": 5.9061941887488105,
+      "scale": 0.8692140124738217
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 51,
+        "z": -290
+      },
+      "rotation": 4.39822971502571,
+      "scale": 0.985280165821314
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": -247,
+        "z": -338
+      },
+      "rotation": 2.0106192982974678,
+      "scale": 0.8946119092404843
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": 20,
+        "z": 199
+      },
+      "rotation": 3.707079331235956,
+      "scale": 0.8471613980829716
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -127,
+        "z": -183
+      },
+      "rotation": 0.6911503837897545,
+      "scale": 1.0639635108411314
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -31,
+        "z": 35
+      },
+      "rotation": 3.330088212805181,
+      "scale": 1.184803280979395
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": -282,
+        "z": 126
+      },
+      "rotation": 2.199114857512855,
+      "scale": 1.1259260438382626
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 308,
+        "z": -185
+      },
+      "rotation": 2.57610597594363,
+      "scale": 1.195251712948084
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 342,
+        "z": -215
+      },
+      "rotation": 1.1938052083641213,
+      "scale": 0.8440004847943783
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 257,
+        "z": 31
+      },
+      "rotation": 4.9637163926718735,
+      "scale": 1.1482088424265386
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 330,
+        "z": 1
+      },
+      "rotation": 5.215043804959056,
+      "scale": 0.8215315602719784
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": -88,
+        "z": -284
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.1610330678522587
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 47,
+        "z": -255
+      },
+      "rotation": 3.015928947446201,
+      "scale": 0.9267077468335629
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 191,
+        "z": -18
+      },
+      "rotation": 0,
+      "scale": 1.1737390376627446
+    },
+    {
+      "type": "altar",
+      "position": {
+        "x": 274,
+        "z": -92
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 1.1175612710416318
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": 0,
+        "z": -132
+      },
+      "rotation": 5.15221195188726,
+      "scale": 0.9239976502954961
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": 158,
+        "z": -241
+      },
+      "rotation": 1.382300767579509,
+      "scale": 1.066968109458685
+    },
+    {
+      "type": "ruins",
+      "position": {
+        "x": -320,
+        "z": -117
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 1.1221360541880132
+    },
+    {
+      "type": "fortress",
+      "position": {
+        "x": 51,
+        "z": -300
+      },
+      "rotation": 0.8168140899333463,
+      "scale": 0.9876479886472226
+    }
+  ],
+  "environment": [
+    {
+      "type": "shrine",
+      "position": {
+        "x": 125,
+        "z": -274
+      },
+      "scale": 0.8394675354473292
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -76,
+        "z": 9
+      },
+      "scale": 1.0759795586578547
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": -229,
+        "z": -48
+      },
+      "scale": 1.0645953874103724
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -140,
+        "z": 170
+      },
+      "scale": 1.2640308420173825
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -201,
+        "z": 339
+      },
+      "scale": 1.2001892427913843
+    },
+    {
+      "type": "obsidian_formation",
+      "position": {
+        "x": -319,
+        "z": 275
+      },
+      "scale": 0.9661614100448787
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": -268,
+        "z": 296
+      },
+      "scale": 0.9222256640903651
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -54,
+        "z": 139
+      },
+      "scale": 0.7958478252403438
+    },
+    {
+      "type": "ember_vent",
+      "position": {
+        "x": -276,
+        "z": 42
+      },
+      "scale": 1.1816812138073145
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": -320,
+        "z": -336
+      },
+      "scale": 0.8415666501037776
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -164,
+        "z": -115
+      },
+      "scale": 1.2045324544422327
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -17,
+        "z": 285
+      },
+      "scale": 1.2667944471351802
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": 41,
+        "z": 224
+      },
+      "scale": 0.8917559484951197
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -299,
+        "z": -76
+      },
+      "scale": 1.1100077788345515
+    },
+    {
+      "type": "lava_rock",
+      "position": {
+        "x": 222,
+        "z": 108
+      },
+      "scale": 0.8193282584659755
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": -247,
+        "z": 197
+      },
+      "scale": 1.2846832077018915
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 171,
+        "z": 115
+      },
+      "scale": 1.0382259468547999
+    },
+    {
+      "type": "obsidian",
+      "position": {
+        "x": 245,
+        "z": -74
+      },
+      "scale": 0.9792972962372004
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 311,
+        "z": 194
+      },
+      "scale": 1.074425576161593
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": -244,
+        "z": 185
+      },
+      "scale": 1.257326606940478
+    },
+    {
+      "type": "lava_rock",
+      "position": {
+        "x": 255,
+        "z": -336
+      },
+      "scale": 1.1289037088863552
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": -347,
+        "z": -22
+      },
+      "scale": 0.8572477023117244
+    },
+    {
+      "type": "obsidian_formation",
+      "position": {
+        "x": 244,
+        "z": 93
+      },
+      "scale": 0.8776369075290859
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": -227,
+        "z": -162
+      },
+      "scale": 0.9925371448509395
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": -288,
+        "z": 260
+      },
+      "scale": 1.2716017345897854
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": -136,
+        "z": -331
+      },
+      "scale": 1.1516714970581232
+    },
+    {
+      "type": "broken_column",
+      "position": {
+        "x": 161,
+        "z": -246
+      },
+      "scale": 0.9367747525684536
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": 304,
+        "z": 186
+      },
+      "scale": 0.8981273214332759
+    },
+    {
+      "type": "obsidian_formation",
+      "position": {
+        "x": 124,
+        "z": -306
+      },
+      "scale": 0.9741325239650904
+    },
+    {
+      "type": "oasis",
+      "position": {
+        "x": -59,
+        "z": 30
+      },
+      "scale": 1.0703811804763972
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 203,
+        "z": -153
+      },
+      "scale": 0.7596516112796962
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -309,
+        "z": 97
+      },
+      "scale": 0.7819096366874874
+    },
+    {
+      "type": "ash_pile",
+      "position": {
+        "x": 192,
+        "z": 73
+      },
+      "scale": 0.9443085770122707
+    },
+    {
+      "type": "obsidian",
+      "position": {
+        "x": -337,
+        "z": -70
+      },
+      "scale": 1.021189252566546
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": -209,
+        "z": 321
+      },
+      "scale": 1.0540799836628139
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": -127,
+        "z": -118
+      },
+      "scale": 1.0516965906135738
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 55,
+        "z": -91
+      },
+      "scale": 1.2899423937313257
+    },
+    {
+      "type": "lava_rock",
+      "position": {
+        "x": 251,
+        "z": -323
+      },
+      "scale": 0.8119082133285701
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -215,
+        "z": -315
+      },
+      "scale": 0.7278723697178066
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -88,
+        "z": -150
+      },
+      "scale": 0.9153006832115351
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": -145,
+        "z": -131
+      },
+      "scale": 0.918846474122256
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 45,
+        "z": 302
+      },
+      "scale": 0.850350562762469
+    },
+    {
+      "type": "oasis",
+      "position": {
+        "x": 326,
+        "z": 49
+      },
+      "scale": 1.088841269444674
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": 308,
+        "z": 309
+      },
+      "scale": 0.7805344144813716
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -268,
+        "z": -96
+      },
+      "scale": 1.1388333181850612
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 267,
+        "z": -46
+      },
+      "scale": 0.9443288008682429
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": 114,
+        "z": -78
+      },
+      "scale": 1.0447991828434169
+    },
+    {
+      "type": "obsidian_formation",
+      "position": {
+        "x": 121,
+        "z": 130
+      },
+      "scale": 1.055210284423083
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": -174,
+        "z": -38
+      },
+      "scale": 0.8577154259197414
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": -23,
+        "z": -338
+      },
+      "scale": 0.9016554276458919
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": 10,
+        "z": -27
+      },
+      "scale": 0.7035586099140345
+    },
+    {
+      "type": "forgotten_statue",
+      "position": {
+        "x": -147,
+        "z": 342
+      },
+      "scale": 0.9471407930366694
+    },
+    {
+      "type": "oasis",
+      "position": {
+        "x": 279,
+        "z": -6
+      },
+      "scale": 0.7833052973262965
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -324,
+        "z": -265
+      },
+      "scale": 1.1301429430954157
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": 156,
+        "z": 152
+      },
+      "scale": 0.7729320506565273
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 3,
+        "z": -186
+      },
+      "scale": 0.8641384403221308
+    },
+    {
+      "type": "obsidian",
+      "position": {
+        "x": -209,
+        "z": -52
+      },
+      "scale": 1.0234154324047267
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": -137,
+        "z": -237
+      },
+      "scale": 0.8376038472168147
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": -30,
+        "z": -311
+      },
+      "scale": 0.7607320050708949
+    },
+    {
+      "type": "statue_fragment",
+      "position": {
+        "x": 353,
+        "z": 295
+      },
+      "scale": 1.2140157262794673
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": -57,
+        "z": -226
+      },
+      "scale": 1.0858583311550318
+    },
+    {
+      "type": "oasis",
+      "position": {
+        "x": 321,
+        "z": 55
+      },
+      "scale": 1.0318506400100886
+    },
+    {
+      "type": "broken_column",
+      "position": {
+        "x": 314,
+        "z": -29
+      },
+      "scale": 0.7747709731571376
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -37,
+        "z": -64
+      },
+      "scale": 1.2045851509086787
+    },
+    {
+      "type": "ancient_altar",
+      "position": {
+        "x": 155,
+        "z": 141
+      },
+      "scale": 1.078446493577212
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": 108,
+        "z": 201
+      },
+      "scale": 0.9206958214752375
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": -111,
+        "z": 230
+      },
+      "scale": 0.9228614549152553
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": 54,
+        "z": -236
+      },
+      "scale": 1.243659214209765
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": -152,
+        "z": 279
+      },
+      "scale": 1.1089924196712673
+    },
+    {
+      "type": "rock_formation",
+      "position": {
+        "x": -273,
+        "z": -210
+      },
+      "scale": 0.9119518916122615
+    },
+    {
+      "type": "ash_pile",
+      "position": {
+        "x": 275,
+        "z": -306
+      },
+      "scale": 0.7128159503452479
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": -314,
+        "z": 91
+      },
+      "scale": 1.1390504161827266
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": -117,
+        "z": 136
+      },
+      "scale": 1.2853086094371973
+    },
+    {
+      "type": "desert_plant",
+      "position": {
+        "x": -322,
+        "z": -149
+      },
+      "scale": 0.8134313504211604
+    },
+    {
+      "type": "desert_shrine",
+      "position": {
+        "x": 173,
+        "z": -247
+      },
+      "scale": 0.8524469594471156
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 80,
+        "z": -216
+      },
+      "scale": 1.2985712568275631
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -321,
+        "z": -336
+      },
+      "scale": 1.1152075628750024
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": -259,
+        "z": -26
+      },
+      "scale": 1.0329466979019344
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -276,
+        "z": 356
+      },
+      "scale": 0.8495669822208582
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": 297,
+        "z": -126
+      },
+      "scale": 0.9300342361442744
+    },
+    {
+      "type": "ember_vent",
+      "position": {
+        "x": 99,
+        "z": 249
+      },
+      "scale": 0.7065017799846828
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": -304,
+        "z": -252
+      },
+      "scale": 0.7783104340545832
+    },
+    {
+      "type": "rock",
+      "position": {
+        "x": -213,
+        "z": 12
+      },
+      "scale": 0.8119885186664759
+    },
+    {
+      "type": "obsidian",
+      "position": {
+        "x": 117,
+        "z": -51
+      },
+      "scale": 1.0412518541328608
+    },
+    {
+      "type": "lava",
+      "position": {
+        "x": -159,
+        "z": -317
+      },
+      "scale": 0.7670037607662379
+    },
+    {
+      "type": "shrine",
+      "position": {
+        "x": 46,
+        "z": 202
+      },
+      "scale": 1.057335058879107
+    },
+    {
+      "type": "small_peak",
+      "position": {
+        "x": -216,
+        "z": 111
+      },
+      "scale": 0.8475240687839687
+    },
+    {
+      "type": "ancient_stone",
+      "position": {
+        "x": 41,
+        "z": 320
+      },
+      "scale": 0.8400366107933223
+    }
+  ]
 }

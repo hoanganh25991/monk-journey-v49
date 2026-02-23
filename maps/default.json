@@ -4,16 +4,2443 @@
   "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
   "type": "procedural",
   "bounds": {
-    "minX": -1250,
-    "maxX": 1250,
-    "minZ": -1250,
-    "maxZ": 1250
+    "minX": -600,
+    "maxX": 600,
+    "minZ": -600,
+    "maxZ": 600
   },
   "spawn": {
     "x": 0,
     "y": 1,
     "z": -13
   },
-  "structures": [],
-  "environment": []
+  "structures": [
+    {
+      "type": "shop",
+      "position": {
+        "x": -269,
+        "z": -192
+      },
+      "rotation": 2.638937829015426,
+      "scale": 0.857394476979971
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -290,
+        "z": 475
+      },
+      "rotation": 5.089380098815465,
+      "scale": 1.1129222072660925
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 176,
+        "z": 13
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 0.8124434433877469
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 149,
+        "z": -397
+      },
+      "rotation": 0.12566370614359174,
+      "scale": 1.1768326677381993
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -287,
+        "z": -207
+      },
+      "rotation": 3.518583772020569,
+      "scale": 0.8032124720513821
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 180,
+        "z": -504
+      },
+      "rotation": 5.089380098815465,
+      "scale": 1.030889765173197
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -313,
+        "z": 169
+      },
+      "rotation": 3.518583772020569,
+      "scale": 0.9457416020333768
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 241,
+        "z": -488
+      },
+      "rotation": 4.461061568097506,
+      "scale": 0.9203815855085851
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -158,
+        "z": -301
+      },
+      "rotation": 5.026548245743669,
+      "scale": 0.9896646223962308
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -258,
+        "z": 459
+      },
+      "rotation": 6.031857894892402,
+      "scale": 0.8445024646818639
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -56,
+        "z": 139
+      },
+      "rotation": 3.8327430373795477,
+      "scale": 0.9432090722024441
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -403,
+        "z": -15
+      },
+      "rotation": 0.5654866776461628,
+      "scale": 1.1313529886305334
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 364,
+        "z": -386
+      },
+      "rotation": 3.141592653589793,
+      "scale": 0.8981962405145169
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -441,
+        "z": 438
+      },
+      "rotation": 2.827433388230814,
+      "scale": 1.0129399932920933
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -452,
+        "z": 354
+      },
+      "rotation": 3.7699111843077517,
+      "scale": 0.855041166394949
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -281,
+        "z": 96
+      },
+      "rotation": 4.838052686528282,
+      "scale": 0.800176564604044
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -201,
+        "z": -210
+      },
+      "rotation": 0.9424777960769379,
+      "scale": 0.9477526389062405
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -85,
+        "z": -13
+      },
+      "rotation": 4.838052686528282,
+      "scale": 0.8578820385038853
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": -458,
+        "z": 367
+      },
+      "rotation": 5.403539364174444,
+      "scale": 0.8689331971108913
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 193,
+        "z": 318
+      },
+      "rotation": 4.272566008882119,
+      "scale": 0.9797820009291173
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 148,
+        "z": -399
+      },
+      "rotation": 2.638937829015426,
+      "scale": 0.8947791300714016
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 216,
+        "z": 16
+      },
+      "rotation": 5.026548245743669,
+      "scale": 0.9635082878172399
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 282,
+        "z": -107
+      },
+      "rotation": 5.592034923389832,
+      "scale": 0.9100804768502713
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -274,
+        "z": 439
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 1.1855989851057531
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -394,
+        "z": -377
+      },
+      "rotation": 0.8796459430051422,
+      "scale": 1.0332210265100004
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 31,
+        "z": -286
+      },
+      "rotation": 4.649557127312894,
+      "scale": 1.176498428732157
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": 404,
+        "z": -152
+      },
+      "rotation": 2.0106192982974678,
+      "scale": 1.0411783181130887
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 308,
+        "z": -434
+      },
+      "rotation": 4.1469023027385274,
+      "scale": 0.9955572046339513
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -152,
+        "z": -445
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 0.9945236407220364
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 131,
+        "z": -335
+      },
+      "rotation": 0.8168140899333463,
+      "scale": 1.0060321487486363
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -58,
+        "z": 274
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.0624220333993435
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -68,
+        "z": 284
+      },
+      "rotation": 2.0106192982974678,
+      "scale": 0.850086347013712
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -214,
+        "z": 298
+      },
+      "rotation": 6.031857894892402,
+      "scale": 0.9476322852075101
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 410,
+        "z": -227
+      },
+      "rotation": 5.46637121724624,
+      "scale": 0.8237891353666783
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 325,
+        "z": 333
+      },
+      "rotation": 4.9637163926718735,
+      "scale": 0.9115069352090359
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -127,
+        "z": 334
+      },
+      "rotation": 2.57610597594363,
+      "scale": 0.8521160997450352
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -270,
+        "z": -203
+      },
+      "rotation": 3.015928947446201,
+      "scale": 1.1989922724664213
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -115,
+        "z": 297
+      },
+      "rotation": 1.1309733552923256,
+      "scale": 1.0639490760862829
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 223,
+        "z": 390
+      },
+      "rotation": 5.717698629533424,
+      "scale": 1.063628336042166
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -512,
+        "z": -104
+      },
+      "rotation": 3.581415625092364,
+      "scale": 1.167076150327921
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 345,
+        "z": 317
+      },
+      "rotation": 1.82212373908208,
+      "scale": 0.9925489149987698
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -186,
+        "z": -222
+      },
+      "rotation": 4.1469023027385274,
+      "scale": 1.0231916584074499
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": -301,
+        "z": -67
+      },
+      "rotation": 3.707079331235956,
+      "scale": 0.9314815483987332
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 379,
+        "z": -494
+      },
+      "rotation": 5.089380098815465,
+      "scale": 0.8228961862623692
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -464,
+        "z": 127
+      },
+      "rotation": 6.157521601035994,
+      "scale": 0.9097475253045559
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -461,
+        "z": 228
+      },
+      "rotation": 1.319468914507713,
+      "scale": 0.8606965698301793
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": 218,
+        "z": -348
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 0.8652618847787381
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 146,
+        "z": 59
+      },
+      "rotation": 2.8902652413026098,
+      "scale": 0.9100058950483799
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -275,
+        "z": -261
+      },
+      "rotation": 1.9477874452256718,
+      "scale": 0.8695334158837795
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -397,
+        "z": -137
+      },
+      "rotation": 0.6911503837897545,
+      "scale": 1.1981434978544714
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 480,
+        "z": 399
+      },
+      "rotation": 3.267256359733385,
+      "scale": 0.9526646576821804
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -324,
+        "z": -315
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 0.9813349641859532
+    },
+    {
+      "type": "bridge",
+      "position": {
+        "x": -468,
+        "z": -173
+      },
+      "rotation": 1.2566370614359172,
+      "scale": 0.9283518992364407
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -327,
+        "z": 372
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.1197121299803259
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": -458,
+        "z": 69
+      },
+      "rotation": 0.5654866776461628,
+      "scale": 1.0188851796090603
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": 16,
+        "z": -5
+      },
+      "rotation": 0.8796459430051422,
+      "scale": 1.052313081175089
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 12,
+        "z": 187
+      },
+      "rotation": 4.523893421169302,
+      "scale": 0.8801482878625393
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -422,
+        "z": -357
+      },
+      "rotation": 4.649557127312894,
+      "scale": 0.9720821537077428
+    },
+    {
+      "type": "house",
+      "position": {
+        "x": -59,
+        "z": -159
+      },
+      "rotation": 5.592034923389832,
+      "scale": 1.0266187630593777
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 297,
+        "z": -164
+      },
+      "rotation": 3.581415625092364,
+      "scale": 0.8008699335157872
+    },
+    {
+      "type": "tower",
+      "position": {
+        "x": 500,
+        "z": -262
+      },
+      "rotation": 0.5654866776461628,
+      "scale": 1.0563678942620756
+    },
+    {
+      "type": "shop",
+      "position": {
+        "x": 350,
+        "z": 81
+      },
+      "rotation": 4.523893421169302,
+      "scale": 1.1644332565367224
+    },
+    {
+      "type": "temple",
+      "position": {
+        "x": 410,
+        "z": 14
+      },
+      "rotation": 5.969026041820607,
+      "scale": 1.0760607205331327
+    },
+    {
+      "type": "village",
+      "position": {
+        "x": -190,
+        "z": 491
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 1.167435208708048
+    },
+    {
+      "type": "tavern",
+      "position": {
+        "x": -352,
+        "z": -359
+      },
+      "rotation": 4.335397861953914,
+      "scale": 1.1259560309350491
+    }
+  ],
+  "environment": [
+    {
+      "type": "flower",
+      "position": {
+        "x": -529,
+        "z": 209
+      },
+      "scale": 0.8863821108825505
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 271,
+        "z": 105
+      },
+      "scale": 1.1136018534190952
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 495,
+        "z": -487
+      },
+      "scale": 1.2196504076011478
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 260,
+        "z": 473
+      },
+      "scale": 0.7411244531162082
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 33,
+        "z": 491
+      },
+      "scale": 1.0474331696517765
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 83,
+        "z": -435
+      },
+      "scale": 0.8407982368953526
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -51,
+        "z": -358
+      },
+      "scale": 1.2562538345344363
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 51,
+        "z": -244
+      },
+      "scale": 0.7616466422565281
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 81,
+        "z": -189
+      },
+      "scale": 0.8576358397491276
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -469,
+        "z": 40
+      },
+      "scale": 0.9776931066997349
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 403,
+        "z": 467
+      },
+      "scale": 1.18810262279585
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 183,
+        "z": 361
+      },
+      "scale": 1.2879610677249729
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -57,
+        "z": -135
+      },
+      "scale": 1.1091776211746036
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -517,
+        "z": 526
+      },
+      "scale": 0.8164739628322422
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 26,
+        "z": 444
+      },
+      "scale": 1.2073842723853887
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 443,
+        "z": 206
+      },
+      "scale": 1.0122552295215428
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -51,
+        "z": 189
+      },
+      "scale": 0.7942460139282047
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -272,
+        "z": 18
+      },
+      "scale": 0.8493283052928745
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 227,
+        "z": 189
+      },
+      "scale": 0.9062862833030522
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -459,
+        "z": 445
+      },
+      "scale": 1.0267166276462376
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 428,
+        "z": 319
+      },
+      "scale": 0.7050285180099308
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 56,
+        "z": -327
+      },
+      "scale": 0.9684436340816318
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 256,
+        "z": 319
+      },
+      "scale": 1.0769961555488408
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 506,
+        "z": 75
+      },
+      "scale": 1.2235327620990573
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -451,
+        "z": -208
+      },
+      "scale": 1.033712633419782
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 256,
+        "z": -433
+      },
+      "scale": 1.066007449198514
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 442,
+        "z": 368
+      },
+      "scale": 0.7117013891227543
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -113,
+        "z": 251
+      },
+      "scale": 0.8948911328800022
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -199,
+        "z": 302
+      },
+      "scale": 0.772485860157758
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 116,
+        "z": -225
+      },
+      "scale": 1.0342072506435214
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 32,
+        "z": -126
+      },
+      "scale": 1.2025894840247928
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -366,
+        "z": -30
+      },
+      "scale": 1.132979239989072
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 433,
+        "z": 307
+      },
+      "scale": 0.713535698223859
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 507,
+        "z": 374
+      },
+      "scale": 0.7652305384166538
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 437,
+        "z": 531
+      },
+      "scale": 0.9418479402549564
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -465,
+        "z": 388
+      },
+      "scale": 1.2299845834262668
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -386,
+        "z": 421
+      },
+      "scale": 1.049049647618085
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 135,
+        "z": 359
+      },
+      "scale": 0.7512648125179111
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -174,
+        "z": -283
+      },
+      "scale": 0.7216642578132451
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 459,
+        "z": 499
+      },
+      "scale": 1.0780946631915866
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -167,
+        "z": 182
+      },
+      "scale": 0.7712152083404362
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -128,
+        "z": -194
+      },
+      "scale": 0.8844975729472935
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -392,
+        "z": 206
+      },
+      "scale": 0.7342259366996586
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 36,
+        "z": 381
+      },
+      "scale": 1.1694969792850314
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 339,
+        "z": 204
+      },
+      "scale": 1.2722198803909124
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -494,
+        "z": -128
+      },
+      "scale": 1.0571163197048008
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 111,
+        "z": 455
+      },
+      "scale": 1.1717204769141971
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 214,
+        "z": 110
+      },
+      "scale": 0.7963790317066013
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 382,
+        "z": 24
+      },
+      "scale": 0.9442511637695133
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -94,
+        "z": -448
+      },
+      "scale": 1.161308552790433
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -495,
+        "z": -1
+      },
+      "scale": 1.0263353784568607
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -297,
+        "z": -240
+      },
+      "scale": 1.050928320456296
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 289,
+        "z": 257
+      },
+      "scale": 1.1794965584762394
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -219,
+        "z": 2
+      },
+      "scale": 1.0892617722041904
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 279,
+        "z": 536
+      },
+      "scale": 1.0902581413276493
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 451,
+        "z": 489
+      },
+      "scale": 1.2253323455341159
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 391,
+        "z": 440
+      },
+      "scale": 0.9701435645110905
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 0,
+        "z": 218
+      },
+      "scale": 0.7331634779460727
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -479,
+        "z": 520
+      },
+      "scale": 0.9556762655265629
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 88,
+        "z": 211
+      },
+      "scale": 1.2117786069400607
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -63,
+        "z": 109
+      },
+      "scale": 1.1083796818740665
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 352,
+        "z": 276
+      },
+      "scale": 1.18520117001608
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -278,
+        "z": -513
+      },
+      "scale": 0.8147772510536014
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -518,
+        "z": 84
+      },
+      "scale": 0.9024546046741306
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 335,
+        "z": -121
+      },
+      "scale": 1.1863924105651675
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -454,
+        "z": 252
+      },
+      "scale": 1.1375623484142123
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 129,
+        "z": 214
+      },
+      "scale": 0.859748597908765
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -496,
+        "z": 183
+      },
+      "scale": 0.7895478387363255
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -246,
+        "z": 366
+      },
+      "scale": 0.7963692505843937
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -468,
+        "z": 222
+      },
+      "scale": 1.0824345131404698
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -7,
+        "z": 76
+      },
+      "scale": 1.2827778060920536
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -59,
+        "z": -497
+      },
+      "scale": 0.7652458091266453
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -396,
+        "z": 27
+      },
+      "scale": 0.7304977019317448
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 98,
+        "z": 262
+      },
+      "scale": 0.9120051641948521
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -358,
+        "z": -310
+      },
+      "scale": 1.0760523756034672
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -497,
+        "z": 281
+      },
+      "scale": 0.7217360158450901
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 214,
+        "z": -522
+      },
+      "scale": 1.1809652646072208
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -47,
+        "z": 448
+      },
+      "scale": 1.1184618015773593
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 485,
+        "z": -329
+      },
+      "scale": 1.0317598064430058
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 139,
+        "z": 433
+      },
+      "scale": 1.1512059588916599
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -247,
+        "z": 413
+      },
+      "scale": 1.1399594386108218
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -33,
+        "z": -225
+      },
+      "scale": 0.9939919252879916
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -389,
+        "z": -445
+      },
+      "scale": 0.7420875986106693
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -522,
+        "z": 35
+      },
+      "scale": 0.7458431382663547
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -371,
+        "z": 210
+      },
+      "scale": 0.799667723942548
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -71,
+        "z": 480
+      },
+      "scale": 1.030783035326749
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -490,
+        "z": -42
+      },
+      "scale": 0.9992232521064579
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -530,
+        "z": 242
+      },
+      "scale": 1.1978350539691744
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 172,
+        "z": -517
+      },
+      "scale": 0.9522776206023991
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -373,
+        "z": 479
+      },
+      "scale": 1.1210226316936314
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 510,
+        "z": 416
+      },
+      "scale": 0.7953542669303715
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -98,
+        "z": 51
+      },
+      "scale": 1.1993692060001193
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -449,
+        "z": -70
+      },
+      "scale": 1.189976628590375
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -69,
+        "z": -153
+      },
+      "scale": 1.1568982143886386
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -300,
+        "z": 465
+      },
+      "scale": 0.9226681430824101
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -515,
+        "z": -462
+      },
+      "scale": 1.2426330943591892
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 255,
+        "z": 6
+      },
+      "scale": 1.1049522479064762
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -451,
+        "z": -260
+      },
+      "scale": 1.030597283411771
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -430,
+        "z": -359
+      },
+      "scale": 0.9733523805625737
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 166,
+        "z": -143
+      },
+      "scale": 1.219814219046384
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 453,
+        "z": 326
+      },
+      "scale": 0.8893919785507023
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 432,
+        "z": 235
+      },
+      "scale": 1.2343073387630283
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 449,
+        "z": -360
+      },
+      "scale": 1.1395944793708621
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -423,
+        "z": 7
+      },
+      "scale": 1.0231000800617038
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 475,
+        "z": 428
+      },
+      "scale": 0.7354833205230533
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 207,
+        "z": 328
+      },
+      "scale": 1.0602158804424107
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 505,
+        "z": -2
+      },
+      "scale": 1.0135819395072758
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -336,
+        "z": 61
+      },
+      "scale": 1.1446781774051487
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -432,
+        "z": -154
+      },
+      "scale": 0.8354137738235294
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -256,
+        "z": 93
+      },
+      "scale": 1.000510408449918
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 68,
+        "z": 251
+      },
+      "scale": 0.7875022609718143
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 218,
+        "z": 97
+      },
+      "scale": 0.8767360110767185
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 223,
+        "z": 277
+      },
+      "scale": 0.7813708384521305
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -87,
+        "z": -392
+      },
+      "scale": 0.9473784227855503
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -534,
+        "z": -66
+      },
+      "scale": 1.253542943764478
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -52,
+        "z": 190
+      },
+      "scale": 0.7114610810764134
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -472,
+        "z": 177
+      },
+      "scale": 0.7655420144088566
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 501,
+        "z": 28
+      },
+      "scale": 0.7930074234493076
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 110,
+        "z": -336
+      },
+      "scale": 0.8038914878852665
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -278,
+        "z": 416
+      },
+      "scale": 1.141040887404233
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -28,
+        "z": 161
+      },
+      "scale": 0.9801148016937076
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 218,
+        "z": 349
+      },
+      "scale": 1.0295849104411898
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 167,
+        "z": 57
+      },
+      "scale": 0.8307353933341801
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 410,
+        "z": -229
+      },
+      "scale": 0.857662930060178
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -275,
+        "z": -234
+      },
+      "scale": 1.0172767003066836
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -66,
+        "z": -433
+      },
+      "scale": 0.9492983837611972
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -32,
+        "z": -432
+      },
+      "scale": 0.9262621601112186
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -359,
+        "z": 491
+      },
+      "scale": 0.9535147090442477
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 195,
+        "z": -393
+      },
+      "scale": 1.0692152102477848
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 517,
+        "z": -82
+      },
+      "scale": 1.0443353434093297
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -160,
+        "z": -106
+      },
+      "scale": 1.282659288216382
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 443,
+        "z": 492
+      },
+      "scale": 0.7207837243564427
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -448,
+        "z": 301
+      },
+      "scale": 0.7281178315170109
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -404,
+        "z": 398
+      },
+      "scale": 1.206883289385587
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 113,
+        "z": -510
+      },
+      "scale": 0.8921142776496708
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 446,
+        "z": -150
+      },
+      "scale": 1.2516574759967625
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 284,
+        "z": 303
+      },
+      "scale": 0.7861720641143619
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 201,
+        "z": 3
+      },
+      "scale": 0.7291297216899693
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 37,
+        "z": 52
+      },
+      "scale": 1.1468146284110843
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 520,
+        "z": -279
+      },
+      "scale": 1.2383234639652074
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -519,
+        "z": 230
+      },
+      "scale": 0.835565408039838
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -40,
+        "z": -111
+      },
+      "scale": 0.7032621403224766
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -60,
+        "z": 36
+      },
+      "scale": 1.038947840500623
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 452,
+        "z": 180
+      },
+      "scale": 1.172969188261777
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -368,
+        "z": -384
+      },
+      "scale": 1.068485363293439
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -258,
+        "z": 131
+      },
+      "scale": 1.0214680452831089
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 151,
+        "z": 59
+      },
+      "scale": 0.7607014139182865
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 32,
+        "z": 224
+      },
+      "scale": 0.9477821488864719
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -15,
+        "z": 159
+      },
+      "scale": 1.0771194298751652
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 417,
+        "z": -274
+      },
+      "scale": 0.9759349365718661
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -81,
+        "z": -344
+      },
+      "scale": 1.104262848664075
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 129,
+        "z": -71
+      },
+      "scale": 1.0549498458392916
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -209,
+        "z": 314
+      },
+      "scale": 1.0536551077850163
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -386,
+        "z": -170
+      },
+      "scale": 1.0588503141887484
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -426,
+        "z": 523
+      },
+      "scale": 1.0618196447379886
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 532,
+        "z": 450
+      },
+      "scale": 0.7866597791202365
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 457,
+        "z": -383
+      },
+      "scale": 1.1902798970229922
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 361,
+        "z": 518
+      },
+      "scale": 1.1624016781337558
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 524,
+        "z": 36
+      },
+      "scale": 0.8255593021400273
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -49,
+        "z": -296
+      },
+      "scale": 1.2350994487293065
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 153,
+        "z": -236
+      },
+      "scale": 1.0791812975890933
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 288,
+        "z": -294
+      },
+      "scale": 1.178776528406888
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -141,
+        "z": -109
+      },
+      "scale": 1.1876693208701907
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 334,
+        "z": -74
+      },
+      "scale": 1.0924563546665012
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 289,
+        "z": 291
+      },
+      "scale": 0.9125468094833195
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 264,
+        "z": -369
+      },
+      "scale": 1.0001623650081455
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 67,
+        "z": -377
+      },
+      "scale": 1.1403372009284793
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 390,
+        "z": 113
+      },
+      "scale": 0.850917996931821
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 112,
+        "z": -347
+      },
+      "scale": 0.8825639327056706
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 78,
+        "z": 368
+      },
+      "scale": 1.1187466879375279
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 398,
+        "z": -150
+      },
+      "scale": 0.875750442314893
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -91,
+        "z": 340
+      },
+      "scale": 1.002671875525266
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -47,
+        "z": -452
+      },
+      "scale": 1.1814201672561466
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -481,
+        "z": -166
+      },
+      "scale": 0.8267169971950352
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 101,
+        "z": 106
+      },
+      "scale": 1.1860965450294314
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -241,
+        "z": -397
+      },
+      "scale": 0.8399054904468357
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 140,
+        "z": -490
+      },
+      "scale": 0.8013030131347477
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 535,
+        "z": 264
+      },
+      "scale": 1.2162607927806675
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -496,
+        "z": -72
+      },
+      "scale": 1.0635630090720951
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -270,
+        "z": 138
+      },
+      "scale": 0.8548063416965306
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -78,
+        "z": 156
+      },
+      "scale": 1.1343999703414738
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -323,
+        "z": -426
+      },
+      "scale": 0.9795655746944247
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 17,
+        "z": -68
+      },
+      "scale": 0.7003373344428837
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -390,
+        "z": -138
+      },
+      "scale": 0.9395619292743503
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -372,
+        "z": -59
+      },
+      "scale": 1.172898538876325
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -27,
+        "z": 0
+      },
+      "scale": 1.2088188429363071
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -191,
+        "z": -347
+      },
+      "scale": 0.8886070211417972
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 269,
+        "z": -71
+      },
+      "scale": 0.9863597531802952
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -412,
+        "z": -518
+      },
+      "scale": 1.108986218739301
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 132,
+        "z": 538
+      },
+      "scale": 1.1962080975063145
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 289,
+        "z": -292
+      },
+      "scale": 1.2205595691688358
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 415,
+        "z": 417
+      },
+      "scale": 0.887387313414365
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 131,
+        "z": 475
+      },
+      "scale": 1.134850509930402
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -56,
+        "z": 184
+      },
+      "scale": 0.8339208384044468
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -373,
+        "z": -368
+      },
+      "scale": 1.2883824785239995
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -161,
+        "z": 320
+      },
+      "scale": 1.1348321099765597
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 505,
+        "z": 295
+      },
+      "scale": 0.8426789124496281
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 276,
+        "z": 94
+      },
+      "scale": 1.2141445656307042
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 310,
+        "z": 42
+      },
+      "scale": 1.2842632492072878
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 488,
+        "z": -284
+      },
+      "scale": 1.0208816428668797
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -40,
+        "z": -442
+      },
+      "scale": 1.0246589262969792
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -161,
+        "z": 343
+      },
+      "scale": 1.0290667791850865
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 508,
+        "z": 473
+      },
+      "scale": 0.8003893812187015
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": -8,
+        "z": -241
+      },
+      "scale": 1.0377234120853245
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -96,
+        "z": -39
+      },
+      "scale": 1.2729780514724554
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -498,
+        "z": -71
+      },
+      "scale": 0.7708749790675937
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -529,
+        "z": 461
+      },
+      "scale": 1.2289483745582401
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 300,
+        "z": 526
+      },
+      "scale": 1.0775449176318943
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": -413,
+        "z": -41
+      },
+      "scale": 1.1798237879760562
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 133,
+        "z": 6
+      },
+      "scale": 0.9317566652782261
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -314,
+        "z": -457
+      },
+      "scale": 0.9621277292259036
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": 121,
+        "z": -68
+      },
+      "scale": 1.032533659506589
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 418,
+        "z": 168
+      },
+      "scale": 0.9373836358077824
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 441,
+        "z": -429
+      },
+      "scale": 0.8038993378169834
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 404,
+        "z": 493
+      },
+      "scale": 0.7921149452216922
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 324,
+        "z": 214
+      },
+      "scale": 0.7948771377094089
+    },
+    {
+      "type": "flower",
+      "position": {
+        "x": -515,
+        "z": 124
+      },
+      "scale": 0.7378450949676334
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 217,
+        "z": -221
+      },
+      "scale": 0.8794904966838657
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -206,
+        "z": -391
+      },
+      "scale": 0.9110975225456058
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -381,
+        "z": 368
+      },
+      "scale": 0.8567628522403538
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": 359,
+        "z": 443
+      },
+      "scale": 0.7733956654556096
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 327,
+        "z": -373
+      },
+      "scale": 1.050717641878873
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": 344,
+        "z": -335
+      },
+      "scale": 0.9112629611976444
+    },
+    {
+      "type": "bush",
+      "position": {
+        "x": -47,
+        "z": 469
+      },
+      "scale": 1.1103783030994236
+    },
+    {
+      "type": "tall_grass",
+      "position": {
+        "x": 127,
+        "z": -419
+      },
+      "scale": 1.2362228472717107
+    },
+    {
+      "type": "tree",
+      "position": {
+        "x": -517,
+        "z": 271
+      },
+      "scale": 1.2097682734020054
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 223,
+        "z": 199
+      },
+      "scale": 0.984798761177808
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": 37,
+        "z": -486
+      },
+      "scale": 0.8479109902866184
+    },
+    {
+      "type": "small_plant",
+      "position": {
+        "x": 200,
+        "z": 314
+      },
+      "scale": 1.1185141404159367
+    },
+    {
+      "type": "stone_circle",
+      "position": {
+        "x": -368,
+        "z": -374
+      },
+      "scale": 1.2488298912532627
+    }
+  ]
 }
