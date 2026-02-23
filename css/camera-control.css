@@ -77,6 +77,13 @@
     box-shadow: 0 0 15px rgba(255, 150, 0, 0.7);
 }
 
+/* View control mode on: tap camera to enable, then drag (right side or button) to look around */
+#camera-control-button.view-control-active {
+    background-color: rgba(60, 40, 0, 0.9);
+    border-color: #ff9600;
+    box-shadow: 0 0 15px rgba(255, 150, 0, 0.6);
+}
+
 .camera-icon,
 .camera-mode-icon,
 .portal-icon {

@@ -83,6 +83,11 @@ export class CameraControlUI extends UIComponent {
         this.cameraState.isTouch = false;
         this.cameraState.touchId = null; // Track which touch is controlling camera
         
+        // View control mode: tap camera button to enable, then drag anywhere on right side to look (like joystick for movement)
+        this.cameraState.viewControlModeActive = false;
+        this.cameraState.tapToExitViewControl = false; // When true, next tap on button will exit view control mode
+        this.cameraOverlay = null; // Right-side overlay for drag-to-look when view control mode is on
+        
         console.debug("CameraControlUI initialized with camera mode support");
     }
     
@@ -93,6 +98,7 @@ export class CameraControlUI extends UIComponent {
     async init() {
         // Create camera control button
         this.createCameraControlButton();
+        this.createCameraOverlay();
         
         // Set up event listeners for the button
         this.setupCameraControlButtonEvents();
@@ -417,7 +423,7 @@ export class CameraControlUI extends UIComponent {
         
         // Set tooltip for camera button (desktop hover + reinforces tap message)
         if (this.cameraButton) {
-            this.cameraButton.title = 'Hold then drag to change';
+            this.cameraButton.title = 'Tap to enable view control, then drag to look around';
         }
         
         // Update the camera mode button UI based on current mode
@@ -425,8 +431,95 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Update the camera mode button UI based on current mode
+     * Create right-side overlay for drag-to-look when view control mode is active (like joystick on left).
+     * Only visible when viewControlModeActive; allows dragging anywhere on right half to rotate camera.
      */
+    createCameraOverlay() {
+        if (document.getElementById('camera-view-control-overlay')) {
+            this.cameraOverlay = document.getElementById('camera-view-control-overlay');
+            return;
+        }
+        this.cameraOverlay = document.createElement('div');
+        this.cameraOverlay.id = 'camera-view-control-overlay';
+        this.cameraOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            z-index: 115;
+            pointer-events: none;
+            touch-action: none;
+            display: none;
+        `;
+        document.body.appendChild(this.cameraOverlay);
+        
+        const onOverlayTouchStart = (e) => {
+            if (!this.cameraState.viewControlModeActive || e.changedTouches.length === 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const touch = e.changedTouches[0];
+            if (!this.isOnRightHalfOfScreen(touch.clientX)) return;
+            this.cameraState.isTouch = true;
+            this.cameraState.touchId = touch.identifier;
+            this.cameraState.startX = touch.clientX;
+            this.cameraState.startY = touch.clientY;
+            this.cameraState.currentX = touch.clientX;
+            this.cameraState.currentY = touch.clientY;
+            this.cameraState.potentialDrag = true;
+            this.cameraState.active = false;
+            this.storeInitialCameraRotation();
+        };
+        const onOverlayMouseDown = (e) => {
+            if (!this.cameraState.viewControlModeActive) return;
+            if (!this.isOnRightHalfOfScreen(e.clientX)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            this.cameraState.isTouch = false;
+            this.cameraState.startX = e.clientX;
+            this.cameraState.startY = e.clientY;
+            this.cameraState.currentX = e.clientX;
+            this.cameraState.currentY = e.clientY;
+            this.cameraState.potentialDrag = true;
+            this.cameraState.active = false;
+            this.storeInitialCameraRotation();
+            document.addEventListener('mousemove', this.handleMouseMove);
+            document.addEventListener('mouseup', this.handleMouseUp);
+        };
+        this.cameraOverlay.addEventListener('touchstart', onOverlayTouchStart, { passive: false });
+        this.cameraOverlay.addEventListener('mousedown', onOverlayMouseDown);
+    }
+    
+    /**
+     * Check if client X is on the right half of the screen
+     */
+    isOnRightHalfOfScreen(clientX) {
+        return clientX >= window.innerWidth / 2;
+    }
+    
+    /**
+     * Update camera button and overlay when view control mode toggles
+     */
+    updateViewControlModeUI() {
+        if (this.cameraButton) {
+            if (this.cameraState.viewControlModeActive) {
+                this.cameraButton.classList.add('view-control-active');
+                this.cameraButton.title = 'View control on — tap again to disable';
+            } else {
+                this.cameraButton.classList.remove('view-control-active');
+                this.cameraButton.title = 'Tap to enable view control, then drag to look around';
+            }
+        }
+        if (this.cameraOverlay) {
+            if (this.cameraState.viewControlModeActive) {
+                this.cameraOverlay.style.display = 'block';
+                this.cameraOverlay.style.pointerEvents = 'auto';
+            } else {
+                this.cameraOverlay.style.display = 'none';
+                this.cameraOverlay.style.pointerEvents = 'none';
+            }
+        }
+    }
     updateCameraModeButtonUI() {
         if (!this.cameraModeButton) {
             console.debug('Camera mode button not available for UI update');
@@ -474,6 +567,14 @@ export class CameraControlUI extends UIComponent {
             event.preventDefault();
             event.stopPropagation();
             
+            // If view control mode is on, this tap might be to exit (handled in touchend)
+            if (this.cameraState.viewControlModeActive) {
+                this.cameraState.tapToExitViewControl = true;
+                this.cameraState.touchId = event.touches[0].identifier;
+                this.cameraState.potentialDrag = false;
+                return;
+            }
+            
             const touch = event.touches[0];
             this.cameraState.isTouch = true;
             this.cameraState.touchId = touch.identifier;
@@ -498,6 +599,16 @@ export class CameraControlUI extends UIComponent {
         this.cameraButton.addEventListener('mousedown', (event) => {
             event.preventDefault();
             event.stopPropagation();
+            
+            // If view control mode is on, this click might be to exit (handled in mouseup)
+            if (this.cameraState.viewControlModeActive) {
+                this.cameraState.tapToExitViewControl = true;
+                this.cameraState.potentialDrag = false;
+                document.addEventListener('mousemove', this.handleMouseMove);
+                document.addEventListener('mouseup', this.handleMouseUp);
+                return;
+            }
+            
             this.cameraState.isTouch = false;
             
             // Store mouse start position but don't activate camera control yet
@@ -558,9 +669,27 @@ export class CameraControlUI extends UIComponent {
             // Check if our camera touch ended (or all touches ended)
             const ourTouchEnded = this.cameraState.touchId === null ||
                 Array.from(event.changedTouches).some(t => t.identifier === this.cameraState.touchId);
-            if ((this.cameraState.potentialDrag || this.cameraState.active) && ourTouchEnded) {
+            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) && ourTouchEnded) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
+                
+                // Tap to exit view control mode (tap on button when mode was on)
+                if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
+                    this.cameraState.viewControlModeActive = false;
+                    this.updateViewControlModeUI();
+                    this.cameraState.tapToExitViewControl = false;
+                    this.cameraState.touchId = null;
+                    return;
+                }
+                
+                // Simple tap on button when view control mode is off -> enable view control mode
+                if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
+                    this.cameraState.viewControlModeActive = true;
+                    this.updateViewControlModeUI();
+                    this.cameraState.potentialDrag = false;
+                    this.cameraState.touchId = null;
+                    return;
+                }
                 
                 // If it was just a tap (not a drag), show tooltip "Hold then drag to change"
                 if (this.cameraState.potentialDrag && !this.cameraState.active) {
@@ -580,11 +709,12 @@ export class CameraControlUI extends UIComponent {
         document.addEventListener('touchcancel', (event) => {
             const ourTouchCancelled = this.cameraState.touchId === null ||
                 Array.from(event.changedTouches || []).some(t => t.identifier === this.cameraState.touchId);
-            if ((this.cameraState.potentialDrag || this.cameraState.active) && ourTouchCancelled) {
+            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) && ourTouchCancelled) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 this.handleCameraControlEnd();
                 this.cameraState.potentialDrag = false;
+                this.cameraState.tapToExitViewControl = false;
                 this.cameraState.touchId = null;
             }
         });
@@ -618,15 +748,29 @@ export class CameraControlUI extends UIComponent {
         
         // Mouse up handler (defined as property to allow removal)
         this.handleMouseUp = (event) => {
-            if (this.cameraState.potentialDrag || this.cameraState.active) {
+            if (this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // If it was just a click (not a drag), show tooltip "Hold then drag to change"
-                if (this.cameraState.potentialDrag && !this.cameraState.active) {
+                // Tap to exit view control mode
+                if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
+                    this.cameraState.viewControlModeActive = false;
+                    this.updateViewControlModeUI();
+                    this.cameraState.tapToExitViewControl = false;
+                    this.cameraState.potentialDrag = false;
+                    document.removeEventListener('mousemove', this.handleMouseMove);
+                    document.removeEventListener('mouseup', this.handleMouseUp);
+                    return;
+                }
+                
+                // Simple click on button when view control mode is off -> enable view control mode
+                if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
+                    this.cameraState.viewControlModeActive = true;
+                    this.updateViewControlModeUI();
+                } else if (this.cameraState.potentialDrag && !this.cameraState.active) {
+                    // If it was just a click (not a drag), show tooltip
                     this.showCameraHintTooltip();
                 } else {
-                    // Otherwise handle as camera control end
                     this.handleCameraControlEnd();
                 }
                 
@@ -865,14 +1009,14 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Create the camera hint tooltip element (text: "Hold then drag to change")
+     * Create the camera hint tooltip element (text: "Hold then drag to look around")
      */
     createCameraHintTooltip() {
         if (this.cameraHintTooltip) return;
         const tooltip = document.createElement('div');
         tooltip.id = 'camera-hint-tooltip';
         tooltip.className = 'camera-hint-tooltip';
-        tooltip.textContent = 'Hold then drag to change';
+        tooltip.textContent = 'Hold then drag to look around';
         tooltip.style.cssText = `
             position: fixed;
             z-index: 300;
@@ -893,8 +1037,7 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Show tooltip "Hold then drag to change" when user clicks/taps without dragging.
-     * Replaces the old 4-direction indicator that showed then disappeared.
+     * Show tooltip "Hold then drag to look around" when user clicks/taps without dragging.
      */
     showCameraHintTooltip() {
         this.createCameraHintTooltip();
