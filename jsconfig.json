@@ -3,5 +3,5 @@
     "target": "es6",
     "module": "es6"
   },
-  "include": ["js/**/*", "test-data/BulPalmEffect.backup.js"]
+  "include": ["js/**/*"]
 }
