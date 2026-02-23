@@ -142,9 +142,9 @@ export class ZoneManager {
             }
         });
         
-        // Also update the base terrain if it exists
-        if (this.worldManager.terrainManager.terrain) {
-            const baseTerrain = this.worldManager.terrainManager.terrain;
+        // Also update the base terrain if it exists (legacy - base terrain is normally null; chunked terrain is used)
+        if (this.worldManager.terrainManager.baseTerrain) {
+            const baseTerrain = this.worldManager.terrainManager.baseTerrain;
             const mainZoneType = mainZone ? mainZone.name : 'Terrant';
             const themeColors = this.getThemeColorsForZoneType(mainZoneType);
             

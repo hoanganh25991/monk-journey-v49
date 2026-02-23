@@ -493,6 +493,9 @@ export class ExplodingPalmEffect extends SkillEffect {
       this.effect.position.z += this.direction.z * moveDistance;
     }
     
+    // Update Y to follow terrain height
+    this.updateEffectHeightForTerrain(1.0);
+    
     // Update palm state age
     this.explodingPalmState.age = this.age;
     

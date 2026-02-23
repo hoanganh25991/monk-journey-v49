@@ -357,8 +357,24 @@ export class ShadowDragonEffect extends FlyingDragonEffect {
             this.shadowCloneObject.position.x += (targetX - this.shadowCloneObject.position.x) * 0.1;
             this.shadowCloneObject.position.z += (targetZ - this.shadowCloneObject.position.z) * 0.1;
             
-            // Match player's Y position
-            this.shadowCloneObject.position.y = playerPosition.y;
+            // Update Y to follow terrain at shadow's current position
+            if (this.skill.game.world) {
+                try {
+                    const h = this.skill.game.world.getTerrainHeight(
+                        this.shadowCloneObject.position.x,
+                        this.shadowCloneObject.position.z
+                    );
+                    if (h != null && isFinite(h)) {
+                        this.shadowCloneObject.position.y = h + 0.5;
+                    } else {
+                        this.shadowCloneObject.position.y = playerPosition.y;
+                    }
+                } catch (_) {
+                    this.shadowCloneObject.position.y = playerPosition.y;
+                }
+            } else {
+                this.shadowCloneObject.position.y = playerPosition.y;
+            }
             
             // Face same direction as player
             if (playerDirection.x !== 0 || playerDirection.z !== 0) {

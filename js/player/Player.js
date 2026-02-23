@@ -93,6 +93,17 @@ export class Player {
             return; // Skip all player updates when game is paused
         }
         
+        // Process jump request from input (Space or jump button) - handled in game loop so it always runs
+        if (this.game && this.game.jumpRequested) {
+            console.log('🎮 Processing jump request in Player.update()');
+            this.game.jumpRequested = false;
+            if (this.movement) {
+                this.movement.jump();
+            } else {
+                console.error('❌ Movement not available for jump!');
+            }
+        }
+        
         // Check for keyboard movement input
         if (this.game && this.game.inputHandler) {
             this.movement.handleKeyboardMovement(delta);
@@ -138,6 +149,13 @@ export class Player {
      */
     moveTo(target) {
         this.movement.moveTo(target);
+    }
+    
+    /**
+     * Triggers a jump. Up to 3 jumps with diminishing force (max total height ~3x first jump).
+     */
+    jump() {
+        if (this.movement) this.movement.jump();
     }
     
     /**

@@ -289,15 +289,14 @@ export class TerrainManager {
         const worldZ = chunkZ * this.config.chunkSize;
         const chunkKey = `${chunkX},${chunkZ}`;
         
-        // Quality-aware resolution: immediate = near, buffered = far/buffer
+        // Use a single resolution for ALL chunks so boundary vertices align and there are no gaps
+        // (Different resolutions caused blue "underground" lines where adjacent chunks didn't meet.)
         const lod = this.config.terrainLod || { nearResolution: 32, midResolution: 16, farResolution: 8, bufferResolution: 6 };
-        const resolution = isImmediate 
-            ? lod.nearResolution 
-            : lod.bufferResolution;
+        const resolution = lod.nearResolution;
         const geometry = this.createTerrainGeometry(
-            worldX, 
-            worldZ, 
-            this.config.chunkSize, 
+            worldX,
+            worldZ,
+            this.config.chunkSize,
             Math.max(4, resolution)
         );
         
@@ -367,9 +366,11 @@ export class TerrainManager {
             return geometry;
         } catch (error) {
             console.error('TerrainManager: Failed to create terrain geometry:', error);
-            // Return a simple fallback geometry
-            const fallbackGeometry = new THREE.PlaneGeometry(64, 64, 16, 16);
+            // Return fallback geometry WITH height so we don't get a flat grey rectangle at 0,0
+            const fallbackGeometry = new THREE.PlaneGeometry(size, size, 16, 16);
             fallbackGeometry.rotateX(-Math.PI / 2);
+            this.applyHeightVariations(fallbackGeometry, centerX, centerZ);
+            fallbackGeometry.computeVertexNormals();
             return fallbackGeometry;
         }
     }
@@ -402,16 +403,16 @@ export class TerrainManager {
      */
     applyHeightVariations(geometry, centerX, centerZ) {
         const positions = geometry.attributes.position.array;
-        
+
         for (let i = 0; i < positions.length; i += 3) {
             const x = positions[i] + centerX;
             const z = positions[i + 2] + centerZ;
-            
+
             // Simple height calculation using noise with NaN validation
             const height = this.getTerrainHeight(x, z);
             positions[i + 1] = isNaN(height) ? 0 : height;
         }
-        
+
         geometry.attributes.position.needsUpdate = true;
     }
     
@@ -582,9 +583,9 @@ export class TerrainManager {
             const hasNeighborZone = (zoneR && zoneR !== zoneType) || (zoneU && zoneU !== zoneType);
             const otherZoneType = zoneR && zoneR !== zoneType ? zoneR : (zoneU && zoneU !== zoneType ? zoneU : null);
 
-            // Get base colors for the zone
-            const baseColorHex = zoneType === 'Terrant' ? (zoneColors.soil || 0xE5C09A) : 0x4a9e4a;
-            const baseColor = new THREE.Color(baseColorHex);
+            // Get base/ground color for the zone (soil, ground, or sand - matches surrounding terrain per map)
+            const baseColorHex = zoneColors.soil || zoneColors.ground || zoneColors.sand || 0xE5C09A;
+            const baseColor = new THREE.Color(typeof baseColorHex === 'string' ? parseInt(baseColorHex.replace('#', ''), 16) : baseColorHex);
 
             // Get additional colors for variety
             const accentColorHex = zoneColors.accent || zoneColors.vegetation || baseColorHex;
@@ -610,53 +611,52 @@ export class TerrainManager {
             const biomePattern = zoneType === 'Terrant' || zoneType === 'Forest' || zoneType === 'Desert' 
                 ? this.createBiomePattern(x, z, zoneType) : { variation: 0.3 };
             
-            // Consolidated noise - 2 calls instead of 8+ for performance
-            const colorNoise1 = this.improvedNoise(x * 0.005, z * 0.005);
-            const colorNoise2 = this.improvedNoise(x * 0.02, z * 0.02);
-            const combinedNoise = colorNoise1 * 0.6 + colorNoise2 * 0.4;
-            
-            // Height-based color mixing
-            const heightFactor = Math.max(0, Math.min(1, (y + 5) / 15)); // Normalize height to 0-1
-            
-            // Start with base color - reuse combinedNoise for variation (reduces noise calls)
-            let finalColor = baseColor.clone();
-            
-            // Single-pass color variation using combinedNoise
-            if (combinedNoise > 0.3) {
-                finalColor.multiplyScalar(0.6);
-                finalColor.lerp(rockColor, Math.min(1, combinedNoise * 2) * 0.7);
-            } else if (combinedNoise < -0.3) {
-                finalColor.multiplyScalar(1.4);
-                finalColor.lerp(new THREE.Color(0xF5DEB3), Math.abs(combinedNoise) * 0.8);
+            const isOriginChunk = chunkOriginX === 0 && chunkOriginZ === 0;
+
+            let finalColor;
+            if (isOriginChunk) {
+                // Origin chunk: use zone base color with warm bias to counteract blue sky/hemisphere lighting
+                finalColor = baseColor.clone();
+                const subtleNoise = this.improvedNoise(x * 0.02 + 5.67, z * 0.02 + 5.67); // Offset avoids singularity
+                finalColor.multiplyScalar(Math.max(0.92, Math.min(1.08, 1 + subtleNoise * 0.08)));
+                // Warm bias: reduce blue, boost red - counteracts HemisphereLight sky color (0x87CEEB) on flat spawn chunk
+                finalColor.r = Math.min(1, finalColor.r * 1.2);
+                finalColor.b = Math.max(0, finalColor.b * 0.75);
+            } else {
+                // Normal chunks: full variation
+                const colorNoise1 = this.improvedNoise(x * 0.005, z * 0.005);
+                const colorNoise2 = this.improvedNoise(x * 0.02, z * 0.02);
+                const combinedNoise = colorNoise1 * 0.6 + colorNoise2 * 0.4;
+                const heightFactor = Math.max(0, Math.min(1, (y + 5) / 15));
+
+                finalColor = baseColor.clone();
+                if (combinedNoise > 0.3) {
+                    finalColor.multiplyScalar(0.6);
+                    finalColor.lerp(rockColor, Math.min(1, combinedNoise * 2) * 0.7);
+                } else if (combinedNoise < -0.3) {
+                    finalColor.multiplyScalar(1.4);
+                    finalColor.lerp(new THREE.Color(0xF5DEB3), Math.abs(combinedNoise) * 0.8);
+                }
+                if (Math.abs(combinedNoise) > 0.4) {
+                    finalColor.lerp(accentColor, Math.min(1, Math.abs(combinedNoise) * 1.5) * 0.6);
+                }
+                finalColor.multiplyScalar(1 + combinedNoise * 0.15);
+                this.applyBiomeColoring(finalColor, biomePattern, zoneType, zoneColors, heightFactor);
+                if (Math.abs(combinedNoise) > 0.05) {
+                    finalColor.lerp(accentColor, Math.min(0.8, Math.abs(combinedNoise) * 3));
+                }
+                if (heightFactor > 0.5 || Math.abs(combinedNoise) > 0.3) {
+                    const rockMixAmount = Math.min(0.6, (heightFactor - 0.5) * 2 + Math.abs(combinedNoise) * 0.8);
+                    finalColor.lerp(rockColor, rockMixAmount);
+                }
+                finalColor.multiplyScalar(Math.max(0.3, Math.min(1.8, 1 + combinedNoise * 0.4)));
             }
-            if (Math.abs(combinedNoise) > 0.4) {
-                finalColor.lerp(accentColor, Math.min(1, Math.abs(combinedNoise) * 1.5) * 0.6);
-            }
-            finalColor.multiplyScalar(1 + combinedNoise * 0.15);
-            
-            // Apply biome-specific coloring based on patterns
-            this.applyBiomeColoring(finalColor, biomePattern, zoneType, zoneColors, heightFactor);
-            
-            // Mix with accent color based on noise - ENHANCED VISIBILITY
-            if (Math.abs(combinedNoise) > 0.05) { // Lower threshold for more variation
-                const mixAmount = Math.min(0.8, Math.abs(combinedNoise) * 3); // Stronger mixing
-                finalColor.lerp(accentColor, mixAmount);
-            }
-            
-            // Add rock color at higher elevations or steep slopes - ENHANCED
-            if (heightFactor > 0.5 || Math.abs(combinedNoise) > 0.3) { // Lower thresholds
-                const rockMixAmount = Math.min(0.6, (heightFactor - 0.5) * 2 + Math.abs(combinedNoise) * 0.8);
-                finalColor.lerp(rockColor, rockMixAmount);
-            }
-            
-            // Brightness variation using combinedNoise (skip extra temperatureNoise call)
-            finalColor.multiplyScalar(Math.max(0.3, Math.min(1.8, 1 + combinedNoise * 0.4)));
 
             // Soft blend at zone boundaries (reduces hard gray/yellow line)
             if (hasNeighborZone && otherZoneType) {
                 const otherColors = ZONE_COLORS?.[otherZoneType] || ZONE_COLORS?.['Terrant'] || {};
-                const otherBaseHex = otherZoneType === 'Terrant' ? (otherColors.soil || 0xE5C09A) : 0x4a9e4a;
-                const otherColor = new THREE.Color(otherBaseHex);
+                const otherBaseHex = otherColors.soil || otherColors.ground || otherColors.sand || 0xE5C09A;
+                const otherColor = new THREE.Color(typeof otherBaseHex === 'string' ? parseInt(otherBaseHex.replace('#', ''), 16) : otherBaseHex);
                 const blendAmount = 0.5; // How much to blend toward neighbor zone (softer = higher, max 1)
                 finalColor.lerp(otherColor, blendAmount);
             }

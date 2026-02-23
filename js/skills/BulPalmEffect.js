@@ -696,6 +696,9 @@ export class BulPalmEffect extends SkillEffect {
       this.effect.position.z += this.direction.z * moveDistance;
     }
     
+    // Update Y to follow terrain height
+    this.updateEffectHeightForTerrain(1.0);
+    
     // Animate hand
     if (this.handGroup) {
       // Slight bobbing motion

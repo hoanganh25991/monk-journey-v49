@@ -396,9 +396,20 @@ export class ExplosiveLightEffect extends WaveOfLightEffect {
                         child.rotation.y += child.userData.rotationSpeed.y * delta;
                         child.rotation.z += child.userData.rotationSpeed.z * delta;
                         
-                        // Bounce off ground
-                        if (child.position.y < 0.05) {
-                            child.position.y = 0.05;
+                        // Bounce off ground - use terrain height at debris world position
+                        const worldX = this.effect.position.x + child.position.x;
+                        const worldZ = this.effect.position.z + child.position.z;
+                        let groundY = 0.05;
+                        if (this.skill?.game?.world) {
+                            try {
+                                const terrainH = this.skill.game.world.getTerrainHeight(worldX, worldZ);
+                                if (terrainH != null && isFinite(terrainH)) {
+                                    groundY = (terrainH - this.effect.position.y) + 0.05;
+                                }
+                            } catch (_) {}
+                        }
+                        if (child.position.y < groundY) {
+                            child.position.y = groundY;
                             child.userData.direction.y = Math.abs(child.userData.direction.y) * 0.6;
                             child.userData.speed *= 0.8;
                         }

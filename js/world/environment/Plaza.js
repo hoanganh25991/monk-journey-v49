@@ -47,7 +47,8 @@ export class Plaza {
         
         const plaza = new THREE.Mesh(plazaGeometry, plazaMaterial);
         plaza.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        plaza.position.set(data.position.x, 0.05, data.position.z); // Slightly above ground
+        const baseY = (data.position.y != null && isFinite(data.position.y)) ? data.position.y : 0;
+        plaza.position.set(data.position.x, baseY + 0.05, data.position.z); // Terrain height + slight offset
         
         plaza.userData = { type: 'plaza' };
         

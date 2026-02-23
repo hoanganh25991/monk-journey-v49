@@ -35,6 +35,21 @@ export class SkillEffect {
     }
 
     /**
+     * Update effect's Y position to follow terrain height at current X,Z.
+     * Call this after moving projectiles (e.g. Deadly Reach, Wave Strike) so they stay on terrain.
+     * @param {number} offset - Height above terrain (default 1.0)
+     */
+    updateEffectHeightForTerrain(offset = 1.0) {
+        if (!this.effect || !this.skill?.game?.world) return;
+        try {
+            const h = this.skill.game.world.getTerrainHeight(this.effect.position.x, this.effect.position.z);
+            if (h != null && h !== undefined && isFinite(h)) {
+                this.effect.position.y = h + offset;
+            }
+        } catch (_) { /* terrain may not be ready */ }
+    }
+
+    /**
      * Adjust position to respect terrain height
      * @param {THREE.Vector3} position - The original position
      * @returns {THREE.Vector3} - The adjusted position

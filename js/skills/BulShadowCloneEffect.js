@@ -613,8 +613,8 @@ export class BulShadowCloneEffect extends SkillEffect {
                     clone.group.rotation.y = Math.atan2(playerDirection.x, playerDirection.z);
                 }
                 
-                // Match player's Y position
-                clone.group.position.y = playerPosition.y;
+                // Update Y to follow terrain at clone's current position
+                this._updateCloneHeightForTerrain(clone);
             }
         }
     }
@@ -686,8 +686,8 @@ export class BulShadowCloneEffect extends SkillEffect {
         clone.group.position.x += (dx / distance) * moveSpeed;
         clone.group.position.z += (dz / distance) * moveSpeed;
         
-        // Match target's Y position
-        clone.group.position.y = targetPosition.y;
+        // Update Y to follow terrain at clone's current position
+        this._updateCloneHeightForTerrain(clone);
         
         // Face target
         clone.group.rotation.y = Math.atan2(dx, dz);
@@ -696,6 +696,21 @@ export class BulShadowCloneEffect extends SkillEffect {
         clone.followPlayer = false;
     }
     
+    /**
+     * Update clone's Y position to follow terrain height
+     * @param {Object} clone - Clone data with group
+     * @private
+     */
+    _updateCloneHeightForTerrain(clone) {
+        if (!clone?.group || !this.skill?.game?.world) return;
+        try {
+            const h = this.skill.game.world.getTerrainHeight(clone.group.position.x, clone.group.position.z);
+            if (h != null && h !== undefined && isFinite(h)) {
+                clone.group.position.y = h + 0.5; // Character height offset
+            }
+        } catch (_) { /* terrain may not be ready */ }
+    }
+
     /**
      * Update an attacking clone
      * @param {Object} clone - Clone data
@@ -752,6 +767,9 @@ export class BulShadowCloneEffect extends SkillEffect {
         
         // Face target
         clone.group.rotation.y = Math.atan2(dx, dz);
+        
+        // Update Y to follow terrain at clone's current position
+        this._updateCloneHeightForTerrain(clone);
         
         // Attack if cooldown has elapsed
         const now = Date.now() / 1000;

@@ -394,8 +394,23 @@ export class WaveOfLightEffect extends SkillEffect {
                     child.position.x += direction.x * moveSpeed;
                     child.position.z += direction.z * moveSpeed;
                     
-                    // Bounce particles
-                    child.position.y = Math.abs(Math.sin(this.bellState.impactTime * 5 + i)) * 0.5;
+                    // Update particle Y to follow terrain at world position (for slopes)
+                    if (this.skill?.game?.world) {
+                        try {
+                            const worldX = this.effect.position.x + child.position.x;
+                            const worldZ = this.effect.position.z + child.position.z;
+                            const terrainH = this.skill.game.world.getTerrainHeight(worldX, worldZ);
+                            if (terrainH != null && isFinite(terrainH)) {
+                                child.position.y = (terrainH - this.effect.position.y) + 0.1;
+                            } else {
+                                child.position.y = Math.abs(Math.sin(this.bellState.impactTime * 5 + i)) * 0.5;
+                            }
+                        } catch (_) {
+                            child.position.y = Math.abs(Math.sin(this.bellState.impactTime * 5 + i)) * 0.5;
+                        }
+                    } else {
+                        child.position.y = Math.abs(Math.sin(this.bellState.impactTime * 5 + i)) * 0.5;
+                    }
                     
                     // Fade particles based on distance from center
                     const distanceFromCenter = Math.sqrt(

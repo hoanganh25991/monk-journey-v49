@@ -451,6 +451,11 @@ export class HUDManager {
         if (hudGuideButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
             hudGuideButton.style.display = 'none';
         }
+        
+        const jumpButton = document.getElementById('jump-button');
+        if (jumpButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
+            jumpButton.style.display = 'none';
+        }
     }
     
     /**
@@ -490,6 +495,11 @@ export class HUDManager {
         const hudGuideButton = document.getElementById('hud-guide-button');
         if (hudGuideButton) {
             hudGuideButton.style.display = 'block';
+        }
+        
+        const jumpButton = document.getElementById('jump-button');
+        if (jumpButton) {
+            jumpButton.style.display = 'flex';
         }
     }
     

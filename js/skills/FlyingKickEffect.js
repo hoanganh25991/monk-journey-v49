@@ -203,6 +203,9 @@ export class FlyingKickEffect extends SkillEffect {
         this.effect.position.x += this.direction.x * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
         
+        // Update Y to follow terrain height
+        this.updateEffectHeightForTerrain(1.0);
+        
         // IMPORTANT: Update the skill's position property to match the effect's position
         this.skill.position.copy(this.effect.position);
         

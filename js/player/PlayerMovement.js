@@ -29,8 +29,30 @@ export class PlayerMovement {
         this.collisionRadius = 0.5;
         this.heightOffset = 1.0;
         
+        // Jump state: velocity, count, max jumps, diminishing force (max total ~3x first jump)
+        this.velocityY = 0;
+        this.jumpCount = 0;
+        this.maxJumps = 3;
+        this.jumpForces = [12, 7, 4]; // Strong first jump so monk visibly rises
+        this.gravity = 28;
+        this.groundedTolerance = 0.2;
+        
         // Game reference
         this.game = game;
+    }
+    
+    /**
+     * Trigger a jump. Up to 3 jumps with diminishing force (max total height ~3x first jump).
+     */
+    jump() {
+        console.log('🚀 JUMP called! jumpCount:', this.jumpCount, 'velocityY before:', this.velocityY);
+        if (this.jumpCount >= this.maxJumps) {
+            console.log('❌ Jump blocked - already jumped', this.maxJumps, 'times');
+            return;
+        }
+        this.velocityY += this.jumpForces[this.jumpCount];
+        this.jumpCount++;
+        console.log('✅ Jump executed! velocityY now:', this.velocityY, 'jumpCount:', this.jumpCount);
     }
     
     // setGame method removed - game is now passed in constructor
@@ -75,11 +97,56 @@ export class PlayerMovement {
             }
         }
         
+        // Apply jump physics (gravity + velocity)
+        this.updateJumpPhysics(delta);
+        
         // Update the world based on player position
         if (this.game && this.game.world) {
             // Get delta time from game if available, otherwise use a default value
             const delta = this.game.delta || 0.016;
             this.game.world.update(this.position, delta);
+        }
+    }
+    
+    updateJumpPhysics(delta) {
+        if (!this.game || !this.game.world) {
+            if (this.velocityY !== 0) console.log('⚠️ Jump physics skipped - no game.world');
+            return;
+        }
+        const safeDelta = Math.min(Math.max(delta || 0.016, 0.001), 0.1);
+        try {
+            const terrainHeight = this.game.world.getTerrainHeight(this.position.x, this.position.z);
+            if (terrainHeight === null || terrainHeight === undefined || !isFinite(terrainHeight)) {
+                if (this.velocityY !== 0) console.log('⚠️ Jump physics skipped - invalid terrain height');
+                return;
+            }
+            
+            const groundY = terrainHeight + this.heightOffset;
+            
+            // Apply gravity and velocity when in air
+            if (this.velocityY !== 0) {
+                const oldY = this.position.y;
+                this.velocityY -= this.gravity * safeDelta;
+                this.position.y += this.velocityY * safeDelta;
+                console.log(`🌊 Jump physics: Y ${oldY.toFixed(2)} → ${this.position.y.toFixed(2)}, velocityY: ${this.velocityY.toFixed(2)}, groundY: ${groundY.toFixed(2)}`);
+            }
+            
+            // Land when we hit or pass ground
+            if (this.position.y <= groundY + this.groundedTolerance) {
+                if (this.velocityY !== 0 || this.jumpCount !== 0) {
+                    console.log('🛬 LANDED at Y:', this.position.y.toFixed(2), 'groundY:', groundY.toFixed(2));
+                }
+                this.position.y = groundY;
+                this.velocityY = 0;
+                this.jumpCount = 0;
+            }
+            
+            // Always sync model to movement position (critical for visible jump)
+            if (this.modelGroup) {
+                this.modelGroup.position.set(this.position.x, this.position.y, this.position.z);
+            }
+        } catch (err) {
+            console.error('❌ Jump physics error:', err);
         }
     }
     
@@ -132,7 +199,10 @@ export class PlayerMovement {
     }
     
     updateTerrainHeight() {
-        // Ensure player is always at the correct terrain height
+        // Skip terrain snap when jumping (velocityY handles Y)
+        if (this.velocityY !== 0) return;
+        
+        // Ensure player is always at the correct terrain height when grounded
         if (this.game && this.game.world) {
             try {
                 const terrainHeight = this.game.world.getTerrainHeight(this.position.x, this.position.z);

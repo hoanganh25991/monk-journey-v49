@@ -139,17 +139,36 @@ export class StructureFactory {
             return mountainGroup;
         });
         
-        // Register bridge structures
-        this.register(STRUCTURE_OBJECTS.BRIDGE, (x, z) => {
+        // Register bridge structures - height-aware for slopes (one end low, one end high)
+        this.register(STRUCTURE_OBJECTS.BRIDGE, (x, z, rotationY = null) => {
             const zoneType = this.getZoneTypeAt(x, z);
             const bridge = new Bridge(zoneType);
             const bridgeGroup = bridge.createMesh();
+            const length = bridge.options.length;
             
-            // Position bridge on terrain
-            bridgeGroup.position.set(x, this.getTerrainHeight(x, z), z);
+            // Use provided rotation (from map) or random for procedural placement
+            const rotY = rotationY !== null && rotationY !== undefined
+                ? rotationY
+                : Math.random() * Math.PI;
+            bridgeGroup.rotation.y = rotY;
             
-            // Randomly rotate the bridge
-            bridgeGroup.rotation.y = Math.random() * Math.PI;
+            // Bridge extends along local Z; in world, direction = (sin(rot), 0, cos(rot))
+            const halfLen = length / 2;
+            const startX = x - halfLen * Math.sin(rotY);
+            const startZ = z - halfLen * Math.cos(rotY);
+            const endX = x + halfLen * Math.sin(rotY);
+            const endZ = z + halfLen * Math.cos(rotY);
+            
+            const startHeight = this.getTerrainHeight(startX, startZ);
+            const endHeight = this.getTerrainHeight(endX, endZ);
+            const avgHeight = (startHeight + endHeight) / 2;
+            
+            // Tilt bridge to match slope (rotation.x = pitch)
+            const heightDiff = endHeight - startHeight;
+            const tiltAngle = Math.atan2(heightDiff, length);
+            bridgeGroup.rotation.x = -tiltAngle;
+            
+            bridgeGroup.position.set(x, avgHeight, z);
             
             // Add to scene
             this.scene.add(bridgeGroup);
@@ -288,7 +307,7 @@ export class StructureFactory {
         }
         
         // Extract common parameters
-        const { x, z, width, depth, height, style, scale } = params;
+        const { x, z, width, depth, height, style, scale, rotation } = params;
         
         // Call the creator function with appropriate parameters
         let result;
@@ -301,6 +320,8 @@ export class StructureFactory {
             result = creator(x, z, width, depth, height, style);
         } else if (type === STRUCTURE_OBJECTS.MOUNTAIN) {
             result = creator(x, z, scale);
+        } else if (type === STRUCTURE_OBJECTS.BRIDGE) {
+            result = creator(x, z, rotation);
         } else {
             result = creator(x, z);
         }

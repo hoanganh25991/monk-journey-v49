@@ -39,14 +39,18 @@ export class VirtualJoystickUI extends UIComponent {
         const baseSize = joystickConfig.baseSize;
         const handleSize = joystickConfig.handleSize;
         
-        // Apply size multiplier to joystick container
+        // Apply size multiplier to joystick - container is flex, wrapper holds the joystick visual
         const scaledBaseSize = baseSize * sizeMultiplier;
-        this.container.style.width = `${scaledBaseSize}px`;
-        this.container.style.height = `${scaledBaseSize}px`;
+        this.container.style.display = 'flex';
+        this.container.style.alignItems = 'center';
+        this.container.style.gap = '2rem';
         
         const template = `
-            <div id="virtual-joystick-base"></div>
-            <div id="virtual-joystick-handle" style="width: ${handleSize * sizeMultiplier}px; height: ${handleSize * sizeMultiplier}px;"></div>
+            <div id="joystick-visual-wrapper" style="width: ${scaledBaseSize}px; height: ${scaledBaseSize}px; position: relative; flex-shrink: 0;">
+                <div id="joystick-interaction-overlay"></div>
+                <div id="virtual-joystick-base"></div>
+                <div id="virtual-joystick-handle" style="width: ${handleSize * sizeMultiplier}px; height: ${handleSize * sizeMultiplier}px;"></div>
+            </div>
             <div id="joystick-overlay"></div>
         `;
         
@@ -56,6 +60,7 @@ export class VirtualJoystickUI extends UIComponent {
         // Store references to elements we need to update
         this.joystickBase = document.getElementById('virtual-joystick-base');
         this.joystickHandle = document.getElementById('virtual-joystick-handle');
+        this.joystickVisualWrapper = document.getElementById('joystick-visual-wrapper');
         
         // Create a full-screen overlay for joystick input that only responds to the left half of the screen
         this.createJoystickOverlay();
@@ -63,7 +68,50 @@ export class VirtualJoystickUI extends UIComponent {
         // Set up touch event listeners
         this.setupJoystickEvents();
         
+        // Set up jump button (in body, outside overlay - always clickable)
+        this.setupJumpButton();
+        
         return true;
+    }
+    
+    setupJumpButton() {
+        let jumpBtn = document.getElementById('jump-button');
+        if (!jumpBtn) {
+            jumpBtn = document.createElement('button');
+            jumpBtn.id = 'jump-button';
+            jumpBtn.className = 'jump-button';
+            jumpBtn.title = 'Jump (Space)';
+            jumpBtn.textContent = '🚀';
+            jumpBtn.setAttribute('aria-label', 'Jump');
+            document.body.appendChild(jumpBtn);
+        }
+        
+        const doJump = () => {
+            console.log('🖱️ Jump button clicked! Setting game.jumpRequested = true');
+            if (this.game) {
+                this.game.jumpRequested = true;
+            } else {
+                console.error('❌ No game reference in VirtualJoystickUI!');
+            }
+        };
+        
+        jumpBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            doJump();
+        }, { passive: false });
+        
+        jumpBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            doJump();
+        });
+        
+        jumpBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            doJump();
+        });
     }
     
     /**
@@ -211,8 +259,8 @@ export class VirtualJoystickUI extends UIComponent {
      * @param {number} clientY - Y position of touch/mouse
      */
     handleJoystickStart(clientX, clientY) {
-        // Get joystick container position
-        const rect = this.container.getBoundingClientRect();
+        // Get joystick visual area position (not the full container with jump button)
+        const rect = (this.joystickVisualWrapper || this.container).getBoundingClientRect();
         
         // Set joystick state
         this.joystickState.active = true;
@@ -238,8 +286,8 @@ export class VirtualJoystickUI extends UIComponent {
         // Calculate distance
         const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
         
-        // Get joystick container radius
-        const rect = this.container.getBoundingClientRect();
+        // Get joystick visual area radius
+        const rect = (this.joystickVisualWrapper || this.container).getBoundingClientRect();
         const radius = rect.width / 2;
         
         // Limit distance to radius

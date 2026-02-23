@@ -102,7 +102,8 @@ export class StructureManager {
                     depth: structureData.depth,
                     height: structureData.height,
                     style: structureData.type,
-                    scale: structureData.scale
+                    scale: structureData.scale,
+                    rotation: structureData.rotation
                 };
                 
                 structure = this.structureFactory.createStructure(structureData.type, params);
@@ -112,20 +113,16 @@ export class StructureManager {
                 }
 
                 if (structure) {
-                    // Apply rotation if specified
+                    // Apply rotation if specified (bridge uses rotation in creator; others may override)
                     if (structureData.rotation !== undefined) {
                         structure.rotation.y = structureData.rotation;
                     }
                     
-                    // Create structure info
+                    // Create structure info - use actual structure position for correct terrain height
                     const structureInfo = {
                         type: structureData.type,
                         object: structure,
-                        position: new THREE.Vector3(
-                            structureData.position.x,
-                            structureData.position.y || 0,
-                            structureData.position.z
-                        ),
+                        position: structure.position.clone(),
                         id: structureData.id,
                         groupId: structureData.groupId
                     };

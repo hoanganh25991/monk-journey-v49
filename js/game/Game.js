@@ -73,6 +73,9 @@ export class Game {
         this.loadingManager = new LoadingManager().getManager();
         this.itemGenerator = new ItemGenerator(this);
         
+        /** Set to true when Space or jump button is pressed; processed in game loop */
+        this.jumpRequested = false;
+        
         // Default difficulty (will be updated in init)
         this.difficulty = 'medium';
         
@@ -827,6 +830,7 @@ export class Game {
         
         // If game is paused, only render the scene but don't update game logic
         if (this.state.isPaused()) {
+            this.jumpRequested = false; // clear so we don't jump when resuming
             // Just render the scene using safe render
             this.safeRender(this.scene, this.camera);
             return;

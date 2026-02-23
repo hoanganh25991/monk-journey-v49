@@ -129,6 +129,7 @@ export class ControlsDisplay {
         
         // Add mobile controls
         this.addControlRow(controlsColumn, 'Left Joystick', 'Movement');
+        this.addControlRow(controlsColumn, '🚀 Jump Button', 'Jump (up to 3x)');
         this.addControlRow(controlsColumn, 'Skill Buttons', 'Activate Skills');
         this.addControlRow(controlsColumn, 'Tap Enemy', 'Attack Target');
         this.addControlRow(controlsColumn, 'Tap Object', 'Interact');

@@ -6,19 +6,20 @@
 
 /* Virtual Joystick */
 #virtual-joystick-container {
-    /* width and height are set dynamically via JavaScript */
-    position: fixed; /* Change to fixed position */
-    bottom: 2rem; /* Position at bottom */
-    left: 2rem; /* Position at left */
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
     pointer-events: auto;
     touch-action: none;
-    display: block;
     -webkit-appearance: none;
     appearance: none;
-    background-color: transparent; /* Make container transparent */
-    border: none; /* Remove border from container */
-    box-shadow: none; /* Remove box shadow from container */
-    z-index: 100; /* Ensure joystick is above most elements but below the overlay */
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    z-index: 100;
 }
 
 #virtual-joystick-base {
@@ -69,4 +70,41 @@
     background-color: transparent;
     pointer-events: auto;
     z-index: 50;
+}
+
+/* Jump Button - in body, outside joystick overlay (left 50%), always clickable */
+#jump-button,
+.jump-button {
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+    position: fixed;
+    bottom: 2.5rem;
+    left: calc(2rem + 130px + 2rem);
+    z-index: 250;
+    display: flex;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid #6b4c2a;
+    border-radius: 50%;
+    color: #ffcc66;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(255, 150, 0, 0.3);
+    pointer-events: auto;
+    touch-action: none;
+    transition: transform 0.1s;
+}
+
+.jump-button:active {
+    transform: scale(0.95);
+}
+
+.jump-button:hover {
+    border-color: #ff9600;
+    box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
 }

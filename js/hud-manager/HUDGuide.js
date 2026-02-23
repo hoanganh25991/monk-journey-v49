@@ -120,8 +120,8 @@ export function startHUDGuide() {
           document.getElementById('joystick-interaction-overlay')
         );
       },
-      title: 'Joystick (Bottom-Left)',
-      desc: 'Drag to move your character. On desktop, use WASD to move.',
+      title: 'Joystick & Jump (Bottom-Left)',
+      desc: 'Drag to move your character. Tap the 🚀 button or press Space to jump (up to 3 times). On desktop, use WASD to move.',
     },
     {
       key: 'skills',

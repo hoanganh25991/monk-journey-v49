@@ -36,6 +36,16 @@ export class InputHandler {
         // Initialize input event listeners
         this.initKeyboardEvents();
         
+        // Space/jump: also listen in capture phase so we get it before canvas or other elements
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                console.log('⌨️ SPACE pressed! Setting game.jumpRequested = true');
+                if (this.game) this.game.jumpRequested = true;
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+        
         // Prevent context menu on right click
         window.addEventListener('contextmenu', (event) => {
             event.preventDefault();
@@ -47,8 +57,13 @@ export class InputHandler {
         window.addEventListener('keydown', (event) => {
             this.keys[event.code] = true;
             
-            // Debug: Log key press
-            // console.debug('Key pressed:', event.code);
+            // Handle Space for jump - set flag so game loop processes it (avoids focus/capture issues)
+            if (event.code === 'Space' || event.key === ' ') {
+                event.preventDefault();
+                event.stopPropagation();
+                if (this.game) this.game.jumpRequested = true;
+                return;
+            }
             
             // Handle special key presses
             switch (event.code) {
@@ -95,6 +110,7 @@ export class InputHandler {
                     // Interact with objects using the keyboard-based interaction method
                     this.handleInteractionWithNearestObject();
                     break;
+                    
                     
                 case ACTION_KEYS.START_GAME:
                     // Only allow starting a new game when the game is not already running

@@ -246,6 +246,9 @@ export class DeadlyReachEffect extends SkillEffect {
         this.effect.position.x += this.direction.x * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
         
+        // Update Y to follow terrain height - critical for hills/slopes
+        this.updateEffectHeightForTerrain(1.0);
+        
         // Update rotation to match current direction
         this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
         

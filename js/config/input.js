@@ -14,7 +14,8 @@ export const MOVEMENT_KEYS = {
 // Action keys
 export const ACTION_KEYS = {
     INTERACT: 'KeyE',
-    START_GAME: 'KeyG'
+    START_GAME: 'KeyG',
+    JUMP: 'Space'
 };
 
 // UI toggle keys

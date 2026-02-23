@@ -47,7 +47,8 @@ export class Square {
         
         const square = new THREE.Mesh(squareGeometry, squareMaterial);
         square.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-        square.position.set(data.position.x, 0.05, data.position.z); // Slightly above ground
+        const baseY = (data.position.y != null && isFinite(data.position.y)) ? data.position.y : 0;
+        square.position.set(data.position.x, baseY + 0.05, data.position.z); // Terrain height + slight offset
         
         square.userData = { type: 'square' };
         
