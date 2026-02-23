@@ -106,11 +106,6 @@ export const SKILL_ICONS = {
     },
 
     // Cyclone Strike variants
-    "Frigid Cyclone": {
-        emoji: "❄️",
-        cssClass: "icon-frigid-cyclone",
-        color: "#aaddff"
-    },
     "Mystic Winds": {
         emoji: "🌀",
         cssClass: "icon-mystic-winds",

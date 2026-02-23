@@ -1,8 +1,9 @@
 {
   "id": "default",
   "name": "Default World",
-  "description": "The classic procedurally generated world. Zones are 10x larger for smoother transitions.",
+  "description": "The classic procedurally generated world. Single zone (Terrant) for consistent terrain without visible zone lines.",
   "type": "procedural",
+  "zoneStyle": "Terrant",
   "bounds": {
     "minX": -600,
     "maxX": 600,
