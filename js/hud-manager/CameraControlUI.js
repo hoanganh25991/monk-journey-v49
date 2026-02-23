@@ -677,7 +677,7 @@ export class CameraControlUI extends UIComponent {
                 if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
                     this.cameraState.viewControlModeActive = false;
                     this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360 view disabled');
+                    this.showCameraHintTooltip('360° View Off');
                     this.cameraState.tapToExitViewControl = false;
                     this.cameraState.touchId = null;
                     return;
@@ -687,7 +687,7 @@ export class CameraControlUI extends UIComponent {
                 if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
                     this.cameraState.viewControlModeActive = true;
                     this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('Change view enabled — drag to look around');
+                    this.showCameraHintTooltip('360° View On — Drag to look around');
                     this.cameraState.potentialDrag = false;
                     this.cameraState.touchId = null;
                     return;
@@ -758,7 +758,7 @@ export class CameraControlUI extends UIComponent {
                 if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
                     this.cameraState.viewControlModeActive = false;
                     this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360 view disabled');
+                    this.showCameraHintTooltip('360° View Off');
                     this.cameraState.tapToExitViewControl = false;
                     this.cameraState.potentialDrag = false;
                     document.removeEventListener('mousemove', this.handleMouseMove);
@@ -770,7 +770,7 @@ export class CameraControlUI extends UIComponent {
                 if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
                     this.cameraState.viewControlModeActive = true;
                     this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('Change view enabled — drag to look around');
+                    this.showCameraHintTooltip('360° View On — Drag to look around');
                 } else if (this.cameraState.potentialDrag && !this.cameraState.active) {
                     // If it was just a click (not a drag), show hint
                     this.showCameraHintTooltip();
@@ -1041,7 +1041,7 @@ export class CameraControlUI extends UIComponent {
     
     /**
      * Show a brief tooltip above the camera button.
-     * @param {string} [message] - Message to show (e.g. "Change view enabled" or "360 view disabled"). If omitted, shows "Enable change view".
+     * @param {string} [message] - Message to show (e.g. "Change view enabled" or "360° View Off"). If omitted, shows "Enable change view".
      */
     showCameraHintTooltip(message) {
         this.createCameraHintTooltip();
