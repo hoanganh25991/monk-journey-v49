@@ -303,19 +303,19 @@ export class TerrainManager {
         
         // Get zone type for this position (lightweight - no ZoneManager)
         const zoneType = this.worldManager?.getZoneTypeAt?.(worldX, worldZ) ?? 'Terrant';
-        
-        // Create material
-        const material = this.createTerrainMaterial(zoneType);
-        
+
+        // Use a single shared terrain material so per-vertex zone coloring has no chunk-boundary seam
+        const material = this.createTerrainMaterial();
+
         // Create mesh
         const chunk = new THREE.Mesh(geometry, material);
         // Add tiny height offset to prevent z-fighting
         chunk.position.set(worldX, 0.001, worldZ);
         chunk.receiveShadow = true;
         chunk.castShadow = false; // Terrain doesn't cast shadows for performance
-        
-        // Color the terrain with enhanced noise
-        this.colorTerrain(chunk, zoneType);
+
+        // Color terrain per-vertex using zone at each vertex (removes gray/yellow line at chunk edges)
+        this.colorTerrain(chunk);
         
         // Chunk creation (verbose logging disabled for performance)
         
@@ -531,19 +531,16 @@ export class TerrainManager {
     }
     
     /**
-     * Create or reuse terrain material with enhanced properties
+     * Create or reuse terrain material (single shared material for per-vertex zone coloring)
      */
-    createTerrainMaterial(zoneType) {
-        const cacheKey = `${zoneType}_enhanced`;
-        
+    createTerrainMaterial() {
+        const cacheKey = 'terrain_vertex';
+
         if (this.textureCache.has(cacheKey)) {
             return this.textureCache.get(cacheKey);
         }
-        
-        const zoneColors = ZONE_COLORS?.[zoneType] || ZONE_COLORS?.['Terrant'] || {};
-        const baseColor = zoneType === 'Terrant' ? (zoneColors.soil || 0xE5C09A) : 0x4a9e4a;
-        
-        // Enhanced material with better visual properties
+
+        // Single material: vertex colors carry per-vertex zone data
         const material = new THREE.MeshLambertMaterial({
             color: 0xffffff, // Use white so vertex colors show through properly
             vertexColors: true,
@@ -552,35 +549,49 @@ export class TerrainManager {
             flatShading: false, // Smooth shading for better noise visualization
             side: THREE.FrontSide,
         });
-        
+
         // Shader onBeforeCompile removed for performance - wave animation caused compilation stalls
         this.textureCache.set(cacheKey, material);
         return material;
     }
     
     /**
-     * Color terrain with natural variations using noise
+     * Color terrain with natural variations using per-vertex zone sampling.
+     * Uses zone at each vertex's world position so chunk boundaries no longer show a seam (gray/yellow line).
+     * Blends colors at zone boundaries for a natural transition.
      */
-    colorTerrain(terrain, zoneType) {
+    colorTerrain(terrain, zoneTypeOverride = null) {
         const colors = [];
         const positions = terrain.geometry.attributes.position.array;
-        const zoneColors = ZONE_COLORS?.[zoneType] || ZONE_COLORS?.['Terrant'] || {};
-        
-        // Get base colors for the zone
-        const baseColorHex = zoneType === 'Terrant' ? (zoneColors.soil || 0xE5C09A) : 0x4a9e4a;
-        const baseColor = new THREE.Color(baseColorHex);
-        
-        // Get additional colors for variety
-        const accentColorHex = zoneColors.accent || zoneColors.vegetation || baseColorHex;
-        const accentColor = new THREE.Color(accentColorHex);
-        
-        const rockColorHex = zoneColors.rock || 0x696969;
-        const rockColor = new THREE.Color(rockColorHex);
-        
+        const chunkOriginX = terrain.position.x;
+        const chunkOriginZ = terrain.position.z;
+        const blendDist = 20; // World units; blend zone colors within this distance of a boundary (softer = larger)
+
         for (let i = 0; i < positions.length; i += 3) {
-            const x = positions[i] + terrain.position.x;
-            const z = positions[i + 2] + terrain.position.z;
+            const x = positions[i] + chunkOriginX;
+            const z = positions[i + 2] + chunkOriginZ;
             const y = positions[i + 1]; // Height of this vertex
+
+            // Zone at this vertex (removes chunk-boundary seam)
+            const zoneType = zoneTypeOverride ?? this.worldManager?.getZoneTypeAt?.(x, z) ?? 'Terrant';
+            const zoneColors = ZONE_COLORS?.[zoneType] || ZONE_COLORS?.['Terrant'] || {};
+
+            // Detect zone boundary for soft blending (skip when uniform zone is forced)
+            const zoneR = !zoneTypeOverride ? this.worldManager?.getZoneTypeAt?.(x + blendDist, z) : null;
+            const zoneU = !zoneTypeOverride ? this.worldManager?.getZoneTypeAt?.(x, z + blendDist) : null;
+            const hasNeighborZone = (zoneR && zoneR !== zoneType) || (zoneU && zoneU !== zoneType);
+            const otherZoneType = zoneR && zoneR !== zoneType ? zoneR : (zoneU && zoneU !== zoneType ? zoneU : null);
+
+            // Get base colors for the zone
+            const baseColorHex = zoneType === 'Terrant' ? (zoneColors.soil || 0xE5C09A) : 0x4a9e4a;
+            const baseColor = new THREE.Color(baseColorHex);
+
+            // Get additional colors for variety
+            const accentColorHex = zoneColors.accent || zoneColors.vegetation || baseColorHex;
+            const accentColor = new THREE.Color(accentColorHex);
+
+            const rockColorHex = zoneColors.rock || 0x696969;
+            const rockColor = new THREE.Color(rockColorHex);
             
             // Debug test pattern (can be toggled via this.useTestPattern)
             if (this.useTestPattern) {
@@ -640,11 +651,28 @@ export class TerrainManager {
             
             // Brightness variation using combinedNoise (skip extra temperatureNoise call)
             finalColor.multiplyScalar(Math.max(0.3, Math.min(1.8, 1 + combinedNoise * 0.4)));
-            
+
+            // Soft blend at zone boundaries (reduces hard gray/yellow line)
+            if (hasNeighborZone && otherZoneType) {
+                const otherColors = ZONE_COLORS?.[otherZoneType] || ZONE_COLORS?.['Terrant'] || {};
+                const otherBaseHex = otherZoneType === 'Terrant' ? (otherColors.soil || 0xE5C09A) : 0x4a9e4a;
+                const otherColor = new THREE.Color(otherBaseHex);
+                const blendAmount = 0.5; // How much to blend toward neighbor zone (softer = higher, max 1)
+                finalColor.lerp(otherColor, blendAmount);
+            }
+
             colors.push(finalColor.r, finalColor.g, finalColor.b);
         }
         
         terrain.geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    }
+
+    /**
+     * Re-color a terrain chunk with a single zone (e.g. when updating theme or map).
+     * Called by ZoneManager. Uses zoneType for every vertex so the chunk appears uniform.
+     */
+    colorTerrainUniform(chunk, zoneType, themeColors = null) {
+        this.colorTerrain(chunk, zoneType || null);
     }
     
     /**
