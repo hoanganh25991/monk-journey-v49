@@ -2,7 +2,7 @@
  * PlayerModel.js
  * Handles the player's 3D model and animations, including loading, positioning,
  * scaling, and animating the player character in the game world.
- * 
+ *
  * This class is responsible for:
  * - Loading and managing 3D models from GLTF files
  * - Handling model animations and transitions between them
@@ -10,6 +10,11 @@
  * - Creating visual effects for player attacks
  * - Providing fallback models when primary models fail to load
  * - Supporting model customization and adjustments
+ *
+ * LOD (Level of Detail): The monk 3D model must NOT use LOD based on distance from
+ * world origin (0,0,0). Only camera zoom (distance from camera to player) and
+ * quality setting (high/medium/low/minimal) may change the model's detail. Otherwise
+ * the model should always appear the same. See performance-profile PLAYER_LOD_POLICY.
  */
 
 import * as THREE from 'three';

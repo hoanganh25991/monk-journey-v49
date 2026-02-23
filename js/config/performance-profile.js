@@ -142,6 +142,16 @@ export const SKILL_EFFECT_LOD_DISTANCES = {
 };
 
 /**
+ * Player (monk) 3D model LOD policy:
+ * - Do NOT use distance from world origin (0,0,0). Origin is just the first spawn; the character can be anywhere.
+ * - The monk model should stay the same unless:
+ *   1) User zooms out too far (camera distance) → then reduce detail, or
+ *   2) User changes quality (high/medium/low/minimal) → then use that profile.
+ * - Any player LOD must be driven only by: camera-to-player distance (zoom) and quality level.
+ */
+export const PLAYER_LOD_POLICY = 'camera_and_quality_only';
+
+/**
  * Shadow casting - disable for distant objects on low/minimal
  */
 export const SHADOW_CASTER_DISTANCE = {
