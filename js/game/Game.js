@@ -609,60 +609,62 @@ export class Game {
     
     /**
      * Start the game
+     * Loads selected map from localStorage first, then starts the loop (avoids in-game map swap lag).
      * @param {boolean} isLoadedGame - Whether this is a loaded game or a new game
      * @param {boolean} requestFullscreenMode - Whether to request fullscreen mode (default: true)
      */
     start(isLoadedGame = false, requestFullscreenMode = true) {
         console.debug("Game starting...");
-        
-        // Make sure the canvas is visible
+
+        const path = typeof localStorage !== 'undefined'
+            ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || 'maps/default.json')
+            : 'maps/default.json';
+
+        const overlayEl = document.getElementById('mapLoadingOverlay');
+        const loadingTextEl = overlayEl?.querySelector('.loading-text');
+        if (overlayEl) {
+            overlayEl.style.display = 'flex';
+            if (loadingTextEl) loadingTextEl.textContent = 'Loading map...';
+        }
+
         this.canvas.style.display = 'block';
-        
-        // Reset camera position if needed
         this.camera.position.set(0, 10, 20);
         this.camera.lookAt(0, 0, 0);
-        
-        // Disable orbit controls when game starts
-        // this.controls.enabled = false;
-        
-        // Only reset player position if this is a new game, not a loaded game
-        if (!isLoadedGame) {
-            console.debug("Starting new game - resetting player position to default");
-            this.player.setPosition(0, 1, -13);
-        } else {
-            console.debug("Starting loaded game - keeping saved player position");
-        }
-        
-        // Apply default map (bounds for boundary loop) - load from maps/default.json
-        this.loadAndApplyMap('maps/default.json').catch(() => {});
-        
-        // Start the game loop
-        this.state.setRunning();
-        this.clock.start();
-        
-        // Start the animation loop
-        this.animate();
-        
-        // Start background music
-        this.audioManager.playMusic();
-        
-        // Request fullscreen first, then size - avoids whitespace from canvas pre-init with wrong dimensions
-        if (requestFullscreenMode) {
-            console.debug("Requesting fullscreen mode as part of game start");
-            this.requestFullscreen().then(() => {
-                this.adjustRendererSize(); // Size after fullscreen applied
-            }).catch(error => {
-                console.warn("Could not enter fullscreen mode:", error);
+
+        const runAfterMapLoaded = (mapData) => {
+            if (overlayEl) overlayEl.style.display = 'none';
+            if (!isLoadedGame && this.player && mapData?.spawn) {
+                const s = mapData.spawn;
+                this.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
+            } else if (!isLoadedGame) {
+                this.player.setPosition(0, 1, -13);
+            }
+            this.state.setRunning();
+            this.clock.start();
+            this.animate();
+            this.audioManager.playMusic();
+            if (requestFullscreenMode) {
+                this.requestFullscreen().then(() => this.adjustRendererSize()).catch(() => this.adjustRendererSize());
+            } else {
                 this.adjustRendererSize();
-            });
-        } else {
-            this.adjustRendererSize();
-        }
-        
-        // Dispatch event that game has started
-        this.events.dispatch('gameStateChanged', 'running');
-        
-        console.debug("Game started successfully");
+            }
+            this.events.dispatch('gameStateChanged', 'running');
+            console.debug("Game started successfully");
+        };
+
+        const handleMapLoadError = (err) => {
+            console.error('Failed to load map:', err);
+            try {
+                localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, 'maps/default.json');
+            } catch (e) {}
+            if (loadingTextEl) loadingTextEl.textContent = 'Map unavailable. Using Default World. Reloading...';
+            if (this.hudManager?.showNotification) {
+                this.hudManager.showNotification('Failed to load map. Using Default World. Reloading...', 4000);
+            }
+            setTimeout(() => location.reload(), 2000);
+        };
+
+        this.loadAndApplyMap(path).then(runAfterMapLoaded).catch(handleMapLoadError);
     }
     
     /**

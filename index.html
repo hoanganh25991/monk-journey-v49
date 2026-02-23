@@ -409,7 +409,10 @@
         <div id="map-selector-overlay" class="map-selector-overlay" style="display: none;">
             <div class="map-selector-modal">
                 <div class="map-selector-header">
-                    <h2>Select Map</h2>
+                    <div class="map-selector-header-left">
+                        <h2>Select Map</h2>
+                        <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
+                    </div>
                     <div class="header-buttons">
                         <button class="circle-btn" id="clearCurrentMap" title="Return to Procedural World">🏕️</button>
                         <button class="circle-btn" id="generateRandomMap" title="Generate New Map">👨‍🎨</button>
@@ -454,8 +457,8 @@
                                             <span class="stat-value" id="environmentStat">-</span>
                                         </div>
                                     </div>
-                                    <div class="map-action-buttons" id="mapPlayButtons">
-                                        <button class="settings-button play-map-btn" id="playMapButton" title="Load and play this map">Play</button>
+                                        <div class="map-action-buttons" id="mapPlayButtons">
+                                        <button class="settings-button play-map-btn" id="playMapButton" title="Apply this map after reload">Apply & Reload</button>
                                     </div>
                                 </div>
                             </div>

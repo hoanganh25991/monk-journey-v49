@@ -1,8 +1,10 @@
 import { UIComponent } from '../UIComponent.js';
 import { MAP_MANIFEST } from '../config/maps.js';
+import { STORAGE_KEYS } from '../config/storage-keys.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
+const DEFAULT_MAP_PATH = 'maps/default.json';
 
 /**
  * Map Selection UI component
@@ -95,10 +97,15 @@ export class MapSelectionUI extends UIComponent {
 
     populateMapList() {
         this.mapListEl.innerHTML = '';
+        const storedPath = typeof localStorage !== 'undefined'
+            ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || DEFAULT_MAP_PATH)
+            : DEFAULT_MAP_PATH;
+
         for (const map of this.mapManifest) {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
+            li.dataset.mapPath = map.path || '';
             const thumb = map.thumbnail
                 ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
                 : '<span class="map-icon">🗺️</span>';
@@ -106,11 +113,13 @@ export class MapSelectionUI extends UIComponent {
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }
-        if (this.mapManifest.length > 0) {
-            this.selectedMapId = this.mapManifest[0].id;
-            const first = this.mapListEl.querySelector(`[data-map-id="${this.selectedMapId}"]`);
-            if (first) first.classList.add('selected');
-            this.updateDetailPanel(this.mapManifest[0]);
+
+        const selectedEntry = this.mapManifest.find(m => (m.path || '') === storedPath) || this.mapManifest.find(m => m.id === 'default') || this.mapManifest[0];
+        if (selectedEntry) {
+            this.selectedMapId = selectedEntry.id;
+            const selectedEl = this.mapListEl.querySelector(`[data-map-id="${this.selectedMapId}"]`);
+            if (selectedEl) selectedEl.classList.add('selected');
+            this.updateDetailPanel(selectedEntry);
         }
     }
 
@@ -159,58 +168,40 @@ export class MapSelectionUI extends UIComponent {
         const entry = this.mapManifest.find(m => m.id === this.selectedMapId);
         if (!entry || !this.game) return;
 
-        const overlayEl = document.getElementById('mapLoadingOverlay');
-        const loadingTextEl = overlayEl?.querySelector('.loading-text');
-        const setLoadingText = (text) => {
-            if (loadingTextEl) loadingTextEl.textContent = text;
-        };
-
-        if (overlayEl) overlayEl.style.display = 'flex';
-
         try {
-            setLoadingText('Downloading map...');
-            const mapData = await this.game.loadAndApplyMap(entry.path);
-            if (mapData.bounds) {
-                const w = (mapData.bounds.maxX - mapData.bounds.minX) || 0;
-                const h = (mapData.bounds.maxZ - mapData.bounds.minZ) || 0;
-                document.getElementById('mapSizeStat').textContent = `${w}x${h}`;
-            }
-
-            setLoadingText('Loading world...');
-            if (this.game.player && mapData.spawn) {
-                const s = mapData.spawn;
-                this.game.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
-            }
-
-            setLoadingText('Preparing...');
-            await this.game.waitForMapReady();
-
-            if (this.game.hudManager?.showNotification) {
-                this.game.hudManager.showNotification(`Map loaded: ${mapData.name || entry.name}`);
-            }
-            this.hide();
-        } catch (err) {
-            console.error('Failed to load map:', err);
-            if (this.game.hudManager?.showNotification) {
-                this.game.hudManager.showNotification('Failed to load map', 3000);
-            }
-        } finally {
-            if (overlayEl) overlayEl.style.display = 'none';
+            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, entry.path || DEFAULT_MAP_PATH);
+        } catch (e) {
+            console.warn('Could not save map preference:', e);
         }
+
+        const mapName = entry.name || entry.id || 'Map';
+        if (this.game.hudManager?.showNotification) {
+            this.game.hudManager.showNotification(`Map set to "${mapName}". Reloading...`, 3000);
+        }
+        this.hide();
+        setTimeout(() => location.reload(), 800);
     }
 
     clearCurrentMap() {
-        if (this.game?.world) {
-            this.game.world.applyMap(null);
-            if (this.game.hudManager?.showNotification) {
-                this.game.hudManager.showNotification('Returned to procedural world');
-            }
+        try {
+            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, DEFAULT_MAP_PATH);
+        } catch (e) {
+            console.warn('Could not save map preference:', e);
+        }
+        if (this.game?.hudManager?.showNotification) {
+            this.game.hudManager.showNotification('Returned to Default World. Reloading...', 3000);
         }
         this.hide();
+        setTimeout(() => location.reload(), 800);
     }
 
     show() {
         if (this.overlay) {
+            const currentLabel = document.getElementById('map-selector-current-label');
+            if (currentLabel) {
+                const currentMap = this.game?.world?.currentMap;
+                currentLabel.textContent = currentMap?.name ? `Current: ${currentMap.name}` : 'Current: —';
+            }
             this.overlay.style.display = 'flex';
             this.overlay.style.visibility = 'visible';
             this.overlay.style.pointerEvents = 'auto';

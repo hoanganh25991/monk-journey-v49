@@ -53,6 +53,18 @@
     text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); /* Match skill-tree title shadow */
 }
 
+.map-selector-header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.map-selector-current-label {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 204, 0, 0.85);
+}
+
 
 .header-buttons {
     display: flex;

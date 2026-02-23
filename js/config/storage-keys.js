@@ -45,8 +45,9 @@ export const STORAGE_KEYS = {
     CAMERA_LOOK_OFFSET: 'monk_journey_camera_look_offset',
     SHOW_MINIMAP: 'monk_journey_show_minimap',
     // MATERIAL_QUALITY key removed - using QUALITY_LEVEL instead
-    
-    // Save system keys
+
+    // Map selection (path loaded on next game start to avoid in-game swap lag)
+    SELECTED_MAP_PATH: 'monk_journey_selected_map_path',
     SAVE_DATA: 'monk_journey_save',
     CHUNK_PREFIX: 'monk_journey_chunk_',
     CHUNK_INDEX: 'monk_journey_chunk_index',
