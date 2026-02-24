@@ -42,7 +42,7 @@
     pointer-events: none;
     z-index: 100;
     white-space: nowrap;
-    font-size: clamp(14px, 2.2vw, 22px);
+    font-size: clamp(7px, 1.1vw, 11px);
 }
 
 /* Float-up animation (RPG / Diablo style) */
@@ -69,13 +69,13 @@
 /* Critical: bigger, different color — no label */
 .damage-number.critical {
     color: #ff8866;
-    font-size: 1.2em;
+    font-size: 0.6em;
     text-shadow: 0 0 6px rgba(255, 100, 60, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.9);
 }
 
 /* Kill: biggest, strong color */
 .damage-number.kill {
-    font-size: 1.4em;
+    font-size: 0.7em;
     color: #ff6644;
     text-shadow: 0 0 8px rgba(255, 80, 40, 0.8), 1px 1px 4px rgba(0, 0, 0, 0.95);
 }
