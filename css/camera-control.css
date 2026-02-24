@@ -8,11 +8,31 @@
 #camera-controls {
     display: grid;
     grid-template-rows: repeat(1, 1fr);
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr); /* jump, camera, camera-mode, teleport */
     gap: 5px;
     pointer-events: auto;
     position: relative;
     z-index: 120; /* Higher than joystick overlay to ensure camera buttons work */
+}
+
+/* Jump button slot - same as teleport slot, first in row next to camera */
+#jump-button-slot {
+    position: relative;
+    width: 55px;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#camera-controls #jump-button,
+#camera-controls .jump-button {
+    position: relative;
+    width: 55px;
+    height: 55px;
+    bottom: auto;
+    left: auto;
+    margin: 0;
 }
 
 /* Teleport slot - both buttons overlap, one visible at a time */
@@ -32,7 +52,8 @@
     left: 0;
 }
 
-/* Common styles for camera buttons */
+/* Common styles for camera buttons and jump (when in camera-controls) */
+#camera-controls #jump-button,
 #camera-control-button,
 #camera-mode-button,
 #inventory-teleport,
@@ -54,6 +75,7 @@
     z-index: 50;
 }
 
+#camera-controls #jump-button:hover,
 #camera-control-button:hover,
 #camera-mode-button:hover,
 #inventory-teleport:hover,
@@ -63,6 +85,7 @@
     box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
 }
 
+#camera-controls #jump-button:active,
 #camera-control-button:active,
 #camera-mode-button:active,
 #inventory-teleport:active,

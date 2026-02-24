@@ -68,7 +68,7 @@ export class VirtualJoystickUI extends UIComponent {
         // Set up touch event listeners
         this.setupJoystickEvents();
         
-        // Set up jump button (in body, outside overlay - always clickable)
+        // Set up jump button (in #camera-controls when in HTML, otherwise in body)
         this.setupJumpButton();
         
         return true;
