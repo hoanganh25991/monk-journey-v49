@@ -559,7 +559,7 @@ export class PlayerSkills {
                 
                 // Store target enemy in the skill instance
                 newSkillInstance.targetEnemy = meleeEnemy;
-                const punchSystem = this.player.combat?.punchSystem;
+                const punchSystem = this.game?.player?.combat?.punchSystem;
                 newSkillInstance.isComboFinisher = punchSystem && punchSystem.comboCount === 3;
                 
                 // Get enemy position
