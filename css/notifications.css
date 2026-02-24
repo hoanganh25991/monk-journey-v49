@@ -42,17 +42,43 @@
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
     pointer-events: none;
     z-index: 100;
-    transition: opacity 0.3s, transform 0.5s;
+    white-space: nowrap;
+    font-size: clamp(14px, 2.2vw, 22px);
 }
 
-/* Damage type variations */
+/* Float-up animation (RPG / Diablo style) */
+@keyframes damageNumberFloat {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    15% {
+        transform: translate(-50%, -80%) scale(1.15);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -220%) scale(0.9);
+    }
+}
+
+/* Normal hit */
 .damage-number.physical {
-    color: #ff9900;
+    color: #ffcc66;
+    text-shadow: 0 0 4px rgba(255, 180, 50, 0.6), 1px 1px 2px rgba(0, 0, 0, 0.9);
 }
 
+/* Critical: bigger, different color — no label */
 .damage-number.critical {
-    color: #ff3333;
+    color: #ff8866;
     font-size: 1.2em;
+    text-shadow: 0 0 6px rgba(255, 100, 60, 0.7), 1px 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Kill: biggest, strong color */
+.damage-number.kill {
+    font-size: 1.4em;
+    color: #ff6644;
+    text-shadow: 0 0 8px rgba(255, 80, 40, 0.8), 1px 1px 4px rgba(0, 0, 0, 0.95);
 }
 
 .damage-number.healing {
@@ -61,6 +87,10 @@
 
 .damage-number.magic {
     color: #3399ff;
+}
+
+.damage-number.player-damage {
+    color: #ff6666;
 }
 
 /* Level Up Container */

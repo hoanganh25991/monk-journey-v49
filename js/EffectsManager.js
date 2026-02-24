@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { BleedingEffect } from './skills/BleedingEffect.js';
 import { SkillEffectFactory } from './skills/SkillEffectFactory.js';
+import { DamageNumberEffect } from './effects/DamageNumberEffect.js';
 
 /**
  * EffectsManager
@@ -14,6 +15,9 @@ export class EffectsManager {
     constructor(game) {
         this.game = game;
         this.effects = [];
+        this.damageNumbers = [];
+        /** Max concurrent damage numbers; oldest are dropped when over limit */
+        this.maxDamageNumbers = 18;
     }
     
     /**
@@ -64,6 +68,13 @@ export class EffectsManager {
                 this.effects.splice(i, 1);
             }
         }
+        
+        // Update damage numbers (float-up then remove)
+        for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+            if (!this.damageNumbers[i].update(delta)) {
+                this.damageNumbers.splice(i, 1);
+            }
+        }
     }
     
     /**
@@ -98,7 +109,30 @@ export class EffectsManager {
     }
     
     /**
-     * Pause all active effects
+     * Create a floating damage number above a world position (RPG/Diablo style).
+     * @param {number} amount - Damage amount to display
+     * @param {THREE.Vector3|Object} position - World position {x, y, z}
+     * @param {Object} options - { isPlayerDamage, isCritical, isKill }
+     * @returns {DamageNumberEffect|null}
+     */
+    createDamageNumber(amount, position, options = {}) {
+        if (!this.game || amount == null) return null;
+        // Cap active count: drop oldest when at limit so new hits (e.g. kills) still show
+        while (this.damageNumbers.length >= this.maxDamageNumbers) {
+            const oldest = this.damageNumbers.shift();
+            if (oldest) oldest.dispose();
+        }
+        const pos = position instanceof THREE.Vector3 ? position : new THREE.Vector3(position.x, position.y, position.z);
+        pos.y += 0.8; // Slightly above impact
+        const effect = new DamageNumberEffect(this.game, amount, pos, options);
+        if (effect.create()) {
+            this.damageNumbers.push(effect);
+            return effect;
+        }
+        return null;
+    }
+    
+    /**
      * Used when the game is paused
      */
     pause() {
@@ -511,6 +545,11 @@ export class EffectsManager {
             effect.dispose();
         }
         this.effects = [];
+        // Clean up floating damage numbers (remove DOM elements)
+        for (const dn of this.damageNumbers) {
+            dn.dispose();
+        }
+        this.damageNumbers = [];
         
         // Clean up shared resources
         if (typeof BleedingEffect.cleanupSharedResources === 'function') {

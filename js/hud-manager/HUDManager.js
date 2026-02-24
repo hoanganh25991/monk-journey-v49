@@ -358,6 +358,20 @@ export class HUDManager {
     }
     
     /**
+     * Create a floating damage number above a world position (RPG/Diablo style).
+     * @param {number} amount - Damage amount to display
+     * @param {THREE.Vector3|Object} position - World position {x, y, z}
+     * @param {Object} [options] - { isPlayerDamage, isCritical, isKill }
+     * @returns {Object|null} - The created damage number effect or null
+     */
+    createDamageNumber(amount, position, options = {}) {
+        if (this.game && this.game.effectsManager) {
+            return this.game.effectsManager.createDamageNumber(amount, position, options);
+        }
+        return null;
+    }
+    
+    /**
      * Get the current joystick direction
      * @returns {Object} - Direction vector {x, y}
      */

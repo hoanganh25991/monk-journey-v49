@@ -296,13 +296,21 @@ export class CollisionManager {
         
         // Apply skill damage to enemy
         const damage = skill.getDamage();
-        enemy.takeDamage(damage);
+        const actualDamage = enemy.takeDamage(damage);
         
         // Get enemy position for effects
         const enemyPosition = enemy.getPosition();
         
-        // Show damage number with bleeding effect
-        this.player.game.hudManager.createBleedingEffect(damage, enemyPosition);
+        // Show damage number (RPG style) — critical on kill, combo finisher, or ~8% random
+        const isKill = enemy.state.isDead || enemy.getHealth() <= 0;
+        const isComboFinisher = !!skill.isComboFinisher;
+        const isCritical = isKill || isComboFinisher || (Math.random() < 0.08);
+        if (this.player.game.effectsManager) {
+            this.player.game.effectsManager.createDamageNumber(actualDamage, enemyPosition, { isKill, isCritical });
+        }
+        if (this.player.game.hudManager) {
+            this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
+        }
         
         // Check if enemy is defeated
         if (enemy.getHealth() <= 0) {

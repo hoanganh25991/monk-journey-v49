@@ -62,6 +62,10 @@ export class WorldManager {
             generatedObjects: new Set()
         };
         
+        // Enemy spawn on move: trigger when player has moved this far (world units)
+        this.lastEnemySpawnPosition = new THREE.Vector3();
+        this.enemySpawnMoveThreshold = 50;
+        
         // Enemy management reference
         this.enemyManager = null;
         
@@ -148,6 +152,9 @@ export class WorldManager {
      */
     setEnemyManager(enemyManager) {
         this.enemyManager = enemyManager;
+        if (this.game && this.game.player && this.game.player.getPosition) {
+            this.lastEnemySpawnPosition.copy(this.game.player.getPosition());
+        }
         console.debug("Enemy manager set in WorldManager");
     }
     
@@ -311,6 +318,17 @@ export class WorldManager {
         // Unload structures outside player space so we don't carry the whole zone
         if (this.structureManager && this.structureManager.cleanupChunksOutsideSpace) {
             this.structureManager.cleanupChunksOutsideSpace(playerChunkX, playerChunkZ, spaceRadius);
+        }
+        
+        // Spawn enemies around player when they've moved a "screen distance"
+        if (this.enemyManager && typeof this.enemyManager.onPlayerMovedScreenDistance === 'function') {
+            const distanceSinceSpawn = playerPosition.distanceTo(this.lastEnemySpawnPosition);
+            // Random threshold each time: 40–65 so sometimes sooner, sometimes later
+            const threshold = this.enemySpawnMoveThreshold + (Math.random() * 25 - 5);
+            if (distanceSinceSpawn > Math.max(30, threshold)) {
+                this.enemyManager.onPlayerMovedScreenDistance(playerPosition.clone());
+                this.lastEnemySpawnPosition.copy(playerPosition);
+            }
         }
         
         // Random world content generation - DISABLED for performance
@@ -645,8 +663,8 @@ export class WorldManager {
      * Legacy method - kept for compatibility  
      */
     spawnEnemiesNearPlayer(playerPosition) {
-        if (this.enemyManager && this.enemyManager.spawnEnemiesNearPlayer) {
-            this.enemyManager.spawnEnemiesNearPlayer(playerPosition);
+        if (this.enemyManager && typeof this.enemyManager.spawnEnemiesAroundPlayer === 'function') {
+            this.enemyManager.spawnEnemiesAroundPlayer(playerPosition);
         }
     }
     

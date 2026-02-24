@@ -781,6 +781,14 @@ export class EnemyManager {
             playerLevel = this.game.player.getLevel();
         }
         
+        // Optional: scale enemy toughness slightly with player strength (stronger player = slightly tougher enemies)
+        let strengthFactor = 1.0;
+        if (this.game && this.game.player && this.game.player.stats && typeof this.game.player.stats.strength === 'number') {
+            const str = this.game.player.stats.strength;
+            strengthFactor = 1 + (str - 10) * 0.008; // ~0.8% per point above 10
+            strengthFactor = Math.max(0.9, Math.min(strengthFactor, 1.25)); // clamp
+        }
+        
         // Get random zone for zone-based difficulty
         let zoneDifficultyMultiplier = 1.0;
         
@@ -798,22 +806,24 @@ export class EnemyManager {
         let difficultySettings = DIFFICULTY_SCALING.difficultyLevels[this.currentDifficulty] || 
                                 DIFFICULTY_SCALING.difficultyLevels.medium;
         
-        // Calculate combined scaling factor
+        // Calculate combined scaling factor (level + zone + difficulty + strength)
         const combinedScalingFactor = this.difficultyMultiplier * 
                                      levelScalingFactor * 
                                      zoneDifficultyMultiplier * 
-                                     difficultySettings.healthMultiplier;
+                                     difficultySettings.healthMultiplier *
+                                     strengthFactor;
         
         // Apply scaling to enemy stats using game-balance settings
         // Apply base health multiplier from combat balance
         scaledType.baseHealth = scaledType.health; // Store original health for reference
         scaledType.health = Math.round(scaledType.health * COMBAT_BALANCE.enemy.healthMultiplier * combinedScalingFactor);
         
-        // Apply damage scaling
+        // Apply damage scaling (level + difficulty + strength)
         scaledType.damage = Math.round(scaledType.damage * 
                            COMBAT_BALANCE.enemy.damageMultiplier * 
                            difficultySettings.damageMultiplier * 
-                           levelScalingFactor);
+                           levelScalingFactor *
+                           strengthFactor);
         
         // Apply experience scaling
         scaledType.experienceValue = Math.round(scaledType.experienceValue * 
@@ -1153,6 +1163,14 @@ export class EnemyManager {
         this.spawnEnemiesAroundPlayer(playerPosition);
     }
     
+    /**
+     * Alias for compatibility (e.g. WorldManager.spawnEnemiesNearPlayer calls this).
+     * @param {THREE.Vector3} playerPosition
+     */
+    spawnEnemiesNearPlayer(playerPosition) {
+        this.spawnEnemiesAroundPlayer(playerPosition);
+    }
+    
     cleanupDistantEnemies() {
         const playerPos = this.player.getPosition();
         
@@ -1249,8 +1267,17 @@ export class EnemyManager {
             return;
         }
         
-        // Determine how many enemies to spawn - scale with multiplier
+        // Determine how many enemies to spawn - scale with multiplier and player level
         let baseEnemyCount = 5 + Math.floor(Math.random() * 5); // 5-9 enemies per screen normally
+        
+        // Scale spawn count with player level so higher level = more enemies
+        const playerLevel = (this.game && this.game.player && this.game.player.getLevel) ? this.game.player.getLevel() : 1;
+        baseEnemyCount += Math.floor(playerLevel * 0.4); // +0.4 per level, e.g. level 10 -> +4
+        baseEnemyCount = Math.max(5, Math.min(baseEnemyCount, 25)); // clamp 5-25
+        
+        // Random variation: sometimes fewer, sometimes more (0.65 to 1.4)
+        const countVariation = 0.65 + Math.random() * 0.75;
+        baseEnemyCount = Math.max(3, Math.round(baseEnemyCount * countVariation));
         
         // In multiplier zones, spawn more enemies per wave
         if (inMultiplierZone) {
@@ -1273,11 +1300,13 @@ export class EnemyManager {
         // Get enemy types for this random zone
         const zoneEnemyTypes = this.zoneEnemies[randomZone];
         
-        // Spawn enemies in multiple groups - more groups in multiplier zones
-        const numGroups = inMultiplierZone ? 
+        // Spawn enemies in multiple groups - more groups at higher level, with random variation
+        const baseGroups = inMultiplierZone ?
             2 + Math.floor(Math.random() * 3) : // 2-4 groups in multiplier zones
-            1 + Math.floor(Math.random() * 2);  // 1-2 groups normally
-            
+            Math.max(1, 1 + Math.floor(Math.random() * 2) + Math.floor(playerLevel / 10)); // 1-2 + extra at high level
+        // Random: sometimes one less group, sometimes one more
+        const numGroups = Math.max(1, baseGroups + Math.floor(Math.random() * 3) - 1);
+        
         const enemiesPerGroup = Math.ceil(enemiesToSpawn / numGroups);
         
         // In multiplier zones, spawn enemies in a more surrounding pattern
@@ -1314,6 +1343,8 @@ export class EnemyManager {
                 if (this.enemies.size >= this.maxEnemies) {
                     break;
                 }
+                // Random skip: ~15% chance to spawn one fewer in this slot (so group sizes vary)
+                if (enemiesPerGroup > 2 && Math.random() < 0.15) continue;
                 
                 // Calculate position within group (random spread)
                 // Tighter groups in multiplier zones
