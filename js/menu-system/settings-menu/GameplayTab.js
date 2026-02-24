@@ -437,16 +437,28 @@ export class GameplayTab extends SettingsTab {
             this.currentVersionSpan.textContent = getSourceVersion();
         }
         
-        // Set up update button: load latest code with cache-busting (bypasses service worker)
+        // Set up update button: unregister SW, clear caches, then reload to get latest
         if (this.updateToLatestButton) {
-            this.updateToLatestButton.addEventListener('click', () => {
+            this.updateToLatestButton.addEventListener('click', async () => {
                 this.updateToLatestButton.textContent = 'Updating...';
                 this.updateToLatestButton.disabled = true;
-                
-                // Reload with cache-busting URL to fetch latest code from server
-                const url = new URL(window.location.href);
-                url.searchParams.set('v', Date.now());
-                window.location.replace(url.toString());
+                try {
+                    if ('serviceWorker' in navigator) {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (const reg of regs) await reg.unregister();
+                    }
+                    if ('caches' in window) {
+                        const names = await caches.keys();
+                        await Promise.all(names.map((n) => caches.delete(n)));
+                    }
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('v', Date.now());
+                    window.location.replace(url.toString());
+                } catch (e) {
+                    console.error('Update failed:', e);
+                    this.updateToLatestButton.textContent = 'Update to Latest';
+                    this.updateToLatestButton.disabled = false;
+                }
             });
         }
     }

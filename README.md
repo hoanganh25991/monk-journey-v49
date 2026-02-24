@@ -100,6 +100,11 @@ This creates:
 
 Optional: add thumbnail images under `maps/thumbnails/<id>.png` for each map.
 
+### Version and updates
+
+- **Before deploy:** run `node scripts/update-version.js` to set the app version (shown in Settings and used for PWA cache when enabled).
+- **In-app update:** Menu > Settings > **Update to Latest** unregisters the service worker, clears caches, and reloads so users get the latest code from the server.
+
 ## Google Play
 
 [![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=io.github.hoanganh25991.monkjourneyv49)
