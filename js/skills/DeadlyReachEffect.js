@@ -27,75 +27,63 @@ export class DeadlyReachEffect extends SkillEffect {
      */
     create(position, direction) {
         position = position.clone();
-        position.y += 1; // Increased height by 1 unit
-        
-        // Adjust for terrain height to ensure effect is visible
-        const adjustedPosition = this.adjustPositionForTerrain(position);
-        
+        // Use player's current height (e.g. when jumping) - only add small hand-height offset
+        position.y += 0.5;
+        // Do NOT snap to terrain - cast from player's actual height toward enemy
+
         // Create a group for the effect
         const effectGroup = new THREE.Group();
-        
+
         // Store initial position for movement
-        this.initialPosition.copy(adjustedPosition);
+        this.initialPosition.copy(position);
         this.distanceTraveled = 0;
-        
-        // Find the nearest enemy and target it
-        this.findAndTargetNearestEnemy(adjustedPosition, direction);
-        
+
+        // Find the nearest enemy and target it (direction will include Y toward enemy)
+        this.findAndTargetNearestEnemy(position, direction);
+
         // Create the Deadly Reach effect
         this.createDeadlyReachEffect(effectGroup);
-        
-        // Position effect
-        effectGroup.position.copy(adjustedPosition);
+
+        // Position effect at player height
+        effectGroup.position.copy(position);
         effectGroup.rotation.y = Math.atan2(this.direction.x, this.direction.z);
-        
+
         // Store effect
         this.effect = effectGroup;
         this.isActive = true;
-        
+
         return effectGroup;
     }
     
     /**
      * Find the nearest enemy and set the direction toward it
-     * If no enemy is found, the skill will cast in the player's direction
-     * @param {THREE.Vector3} position - Starting position
+     * Direction is full 3D so the skill can go DOWN to enemies on the ground (not stay at player height).
+     * @param {THREE.Vector3} position - Starting position (cast origin)
      * @param {THREE.Vector3} defaultDirection - Default direction (player's direction) if no enemy is found
      * @private
      */
     findAndTargetNearestEnemy(position, defaultDirection) {
-        // Default to the provided direction (player's facing direction)
-        // This ensures the skill can always be cast even when no enemies are around
+        // Default to the provided direction (player's facing, horizontal when no target)
         this.direction.copy(defaultDirection);
         
-        // Try to get the game instance and enemy manager
         if (!this.skill.game || !this.skill.game.enemyManager) {
-            console.debug("No game or enemy manager available for auto-targeting, using player direction");
             return;
         }
         
-        // Find the nearest enemy within range
         const enemyManager = this.skill.game.enemyManager;
         const nearestEnemy = enemyManager.findNearestEnemy(position, this.maxDistance);
         
         if (nearestEnemy) {
-            // Store reference to the targeted enemy
             this.targetEnemy = nearestEnemy;
-            
-            // Get enemy position
             const enemyPosition = nearestEnemy.getPosition();
             
-            // Calculate direction to enemy
+            // Full 3D direction from cast position to enemy - allows skill to go DOWN to enemy when they're below
             const directionToEnemy = new THREE.Vector3()
                 .subVectors(enemyPosition, position)
                 .normalize();
             
-            // Update direction
+            // Use full direction (including Y) so projectile travels down to enemy, not stuck at player height
             this.direction.copy(directionToEnemy);
-            
-            console.debug(`Auto-targeted enemy: ${nearestEnemy.type} at distance: ${position.distanceTo(enemyPosition)}`);
-        } else {
-            console.debug("No enemy found within range for auto-targeting, casting in player direction");
         }
     }
 
@@ -241,16 +229,15 @@ export class DeadlyReachEffect extends SkillEffect {
             return;
         }
         
-        // Move projectile forward
+        // Move projectile forward in 3D (toward enemy at their height, not just horizontal)
         const moveDistance = this.projectileSpeed * delta;
         this.effect.position.x += this.direction.x * moveDistance;
+        this.effect.position.y += this.direction.y * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
-        
-        // Update Y to follow terrain height - critical for hills/slopes
-        this.updateEffectHeightForTerrain(1.0);
-        
-        // Update rotation to match current direction
+
+        // Update rotation to match current direction (pitch for up/down aim)
         this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
         
         // IMPORTANT: Update the skill's position property to match the effect's position
         this.skill.position.copy(this.effect.position);

@@ -245,6 +245,11 @@ export class WorldManager {
         
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
+
+        // Update lighting and shadow camera to follow player (so shadows appear on terrain)
+        if (this.lightingManager && this.lightingManager.update) {
+            this.lightingManager.update(deltaTime, playerPosition);
+        }
         
         // Virtual "player space" - only this bubble is kept; zone-agnostic (can span 2 zones)
         const chunkSize = this.terrainManager.terrainChunkSize || 64;

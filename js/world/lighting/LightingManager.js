@@ -37,20 +37,23 @@ export class LightingManager {
         directionalLight.position.set(50, 100, 50);
         directionalLight.castShadow = true;
         
-        // IMPROVED: Configure shadow properties for better coverage and quality
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
+        // IMPROVED: Shadow camera must cover full visible terrain (chunked terrain with height), not just a small area
+        // View distance ~3 chunks × chunkSize 64 = 192; use ±320 so all terrain chunks receive shadows
+        const shadowRadius = 320;
+        // Sharp shadows: higher resolution for crisp character + object shadows, no blur (radius 0)
+        directionalLight.shadow.mapSize.width = 4096;
+        directionalLight.shadow.mapSize.height = 4096;
         directionalLight.shadow.camera.near = 0.5;
         directionalLight.shadow.camera.far = 500;
-        directionalLight.shadow.camera.left = -200;
-        directionalLight.shadow.camera.right = 200;
-        directionalLight.shadow.camera.top = 200;
-        directionalLight.shadow.camera.bottom = -200;
+        directionalLight.shadow.camera.left = -shadowRadius;
+        directionalLight.shadow.camera.right = shadowRadius;
+        directionalLight.shadow.camera.top = shadowRadius;
+        directionalLight.shadow.camera.bottom = -shadowRadius;
         
-        // CRITICAL FIX: Add these settings to improve shadow quality and prevent shadow disappearance
+        // CRITICAL FIX: Bias helps prevent shadow acne; keep radius 0 for sharp shadow edges (no blur)
         directionalLight.shadow.bias = -0.0001; // Helps prevent shadow acne
-        directionalLight.shadow.normalBias = 0.02; // Helps with normal-mapped surfaces
-        directionalLight.shadow.radius = 1; // Slight blur for softer shadows
+        directionalLight.shadow.normalBias = 0.008; // Lower = sharper edges (was 0.02; too high softens character shadow)
+        directionalLight.shadow.radius = 0; // Sharp shadows (was 1 = soft blur)
         
         // Create a target for the directional light
         directionalLight.target.position.set(0, 0, 0);

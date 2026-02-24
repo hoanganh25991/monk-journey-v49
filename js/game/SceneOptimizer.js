@@ -141,12 +141,11 @@ export class SceneOptimizer {
                         object.shadow.mapSize.width = shadowMapSize;
                         object.shadow.mapSize.height = shadowMapSize;
                         
-                        // Optimize shadow camera frustum
-                        if (object.shadow.camera) {
-                            // Tighten shadow camera frustum to scene size
+                        // Only adjust shadow camera for non-directional lights (e.g. spot)
+                        // DirectionalLight shadow camera must stay large so terrain with height receives shadows
+                        if (object.shadow.camera && object.type !== 'DirectionalLight') {
                             const camera = object.shadow.camera;
                             if (camera.isOrthographicCamera) {
-                                // Adjust based on scene size
                                 const size = 20;
                                 camera.left = -size;
                                 camera.right = size;
@@ -247,12 +246,10 @@ export class SceneOptimizer {
                 light.shadow.mapSize.width = shadowMapSize;
                 light.shadow.mapSize.height = shadowMapSize;
                 
-                // Optimize shadow camera frustum
-                if (light.shadow.camera) {
-                    // Tighten shadow camera frustum to scene size
+                // Do NOT shrink DirectionalLight shadow camera - terrain with height needs full coverage
+                if (light.shadow.camera && light.type !== 'DirectionalLight') {
                     const camera = light.shadow.camera;
                     if (camera.isOrthographicCamera) {
-                        // Adjust based on scene size
                         const size = 20;
                         camera.left = -size;
                         camera.right = size;

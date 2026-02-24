@@ -56,8 +56,8 @@ export const RENDER_CONFIG = {
         settings: {
             pixelRatio: Math.min(window.devicePixelRatio, 2),
             shadowMapEnabled: true,
-            shadowMapSize: 1024,
-            shadowMapType: 'PCFSoftShadowMap',
+            shadowMapSize: 4096, // Max sharpness for character and object shadows
+            shadowMapType: 'BasicShadowMap', // Sharpest shadows, no PCF blur
             outputColorSpace: 'SRGBColorSpace'
         },
         materials: {
@@ -82,9 +82,9 @@ export const RENDER_CONFIG = {
         },
         settings: {
             pixelRatio: Math.min(window.devicePixelRatio, 0.85), // Improved from 0.6 for smoother model on mobile
-            shadowMapEnabled: false, // Disabled shadows to reduce GPU load
-            shadowMapSize: 0, // Reduced from 256 to match disabled shadows
-            shadowMapType: 'BasicShadowMap', // Lighter shadow type if shadows are re-enabled
+            shadowMapEnabled: true, // Enable ground shadows on medium for better depth feel
+            shadowMapSize: 1024, // Higher resolution for sharper shadows than 512
+            shadowMapType: 'BasicShadowMap', // Lighter shadow type for tablet performance
             outputColorSpace: 'SRGBColorSpace' // Changed to linear for better performance
         },
         materials: {

@@ -33,8 +33,8 @@ export class PlayerMovement {
         this.velocityY = 0;
         this.jumpCount = 0;
         this.maxJumps = 3;
-        this.jumpForces = [40, 28, 20]; // Strong instant jumps on press/click!
-        this.gravity = 20; // Reduced gravity for floatier jumps
+        this.jumpForces = [30, 21, 15]; // 0.75 of previous - lower jump height
+        this.gravity = 32; // Heavier gravity = faster fall back
         this.holdJumpBoost = 10; // Optional extra lift when holding (bonus feature)
         this.groundedTolerance = 0.2;
         this.isHoldingJump = false;

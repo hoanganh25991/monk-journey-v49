@@ -188,13 +188,11 @@ export class Skill {
                 
                 // Validate enemy position
                 if (this.validateVector(enemyPosition)) {
-                    // Calculate direction to enemy
+                    // Direction from player to enemy in 3D (include Y so skills cast at player height hit enemy)
                     const targetDirection = new THREE.Vector3().subVectors(enemyPosition, this.position).normalize();
                     
-                    // Set skill direction based on enemy position
+                    // Set skill direction - keep Y so projectile travels at correct height toward enemy
                     this.direction.copy(targetDirection);
-                    this.direction.y = 0; // Keep direction horizontal
-                    this.direction.normalize();
                     
                     console.debug(`Skill ${this.name} targeting enemy at position: ${enemyPosition.x.toFixed(2)}, ${enemyPosition.y.toFixed(2)}, ${enemyPosition.z.toFixed(2)}`);
                 } else {
