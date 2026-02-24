@@ -56,8 +56,10 @@ export const RENDER_CONFIG = {
         settings: {
             pixelRatio: Math.min(window.devicePixelRatio, 2),
             shadowMapEnabled: true,
-            shadowMapSize: 4096, // Max sharpness for character and object shadows
-            shadowMapType: 'BasicShadowMap', // Sharpest shadows, no PCF blur
+            shadowMapSize: 4096,
+            shadowMapType: 'PCFSoftShadowMap',
+            shadowRadius: 0.5,      // Soft edge, no blocky "squares"
+            shadowNormalBias: 0.006,
             outputColorSpace: 'SRGBColorSpace'
         },
         materials: {
@@ -82,10 +84,12 @@ export const RENDER_CONFIG = {
         },
         settings: {
             pixelRatio: Math.min(window.devicePixelRatio, 0.85), // Improved from 0.6 for smoother model on mobile
-            shadowMapEnabled: true, // Enable ground shadows on medium for better depth feel
-            shadowMapSize: 1024, // Higher resolution for sharper shadows than 512
-            shadowMapType: 'BasicShadowMap', // Lighter shadow type for tablet performance
-            outputColorSpace: 'SRGBColorSpace' // Changed to linear for better performance
+            shadowMapEnabled: true,
+            shadowMapSize: 2048,
+            shadowMapType: 'PCFSoftShadowMap', // Smooth edges, lighter than high
+            shadowRadius: 0.35,
+            shadowNormalBias: 0.01,
+            outputColorSpace: 'SRGBColorSpace'
         },
         materials: {
             particleCount: 0.3, // Reduced from 0.5 to prevent particle buildup
@@ -113,6 +117,8 @@ export const RENDER_CONFIG = {
             shadowMapEnabled: false,
             shadowMapSize: 0,
             shadowMapType: 'BasicShadowMap',
+            shadowRadius: 0,
+            shadowNormalBias: 0.02,
             outputColorSpace: 'LinearSRGBColorSpace',
         },
         materials: {
@@ -141,6 +147,8 @@ export const RENDER_CONFIG = {
             shadowMapEnabled: false,
             shadowMapSize: 0,
             shadowMapType: 'BasicShadowMap',
+            shadowRadius: 0,
+            shadowNormalBias: 0.02,
             outputColorSpace: 'LinearSRGBColorSpace',
             pixelatedMode: true,
             colorPalette: 'limited',

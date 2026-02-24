@@ -27,21 +27,20 @@ export class ExplodingPalmEffect extends SkillEffect {
       // Create a group for the effect
       const effectGroup = new THREE.Group();
       
-      // Store the direction for movement
+      // Store the direction for movement (full 3D so palm can travel from player height to target)
       this.direction = direction ? direction.clone().normalize() : new THREE.Vector3(0, 0, 1);
       
       // Create the palm effect
       this.createMarkEffect(effectGroup, position);
       
-      // Position effect at the starting position
-      // Adjust Y position to be on the ground
-      position.y = this.markHeight;
+      // Position effect at player's current height (e.g. when jumping) - no forced ground level
+      position.y += 0.5;
       effectGroup.position.copy(position);
       
-      // Set the correct rotation to face the direction
+      // Set the correct rotation to face the direction (include pitch for up/down)
       if (direction) {
-        const rotationAngle = Math.atan2(direction.x, direction.z);
-        effectGroup.rotation.y = rotationAngle;
+        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.x = -Math.asin(Math.max(-1, Math.min(1, direction.y)));
       }
       
       // Calculate target position based on direction and range
@@ -487,14 +486,12 @@ export class ExplodingPalmEffect extends SkillEffect {
     this.distanceTraveled += moveDistance;
     this.explodingPalmState.distanceTraveled = this.distanceTraveled;
     
-    // Move the palm forward
+    // Move the palm forward in 3D (from player height toward target)
     if (this.direction) {
       this.effect.position.x += this.direction.x * moveDistance;
+      this.effect.position.y += this.direction.y * moveDistance;
       this.effect.position.z += this.direction.z * moveDistance;
     }
-    
-    // Update Y to follow terrain height
-    this.updateEffectHeightForTerrain(1.0);
     
     // Update palm state age
     this.explodingPalmState.age = this.age;

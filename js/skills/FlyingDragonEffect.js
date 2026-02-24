@@ -69,7 +69,9 @@ export class FlyingDragonEffect extends SkillEffect {
      */
     create(position, direction) {
         position = position.clone();
-        // position.y -= 3.0;
+        position.y += 0.5;
+        // Use player's current height (e.g. when jumping) - no terrain snap
+        
         // Create a group for the effect
         const effectGroup = new THREE.Group();
         
@@ -83,9 +85,10 @@ export class FlyingDragonEffect extends SkillEffect {
         // Create the Flying Dragon effect
         this.createFlyingDragonEffect(effectGroup);
         
-        // Position effect
+        // Position effect at player height
         effectGroup.position.copy(position);
         effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.x = -Math.asin(Math.max(-1, Math.min(1, direction.y)));
         
         // Store effect
         this.effect = effectGroup;
@@ -249,13 +252,15 @@ export class FlyingDragonEffect extends SkillEffect {
             return;
         }
         
-        // Move forward
+        // Move forward in 3D (from player height toward target; rising phase may have increased Y first)
         const moveDistance = this.flightSpeed * delta;
         this.effect.position.x += this.direction.x * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
-        
-        // Update Y to follow terrain height (kicking phase); rising phase overwrites in updateFlyingDragonEffect
-        this.updateEffectHeightForTerrain(1.0);
+        this.effect.position.y += this.direction.y * moveDistance;
+
+        // Update rotation to match direction (pitch when diving toward target)
+        this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
         
         // IMPORTANT: Update the skill's position property to match the effect's position
         this.skill.position.copy(this.effect.position);

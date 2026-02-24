@@ -338,6 +338,9 @@ export class Game {
             // Apply performance optimizations to the scene (use quality for low-end tablet support)
             const initQuality = this.materialQuality || 'medium';
             SceneOptimizer.optimizeScene(this.scene, initQuality);
+            if (this.world?.lightingManager?.applyQuality) {
+                this.world.lightingManager.applyQuality(initQuality);
+            }
             
             // Apply material quality setting once during initialization
             if (this.materialQuality) {
@@ -1126,6 +1129,9 @@ export class Game {
             import('./SceneOptimizer.js').then(({ SceneOptimizer }) => {
                 // Apply optimizations with the current quality level
                 SceneOptimizer.optimizeScene(this.scene, quality);
+                if (this.world?.lightingManager?.applyQuality) {
+                    this.world.lightingManager.applyQuality(quality);
+                }
                 console.debug(`Applied scene-wide optimizations for ${quality} quality level`);
             });
         }

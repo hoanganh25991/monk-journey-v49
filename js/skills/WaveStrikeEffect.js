@@ -36,6 +36,7 @@ export class WaveStrikeEffect extends SkillEffect {
         // Position effect
         effectGroup.position.copy(position);
         effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.x = -Math.asin(Math.max(-1, Math.min(1, direction.y)));
         
         // Scale the effect based on skill radius
         // Default radius is likely 1, so we use that as the baseline
@@ -240,13 +241,15 @@ export class WaveStrikeEffect extends SkillEffect {
             return;
         }
         
-        // Move projectile forward
+        // Move projectile forward in 3D (from player height toward target - e.g. sky to ground when jumping)
         const moveDistance = this.projectileSpeed * delta;
         this.effect.position.x += this.direction.x * moveDistance;
+        this.effect.position.y += this.direction.y * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
-        
-        // Update Y to follow terrain height
-        this.updateEffectHeightForTerrain(1.0);
+
+        // Tilt wave to match direction (e.g. angle down when going to ground)
+        this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
         
         // IMPORTANT: Update the skill's position property to match the effect's position
         // This is crucial for collision detection in CollisionManager

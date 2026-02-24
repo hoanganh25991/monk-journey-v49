@@ -27,32 +27,25 @@ export class FlyingKickEffect extends SkillEffect {
      * @returns {THREE.Group} - The created effect
      */
     create(position, direction) {
-        // Try to adjust for terrain height if game reference is available
-        let adjustedPosition;
-        if (this.skill.game) {
-            adjustedPosition = this.adjustPositionForTerrain(position);
-            // Add minimal offset to appear just above the terrain
-            adjustedPosition.y += 0.1;
-        } else {
-            // Fallback: use position directly with minimal offset
-            adjustedPosition = position.clone();
-            adjustedPosition.y += 0.1;
-        }
+        // Use player's current height (cast from sky when jumping) - no terrain snap
+        const castPosition = position.clone();
+        castPosition.y += 0.3;
         
         // Create a group for the effect
         const effectGroup = new THREE.Group();
         
         // Store initial position and direction for movement
-        this.initialPosition.copy(adjustedPosition);
+        this.initialPosition.copy(castPosition);
         this.direction.copy(direction);
         this.distanceTraveled = 0;
         
         // Create the Flying Kick effect
         this.createFlyingKickEffect(effectGroup);
         
-        // Position effect
-        effectGroup.position.copy(adjustedPosition);
+        // Position effect at player height
+        effectGroup.position.copy(castPosition);
         effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.x = -Math.asin(Math.max(-1, Math.min(1, direction.y)));
         
         // Store effect
         this.effect = effectGroup;
@@ -198,13 +191,15 @@ export class FlyingKickEffect extends SkillEffect {
             return;
         }
         
-        // Move forward
+        // Move forward in 3D (from player height toward target)
         const moveDistance = this.kickSpeed * delta;
         this.effect.position.x += this.direction.x * moveDistance;
+        this.effect.position.y += this.direction.y * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
-        
-        // Update Y to follow terrain height
-        this.updateEffectHeightForTerrain(1.0);
+
+        // Update rotation to match direction (pitch for up/down)
+        this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
         
         // IMPORTANT: Update the skill's position property to match the effect's position
         this.skill.position.copy(this.effect.position);

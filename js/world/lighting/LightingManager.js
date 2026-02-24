@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RENDER_CONFIG } from '../../config/render.js';
 
 /**
  * Manages world lighting
@@ -37,23 +38,20 @@ export class LightingManager {
         directionalLight.position.set(50, 100, 50);
         directionalLight.castShadow = true;
         
-        // IMPROVED: Shadow camera must cover full visible terrain (chunked terrain with height), not just a small area
-        // View distance ~3 chunks × chunkSize 64 = 192; use ±320 so all terrain chunks receive shadows
-        const shadowRadius = 320;
-        // Sharp shadows: higher resolution for crisp character + object shadows, no blur (radius 0)
-        directionalLight.shadow.mapSize.width = 4096;
-        directionalLight.shadow.mapSize.height = 4096;
+        // IMPROVED: Shadow camera must cover full visible terrain (chunked terrain with height)
+        const shadowCameraRadius = 320;
+        const defaultShadow = RENDER_CONFIG.high?.settings || {};
+        directionalLight.shadow.mapSize.width = defaultShadow.shadowMapSize || 4096;
+        directionalLight.shadow.mapSize.height = defaultShadow.shadowMapSize || 4096;
         directionalLight.shadow.camera.near = 0.5;
         directionalLight.shadow.camera.far = 500;
-        directionalLight.shadow.camera.left = -shadowRadius;
-        directionalLight.shadow.camera.right = shadowRadius;
-        directionalLight.shadow.camera.top = shadowRadius;
-        directionalLight.shadow.camera.bottom = -shadowRadius;
-        
-        // CRITICAL FIX: Bias helps prevent shadow acne; keep radius 0 for sharp shadow edges (no blur)
-        directionalLight.shadow.bias = -0.0001; // Helps prevent shadow acne
-        directionalLight.shadow.normalBias = 0.008; // Lower = sharper edges (was 0.02; too high softens character shadow)
-        directionalLight.shadow.radius = 0; // Sharp shadows (was 1 = soft blur)
+        directionalLight.shadow.camera.left = -shadowCameraRadius;
+        directionalLight.shadow.camera.right = shadowCameraRadius;
+        directionalLight.shadow.camera.top = shadowCameraRadius;
+        directionalLight.shadow.camera.bottom = -shadowCameraRadius;
+        directionalLight.shadow.bias = -0.0001;
+        directionalLight.shadow.normalBias = defaultShadow.shadowNormalBias ?? 0.006;
+        directionalLight.shadow.radius = defaultShadow.shadowRadius ?? 0.5;
         
         // Create a target for the directional light
         directionalLight.target.position.set(0, 0, 0);
@@ -197,5 +195,22 @@ export class LightingManager {
             }
         });
         this.lights = [];
+    }
+
+    /**
+     * Apply shadow settings from quality profile (call when quality level changes)
+     * @param {string} qualityLevel - 'high' | 'medium' | 'low' | 'minimal'
+     */
+    applyQuality(qualityLevel) {
+        if (!this.sunLight) return;
+        const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        const settings = RENDER_CONFIG[level]?.settings || RENDER_CONFIG.high.settings;
+        this.sunLight.castShadow = !!settings.shadowMapEnabled;
+        if (this.sunLight.castShadow && settings.shadowMapSize > 0) {
+            this.sunLight.shadow.mapSize.width = settings.shadowMapSize;
+            this.sunLight.shadow.mapSize.height = settings.shadowMapSize;
+            this.sunLight.shadow.radius = typeof settings.shadowRadius === 'number' ? settings.shadowRadius : 0.5;
+            this.sunLight.shadow.normalBias = typeof settings.shadowNormalBias === 'number' ? settings.shadowNormalBias : 0.006;
+        }
     }
 }
