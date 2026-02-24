@@ -19,7 +19,7 @@ export class DamageNumberEffect {
         this.isPlayerDamage = options.isPlayerDamage || false;
         this.isCritical = options.isCritical || options.isKill || false;
         this.isKill = options.isKill || false;
-        this.duration = 1.4;
+        this.duration = 2.2;
         this.elapsed = 0;
         this.isActive = true;
         this.element = null;

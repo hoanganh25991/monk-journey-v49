@@ -45,7 +45,7 @@
     font-size: clamp(7px, 1.1vw, 11px);
 }
 
-/* Float-up animation (RPG / Diablo style) */
+/* Float-up animation (RPG / Diablo style) — number stays visible longer, then fades */
 @keyframes damageNumberFloat {
     0% {
         opacity: 1;
@@ -53,6 +53,9 @@
     }
     15% {
         transform: translate(-50%, -80%) scale(1.15);
+    }
+    50% {
+        opacity: 1;
     }
     100% {
         opacity: 0;
