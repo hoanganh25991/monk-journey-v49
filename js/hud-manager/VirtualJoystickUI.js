@@ -99,18 +99,29 @@ export class VirtualJoystickUI extends UIComponent {
             e.preventDefault();
             e.stopPropagation();
             doJump();
+            if (this.game?.player?.movement) this.game.player.movement.setHoldingJump(true);
+        }, { passive: false });
+        
+        jumpBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (this.game?.player?.movement) this.game.player.movement.setHoldingJump(false);
         }, { passive: false });
         
         jumpBtn.addEventListener('mousedown', (e) => {
             e.preventDefault();
             e.stopPropagation();
             doJump();
+            if (this.game?.player?.movement) this.game.player.movement.setHoldingJump(true);
+        });
+        
+        jumpBtn.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            if (this.game?.player?.movement) this.game.player.movement.setHoldingJump(false);
         });
         
         jumpBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            doJump();
         });
     }
     
