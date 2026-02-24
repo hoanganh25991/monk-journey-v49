@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RENDER_CONFIG } from '../config/render.js';
 
 /**
  * Base class for all skill effects
@@ -119,7 +120,38 @@ export class SkillEffect {
         this.effect = effectGroup;
         this.isActive = true;
         
+        this.applyShadowsToEffect(effectGroup);
         return effectGroup;
+    }
+
+    /**
+     * Apply shadow casting to skill effect meshes only when the current quality profile has shadows enabled
+     * (RENDER_CONFIG: high and medium have shadowMapEnabled: true; low and minimal have false).
+     * Semi-transparent meshes (opacity >= 0.4) still cast shadows when the profile allows it.
+     * @param {THREE.Object3D} effectGroup - Effect group or any Object3D (traversed)
+     */
+    applyShadowsToEffect(effectGroup) {
+        if (!effectGroup || !this.skill?.game) return;
+        const game = this.skill.game;
+        const qualityLevel = game.materialQuality || game.performanceManager?.getCurrentQualityLevel?.() || 'medium';
+        const profile = RENDER_CONFIG[qualityLevel] || RENDER_CONFIG.medium;
+        const shadowsEnabled = profile.settings?.shadowMapEnabled === true;
+        if (!shadowsEnabled) return;
+        effectGroup.traverse(object => {
+            if (!object.isMesh) return;
+            const materials = object.material ? (Array.isArray(object.material) ? object.material : [object.material]) : [];
+            let shouldCast = true;
+            for (const mat of materials) {
+                if (!mat) continue;
+                const opacity = mat.opacity !== undefined ? mat.opacity : 1;
+                if (mat.transparent === true && opacity < 0.4) {
+                    shouldCast = false;
+                    break;
+                }
+            }
+            object.castShadow = shouldCast;
+            object.receiveShadow = false;
+        });
     }
 
     /** Temp vector for LOD distance check (reused to avoid allocation) */

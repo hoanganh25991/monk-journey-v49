@@ -492,6 +492,10 @@ export class ExplodingPalmEffect extends SkillEffect {
       this.effect.position.y += this.direction.y * moveDistance;
       this.effect.position.z += this.direction.z * moveDistance;
     }
+
+    // Update angle to match direction (tilt down when going toward enemy below)
+    this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+    this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
     
     // Update palm state age
     this.explodingPalmState.age = this.age;

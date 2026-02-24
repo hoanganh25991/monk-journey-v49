@@ -229,6 +229,9 @@ export class Skill {
         // Create effect using the effect handler
         try {
             const effect = this.effectHandler.create(this.position, this.direction);
+            if (this.effectHandler.applyShadowsToEffect) {
+                this.effectHandler.applyShadowsToEffect(effect);
+            }
             this.isActive = true;
             console.debug(`Created new effect for skill: ${this.name}`);
             return effect;
@@ -240,6 +243,9 @@ export class Skill {
             const fallbackMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             const fallbackMesh = new THREE.Mesh(fallbackGeometry, fallbackMaterial);
             fallbackGroup.add(fallbackMesh);
+            if (this.effectHandler?.applyShadowsToEffect) {
+                this.effectHandler.applyShadowsToEffect(fallbackGroup);
+            }
             return fallbackGroup;
         }
     }
