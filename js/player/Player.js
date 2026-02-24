@@ -95,12 +95,9 @@ export class Player {
         
         // Process jump request from input (Space or jump button) - handled in game loop so it always runs
         if (this.game && this.game.jumpRequested) {
-            console.log('🎮 Processing jump request in Player.update()');
             this.game.jumpRequested = false;
             if (this.movement) {
                 this.movement.jump();
-            } else {
-                console.error('❌ Movement not available for jump!');
             }
         }
         

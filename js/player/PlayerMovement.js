@@ -33,26 +33,43 @@ export class PlayerMovement {
         this.velocityY = 0;
         this.jumpCount = 0;
         this.maxJumps = 3;
-        this.jumpForces = [12, 7, 4]; // Strong first jump so monk visibly rises
-        this.gravity = 28;
+        this.jumpForces = [40, 28, 20]; // Strong instant jumps on press/click!
+        this.gravity = 20; // Reduced gravity for floatier jumps
+        this.holdJumpBoost = 10; // Optional extra lift when holding (bonus feature)
         this.groundedTolerance = 0.2;
+        this.isHoldingJump = false;
         
         // Game reference
         this.game = game;
     }
     
     /**
-     * Trigger a jump. Up to 3 jumps with diminishing force (max total height ~3x first jump).
+     * Trigger a jump. Up to 3 jumps with diminishing force (max total ~3x first jump).
      */
     jump() {
-        console.log('🚀 JUMP called! jumpCount:', this.jumpCount, 'velocityY before:', this.velocityY);
+        // Check if we've reached max jumps
         if (this.jumpCount >= this.maxJumps) {
-            console.log('❌ Jump blocked - already jumped', this.maxJumps, 'times');
             return;
         }
-        this.velocityY += this.jumpForces[this.jumpCount];
+        
+        // Apply jump force - use SET instead of += for first jump to ensure it always works
+        const jumpForce = this.jumpForces[this.jumpCount];
+        if (this.jumpCount === 0) {
+            // First jump: set velocity directly to ensure it always works
+            this.velocityY = jumpForce;
+        } else {
+            // Subsequent jumps: add to existing velocity
+            this.velocityY += jumpForce;
+        }
         this.jumpCount++;
-        console.log('✅ Jump executed! velocityY now:', this.velocityY, 'jumpCount:', this.jumpCount);
+    }
+    
+    /**
+     * Sets whether the player is holding the jump button
+     * @param {boolean} holding - True if the jump button is being held
+     */
+    setHoldingJump(holding) {
+        this.isHoldingJump = holding;
     }
     
     // setGame method removed - game is now passed in constructor
@@ -110,32 +127,36 @@ export class PlayerMovement {
     
     updateJumpPhysics(delta) {
         if (!this.game || !this.game.world) {
-            if (this.velocityY !== 0) console.log('⚠️ Jump physics skipped - no game.world');
             return;
         }
         const safeDelta = Math.min(Math.max(delta || 0.016, 0.001), 0.1);
         try {
             const terrainHeight = this.game.world.getTerrainHeight(this.position.x, this.position.z);
             if (terrainHeight === null || terrainHeight === undefined || !isFinite(terrainHeight)) {
-                if (this.velocityY !== 0) console.log('⚠️ Jump physics skipped - invalid terrain height');
                 return;
             }
             
             const groundY = terrainHeight + this.heightOffset;
             
+            // Check if player is in the air
+            const isInAir = this.position.y > groundY + this.groundedTolerance || this.velocityY > 0;
+            
             // Apply gravity and velocity when in air
-            if (this.velocityY !== 0) {
-                const oldY = this.position.y;
+            if (isInAir) {
+                // Apply sustained jump boost when holding jump button (only while ascending)
+                if (this.isHoldingJump && this.velocityY > 0) {
+                    this.velocityY += this.holdJumpBoost * safeDelta;
+                }
+                
+                // Apply gravity
                 this.velocityY -= this.gravity * safeDelta;
+                
+                // Update position
                 this.position.y += this.velocityY * safeDelta;
-                console.log(`🌊 Jump physics: Y ${oldY.toFixed(2)} → ${this.position.y.toFixed(2)}, velocityY: ${this.velocityY.toFixed(2)}, groundY: ${groundY.toFixed(2)}`);
             }
             
             // Land when we hit or pass ground
             if (this.position.y <= groundY + this.groundedTolerance) {
-                if (this.velocityY !== 0 || this.jumpCount !== 0) {
-                    console.log('🛬 LANDED at Y:', this.position.y.toFixed(2), 'groundY:', groundY.toFixed(2));
-                }
                 this.position.y = groundY;
                 this.velocityY = 0;
                 this.jumpCount = 0;
@@ -200,7 +221,9 @@ export class PlayerMovement {
     
     updateTerrainHeight() {
         // Skip terrain snap when jumping (velocityY handles Y)
-        if (this.velocityY !== 0) return;
+        if (this.velocityY !== 0) {
+            return;
+        }
         
         // Ensure player is always at the correct terrain height when grounded
         if (this.game && this.game.world) {

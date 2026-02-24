@@ -87,11 +87,8 @@ export class VirtualJoystickUI extends UIComponent {
         }
         
         const doJump = () => {
-            console.log('🖱️ Jump button clicked! Setting game.jumpRequested = true');
             if (this.game) {
                 this.game.jumpRequested = true;
-            } else {
-                console.error('❌ No game reference in VirtualJoystickUI!');
             }
         };
         

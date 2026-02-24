@@ -39,11 +39,12 @@ export class InputHandler {
         // Space/jump: also listen in capture phase so we get it before canvas or other elements
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.key === ' ') {
-                console.log('⌨️ SPACE pressed! Setting game.jumpRequested = true');
                 if (this.game) {
                     this.game.jumpRequested = true;
                     // Mark that we're holding jump for sustained lift
-                    if (this.game.player?.movement) this.game.player.movement.setHoldingJump(true);
+                    if (this.game.player?.movement) {
+                        this.game.player.movement.setHoldingJump(true);
+                    }
                 }
                 e.preventDefault();
                 e.stopPropagation();
