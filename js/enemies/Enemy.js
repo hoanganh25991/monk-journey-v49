@@ -456,37 +456,62 @@ export class Enemy {
             if (distanceToPlayer <= this.detectionRange || this.state.isAggressive) {
                 this.state.isMoving = true;
                 
-                // Calculate direction to target
-                const directionX = playerPosition.x - this.position.x;
-                const directionZ = playerPosition.z - this.position.z;
+                // Get all enemies near the player to calculate formation
+                const nearbyEnemies = this.game?.enemyManager?.getEnemiesNearPosition(playerPosition, this.detectionRange) || [];
+                const enemiesTargetingPlayer = nearbyEnemies.filter(e => !e.isDead() && e.id !== this.id);
                 
-                // Normalize direction
-                const length = Math.sqrt(directionX * directionX + directionZ * directionZ);
-                const normalizedDirectionX = directionX / length;
-                const normalizedDirectionZ = directionZ / length;
+                // Calculate this enemy's index among enemies targeting the player
+                const myIndex = enemiesTargetingPlayer.findIndex(e => e.id < this.id);
+                const totalEnemies = enemiesTargetingPlayer.length + 1; // +1 for this enemy
                 
-                // Update rotation to face target
-                this.faceTarget(playerPosition);
+                // Calculate attack position around the player (circular formation)
+                const attackRadius = this.attackRange * 1.2; // Position slightly outside attack range
+                const angleOffset = (myIndex / totalEnemies) * Math.PI * 2;
+                const currentTime = Date.now() / 1000;
+                const attackAngle = angleOffset + currentTime * 0.05; // Slowly rotate positions
                 
-                // Calculate new position
-                // Apply 1.5x speed multiplier for faster movement
-                const speedMultiplier = 1.5;
-                const moveSpeed = this.speed * delta * speedMultiplier;
-                const newX = this.position.x + normalizedDirectionX * moveSpeed;
-                const newZ = this.position.z + normalizedDirectionZ * moveSpeed;
+                const attackPositionX = playerPosition.x + Math.cos(attackAngle) * attackRadius;
+                const attackPositionZ = playerPosition.z + Math.sin(attackAngle) * attackRadius;
                 
-                // Calculate proper Y position based on terrain height
-                let newY = this.position.y;
-                if (this.world && this.allowTerrainHeightUpdates) {
-                    const terrainHeight = this.world.getTerrainHeight(newX, newZ);
-                    if (terrainHeight !== null) {
-                        newY = terrainHeight + this.heightOffset;
+                // Calculate direction to attack position (not player center)
+                const directionX = attackPositionX - this.position.x;
+                const directionZ = attackPositionZ - this.position.z;
+                
+                // Calculate distance to attack position
+                const distanceToAttackPos = Math.sqrt(directionX * directionX + directionZ * directionZ);
+                
+                // If far from attack position, move towards it
+                if (distanceToAttackPos > 0.5) {
+                    // Normalize direction
+                    const normalizedDirectionX = directionX / distanceToAttackPos;
+                    const normalizedDirectionZ = directionZ / distanceToAttackPos;
+                    
+                    // Calculate new position
+                    // Apply 1.5x speed multiplier for faster movement
+                    const speedMultiplier = 1.5;
+                    const moveSpeed = this.speed * delta * speedMultiplier;
+                    const newX = this.position.x + normalizedDirectionX * moveSpeed;
+                    const newZ = this.position.z + normalizedDirectionZ * moveSpeed;
+                    
+                    // Calculate proper Y position based on terrain height
+                    let newY = this.position.y;
+                    if (this.world && this.allowTerrainHeightUpdates) {
+                        const terrainHeight = this.world.getTerrainHeight(newX, newZ);
+                        if (terrainHeight !== null) {
+                            newY = terrainHeight + this.heightOffset;
+                        }
                     }
+                    
+                    // Update position
+                    this.setPosition(newX, newY, newZ);
+                    console.debug(`Enemy ${this.id} moving toward attack position, distance: ${distanceToPlayer.toFixed(2)}`);
+                } else {
+                    // At attack position, just maintain position with small adjustments
+                    console.debug(`Enemy ${this.id} maintaining attack position around player`);
                 }
                 
-                // Update position
-                this.setPosition(newX, newY, newZ);
-                console.debug(`Enemy ${this.id} moving toward player, distance: ${distanceToPlayer.toFixed(2)}`);
+                // Always face the player (not the attack position)
+                this.faceTarget(playerPosition);
                 
                 // If target is within detection range, refresh aggression timer
                 if (distanceToPlayer <= this.detectionRange) {
