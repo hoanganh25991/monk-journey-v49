@@ -420,6 +420,11 @@ export class GameplayTab extends SettingsTab {
                             }
                         }
                         
+                        // Clear ALL localStorage (including settings) for a fresh start
+                        // This fixes issues with stale quality/shadow settings on mobile
+                        console.debug('Clearing all localStorage for fresh start...');
+                        localStorage.clear();
+                        
                         window.location.reload();
                     }
                 }

@@ -147,7 +147,7 @@ export class PlayerModel {
             // Store the loaded model
             this.gltfModel = gltf.scene;
             
-            // Apply shadows and mark as player model (for quality exclusion on mobile)
+            // Apply shadows and mark as player model (player gets profile-based quality like everything else)
             this.gltfModel.traverse((node) => {
                 if (node.isMesh) {
                     node.castShadow = true;

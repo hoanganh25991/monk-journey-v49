@@ -205,10 +205,9 @@ export class Game {
             await this.loadInitialSettings();
 
             
-            // Initialize renderer with quality settings from storage
-            // Use stored quality level or 'medium' as default (better for tablets)
-            const qualityLevel = await storageService.loadData(STORAGE_KEYS.QUALITY_LEVEL) || 'medium';
-            this.renderer = this.createRenderer(qualityLevel);
+            // Initialize renderer from profile only (no mobile/device override — high profile = shadows on all devices)
+            const profileQuality = this.materialQuality || 'medium';
+            this.renderer = this.createRenderer(profileQuality);
             
             this.updateLoadingProgress(10, 'Creating game world...', 'Setting up scene');
             
@@ -245,7 +244,7 @@ export class Game {
             
             // Initialize world with loading state (pass quality for performance profile)
             this.isWorldLoading = true;
-            const worldQuality = this.materialQuality || qualityLevel || 'medium';
+            const worldQuality = this.materialQuality || profileQuality || 'medium';
             this.world = new WorldManager(this.scene, this.loadingManager, this, worldQuality);
             
             // Show a more detailed loading message for terrain generation
@@ -1007,7 +1006,7 @@ export class Game {
             
             // Reinitialize renderer settings
             try {
-                const qualityLevel = localStorage.getItem('monk_journey_quality_level') || 'high';
+                const qualityLevel = this.materialQuality || localStorage.getItem('monk_journey_quality_level') || 'high';
                 this.applyRendererSettings(renderer, qualityLevel);
                 
                 // Restart the animation loop if the game is running
@@ -1023,9 +1022,10 @@ export class Game {
     }
     
     /**
-     * Apply renderer settings based on quality level
+     * Apply renderer settings based on quality level (profile only — never overridden by device/mobile).
+     * High/medium = shadows on; low/minimal = shadows off. Same on desktop and mobile.
      * @param {THREE.WebGLRenderer} renderer - The Three.js renderer
-     * @param {string} qualityLevel - The quality level to apply
+     * @param {string} qualityLevel - The quality level to apply ('high'|'medium'|'low'|'minimal')
      */
     applyRendererSettings(renderer, qualityLevel) {
         if (!RENDER_CONFIG[qualityLevel]) {
@@ -1035,7 +1035,7 @@ export class Game {
         
         const settings = RENDER_CONFIG[qualityLevel].settings;
         
-        // Apply settings
+        // Apply settings from profile only (shadows follow profile: high/medium = on)
         renderer.setPixelRatio(settings.pixelRatio);
         renderer.shadowMap.enabled = settings.shadowMapEnabled;
         

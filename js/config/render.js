@@ -1,13 +1,16 @@
 /**
- * Renderer configuration for different quality levels
- * 
- * Device targeting:
- * - high: Good desktop computers
- * - medium: Slower desktops and good tablets
- * - low: Tablets and mid-range mobile devices
- * - minimal: Any low-end device to achieve playable FPS
- * 
- * The quality level is stored in localStorage using the key 'monk_journey_quality_level'.
+ * Renderer configuration for different quality levels.
+ * Quality is profile-based only: the user's selected profile is applied on all devices
+ * (desktop and mobile). We do not override or downgrade based on device type.
+ * E.g. High profile on mobile gets full shadows (shadowMapEnabled, etc.) the same as desktop.
+ *
+ * Profiles:
+ * - high: Best quality, shadows on (4096), antialias, etc.
+ * - medium: Good balance, shadows on (2048)
+ * - low: Reduced quality, shadows off
+ * - minimal: Lowest quality, shadows off
+ *
+ * The quality level is stored via STORAGE_KEYS.QUALITY_LEVEL.
  */
 
 

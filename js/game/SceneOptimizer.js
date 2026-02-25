@@ -2,16 +2,17 @@ import * as THREE from 'three';
 import { RENDER_CONFIG } from '../config/render.js';
 
 /**
- * Utility class for optimizing Three.js scenes
+ * Utility class for optimizing Three.js scenes.
+ * Uses the selected quality profile only (no mobile/device override).
  */
 export class SceneOptimizer {
     /**
-     * Apply optimizations to a Three.js scene
+     * Apply optimizations to a Three.js scene based on profile
      * @param {THREE.Scene} scene - The scene to optimize
      * @param {string} qualityLevel - The quality level ('high', 'medium', 'low', or 'minimal')
      */
     static optimizeScene(scene, qualityLevel = 'high') {
-        // Get quality settings
+        // Get quality settings from profile (same on desktop and mobile)
         const qualitySettings = RENDER_CONFIG[qualityLevel]?.materials || RENDER_CONFIG.high.materials;
         
         // Apply scene-wide optimizations
@@ -22,9 +23,8 @@ export class SceneOptimizer {
                 // Enable frustum culling
                 object.frustumCulled = true;
                 
-                // Optimize shadows based on quality level
+                // Shadows follow profile only: minimal = off, else on
                 if (object.castShadow) {
-                    // Disable shadows completely for minimal quality
                     if (qualityLevel === 'minimal') {
                         object.castShadow = false;
                     } else {

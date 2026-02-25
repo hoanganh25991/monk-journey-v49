@@ -198,7 +198,7 @@ export class LightingManager {
     }
 
     /**
-     * Apply shadow settings from quality profile (call when quality level changes)
+     * Apply shadow settings from quality profile only (no device override; high/medium = shadows on).
      * @param {string} qualityLevel - 'high' | 'medium' | 'low' | 'minimal'
      */
     applyQuality(qualityLevel) {
