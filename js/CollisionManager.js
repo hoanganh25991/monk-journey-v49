@@ -76,11 +76,15 @@ export class CollisionManager {
             const enemyPosition = enemy.getPosition();
             const enemyRadius = enemy.getCollisionRadius();
             
-            // Calculate distance between player and enemy
-            const distance = playerPosition.distanceTo(enemyPosition);
+            // Calculate squared distance for performance (avoid Math.sqrt)
+            const dx = enemyPosition.x - playerPosition.x;
+            const dz = enemyPosition.z - playerPosition.z;
+            const distanceSq = dx * dx + dz * dz;
+            const collisionRadiusSum = playerRadius + enemyRadius;
+            const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
             
             // Check if collision occurred
-            if (distance < playerRadius + enemyRadius) {
+            if (distanceSq < collisionRadiusSumSq) {
                 // Handle collision
                 this.handlePlayerEnemyCollision(enemy);
             }
@@ -128,12 +132,15 @@ export class CollisionManager {
                     boundingBox.getSize(size);
                     const objectRadius = Math.max(size.x, size.z) / 2;
                     
-                    // Calculate distance between player and object center
-                    const distance = new THREE.Vector2(playerPosition.x, playerPosition.z)
-                        .distanceTo(new THREE.Vector2(center.x, center.z));
+                    // Calculate squared distance for performance (2D, avoid Math.sqrt)
+                    const dx = center.x - playerPosition.x;
+                    const dz = center.z - playerPosition.z;
+                    const distanceSq = dx * dx + dz * dz;
+                    const collisionRadiusSum = playerRadius + objectRadius;
+                    const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                     
                     // Check if collision occurred
-                    if (distance < playerRadius + objectRadius) {
+                    if (distanceSq < collisionRadiusSumSq) {
                         // Handle collision
                         this.handlePlayerObjectCollision(object, center);
                     }
@@ -158,14 +165,18 @@ export class CollisionManager {
         
         // Check if player is pressing the interaction key
         if (this.player.isInteracting() && interactiveObjects.length > 0) {
-            // Find the closest interactive object
+            // Find the closest interactive object using squared distance
             let closestObject = interactiveObjects[0];
-            let closestDistance = playerPosition.distanceTo(closestObject.position);
+            let dx = closestObject.position.x - playerPosition.x;
+            let dz = closestObject.position.z - playerPosition.z;
+            let closestDistanceSq = dx * dx + dz * dz;
             
             for (let i = 1; i < interactiveObjects.length; i++) {
-                const distance = playerPosition.distanceTo(interactiveObjects[i].position);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
+                dx = interactiveObjects[i].position.x - playerPosition.x;
+                dz = interactiveObjects[i].position.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
+                if (distanceSq < closestDistanceSq) {
+                    closestDistanceSq = distanceSq;
                     closestObject = interactiveObjects[i];
                 }
             }
@@ -248,11 +259,15 @@ export class CollisionManager {
                 const enemyPosition = enemy.getPosition();
                 const enemyRadius = enemy.getCollisionRadius();
                 
-                // Calculate distance between skill and enemy
-                const distance = skillPosition.distanceTo(enemyPosition);
+                // Calculate squared distance for performance
+                const dx = enemyPosition.x - skillPosition.x;
+                const dz = enemyPosition.z - skillPosition.z;
+                const distanceSq = dx * dx + dz * dz;
+                const collisionRadiusSum = skillRadius + enemyRadius;
+                const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                 
                 // Check if collision occurred
-                if (distance < skillRadius + enemyRadius) {
+                if (distanceSq < collisionRadiusSumSq) {
                     // Handle collision
                     this.handleSkillEnemyCollision(skill, enemy);
                 }
@@ -380,11 +395,15 @@ export class CollisionManager {
                 const radius1 = enemy1.getCollisionRadius();
                 const radius2 = enemy2.getCollisionRadius();
                 
-                // Calculate distance between enemies
-                const distance = position1.distanceTo(position2);
+                // Calculate squared distance for performance
+                const dx = position2.x - position1.x;
+                const dz = position2.z - position1.z;
+                const distanceSq = dx * dx + dz * dz;
+                const collisionRadiusSum = radius1 + radius2;
+                const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                 
                 // Check if collision occurred
-                if (distance < radius1 + radius2) {
+                if (distanceSq < collisionRadiusSumSq) {
                     // Handle collision
                     this.handleEnemyEnemyCollision(enemy1, enemy2);
                 }

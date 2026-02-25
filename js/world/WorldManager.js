@@ -322,18 +322,25 @@ export class WorldManager {
         
         // Spawn enemies around player when they've moved a "screen distance"
         if (this.enemyManager && typeof this.enemyManager.onPlayerMovedScreenDistance === 'function') {
-            const distanceSinceSpawn = playerPosition.distanceTo(this.lastEnemySpawnPosition);
+            // Use squared distance for performance
+            const dx = playerPosition.x - this.lastEnemySpawnPosition.x;
+            const dz = playerPosition.z - this.lastEnemySpawnPosition.z;
+            const distanceSinceSpawnSq = dx * dx + dz * dz;
             // Random threshold each time: 40–65 so sometimes sooner, sometimes later
             const threshold = this.enemySpawnMoveThreshold + (Math.random() * 25 - 5);
-            if (distanceSinceSpawn > Math.max(30, threshold)) {
+            const thresholdSq = Math.max(30, threshold) * Math.max(30, threshold);
+            if (distanceSinceSpawnSq > thresholdSq) {
                 this.enemyManager.onPlayerMovedScreenDistance(playerPosition.clone());
                 this.lastEnemySpawnPosition.copy(playerPosition);
             }
         }
         
         // Random world content generation - DISABLED for performance
-        const distanceMoved = playerPosition.distanceTo(this.generation.lastPosition);
-        if (distanceMoved > this.generation.updateDistance) {
+        const dx2 = playerPosition.x - this.generation.lastPosition.x;
+        const dz2 = playerPosition.z - this.generation.lastPosition.z;
+        const distanceMovedSq = dx2 * dx2 + dz2 * dz2;
+        const updateDistanceSq = this.generation.updateDistance * this.generation.updateDistance;
+        if (distanceMovedSq > updateDistanceSq) {
             this.updateWorldContent(playerPosition);
             this.generation.lastPosition.copy(playerPosition);
         }

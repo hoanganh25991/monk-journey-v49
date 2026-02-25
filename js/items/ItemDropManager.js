@@ -172,16 +172,21 @@ export class ItemDropManager {
             // Only check distances periodically to reduce computation
             if (shouldCheckPickup && playerPosition) {
                 const itemPosition = itemData.group.position;
-                const distance = playerPosition.distanceTo(itemPosition);
+                
+                // Use squared distance for performance
+                const dx = itemPosition.x - playerPosition.x;
+                const dz = itemPosition.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
                 
                 // Remove items that are too far away
-                if (distance > this.autoRemoveDistance) {
+                const autoRemoveDistanceSq = this.autoRemoveDistance * this.autoRemoveDistance;
+                if (distanceSq > autoRemoveDistanceSq) {
                     this.removeDroppedItem(id, itemData);
                     continue;
                 }
                 
-                // Auto-pickup if player is close enough (instant pickup)
-                if (distance < 1.5) {
+                // Auto-pickup if player is close enough (instant pickup) - 1.5 * 1.5 = 2.25
+                if (distanceSq < 2.25) {
                     this.pickupItem(id);
                     continue; // Skip to next item since this one was picked up
                 }

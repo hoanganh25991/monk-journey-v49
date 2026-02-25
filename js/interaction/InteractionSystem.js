@@ -67,17 +67,21 @@ export class InteractionSystem {
             return isValid;
         });
         
-        // Find the closest object for highlighting
+        // Find the closest object for highlighting using squared distance
         if (this.nearbyInteractiveObjects.length > 0) {
             let closestObject = this.nearbyInteractiveObjects[0];
-            let closestDistance = playerPosition.distanceTo(closestObject.position);
+            let dx = closestObject.position.x - playerPosition.x;
+            let dz = closestObject.position.z - playerPosition.z;
+            let closestDistanceSq = dx * dx + dz * dz;
             
             for (let i = 1; i < this.nearbyInteractiveObjects.length; i++) {
                 const obj = this.nearbyInteractiveObjects[i];
-                const distance = playerPosition.distanceTo(obj.position);
+                dx = obj.position.x - playerPosition.x;
+                dz = obj.position.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
                 
-                if (distance < closestDistance) {
-                    closestDistance = distance;
+                if (distanceSq < closestDistanceSq) {
+                    closestDistanceSq = distanceSq;
                     closestObject = obj;
                 }
             }
@@ -151,7 +155,9 @@ export class InteractionSystem {
             const dotProduct = playerForward.dot(objDirection);
             
             // Calculate distance factor (closer objects get priority)
-            const distance = playerPosition.distanceTo(obj.position);
+            const dx = obj.position.x - playerPosition.x;
+            const dz = obj.position.z - playerPosition.z;
+            const distance = Math.sqrt(dx * dx + dz * dz); // Need actual distance for factor calculation
             const distanceFactor = 1.0 - (distance / INTERACTION_RANGE);
             
             // Only consider objects somewhat in front of the player (dot product > 0)
@@ -310,16 +316,20 @@ export class InteractionSystem {
         // Get player position
         const playerPosition = this.player.getPosition();
         
-        // Find the closest object
+        // Find the closest object using squared distance
         let closestObject = this.nearbyInteractiveObjects[0];
-        let closestDistance = playerPosition.distanceTo(closestObject.position);
+        let dx = closestObject.position.x - playerPosition.x;
+        let dz = closestObject.position.z - playerPosition.z;
+        let closestDistanceSq = dx * dx + dz * dz;
         
         for (let i = 1; i < this.nearbyInteractiveObjects.length; i++) {
             const obj = this.nearbyInteractiveObjects[i];
-            const distance = playerPosition.distanceTo(obj.position);
+            dx = obj.position.x - playerPosition.x;
+            dz = obj.position.z - playerPosition.z;
+            const distanceSq = dx * dx + dz * dz;
             
-            if (distance < closestDistance) {
-                closestDistance = distance;
+            if (distanceSq < closestDistanceSq) {
+                closestDistanceSq = distanceSq;
                 closestObject = obj;
             }
         }

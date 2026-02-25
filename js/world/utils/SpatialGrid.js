@@ -80,11 +80,14 @@ export class SpatialGrid {
                 const cell = this.grid.get(cellKey);
                 
                 if (cell) {
-                    // Filter objects by actual distance
+                    // Filter objects by actual distance using squared distance for performance
+                    const radiusSq = radius * radius;
                     cell.forEach(objectInfo => {
                         if (objectInfo.position) {
-                            const distance = position.distanceTo(objectInfo.position);
-                            if (distance <= radius) {
+                            const dx = objectInfo.position.x - position.x;
+                            const dz = objectInfo.position.z - position.z;
+                            const distanceSq = dx * dx + dz * dz;
+                            if (distanceSq <= radiusSq) {
                                 result.push(objectInfo);
                             }
                         }

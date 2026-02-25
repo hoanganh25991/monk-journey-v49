@@ -77,13 +77,18 @@ export class PlayerMovement {
     updateMovement(delta) {
         if (this.playerState.isMoving()) {
             // Calculate direction to target
-            const direction = new THREE.Vector3().subVectors(this.targetPosition, this.position).normalize();
+            const dx = this.targetPosition.x - this.position.x;
+            const dy = this.targetPosition.y - this.position.y;
+            const dz = this.targetPosition.z - this.position.z;
             
-            // Calculate distance to target
-            const distance = this.position.distanceTo(this.targetPosition);
+            // Calculate squared distance for performance
+            const distanceSq = dx * dx + dy * dy + dz * dz;
             
-            // Move towards target
-            if (distance > 0.1) {
+            // Move towards target (0.1 * 0.1 = 0.01)
+            if (distanceSq > 0.01) {
+                // Only calculate actual distance when needed for normalization
+                const distance = Math.sqrt(distanceSq);
+                const direction = new THREE.Vector3(dx / distance, dy / distance, dz / distance);
                 // Calculate movement step
                 const step = this.playerStats.getMovementSpeed() * delta;
                 

@@ -270,13 +270,16 @@ export class InputHandler {
                 const objPosition = new THREE.Vector3();
                 obj.mesh.getWorldPosition(objPosition);
                 
-                // Calculate distance to player
-                const distance = objPosition.distanceTo(playerPosition);
+                // Calculate squared distance for performance
+                const dx = objPosition.x - playerPosition.x;
+                const dz = objPosition.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
                 
                 // Check if this object is closer than the current nearest
-                if (distance < minDistance) {
+                const minDistanceSq = minDistance * minDistance;
+                if (distanceSq < minDistanceSq) {
                     nearestObject = obj;
-                    minDistance = distance;
+                    minDistance = Math.sqrt(distanceSq); // Update actual distance for next comparison
                 }
             }
         }

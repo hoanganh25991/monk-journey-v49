@@ -271,24 +271,29 @@ export class WaveOfLightEffect extends SkillEffect {
         try {
             this.elapsedTime += delta;
             
-            // Only check duration expiry if bell has completed its cycle (impact + ascent)
-            // This allows the bell to complete its animation naturally
-            if (this.bellState && this.bellState.phase === 'ascending') {
-                const bellGroup = this.effect.children[0];
-                // End effect when bell has ascended back up or faded out
-                if (bellGroup && bellGroup.position.y >= this.bellState.initialHeight || 
-                    (bellGroup && bellGroup.children[0] && bellGroup.children[0].material.opacity <= 0.05)) {
+            // Don't check duration during descent and impact phases
+            // Only end the effect naturally when the bell completes its cycle
+            if (this.bellState) {
+                // During ascending phase, check if animation is complete
+                if (this.bellState.phase === 'ascending') {
+                    const bellGroup = this.effect.children[0];
+                    // End effect when bell has ascended back up or faded out
+                    if (bellGroup && (bellGroup.position.y >= this.bellState.initialHeight || 
+                        (bellGroup.children[0] && bellGroup.children[0].material.opacity <= 0.05))) {
+                        this.isActive = false;
+                        this.dispose();
+                        return;
+                    }
+                }
+                
+                // Safety check: if we've been active for way too long (3x duration), force cleanup
+                // This prevents stuck effects but gives plenty of time for the animation
+                if (this.elapsedTime >= this.skill.duration * 3) {
+                    console.warn('Wave of Light effect exceeded 3x duration, forcing cleanup');
                     this.isActive = false;
                     this.dispose();
                     return;
                 }
-            }
-            
-            // Fallback: if duration is exceeded and we're still active, force cleanup
-            if (this.elapsedTime >= this.skill.duration) {
-                this.isActive = false;
-                this.dispose();
-                return;
             }
             
             // Update the Wave of Light effect
