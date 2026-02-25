@@ -721,7 +721,7 @@ export class PlayerSkills {
                     
                     // For Fist of Thunder (teleport skill), dash forward in player direction
                     if (skillTemplate.name === "Fist of Thunder") {
-                        const dashDistance = 8; // Distance to teleport when no enemy
+                        const dashDistance = skillTemplate.range || 25; // Distance to teleport when no enemy (matches skill range)
                         const direction = new THREE.Vector3(
                             Math.sin(this.playerRotation.y),
                             0,
