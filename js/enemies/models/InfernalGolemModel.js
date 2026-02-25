@@ -7,10 +7,15 @@ export class InfernalGolemModel extends EnemyModel {
     }
     
     createModel() {
+        const isIceGolem = this.enemy.type === 'ice_golem';
+        const bodyColor = isIceGolem ? (this.enemy.color || 0x88ccff) : 0x333333;
+        const crackColor = isIceGolem ? 0x66aaff : 0xff3300;
+        const crackEmissive = isIceGolem ? 0x4488dd : 0xff3300;
+
         // Create body (large, rocky structure)
         const bodyGeometry = new THREE.BoxGeometry(1.5, 1.5, 1);
         const bodyMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+            color: bodyColor,
             roughness: 1.0,
             metalness: 0.2
         });
@@ -23,7 +28,7 @@ export class InfernalGolemModel extends EnemyModel {
         // Create head (smaller box)
         const headGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8);
         const headMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+            color: bodyColor,
             roughness: 1.0,
             metalness: 0.2
         });
@@ -33,11 +38,11 @@ export class InfernalGolemModel extends EnemyModel {
         
         this.modelGroup.add(head);
         
-        // Create glowing cracks
+        // Create glowing cracks (lava orange or ice blue)
         const crackGeometry = new THREE.BoxGeometry(0.1, 1.4, 0.1);
         const crackMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xff3300,
-            emissive: 0xff3300,
+            color: crackColor,
+            emissive: crackEmissive,
             emissiveIntensity: 1.0
         });
         
@@ -57,7 +62,7 @@ export class InfernalGolemModel extends EnemyModel {
         // Create arms (large, rocky cylinders)
         const armGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
         const armMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+            color: bodyColor,
             roughness: 1.0,
             metalness: 0.2
         });
@@ -81,7 +86,7 @@ export class InfernalGolemModel extends EnemyModel {
         // Create fists (large spheres)
         const fistGeometry = new THREE.SphereGeometry(0.4, 16, 16);
         const fistMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+            color: bodyColor,
             roughness: 1.0,
             metalness: 0.2
         });
@@ -103,7 +108,7 @@ export class InfernalGolemModel extends EnemyModel {
         // Create legs (thick cylinders)
         const legGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.8, 8);
         const legMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x333333,
+            color: bodyColor,
             roughness: 1.0,
             metalness: 0.2
         });
@@ -122,11 +127,11 @@ export class InfernalGolemModel extends EnemyModel {
         
         this.modelGroup.add(rightLeg);
         
-        // Add glowing eyes
+        // Add glowing eyes (lava orange or ice blue)
         const eyeGeometry = new THREE.SphereGeometry(0.1, 8, 8);
         const eyeMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xff3300,
-            emissive: 0xff3300,
+            color: crackColor,
+            emissive: crackEmissive,
             emissiveIntensity: 1.0
         });
         

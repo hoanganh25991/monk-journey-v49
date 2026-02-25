@@ -95,6 +95,11 @@ export class Enemy {
             this.heightOffset += 0.2;
         }
         
+        // Ice Golem needs +0.3 to be on the ground
+        if (this.type === 'ice_golem') {
+            this.heightOffset += 0.3;
+        }
+        
         // Enemy model
         this.modelGroup = null;
         this.model = null;
