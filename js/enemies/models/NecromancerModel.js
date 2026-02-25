@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 import { EnemyModel } from './EnemyModel.js';
 
 export class NecromancerModel extends EnemyModel {
@@ -91,9 +92,9 @@ export class NecromancerModel extends EnemyModel {
                 const angle = (i / 3) * Math.PI * 2;
                 const skull = new THREE.Mesh(skullGeometry, skullMaterial);
                 skull.position.set(
-                    Math.cos(angle) * 0.8,
+                    fastCos(angle) * 0.8,
                     1.5,
-                    Math.sin(angle) * 0.8
+                    fastSin(angle) * 0.8
                 );
                 skull.castShadow = true;
                 
@@ -144,27 +145,27 @@ export class NecromancerModel extends EnemyModel {
             
             // Animate the orb pulsing
             if (orb) {
-                const pulseFactor = 1.0 + Math.sin(time * 2.0) * 0.2;
+                const pulseFactor = 1.0 + fastSin(time * 2.0) * 0.2;
                 orb.scale.set(pulseFactor, pulseFactor, pulseFactor);
-                orb.material.emissiveIntensity = 0.5 + Math.sin(time * 3.0) * 0.3;
+                orb.material.emissiveIntensity = 0.5 + fastSin(time * 3.0) * 0.3;
             }
             
             // Attack animation - raise staff and make orb glow brighter
             if (this.enemy.state.isAttacking && staff && orb) {
                 // Raise the staff during attack
-                staff.rotation.z = Math.PI / 12 + Math.sin(time * 8.0) * 0.3;
+                staff.rotation.z = Math.PI / 12 + fastSin(time * 8.0) * 0.3;
                 
                 // Make the orb glow brighter during attack
-                orb.material.emissiveIntensity = 1.0 + Math.sin(time * 10.0) * 0.5;
+                orb.material.emissiveIntensity = 1.0 + fastSin(time * 10.0) * 0.5;
                 
                 // Scale the orb up and down rapidly during attack
-                const attackPulse = 1.0 + Math.sin(time * 15.0) * 0.5;
+                const attackPulse = 1.0 + fastSin(time * 15.0) * 0.5;
                 orb.scale.set(attackPulse, attackPulse, attackPulse);
                 
                 // Create a slight movement of the hood during attack
                 const hood = this.modelGroup.children[2]; // Hood is the 3rd child
                 if (hood) {
-                    hood.rotation.x = Math.PI + Math.sin(time * 8.0) * 0.1; // Keep inverted but add slight movement
+                    hood.rotation.x = Math.PI + fastSin(time * 8.0) * 0.1; // Keep inverted but add slight movement
                 }
             }
             
@@ -179,14 +180,14 @@ export class NecromancerModel extends EnemyModel {
                         const angle = baseAngle + time * 0.5;
                         
                         // Make skulls orbit around the necromancer
-                        skull.position.x = Math.cos(angle) * 0.8;
-                        skull.position.z = Math.sin(angle) * 0.8;
-                        skull.position.y = 1.5 + Math.sin(time * 2.0 + baseAngle) * 0.2;
+                        skull.position.x = fastCos(angle) * 0.8;
+                        skull.position.z = fastSin(angle) * 0.8;
+                        skull.position.y = 1.5 + fastSin(time * 2.0 + baseAngle) * 0.2;
                         
                         // During attack, make skulls move more aggressively
                         if (this.enemy.state.isAttacking) {
-                            skull.position.x = Math.cos(angle) * (0.8 + Math.sin(time * 8.0) * 0.3);
-                            skull.position.z = Math.sin(angle) * (0.8 + Math.sin(time * 8.0) * 0.3);
+                            skull.position.x = fastCos(angle) * (0.8 + fastSin(time * 8.0) * 0.3);
+                            skull.position.z = fastSin(angle) * (0.8 + fastSin(time * 8.0) * 0.3);
                             skull.rotation.y = time * 10.0;
                         } else {
                             skull.rotation.y = time * 2.0;

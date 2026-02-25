@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -35,7 +36,7 @@ export class WaveStrikeEffect extends SkillEffect {
         
         // Position effect
         effectGroup.position.copy(position);
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         // No rotation.x - keep skill vertical, only adjust height naturally
         
         // Scale the effect based on skill radius
@@ -248,7 +249,7 @@ export class WaveStrikeEffect extends SkillEffect {
         this.effect.position.z += this.direction.z * moveDistance;
 
         // Update rotation to match direction (horizontal only, no vertical tilt)
-        this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.y = fastAtan2(this.direction.x, this.direction.z);
         // No rotation.x - keep skill vertical, only adjust height naturally
         
         // IMPORTANT: Update the skill's position property to match the effect's position

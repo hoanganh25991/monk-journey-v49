@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq3D, fastAtan2 } from '../../../../utils/FastMath.js';
 import { SevenSidedStrikeEffect } from '../../SevenSidedStrikeEffect.js';
 
 /**
@@ -61,7 +62,7 @@ export class ShadowAssaultEffect extends SevenSidedStrikeEffect {
                 const direction = new THREE.Vector3();
                 // Use effectGroup's position instead of this.effect which might not be set yet
                 direction.subVectors(effectGroup.position, randomPoint.position).normalize();
-                shadowMonk.rotation.y = Math.atan2(direction.x, direction.z);
+                shadowMonk.rotation.y = fastAtan2(direction.x, direction.z);
                 
                 // Store data
                 shadowMonk.userData = {
@@ -183,7 +184,7 @@ export class ShadowAssaultEffect extends SevenSidedStrikeEffect {
                             trail.scale.set(1, length / 2, 1);
                             
                             // Rotate trail to face direction
-                            trail.rotation.z = Math.atan2(direction.z, direction.x);
+                            trail.rotation.z = fastAtan2(direction.z, direction.x);
                         }
                     }
                     
@@ -197,11 +198,11 @@ export class ShadowAssaultEffect extends SevenSidedStrikeEffect {
                         clone.position.add(direction.multiplyScalar(moveSpeed * delta));
                         
                         // Rotate to face movement direction
-                        clone.rotation.y = Math.atan2(direction.x, direction.z);
+                        clone.rotation.y = fastAtan2(direction.x, direction.z);
                         
-                        // Check if reached target
-                        const distanceToTarget = clone.position.distanceTo(targetPoint);
-                        if (distanceToTarget < 0.5) {
+                        // Check if reached target (squared to avoid sqrt)
+                        const arriveRadiusSq = 0.5 * 0.5;
+                        if (distanceSq3D(clone.position.x, clone.position.y, clone.position.z, targetPoint.x, targetPoint.y, targetPoint.z) <= arriveRadiusSq) {
                             // Arrived at target
                             clone.position.copy(targetPoint);
                             clone.userData.currentTarget = clone.userData.nextTarget;

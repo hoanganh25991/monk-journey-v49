@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -49,7 +50,7 @@ export class WaveOfLightEffect extends SkillEffect {
         // Note: We don't need to position the effect here anymore
         // as createWaveEffect will position it at either the enemy or hero position
         // But we still need to set the rotation
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         
         // Store effect
         this.effect = effectGroup;

@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 import { EnemyModel } from './EnemyModel.js';
 
 export class FrostTitanModel extends EnemyModel {
@@ -227,7 +228,7 @@ export class FrostTitanModel extends EnemyModel {
         if (crystal) {
             crystal.rotation.x = time * 0.8;
             crystal.rotation.y = time * 1.2;
-            const crystalPulse = 1.0 + Math.sin(time * 3) * 0.15;
+            const crystalPulse = 1.0 + fastSin(time * 3) * 0.15;
             crystal.scale.set(crystalPulse, crystalPulse, crystalPulse);
         }
         
@@ -236,10 +237,10 @@ export class FrostTitanModel extends EnemyModel {
             if (particle && particle.position) {
                 const baseAngle = i * 0.5;
                 const angle = baseAngle + time * 0.5;
-                const radius = 1.2 + Math.sin(time * 2 + i) * 0.3;
-                particle.position.x = Math.cos(angle) * radius;
-                particle.position.z = Math.sin(angle) * radius;
-                particle.position.y = Math.sin(time * 1.5 + i) * 0.5 + 1;
+                const radius = 1.2 + fastSin(time * 2 + i) * 0.3;
+                particle.position.x = fastCos(angle) * radius;
+                particle.position.z = fastSin(angle) * radius;
+                particle.position.y = fastSin(time * 1.5 + i) * 0.5 + 1;
             }
         }
         
@@ -259,42 +260,42 @@ export class FrostTitanModel extends EnemyModel {
                 }
             }
             
-            rightArm.rotation.x = Math.sin(time * attackSpeed) * 0.3;
-            leftArm.rotation.x = Math.sin(time * attackSpeed * 0.7) * 0.2;
+            rightArm.rotation.x = fastSin(time * attackSpeed) * 0.3;
+            leftArm.rotation.x = fastSin(time * attackSpeed * 0.7) * 0.2;
             
         } else if (this.enemy.state.isMoving) {
             const walkSpeed = 4;
             const walkAmp = 0.12;
             
-            leftLeg.rotation.x = Math.sin(time * walkSpeed) * 0.3;
-            rightLeg.rotation.x = -Math.sin(time * walkSpeed) * 0.3;
+            leftLeg.rotation.x = fastSin(time * walkSpeed) * 0.3;
+            rightLeg.rotation.x = -fastSin(time * walkSpeed) * 0.3;
             
-            leftArm.rotation.x = -Math.sin(time * walkSpeed) * 0.25;
-            rightArm.rotation.x = Math.sin(time * walkSpeed) * 0.25;
+            leftArm.rotation.x = -fastSin(time * walkSpeed) * 0.25;
+            rightArm.rotation.x = fastSin(time * walkSpeed) * 0.25;
             
-            const bodyBob = Math.abs(Math.sin(time * walkSpeed)) * 0.12;
+            const bodyBob = Math.abs(fastSin(time * walkSpeed)) * 0.12;
             body.position.y = body.userData.originalY + bodyBob;
             head.position.y = head.userData.originalY + bodyBob;
             
             if (staff) {
-                staff.rotation.z = -Math.PI / 2 + Math.sin(time * walkSpeed) * 0.1;
+                staff.rotation.z = -Math.PI / 2 + fastSin(time * walkSpeed) * 0.1;
             }
             
         } else {
             const idleSpeed = 1.5;
             
-            body.rotation.x = Math.sin(time * idleSpeed) * 0.03;
-            body.rotation.z = Math.cos(time * idleSpeed * 0.7) * 0.02;
+            body.rotation.x = fastSin(time * idleSpeed) * 0.03;
+            body.rotation.z = fastCos(time * idleSpeed * 0.7) * 0.02;
             
-            head.rotation.x = Math.sin(time * 1.1) * 0.05;
-            head.rotation.y = Math.sin(time * 0.8) * 0.08;
+            head.rotation.x = fastSin(time * 1.1) * 0.05;
+            head.rotation.y = fastSin(time * 0.8) * 0.08;
             
-            const breathe = Math.sin(time * idleSpeed) * 0.05;
+            const breathe = fastSin(time * idleSpeed) * 0.05;
             body.position.y = body.userData.originalY + breathe;
             head.position.y = head.userData.originalY + breathe;
             
-            leftArm.rotation.x = Math.sin(time * idleSpeed * 0.4) * 0.06;
-            rightArm.rotation.x = Math.cos(time * idleSpeed * 0.4) * 0.06;
+            leftArm.rotation.x = fastSin(time * idleSpeed * 0.4) * 0.06;
+            rightArm.rotation.x = fastCos(time * idleSpeed * 0.4) * 0.06;
             
             leftLeg.rotation.x = 0;
             rightLeg.rotation.x = 0;

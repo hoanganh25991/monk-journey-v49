@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq3D, distanceApprox3D } from '../../../../utils/FastMath.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
 
 /**
@@ -254,9 +255,11 @@ export class WallOfLightEffect extends WaveOfLightEffect {
                         const moveAmount = particle.userData.speed * delta;
                         particle.position.add(particle.userData.direction.clone().multiplyScalar(moveAmount));
                         
-                        // Check if particle has moved too far from initial position
-                        const distance = particle.position.distanceTo(particle.userData.initialPos);
-                        if (distance > particle.userData.maxDistance) {
+                        // Check if particle has moved too far from initial position (squared to avoid sqrt)
+                        const ip = particle.userData.initialPos;
+                        const maxDist = particle.userData.maxDistance;
+                        const maxDistSq = maxDist * maxDist;
+                        if (distanceSq3D(particle.position.x, particle.position.y, particle.position.z, ip.x, ip.y, ip.z) > maxDistSq) {
                             // Reset to initial position
                             particle.position.copy(particle.userData.initialPos);
                             
@@ -458,8 +461,12 @@ export class WallOfLightEffect extends WaveOfLightEffect {
         // Calculate projection distance along wall
         const projectionDistance = pointToLeft.dot(wallDirection);
         
-        // Check if projection is within wall length
-        if (projectionDistance < 0 || projectionDistance > leftEndpoint.distanceTo(rightEndpoint)) {
+        // Check if projection is within wall length (approximate length to avoid sqrt)
+        const wallLen = distanceApprox3D(
+            leftEndpoint.x, leftEndpoint.y, leftEndpoint.z,
+            rightEndpoint.x, rightEndpoint.y, rightEndpoint.z
+        );
+        if (projectionDistance < 0 || projectionDistance > wallLen) {
             return false;
         }
         
@@ -469,13 +476,15 @@ export class WallOfLightEffect extends WaveOfLightEffect {
             wallDirection.clone().multiplyScalar(projectionDistance)
         );
         
-        // Check distance to wall
-        const distanceToWall = point.distanceTo(closestPoint);
+        // Check distance to wall (squared to avoid sqrt)
+        const thresholdSq = threshold * threshold;
+        const dx = point.x - closestPoint.x, dy = point.y - closestPoint.y, dz = point.z - closestPoint.z;
+        const distToWallSq = dx * dx + dy * dy + dz * dz;
         
         // Check height (y-coordinate)
         const heightCheck = point.y <= this.wallHeight;
         
-        return distanceToWall <= threshold && heightCheck;
+        return distToWallSq <= thresholdSq && heightCheck;
     }
     
     /**

@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { fastSin } from '../../utils/FastMath.js';
 
 /**
  * Interface for enemy models
@@ -71,7 +72,7 @@ export class EnemyModel {
         const time = Date.now() * 0.001;
         const body = this.modelGroup.children[0];
         if (body && body.scale) {
-            const breath = 1.0 + Math.sin(time * 2) * 0.03;
+            const breath = 1.0 + fastSin(time * 2) * 0.03;
             body.scale.set(breath, breath, breath);
         }
     }
@@ -89,14 +90,14 @@ export class EnemyModel {
         if (this.modelGroup.children.length >= 6) {
             const leftLeg = this.modelGroup.children[4];
             const rightLeg = this.modelGroup.children[5];
-            if (leftLeg?.position) leftLeg.position.z = Math.sin(time * walkSpeed) * walkAmplitude;
-            if (rightLeg?.position) rightLeg.position.z = -Math.sin(time * walkSpeed) * walkAmplitude;
+            if (leftLeg?.position) leftLeg.position.z = fastSin(time * walkSpeed) * walkAmplitude;
+            if (rightLeg?.position) rightLeg.position.z = -fastSin(time * walkSpeed) * walkAmplitude;
         }
         if (this.modelGroup.children.length >= 4) {
             const leftArm = this.modelGroup.children[2];
             const rightArm = this.modelGroup.children[3];
-            if (leftArm?.rotation) leftArm.rotation.x = Math.sin(time * walkSpeed) * armSwing;
-            if (rightArm?.rotation) rightArm.rotation.x = -Math.sin(time * walkSpeed) * armSwing;
+            if (leftArm?.rotation) leftArm.rotation.x = fastSin(time * walkSpeed) * armSwing;
+            if (rightArm?.rotation) rightArm.rotation.x = -fastSin(time * walkSpeed) * armSwing;
         }
     }
     
@@ -108,7 +109,7 @@ export class EnemyModel {
         const time = Date.now() * 0.001;
         const rightArm = this.modelGroup.children[3];
         if (rightArm?.rotation) {
-            rightArm.rotation.x = -0.8 - Math.sin(time * 12) * 0.6;
+            rightArm.rotation.x = -0.8 - fastSin(time * 12) * 0.6;
         }
     }
 }

@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq3D } from '../../../../utils/FastMath.js';
 import { WaveStrikeEffect } from '../../WaveStrikeEffect.js';
 
 /**
@@ -190,9 +191,10 @@ export class TidalWaveEffect extends WaveStrikeEffect {
                     const moveAmount = foam.userData.speed * delta;
                     foam.position.add(foam.userData.direction.clone().multiplyScalar(moveAmount));
                     
-                    // Reset if moved too far from initial position
-                    const distance = foam.position.distanceTo(foam.userData.initialPos);
-                    if (distance > 1.0) {
+                    // Reset if moved too far from initial position (squared to avoid sqrt)
+                    const ip = foam.userData.initialPos;
+                    const maxDistSq = 1.0 * 1.0;
+                    if (distanceSq3D(foam.position.x, foam.position.y, foam.position.z, ip.x, ip.y, ip.z) > maxDistSq) {
                         foam.position.copy(foam.userData.initialPos);
                     }
                 }
