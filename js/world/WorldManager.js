@@ -200,22 +200,30 @@ export class WorldManager {
     }
     
     /**
-     * Get zone type at world coordinates - lightweight, uses ZONE_DEFINITIONS directly.
-     * No ZoneManager needed - just distance check vs zone circles.
+     * Get zone type at world coordinates - lightweight, uses map zones or ZONE_DEFINITIONS.
+     * Map-specific zones (e.g. Mixed Realms) override global definitions for theme-based ground color.
      */
     getZoneTypeAt(worldX, worldZ) {
         if (this.currentMap?.zoneStyle) return this.currentMap.zoneStyle;
-        if (!ZONE_DEFINITIONS || ZONE_DEFINITIONS.length === 0) return 'Terrant';
         const cx = (typeof worldX === 'number' ? worldX : (worldX?.x ?? 0));
         const cz = (typeof worldZ === 'number' ? worldZ : (worldX?.z ?? worldZ ?? 0));
-        for (const zone of ZONE_DEFINITIONS) {
-            const dx = cx - zone.center.x, dz = cz - zone.center.z;
-            if (dx * dx + dz * dz <= zone.radius * zone.radius) return zone.name;
+        const zones = this.currentMap?.zones && this.currentMap.zones.length > 0
+            ? this.currentMap.zones
+            : ZONE_DEFINITIONS;
+        if (!zones || zones.length === 0) return 'Terrant';
+        for (const zone of zones) {
+            const center = zone.center || zone;
+            const rx = center.x ?? 0, rz = center.z ?? 0;
+            const r = zone.radius ?? 1000;
+            const dx = cx - rx, dz = cz - rz;
+            if (dx * dx + dz * dz <= r * r) return zone.name;
         }
-        let best = ZONE_DEFINITIONS[0];
+        let best = zones[0];
         let bestDist = Infinity;
-        for (const zone of ZONE_DEFINITIONS) {
-            const dx = cx - zone.center.x, dz = cz - zone.center.z;
+        for (const zone of zones) {
+            const center = zone.center || zone;
+            const rx = center.x ?? 0, rz = center.z ?? 0;
+            const dx = cx - rx, dz = cz - rz;
             const d = dx * dx + dz * dz;
             if (d < bestDist) { bestDist = d; best = zone; }
         }

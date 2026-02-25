@@ -24,7 +24,7 @@ export class NotificationsUI extends UIComponent {
         this.processingInterval = 50; // Milliseconds between processing messages
         this.maxVisibleNotifications = 5; // Default max visible notifications
         /** Types that show on left side and float up (above joystick) */
-        this.floatTypes = ['equip', 'consume-health', 'consume-mana', 'skip'];
+        this.floatTypes = ['equip', 'consume-health', 'consume-mana', 'consume-effect', 'skip'];
     }
     
     /**

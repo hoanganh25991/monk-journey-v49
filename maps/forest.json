@@ -18,6 +18,15 @@
   "terrain": {
     "profile": "hills"
   },
+  "theme": {
+    "colors": {
+      "ground": "#8F9779",
+      "soil": "#8F9779",
+      "sand": "#8F9779",
+      "rock": "#708090",
+      "accent": "#6B8E23"
+    }
+  },
   "structures": [
     {
       "type": "cave",

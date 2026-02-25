@@ -116,6 +116,11 @@
     color: #aaccff;
 }
 
+/* Cyan: skill effect (e.g. Freezing Burst: 3 enemies) */
+.notification-float--consume-effect {
+    color: #66ffff;
+}
+
 /* Yellow: equip (e.g. Equipped X with icon) */
 .notification-float--equip {
     color: #ffe066;

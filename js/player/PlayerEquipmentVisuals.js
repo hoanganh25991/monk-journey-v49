@@ -24,7 +24,13 @@ export class PlayerEquipmentVisuals {
             leftHand: null,
             back: null,
             chest: null,
-            head: null
+            head: null,
+            leftShoulder: null,
+            rightShoulder: null,
+            shoulderCenter: null,
+            waist: null,
+            feet: null,
+            handsCenter: null
         };
     }
     
@@ -57,6 +63,30 @@ export class PlayerEquipmentVisuals {
         this.attachmentPoints.head = new THREE.Group();
         this.attachmentPoints.head.position.set(0, 1.7, 0);
         modelGroup.add(this.attachmentPoints.head);
+
+        this.attachmentPoints.leftShoulder = new THREE.Group();
+        this.attachmentPoints.leftShoulder.position.set(-0.4, 1.5, 0.05);
+        modelGroup.add(this.attachmentPoints.leftShoulder);
+
+        this.attachmentPoints.rightShoulder = new THREE.Group();
+        this.attachmentPoints.rightShoulder.position.set(0.4, 1.5, 0.05);
+        modelGroup.add(this.attachmentPoints.rightShoulder);
+
+        this.attachmentPoints.shoulderCenter = new THREE.Group();
+        this.attachmentPoints.shoulderCenter.position.set(0, 1.5, 0.05);
+        modelGroup.add(this.attachmentPoints.shoulderCenter);
+
+        this.attachmentPoints.waist = new THREE.Group();
+        this.attachmentPoints.waist.position.set(0, 0.95, 0.08);
+        modelGroup.add(this.attachmentPoints.waist);
+
+        this.attachmentPoints.feet = new THREE.Group();
+        this.attachmentPoints.feet.position.set(0, 0.15, 0.15);
+        modelGroup.add(this.attachmentPoints.feet);
+
+        this.attachmentPoints.handsCenter = new THREE.Group();
+        this.attachmentPoints.handsCenter.position.set(0, 1.2, 0.35);
+        modelGroup.add(this.attachmentPoints.handsCenter);
     }
     
     /**
@@ -77,6 +107,22 @@ export class PlayerEquipmentVisuals {
         
         if (equipment.helmet) {
             this.createHelmetVisual(equipment.helmet);
+        }
+
+        if (equipment.gloves) {
+            this.createGlovesVisual(equipment.gloves);
+        }
+
+        if (equipment.boots) {
+            this.createBootsVisual(equipment.boots);
+        }
+
+        if (equipment.belt) {
+            this.createBeltVisual(equipment.belt);
+        }
+
+        if (equipment.shoulder) {
+            this.createShoulderVisual(equipment.shoulder);
         }
         
         if (equipment.accessory1 || equipment.accessory2) {
@@ -533,6 +579,148 @@ export class PlayerEquipmentVisuals {
             helmetMesh.castShadow = true;
             this.attachmentPoints.head.add(helmetMesh);
             this.armorEffects.push(helmetMesh);
+        }
+    }
+
+    /**
+     * Create gloves visual (hands)
+     */
+    createGlovesVisual(gloves) {
+        if (!gloves || !this.attachmentPoints.handsCenter) return;
+
+        const item = this.ensureItemShape(gloves, 'armor');
+        if (item.subType !== 'gloves') item.subType = 'gloves';
+
+        const glovesGroup = new THREE.Group();
+        glovesGroup.name = 'gloves-addon';
+        this.attachmentPoints.handsCenter.add(glovesGroup);
+
+        try {
+            const itemModel = ItemModelFactory.createModel(item, glovesGroup);
+            this.itemModelInstances.push(itemModel);
+            ItemModelFactory.applyRarityEffects(itemModel, gloves.rarity || 'common');
+            glovesGroup.scale.multiplyScalar(3.5);
+            this.armorEffects.push(glovesGroup);
+        } catch (err) {
+            console.warn('PlayerEquipmentVisuals: GlovesModel failed, using fallback:', err);
+            const color = this.getWeaponColor(gloves);
+            const gauntletGeometry = new THREE.BoxGeometry(0.15, 0.12, 0.2);
+            const gauntletMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.5 });
+            [-0.2, 0.2].forEach(x => {
+                const g = new THREE.Mesh(gauntletGeometry, gauntletMaterial);
+                g.position.set(x, 0, 0);
+                g.castShadow = true;
+                glovesGroup.add(g);
+            });
+            this.attachmentPoints.handsCenter.add(glovesGroup);
+            this.armorEffects.push(glovesGroup);
+        }
+    }
+
+    /**
+     * Create boots visual (feet)
+     */
+    createBootsVisual(boots) {
+        if (!boots || !this.attachmentPoints.feet) return;
+
+        const item = this.ensureItemShape(boots, 'armor');
+        if (item.subType !== 'boots') item.subType = 'boots';
+
+        const bootsGroup = new THREE.Group();
+        bootsGroup.name = 'boots-addon';
+        this.attachmentPoints.feet.add(bootsGroup);
+
+        try {
+            const itemModel = ItemModelFactory.createModel(item, bootsGroup);
+            this.itemModelInstances.push(itemModel);
+            ItemModelFactory.applyRarityEffects(itemModel, boots.rarity || 'common');
+            bootsGroup.scale.multiplyScalar(3);
+            this.armorEffects.push(bootsGroup);
+        } catch (err) {
+            console.warn('PlayerEquipmentVisuals: BootsModel failed, using fallback:', err);
+            const color = this.getWeaponColor(boots);
+            const bootGeometry = new THREE.BoxGeometry(0.12, 0.1, 0.25);
+            const bootMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.3 });
+            [-0.12, 0.12].forEach(x => {
+                const b = new THREE.Mesh(bootGeometry, bootMaterial);
+                b.position.set(x, 0, 0);
+                b.castShadow = true;
+                bootsGroup.add(b);
+            });
+            this.attachmentPoints.feet.add(bootsGroup);
+            this.armorEffects.push(bootsGroup);
+        }
+    }
+
+    /**
+     * Create belt visual (waist)
+     */
+    createBeltVisual(belt) {
+        if (!belt || !this.attachmentPoints.waist) return;
+
+        const item = this.ensureItemShape(belt, 'armor');
+        if (item.subType !== 'belt') item.subType = 'belt';
+
+        const beltGroup = new THREE.Group();
+        beltGroup.name = 'belt-addon';
+        this.attachmentPoints.waist.add(beltGroup);
+
+        try {
+            const itemModel = ItemModelFactory.createModel(item, beltGroup);
+            this.itemModelInstances.push(itemModel);
+            ItemModelFactory.applyRarityEffects(itemModel, belt.rarity || 'common');
+            beltGroup.scale.multiplyScalar(3);
+            this.armorEffects.push(beltGroup);
+        } catch (err) {
+            console.warn('PlayerEquipmentVisuals: BeltModel failed, using fallback:', err);
+            const color = this.getWeaponColor(belt);
+            const beltGeometry = new THREE.TorusGeometry(0.35, 0.04, 8, 32, Math.PI * 1.8);
+            const beltMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.4 });
+            const beltMesh = new THREE.Mesh(beltGeometry, beltMaterial);
+            beltMesh.rotation.x = Math.PI / 2;
+            beltMesh.castShadow = true;
+            beltGroup.add(beltMesh);
+            this.attachmentPoints.waist.add(beltGroup);
+            this.armorEffects.push(beltGroup);
+        }
+    }
+
+    /**
+     * Create shoulder visual (pauldrons)
+     */
+    createShoulderVisual(shoulder) {
+        if (!shoulder || !this.attachmentPoints.shoulderCenter) return;
+
+        const item = this.ensureItemShape(shoulder, 'armor');
+        if (item.subType !== 'shoulders') item.subType = 'shoulders';
+
+        const shoulderGroup = new THREE.Group();
+        shoulderGroup.name = 'shoulder-addon';
+        this.attachmentPoints.shoulderCenter.add(shoulderGroup);
+
+        try {
+            const itemModel = ItemModelFactory.createModel(item, shoulderGroup);
+            this.itemModelInstances.push(itemModel);
+            ItemModelFactory.applyRarityEffects(itemModel, shoulder.rarity || 'common');
+            shoulderGroup.scale.multiplyScalar(3.5);
+            this.armorEffects.push(shoulderGroup);
+        } catch (err) {
+            console.warn('PlayerEquipmentVisuals: ShoulderModel failed, using fallback:', err);
+            const color = this.getWeaponColor(shoulder);
+            const pauldronGeometry = new THREE.SphereGeometry(0.18, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+            const pauldronMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.5 });
+            const leftP = new THREE.Mesh(pauldronGeometry, pauldronMaterial.clone());
+            leftP.position.set(-0.35, 0, 0);
+            leftP.rotation.z = Math.PI / 6;
+            leftP.castShadow = true;
+            shoulderGroup.add(leftP);
+            const rightP = new THREE.Mesh(pauldronGeometry, pauldronMaterial);
+            rightP.position.set(0.35, 0, 0);
+            rightP.rotation.z = -Math.PI / 6;
+            rightP.castShadow = true;
+            shoulderGroup.add(rightP);
+            this.attachmentPoints.shoulderCenter.add(shoulderGroup);
+            this.armorEffects.push(shoulderGroup);
         }
     }
     

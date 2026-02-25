@@ -267,7 +267,7 @@ export class ItemDropManager {
             const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
             const isConsumable = item.type === 'consumable' || item.consumable;
             const isEquippable = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory' ||
-                (item.type === 'helmet' || item.type === 'boots' || item.type === 'gloves' || item.type === 'belt' || item.type === 'talisman');
+                (item.type === 'helmet' || item.type === 'boots' || item.type === 'gloves' || item.type === 'belt' || item.type === 'talisman' || (item.type === 'armor' && ['helmet', 'boots', 'gloves', 'belt', 'shoulders'].includes(item.subType)));
             let didConsume = false;
             if (hud && (autoConsume === true || autoConsume === 'true') && isConsumable) {
                 const invUI = hud.components && hud.components.inventoryUI;
@@ -348,6 +348,10 @@ export class ItemDropManager {
             else if (!inv.equipment.accessory2) slot = 'accessory2';
             else slot = 'accessory1';
         }
+        if (item.type === 'armor' && item.subType) {
+            const armorSlotMap = { helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt', shoulders: 'shoulder', robe: 'armor' };
+            slot = armorSlotMap[item.subType] || slot;
+        }
         if (!inv.equipment.hasOwnProperty(slot)) return 'weaker';
         const current = inv.equipment[slot];
         const getMainStat = (i) => {
@@ -355,7 +359,7 @@ export class ItemDropManager {
             const base = i.baseStats || {};
             const sec = (i.secondaryStats || []).reduce((s, x) => s + (x.value || 0), 0);
             if (slot === 'weapon') return (base.damage || 0) + sec;
-            if (['armor', 'helmet', 'boots', 'gloves', 'belt'].includes(slot)) return (base.defense || 0) + sec;
+            if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (base.defense || 0) + sec;
             return (base.damage || 0) + (base.defense || 0) + (base.manaBonus || 0) + (base.healthBonus || 0) + sec;
         };
         const newStat = getMainStat(item);

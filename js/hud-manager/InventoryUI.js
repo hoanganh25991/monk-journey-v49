@@ -899,6 +899,9 @@ export class InventoryUI extends UIComponent {
             } else if (hasMana) {
                 const manaPart = effectsDescription.find(d => /Mana|Spirit/i.test(d));
                 this.game.hudManager.showNotification(`Consume ${manaPart}`, 'consume-mana');
+            } else if (effectsDescription.some(d => /enemies/i.test(d))) {
+                const effectsText = effectsDescription.join(', ');
+                this.game.hudManager.showNotification(`Consume ${effectsText}`, 'consume-effect');
             } else {
                 const effectsText = effectsDescription.join(', ');
                 this.game.hudManager.showNotification(`Consume ${effectsText}`);
@@ -1053,6 +1056,7 @@ export class InventoryUI extends UIComponent {
             boots: 'Boots',
             gloves: 'Gloves',
             belt: 'Belt',
+            shoulder: 'Shoulder',
             accessory1: 'Accessory 1',
             accessory2: 'Accessory 2',
             talisman: 'Talisman'
@@ -1074,6 +1078,7 @@ export class InventoryUI extends UIComponent {
             boots: '👢',
             gloves: '🧤',
             belt: '⚔️',
+            shoulder: '🧥',
             accessory1: '💍',
             accessory2: '💍',
             talisman: '🔮'

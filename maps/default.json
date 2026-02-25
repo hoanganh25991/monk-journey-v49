@@ -17,6 +17,15 @@
   "terrain": {
     "profile": "hills"
   },
+  "theme": {
+    "colors": {
+      "ground": "#E5C09A",
+      "soil": "#E5C09A",
+      "sand": "#E5C09A",
+      "rock": "#696969",
+      "accent": "#DAA520"
+    }
+  },
   "structures": [
     {
       "type": "bridge",

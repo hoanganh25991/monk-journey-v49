@@ -585,7 +585,11 @@ export class TerrainManager {
 
             // Zone at this vertex (removes chunk-boundary seam)
             const zoneType = zoneTypeOverride ?? this.worldManager?.getZoneTypeAt?.(x, z) ?? 'Terrant';
+            const mapTheme = this.worldManager?.currentMap?.theme?.colors;
             const zoneColors = ZONE_COLORS?.[zoneType] || ZONE_COLORS?.['Terrant'] || {};
+
+            // Use map theme colors when available (single-zone maps) - ensures ground matches map theme
+            const colorsSource = (mapTheme && this.worldManager?.currentMap?.zoneStyle) ? mapTheme : zoneColors;
 
             // Detect zone boundary for soft blending (skip when uniform zone is forced)
             const zoneR = !zoneTypeOverride ? this.worldManager?.getZoneTypeAt?.(x + blendDist, z) : null;
@@ -593,15 +597,15 @@ export class TerrainManager {
             const hasNeighborZone = (zoneR && zoneR !== zoneType) || (zoneU && zoneU !== zoneType);
             const otherZoneType = zoneR && zoneR !== zoneType ? zoneR : (zoneU && zoneU !== zoneType ? zoneU : null);
 
-            // Get base/ground color for the zone (soil, ground, or sand - matches surrounding terrain per map)
-            const baseColorHex = zoneColors.soil || zoneColors.ground || zoneColors.sand || 0xE5C09A;
+            // Get base/ground color (from map theme or zone - soil, ground, or sand)
+            const baseColorHex = colorsSource.soil || colorsSource.ground || colorsSource.sand || zoneColors.soil || zoneColors.ground || zoneColors.sand || 0xE5C09A;
             const baseColor = new THREE.Color(typeof baseColorHex === 'string' ? parseInt(baseColorHex.replace('#', ''), 16) : baseColorHex);
 
-            // Get additional colors for variety
-            const accentColorHex = zoneColors.accent || zoneColors.vegetation || baseColorHex;
-            const accentColor = new THREE.Color(accentColorHex);
+            // Get additional colors for variety (from same source as base)
+            const accentColorHex = colorsSource.accent || colorsSource.vegetation || zoneColors.accent || zoneColors.vegetation || baseColorHex;
+            const accentColor = new THREE.Color(typeof accentColorHex === 'string' ? parseInt(accentColorHex.replace('#', ''), 16) : accentColorHex);
 
-            const rockColorHex = zoneColors.rock || 0x696969;
+            const rockColorHex = colorsSource.rock || zoneColors.rock || 0x696969;
             const rockColor = new THREE.Color(rockColorHex);
             
             // Debug test pattern (can be toggled via this.useTestPattern)

@@ -81,9 +81,9 @@ export class ItemGenerator {
     selectRandomSubType(type) {
         const subTypes = {
             weapon: ['fist', 'staff', 'dagger'],
-            armor: ['robe', 'belt', 'boots', 'gloves', 'helmet'],
+            armor: ['robe', 'belt', 'boots', 'gloves', 'helmet', 'shoulders'],
             accessory: ['amulet', 'ring', 'talisman'],
-            consumable: ['potion', 'scroll', 'food']
+            consumable: ['potion', 'scroll', 'food', 'crystal']
         };
         
         return this.randomElement(subTypes[type] || []);
@@ -153,8 +153,8 @@ export class ItemGenerator {
                 baseStats[key] = Math.round(value * randomFactor * levelScalingFactor * 
                                 (1 + COMBAT_BALANCE.player.weaponDamageIncrease * level));
             } 
-            // Apply armor damage reduction for armor items
-            else if (key === 'armor' && template.type === 'armor') {
+            // Apply armor/defense scaling for armor items (scale with level)
+            else if ((key === 'armor' || key === 'defense') && template.type === 'armor') {
                 baseStats[key] = Math.round(value * randomFactor * levelScalingFactor * 
                                 (1 + COMBAT_BALANCE.player.armorDamageReduction * level));
             }

@@ -18,6 +18,15 @@
   "terrain": {
     "profile": "mountains"
   },
+  "theme": {
+    "colors": {
+      "ground": "#B0E0E6",
+      "soil": "#A9A9A9",
+      "sand": "#FFFAFA",
+      "rock": "#A9A9A9",
+      "accent": "#8FBC8F"
+    }
+  },
   "structures": [
     {
       "type": "temple",

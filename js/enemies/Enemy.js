@@ -90,6 +90,11 @@ export class Enemy {
             this.heightOffset += 0.2;
         }
         
+        // Zombie needs +0.2 to be on the ground
+        if (this.type === 'zombie') {
+            this.heightOffset += 0.2;
+        }
+        
         // Enemy model
         this.modelGroup = null;
         this.model = null;

@@ -17,6 +17,7 @@ export class PlayerInventory {
             boots: null,
             gloves: null,
             belt: null,
+            shoulder: null,
             accessory1: null,
             accessory2: null,
             talisman: null
@@ -84,6 +85,19 @@ export class PlayerInventory {
         
         // Determine the correct equipment slot
         let slot = item.type;
+        
+        // Handle armor subtypes -> specific slots (helmet, boots, gloves, belt, shoulder)
+        if (item.type === 'armor' && item.subType) {
+            const armorSlotMap = {
+                helmet: 'helmet',
+                boots: 'boots',
+                gloves: 'gloves',
+                belt: 'belt',
+                shoulders: 'shoulder',
+                robe: 'armor'
+            };
+            slot = armorSlotMap[item.subType] || 'armor';
+        }
         
         // Handle special cases for accessories
         if (item.type === 'accessory') {

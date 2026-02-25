@@ -18,6 +18,15 @@
   "terrain": {
     "profile": "hills"
   },
+  "theme": {
+    "colors": {
+      "ground": "#4B0082",
+      "soil": "#483D8B",
+      "sand": "#4B0082",
+      "rock": "#9370DB",
+      "accent": "#00FFFF"
+    }
+  },
   "structures": [
     {
       "type": "tower",

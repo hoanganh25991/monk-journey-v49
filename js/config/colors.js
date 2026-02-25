@@ -59,6 +59,17 @@ export const ZONE_COLORS = {
         'accent': '#8B0000', // Blood Red
         'glow': '#E3CF57' // Sulfur Yellow
     },
+    // Magical environment (enchanted realm - maps with zoneStyle: Magical)
+    'Magical': {
+        'ground': '#4B0082', // Indigo - mystical ground
+        'soil': '#483D8B', // Dark Slate Blue
+        'rock': '#9370DB', // Medium Purple
+        'structure': '#2F4F4F', // Dark Slate Gray
+        'accent': '#00FFFF', // Cyan - glowing elements
+        'vegetation': '#006400', // Dark Green
+        'glow': '#7FFFD4', // Aquamarine
+        'water': '#1E90FF' // Dodger Blue
+    },
     // Terrant (Ground) environment
     'Terrant': {
         'soil': '#E5C09A', // Light Earth Brown (3x lighter)

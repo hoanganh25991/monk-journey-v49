@@ -951,18 +951,19 @@ export class EnemyManager {
             // Generate an item using the ItemGenerator
             let item;
             
+            // Use player level so weapons/armor scale with level automatically
+            const playerLevel = Math.max(1, this.player.stats.getLevel());
             if (enemy.isBoss) {
-                // Generate a higher quality item for bosses
-                const bossLevel = Math.max(1, this.player.stats.getLevel());
+                // Bosses drop items at player level + 1 for slightly stronger loot
+                const bossLevel = playerLevel + 1;
                 item = this.itemGenerator.generateItem({
                     level: bossLevel,
                     rarity: this.getRandomBossRarity()
                 });
             } else {
-                // Generate a regular item for normal enemies
-                const enemyLevel = Math.max(1, this.player.stats.getLevel() - 1);
+                // Regular enemies drop items at player level (weapons stronger over time)
                 item = this.itemGenerator.generateItem({
-                    level: enemyLevel,
+                    level: playerLevel,
                     rarity: this.getRandomEnemyRarity()
                 });
             }

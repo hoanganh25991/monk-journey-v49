@@ -940,8 +940,8 @@ export const COMBAT_BALANCE = {
         manaRegenPerSecond: 5,
         // Damage reduction from armor (percentage per point)
         armorDamageReduction: 0.02,
-        // Damage increase from weapon (percentage per point)
-        weaponDamageIncrease: 0.05,
+        // Damage increase from weapon (percentage per level - weapons scale with player)
+        weaponDamageIncrease: 0.08,
         // Power scaling with level (percentage increase per level)
         powerScalingPerLevel: 0.1, // 10% increase per level
         // Critical hit chance base value
@@ -1013,8 +1013,8 @@ export const COMBAT_BALANCE = {
             mythic: 3.0
         },
         
-        // Level scaling factor for items
-        levelScalingFactor: 0.05, // 5% per level
+        // Level scaling factor for items (weapons stronger over time, match player level)
+        levelScalingFactor: 0.08, // 8% per level
         
         // Secondary stat value ranges
         secondaryStatBaseValues: {

@@ -7,12 +7,14 @@ import { RobeModel } from './armor/RobeModel.js';
 import { BootsModel } from './armor/BootsModel.js';
 import { BeltModel } from './armor/BeltModel.js';
 import { GlovesModel } from './armor/GlovesModel.js';
+import { ShoulderModel } from './armor/ShoulderModel.js';
 import { AmuletModel } from './accessory/AmuletModel.js';
 import { TalismanModel } from './accessory/TalismanModel.js';
 import { RingModel } from './accessory/RingModel.js';
 import { PotionModel } from './consumable/PotionModel.js';
 import { FoodModel } from './consumable/FoodModel.js';
 import { ScrollModel } from './consumable/ScrollModel.js';
+import { CrystalModel } from './consumable/CrystalModel.js';
 
 /**
  * Factory class for creating item models
@@ -56,7 +58,8 @@ export class ItemModelFactory {
                         return new BeltModel(item, modelGroup);
                     case 'gloves':
                         return new GlovesModel(item, modelGroup);
-                    // Add more armor subtypes as they are implemented
+                    case 'shoulders':
+                        return new ShoulderModel(item, modelGroup);
                     default:
                         console.warn(`No specific model for armor subtype: ${subType}, using default`);
                         return new ItemModel(item, modelGroup);
@@ -84,7 +87,8 @@ export class ItemModelFactory {
                         return new FoodModel(item, modelGroup);
                     case 'scroll':
                         return new ScrollModel(item, modelGroup);
-                    // Add more consumable subtypes as they are implemented
+                    case 'crystal':
+                        return new CrystalModel(item, modelGroup);
                     default:
                         console.warn(`No specific model for consumable subtype: ${subType}, using default`);
                         return new ItemModel(item, modelGroup);

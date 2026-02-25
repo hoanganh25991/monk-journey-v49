@@ -18,6 +18,15 @@
   "terrain": {
     "profile": "gentle"
   },
+  "theme": {
+    "colors": {
+      "ground": "#8F9779",
+      "soil": "#556B2F",
+      "sand": "#8F9779",
+      "rock": "#36454F",
+      "accent": "#40E0D0"
+    }
+  },
   "structures": [
     {
       "type": "ruins",
