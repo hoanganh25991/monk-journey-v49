@@ -368,6 +368,17 @@
     font-size: 0.9rem;
 }
 
+.map-stat-enemies {
+    grid-column: 1 / -1;
+}
+
+.map-stat-enemies .stat-value {
+    flex: 1;
+    margin-left: 8px;
+    text-align: right;
+    word-break: break-word;
+}
+
 .map-preview-placeholder {
     display: flex;
     align-items: center;

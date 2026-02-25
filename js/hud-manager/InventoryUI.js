@@ -3,6 +3,7 @@ import { UIComponent } from '../UIComponent.js';
 import { ModelPreview } from '../menu-system/ModelPreview.js';
 import { ItemPreview } from '../menu-system/ItemPreview.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
+import { CONSUMABLE_SKILL_EFFECTS } from '../config/consumable-skills.js';
 
 /**
  * Inventory UI component
@@ -746,6 +747,34 @@ export class InventoryUI extends UIComponent {
                 }
             }
             
+            // Handle instant skill effects (freeze, stun, slow, burn, shock)
+            if (item.baseStats.effectType === 'instant_skill' && item.baseStats.skillEffect) {
+                const skillId = item.baseStats.skillEffect;
+                const effectConfig = CONSUMABLE_SKILL_EFFECTS[skillId] || {};
+                const radius = item.baseStats.skillRadius ?? effectConfig.radius ?? 5;
+                const duration = item.baseStats.skillDuration ?? effectConfig.duration ?? 2;
+
+                if (this.game.enemyManager && this.game.player) {
+                    const playerPos = this.game.player.getPosition();
+                    const nearbyEnemies = this.game.enemyManager.getEnemiesNearPosition(playerPos, radius);
+                    let hitCount = 0;
+
+                    for (const enemy of nearbyEnemies) {
+                        if (enemy.state?.isDead) continue;
+                        if (typeof enemy.stun === 'function') {
+                            enemy.stun(duration);
+                            hitCount++;
+                        }
+                        if (effectConfig.damage && typeof enemy.takeDamage === 'function') {
+                            enemy.takeDamage(effectConfig.damage);
+                        }
+                    }
+
+                    effectsApplied = true;
+                    effectsDescription.push(`${effectConfig.name || skillId}: ${hitCount} enemies`);
+                }
+            }
+
             // Handle buff effects based on effectType
             if (item.baseStats.effectType === 'buff' || item.baseStats.effectType === 'over_time') {
                 const duration = item.baseStats.duration || 30; // Default 30 seconds

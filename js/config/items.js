@@ -1108,6 +1108,83 @@ export const ITEM_TEMPLATES = [
             }
         },
         consumable: true
+    },
+
+    // ==================== SKILL CRYSTALS (instant skill effects) ====================
+    {
+        id: "freezingCrystal",
+        name: "Freezing Crystal",
+        type: "consumable",
+        subType: "crystal",
+        description: "Shatter to freeze nearby enemies in place.",
+        icon: "❄️",
+        baseStats: {
+            effectType: "instant_skill",
+            skillEffect: "freeze",
+            skillRadius: 6,
+            skillDuration: 2.5
+        },
+        consumable: true
+    },
+    {
+        id: "stunningOrb",
+        name: "Stunning Orb",
+        type: "consumable",
+        subType: "crystal",
+        description: "Release a shockwave that stuns nearby enemies.",
+        icon: "⚡",
+        baseStats: {
+            effectType: "instant_skill",
+            skillEffect: "stun",
+            skillRadius: 5,
+            skillDuration: 2
+        },
+        consumable: true
+    },
+    {
+        id: "chillingCrystal",
+        name: "Chilling Crystal",
+        type: "consumable",
+        subType: "crystal",
+        description: "Creates a chilling aura that slows nearby enemies.",
+        icon: "🌨️",
+        baseStats: {
+            effectType: "instant_skill",
+            skillEffect: "slow",
+            skillRadius: 5,
+            skillDuration: 2
+        },
+        consumable: true
+    },
+    {
+        id: "flameCrystal",
+        name: "Flame Crystal",
+        type: "consumable",
+        subType: "crystal",
+        description: "Explodes in flames, burning nearby enemies.",
+        icon: "🔥",
+        baseStats: {
+            effectType: "instant_skill",
+            skillEffect: "burn",
+            skillRadius: 4,
+            skillDuration: 5
+        },
+        consumable: true
+    },
+    {
+        id: "lightningCrystal",
+        name: "Lightning Crystal",
+        type: "consumable",
+        subType: "crystal",
+        description: "Releases a lightning surge that shocks nearby enemies.",
+        icon: "💫",
+        baseStats: {
+            effectType: "instant_skill",
+            skillEffect: "shock",
+            skillRadius: 5,
+            skillDuration: 1.5
+        },
+        consumable: true
     }
 ];
 

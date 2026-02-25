@@ -135,6 +135,13 @@ export class EnemyManager {
         this.enemiesToRemove = []; // Batch collection for removal
         this.batchProcessingEnabled = true;
 
+        // Cave group spawning: per-cave enemy groups, respawn when player returns after clearing
+        this.caveGroups = new Map(); // caveKey -> { enemyIds: Set, playerLeftAfterClear: boolean }
+        this.caveProximityRadius = 70; // Player within this distance = "near cave"
+        this.caveLeaveRadius = 90; // Player beyond this = "left cave area"
+        this.caveSpawnCheckInterval = 2; // Check every 2 seconds
+        this.lastCaveSpawnCheck = 0;
+
         // Ranged enemy projectiles (arrows, orbs, etc.)
         this.projectileManager = new EnemyProjectileManager(scene);
     }
@@ -278,6 +285,9 @@ export class EnemyManager {
             // Stop boss theme and return to main theme
             this.game.audioManager.playMusic('mainTheme');
         }
+
+        // Cave group spawning: spawn/respawn groups when player approaches caves
+        this._updateCaveProximitySpawning(delta);
         
         // Scheduled cleanup of distant enemies (similar to terrain chunk cleanup)
         // Check if enough time has passed since last cleanup
@@ -299,7 +309,7 @@ export class EnemyManager {
         }
     }
     
-    async spawnEnemy(specificType = null, position = null, enemyId = null) {
+    async spawnEnemy(specificType = null, position = null, enemyId = null, caveGroupKey = null) {
         let enemyType;
         
         if (specificType) {
@@ -350,6 +360,17 @@ export class EnemyManager {
         // Assign enemy ID (for multiplayer)
         const id = enemyId || `enemy_${this.nextEnemyId++}`;
         enemy.id = id;
+        
+        // Tag with cave group for respawn tracking
+        if (caveGroupKey) {
+            enemy.caveGroupKey = caveGroupKey;
+            let state = this.caveGroups.get(caveGroupKey);
+            if (!state) {
+                state = { enemyIds: new Set(), playerLeftAfterClear: false };
+                this.caveGroups.set(caveGroupKey, state);
+            }
+            state.enemyIds.add(id);
+        }
         
         // Add to enemies map
         this.enemies.set(id, enemy);
@@ -620,6 +641,7 @@ export class EnemyManager {
         this.activeEnemies.clear();
         this.processedDrops.clear();
         this.enemyLastUpdated.clear();
+        this.caveGroups.clear();
     }
     
     
@@ -1305,6 +1327,7 @@ export class EnemyManager {
         for (const id of enemiesToRemove) {
             const enemy = this.enemies.get(id);
             if (enemy) {
+                this._removeEnemyFromCaveGroup(enemy);
                 enemy.remove();
                 this.enemies.delete(id);
                 // Also clean up processed drops entry for this enemy
@@ -1612,6 +1635,9 @@ export class EnemyManager {
                 this.game.teleportManager.waveManager.onEnemyKilled(enemy.id);
             }
             
+            // Remove from cave group (for respawn tracking)
+            this._removeEnemyFromCaveGroup(enemy);
+            
             // Remove from main enemies map
             this.enemies.delete(enemy.id);
             
@@ -1626,7 +1652,115 @@ export class EnemyManager {
         this.enemiesToRemove.length = 0;
     }
 
-        /**
+    /**
+     * Remove enemy from its cave group (when dead or despawned)
+     * @param {Enemy} enemy - Enemy being removed
+     * @private
+     */
+    _removeEnemyFromCaveGroup(enemy) {
+        const key = enemy.caveGroupKey;
+        if (!key) return;
+        const state = this.caveGroups.get(key);
+        if (!state) return;
+        state.enemyIds.delete(enemy.id);
+        // Filter out dead/removed enemy IDs (enemies map may have already deleted)
+        const alive = [...state.enemyIds].filter(id => this.enemies.has(id));
+        state.enemyIds.clear();
+        alive.forEach(id => state.enemyIds.add(id));
+    }
+
+    /**
+     * Get a stable key for a cave position
+     * @param {{x: number, z: number}} cave - Cave position
+     * @returns {string} Cave key
+     * @private
+     */
+    _getCaveKey(cave) {
+        return `${Math.round(cave.x)}_${Math.round(cave.z)}`;
+    }
+
+    /**
+     * Spawn a random enemy group around a cave. When all die, next time player returns, a new random group spawns.
+     * @param {{x: number, z: number}} cave - Cave position
+     * @returns {Promise<void>}
+     */
+    async spawnEnemyGroupForCave(cave) {
+        const caveKey = this._getCaveKey(cave);
+        const state = this.caveGroups.get(caveKey);
+        if (state && state.enemyIds.size > 0) return; // Already has live group
+
+        const groupSize = 4 + Math.floor(Math.random() * 6); // 4-9 enemies per cave
+        const spreadRadius = 10 + Math.random() * 12;
+
+        const availableZones = Object.keys(this.zoneEnemies);
+        const randomZone = availableZones[Math.floor(Math.random() * availableZones.length)];
+        const zoneEnemyTypes = this.zoneEnemies[randomZone];
+
+        for (let i = 0; i < groupSize && this.enemies.size < this.maxEnemies; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * spreadRadius;
+            const x = cave.x + Math.cos(angle) * dist;
+            const z = cave.z + Math.sin(angle) * dist;
+            const enemyType = zoneEnemyTypes[Math.floor(Math.random() * zoneEnemyTypes.length)];
+            const position = new THREE.Vector3(x, 0, z);
+            await this.spawnEnemy(enemyType, position, null, caveKey);
+        }
+
+        const newState = this.caveGroups.get(caveKey);
+        if (newState) newState.playerLeftAfterClear = false;
+    }
+
+    /**
+     * Check caves near player and spawn/respawn groups when appropriate
+     * @param {number} delta - Time since last update
+     * @private
+     */
+    _updateCaveProximitySpawning(delta) {
+        if (!this.game?.world?.getCavePositions || this.enemies.size >= this.maxEnemies) return;
+        if (this.isMultiplayer && !this.isHost) return; // Only host spawns
+
+        this.lastCaveSpawnCheck += delta;
+        if (this.lastCaveSpawnCheck < this.caveSpawnCheckInterval) return;
+        this.lastCaveSpawnCheck = 0;
+
+        const playerPos = this.player.getPosition();
+        const caves = this.game.world.getCavePositions();
+        if (!caves || caves.length === 0) return;
+
+        const proximitySq = this.caveProximityRadius * this.caveProximityRadius;
+        const leaveSq = this.caveLeaveRadius * this.caveLeaveRadius;
+
+        for (const cave of caves) {
+            const dx = cave.x - playerPos.x;
+            const dz = cave.z - playerPos.z;
+            const distSq = dx * dx + dz * dz;
+            const caveKey = this._getCaveKey(cave);
+
+            let state = this.caveGroups.get(caveKey);
+            if (!state) {
+                state = { enemyIds: new Set(), playerLeftAfterClear: true }; // true = first visit, spawn on approach
+                this.caveGroups.set(caveKey, state);
+            }
+
+            // Remove dead/despawned IDs from state
+            const aliveIds = [...state.enemyIds].filter(id => this.enemies.has(id));
+            state.enemyIds.clear();
+            aliveIds.forEach(id => state.enemyIds.add(id));
+
+            const playerNear = distSq <= proximitySq;
+            const playerFar = distSq > leaveSq;
+
+            if (playerFar && state.enemyIds.size === 0) {
+                state.playerLeftAfterClear = true; // Player left; can respawn when they return
+            }
+
+            if (playerNear && state.enemyIds.size === 0 && state.playerLeftAfterClear) {
+                void this.spawnEnemyGroupForCave(cave);
+            }
+        }
+    }
+
+    /**
      * Queue enemy for deferred disposal
      * @param {Enemy} enemy - Enemy to dispose
      */

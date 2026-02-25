@@ -1,6 +1,7 @@
 import { UIComponent } from '../UIComponent.js';
 import { MAP_MANIFEST } from '../config/maps.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
+import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -11,6 +12,20 @@ const DEFAULT_MAP_PATH = 'maps/default.json';
  * Shows pre-generated maps (list + detail), allows select and play.
  * Manifest loaded from maps/index.json; each map from maps/<id>.json (relative paths).
  */
+/** Map zoneStyle (e.g. "Forest") to ZONE_ENEMIES key (e.g. "forest") */
+const ZONE_STYLE_TO_KEY = {
+    'forest': 'forest',
+    'mountains': 'mountains',
+    'swamp': 'swamp',
+    'ruins': 'ruins',
+    'desert': 'ruins',
+    'terrant': 'forest',
+    'magical': 'dark_sanctum',
+    'hellfire_peaks': 'hellfire_peaks',
+    'frozen_wastes': 'frozen_wastes',
+    'dark_sanctum': 'dark_sanctum'
+};
+
 export class MapSelectionUI extends UIComponent {
     constructor(game) {
         super('map-selector-overlay', game);
@@ -19,6 +34,7 @@ export class MapSelectionUI extends UIComponent {
         this.mapListEl = null;
         this.selectedMapId = null;
         this.mapManifest = [];
+        this.mapDataCache = new Map(); // path -> full map JSON
     }
 
     init() {
@@ -138,6 +154,8 @@ export class MapSelectionUI extends UIComponent {
         document.getElementById('structuresStat').textContent = mapEntry.structures ?? 'NA';
         document.getElementById('pathsStat').textContent = mapEntry.paths ?? 'NA';
         document.getElementById('environmentStat').textContent = mapEntry.environment ?? 'NA';
+        document.getElementById('enemiesStat').textContent = '-';
+        void this.loadMapEnemies(mapEntry);
         const previewEl = document.getElementById('map-preview-large');
         if (previewEl) {
             const placeholder = previewEl.querySelector('.map-preview-placeholder');
@@ -162,6 +180,60 @@ export class MapSelectionUI extends UIComponent {
                 if (placeholder) placeholder.style.display = 'flex';
             }
         }
+    }
+
+    /**
+     * Load map JSON to get zoneStyle/enemies, then display enemy list
+     * @param {Object} mapEntry - Manifest entry (id, path, name, ...)
+     */
+    async loadMapEnemies(mapEntry) {
+        const el = document.getElementById('enemiesStat');
+        if (!el) return;
+        el.textContent = '…';
+        let mapData = this.mapDataCache.get(mapEntry.path);
+        if (!mapData && mapEntry.path) {
+            try {
+                const res = await fetch(mapEntry.path);
+                if (res.ok) {
+                    mapData = await res.json();
+                    this.mapDataCache.set(mapEntry.path, mapData);
+                }
+            } catch (e) {
+                mapData = null;
+            }
+        }
+        const text = this.getEnemiesText(mapEntry, mapData);
+        el.textContent = text;
+    }
+
+    /**
+     * Derive enemy list text from map entry and full map data
+     * @param {Object} mapEntry - Manifest entry
+     * @param {Object|null} mapData - Full map JSON (zoneStyle, enemies)
+     * @returns {string} Display text for Enemies stat
+     */
+    getEnemiesText(mapEntry, mapData) {
+        if (mapData?.enemies === 'random') return 'Random';
+        if (Array.isArray(mapData?.enemies) && mapData.enemies.length > 0) {
+            const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
+            const names = mapData.enemies.map(t => {
+                const e = allTypes.find(x => x.type === t) || { name: t };
+                return e.name;
+            });
+            return names.join(', ');
+        }
+        const zoneStyle = mapData?.zoneStyle || mapEntry.zoneStyle;
+        if (!zoneStyle) return 'Random';
+        const key = (typeof zoneStyle === 'string' ? zoneStyle.toLowerCase() : '').replace(/\s+/g, '_');
+        const zoneKey = ZONE_STYLE_TO_KEY[key] || ZONE_STYLE_TO_KEY[zoneStyle?.toLowerCase?.()] || null;
+        if (!zoneKey || !ZONE_ENEMIES[zoneKey]) return 'Random';
+        const types = ZONE_ENEMIES[zoneKey];
+        const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
+        const names = types.map(t => {
+            const e = allTypes.find(x => x.type === t) || { name: t };
+            return e.name;
+        });
+        return names.join(', ');
     }
 
     async playSelectedMap() {

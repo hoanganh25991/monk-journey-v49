@@ -25,7 +25,10 @@
  * @property {number} [healthBonus] - Temporary bonus to maximum health
  * @property {number} [maxHealth] - Temporary bonus to maximum health (alternative name)
  * @property {number} [duration] - Duration of temporary effects in seconds
- * @property {string} [effectType] - Type of effect for consumables: 'instant', 'over_time', 'buff'
+ * @property {string} [effectType] - Type of effect for consumables: 'instant', 'over_time', 'buff', 'instant_skill'
+ * @property {string} [skillEffect] - For instant_skill: effect ID (freeze, stun, slow, burn, shock)
+ * @property {number} [skillRadius] - For instant_skill: effect radius (overrides config default)
+ * @property {number} [skillDuration] - For instant_skill: effect duration (overrides config default)
  * @property {Object} [buffStats] - Stats affected by buff effects
  * @property {number} [buffStats.attackPower] - Attack power buff
  * @property {number} [buffStats.defense] - Defense buff
