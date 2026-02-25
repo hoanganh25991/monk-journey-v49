@@ -306,11 +306,17 @@ export class BulShadowCloneEffect extends SkillEffect {
                         
                         // Apply the new material
                         node.material = cloneMaterial;
+                        
+                        // Enable shadows for realistic appearance
+                        node.castShadow = true;
+                        node.receiveShadow = true;
                     }
                 });
                 
                 // Scale the model
                 cloneModel.scale.set(this.modelScale, this.modelScale, this.modelScale);
+                // Match player: model offset so feet sit on ground (same as PlayerModel.js)
+                cloneModel.position.set(0, -1.0, 0);
                 
                 // Set up animations if they exist
                 let mixer = null;
@@ -766,9 +772,12 @@ export class BulShadowCloneEffect extends SkillEffect {
     _updateCloneHeightForTerrain(clone) {
         if (!clone?.group || !this.skill?.game?.world) return;
         try {
-            const h = this.skill.game.world.getTerrainHeight(clone.group.position.x, clone.group.position.z);
-            if (h != null && h !== undefined && isFinite(h)) {
-                clone.group.position.y = h + 0.5; // Character height offset
+            // Match player: use getPlayerGroundHeight (includes structures) when available
+            const groundHeight = this.skill.game.world.getPlayerGroundHeight
+                ? this.skill.game.world.getPlayerGroundHeight(clone.group.position.x, clone.group.position.z)
+                : this.skill.game.world.getTerrainHeight(clone.group.position.x, clone.group.position.z);
+            if (groundHeight != null && groundHeight !== undefined && isFinite(groundHeight)) {
+                clone.group.position.y = groundHeight + 1.0; // Same as player heightOffset
             }
         } catch (_) { /* terrain may not be ready */ }
     }
