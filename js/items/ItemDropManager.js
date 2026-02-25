@@ -281,24 +281,24 @@ export class ItemDropManager {
                     if (autoEquip === true || autoEquip === 'true') {
                         const result = this.tryAutoEquip(item);
                         if (result === 'equipped') {
-                            // Show both: pick (center) + equip (left float)
-                            hud.showNotification(`Pick ${item.name}`);
+                            // Show both: pick (left float) + equip (left float)
+                            hud.showNotification(`Pick ${item.name}`, 'pick', { item });
                             hud.showNotification(`Equip ${item.name}`, 'equip', { item });
                         } else if (result === 'similar') {
-                            hud.showNotification(`Pick ${item.name}`);
+                            hud.showNotification(`Pick ${item.name}`, 'pick', { item });
                             hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
                         } else if (result === 'weaker') {
-                            hud.showNotification(`Pick ${item.name}`);
+                            hud.showNotification(`Pick ${item.name}`, 'pick', { item });
                             hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
                         }
                     } else {
-                        // Auto-equip is OFF - show pick (center) + skip (left)
-                        hud.showNotification(`Pick ${item.name}`);
+                        // Auto-equip is OFF - show pick (left float) + skip (left float)
+                        hud.showNotification(`Pick ${item.name}`, 'pick', { item });
                         hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
                     }
                 } else {
-                    // Non-equippable items - show pickup in center screen
-                    hud.showNotification(`Pick ${item.name}`);
+                    // Non-equippable items - show pickup as float notification
+                    hud.showNotification(`Pick ${item.name}`, 'pick', { item });
                 }
             }
         }

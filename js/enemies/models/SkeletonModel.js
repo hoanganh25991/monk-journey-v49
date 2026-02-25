@@ -94,6 +94,8 @@ export class SkeletonModel extends EnemyModel {
         
         // Add some additional skeleton-specific animations
         if (this.modelGroup) {
+            const body = this.modelGroup.children[0]; // Body is the first child
+            
             // Idle animation - slight swaying when not moving or attacking
             // Note: Y rotation (facing direction) is handled by the Enemy class
             if (!this.enemy.state.isMoving && !this.enemy.state.isAttacking && this.modelGroup.children.length > 0) {
@@ -101,11 +103,14 @@ export class SkeletonModel extends EnemyModel {
                 const idleAmplitude = 0.03;
                 
                 // Make the skeleton's body sway slightly when idle (X and Z rotation only)
-                const body = this.modelGroup.children[0]; // Body is the first child
                 if (body) {
                     body.rotation.x = Math.sin(time * idleSpeed) * idleAmplitude * 0.5;
                     body.rotation.z = Math.cos(time * idleSpeed * 0.7) * idleAmplitude * 0.3;
                 }
+            } else if (this.enemy.state.isAttacking && body) {
+                // Reset body rotation during attack to prevent tilting
+                body.rotation.x = 0;
+                body.rotation.z = 0;
             }
             
             // Skeleton King attack animation with sword
@@ -141,19 +146,33 @@ export class SkeletonModel extends EnemyModel {
                         sword.rotation.z = -Math.PI * 0.5 + downswingProgress * Math.PI * 0.7;
                     }
                     
-                    // Animate the right arm to follow the sword
+                    // Animate the right arm to follow the sword (rotation only, no position changes)
                     if (rightArm) {
                         if (attackCycle < Math.PI) {
                             // Raise arm during upswing
-                            rightArm.rotation.z = -Math.PI / 4 - (attackCycle / Math.PI) * 0.5;
-                            rightArm.position.y = 0.6 + (attackCycle / Math.PI) * 0.2;
+                            rightArm.rotation.z = -Math.PI / 4 - (attackCycle / Math.PI) * 0.8;
+                            rightArm.rotation.x = -(attackCycle / Math.PI) * 0.3;
                         } else {
                             // Lower arm during downswing
                             const downProgress = (attackCycle - Math.PI) / Math.PI;
-                            rightArm.rotation.z = -Math.PI / 4 - 0.5 + downProgress * 0.7;
-                            rightArm.position.y = 0.8 - downProgress * 0.2;
+                            rightArm.rotation.z = -Math.PI / 4 - 0.8 + downProgress * 0.8;
+                            rightArm.rotation.x = -0.3 + downProgress * 0.3;
                         }
                     }
+                }
+            } else if (this.enemy.type === 'skeleton_king') {
+                // Reset Skeleton King sword and arm positions when not attacking
+                const sword = this.modelGroup.children[this.modelGroup.children.length - 1];
+                const rightArm = this.modelGroup.children[3];
+                
+                if (sword) {
+                    sword.position.set(0.6, 0.6, 0);
+                    sword.rotation.set(0, 0, 0);
+                }
+                
+                if (rightArm) {
+                    rightArm.position.set(0.4, 0.6, 0);
+                    rightArm.rotation.set(0, 0, -Math.PI / 4);
                 }
             } else if (this.enemy.state.isAttacking) {
                 // Regular skeleton attack animation (without sword)
@@ -164,6 +183,13 @@ export class SkeletonModel extends EnemyModel {
                     // Simple punching motion
                     rightArm.rotation.z = -Math.PI / 4 + Math.sin(time * 8.0) * 0.5;
                     rightArm.rotation.x = Math.sin(time * 8.0) * 0.5;
+                }
+            } else {
+                // Reset regular skeleton arm position when not attacking
+                const rightArm = this.modelGroup.children[3];
+                if (rightArm) {
+                    rightArm.position.set(0.4, 0.6, 0);
+                    rightArm.rotation.set(0, 0, -Math.PI / 4);
                 }
             }
         }

@@ -181,6 +181,13 @@ export class PlayerStatusEffects {
                         this.playerMovement.canMove = true;
                     }
                     
+                    // Ensure movement is always re-enabled when freeze is removed
+                    // This is a safety check in case the original value wasn't stored correctly
+                    if (this.playerMovement.canMove === false) {
+                        this.playerMovement.canMove = true;
+                        console.debug("Force-enabled player movement when removing freeze effect");
+                    }
+                    
                     // Remove visual feedback
                     if (this.game?.hudManager) {
                         this.game.hudManager.hideStatusEffect('freeze');

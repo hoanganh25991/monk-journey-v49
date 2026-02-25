@@ -71,8 +71,13 @@ export class Enemy {
         
         // Enemy collision
         this.collisionRadius = 0.5 * this.scale;
-        // Bosses need larger height offset so the model sits on the ground (not half in terrain)
-        this.heightOffset = (this.isBoss ? 0.65 : 0.4) * this.scale;
+        // Height offset to position model on ground (legs are 0.6 tall, positioned at y=0, so bottom is at -0.3)
+        this.heightOffset = 0.3 * this.scale;
+        
+        // Special height offset for necromancer_lord boss to prevent underground clipping
+        if (this.type === 'necromancer_lord') {
+            this.heightOffset += 0.5;
+        }
         
         // Enemy model
         this.modelGroup = null;
@@ -819,6 +824,22 @@ export class Enemy {
         
         // Set dead state
         this.state.isDead = true;
+        
+        // Clean up any status effects this enemy applied to the player
+        // This is especially important for Frost Titan's freeze effect
+        if (this.player && this.player.statusEffects) {
+            // Remove freeze effect when Frost Titan dies
+            if (this.type === 'frost_titan' && this.player.hasEffect('freeze')) {
+                this.player.removeEffect('freeze');
+                console.debug(`Removed freeze effect from player when ${this.name} died`);
+            }
+            
+            // Also remove slow effect if this enemy applied it (Ice Storm)
+            if (this.type === 'frost_titan' && this.player.hasEffect('slow')) {
+                this.player.removeEffect('slow');
+                console.debug(`Removed slow effect from player when ${this.name} died`);
+            }
+        }
         
         // Track when the enemy died (used for timeout cleanup)
         this.deathStartTime = Date.now();
