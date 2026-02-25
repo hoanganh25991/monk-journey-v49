@@ -119,8 +119,8 @@ export class BulPalmEffect extends SkillEffect {
       // Create the palm effect
       this.createPalmEffect(effectGroup, position);
       
-      // Position effect at player's current height (e.g. when jumping) - no forced ground level
-      position.y += 0.3;
+      // Position effect just above ground (palm travels along ground)
+      position.y += 0.1;
       effectGroup.position.copy(position);
       
       // Set the correct rotation to face the direction (horizontal only, no vertical tilt)
@@ -186,8 +186,8 @@ export class BulPalmEffect extends SkillEffect {
       // Set hand orientation
       handGroup.rotation.x = -Math.PI / 2; // Point fingers forward
       
-      // Position hand above ground
-      handGroup.position.y = 1.8;
+      // Position hand just above ground (palm base bottom ~0.2 above effect origin)
+      handGroup.position.y = 0.4;
       
       // Store references
       this.handGroup = handGroup;
@@ -670,8 +670,8 @@ export class BulPalmEffect extends SkillEffect {
     
     // Animate hand
     if (this.handGroup) {
-      // Slight bobbing motion
-      this.handGroup.position.y = 1.8 + Math.sin(this.age * 6) * 0.15;
+      // Slight bobbing motion (keep low, just above ground)
+      this.handGroup.position.y = 0.4 + Math.sin(this.age * 6) * 0.08;
       
       // Slight rotation
       this.handGroup.rotation.z = Math.sin(this.age * 4) * 0.15;

@@ -354,19 +354,20 @@ export class BulShadowCloneEffect extends SkillEffect {
                 // Add to scene
                 this.skill.game.scene.add(cloneGroup);
                 
-                // Create clone object
+                // Create clone object (target is a reference; once set, clone keeps it until target dies)
                 const clone = {
                     group: cloneGroup,
                     model: cloneModel,
                     mixer: mixer,
                     animations: animations,
                     currentAnimation: currentAnimation,
-                    target: null,
-                    state: 'idle', // idle, seeking, attacking
+                    target: null,       // enemy reference this clone is attacking
+                    hasTarget: false,   // true when clone is committed to current target (don't reassign until it dies)
+                    state: 'idle',      // idle, seeking, attacking
                     lastAttackTime: 0,
                     attackCooldown: 1.0, // 1 second between attacks
                     index: index,
-                    followPlayer: true // Default to following player when no enemies
+                    followPlayer: true  // Default to following player when no enemies
                 };
                 
                 // Add clone to the array
@@ -470,28 +471,79 @@ export class BulShadowCloneEffect extends SkillEffect {
     }
     
     /**
-     * Update clone targets
+     * Update clone targets so clones distribute across different enemies.
+     * Clones that already have a living target keep it (no reassignment) until it dies.
      * @private
      */
     _updateCloneTargets() {
         if (!this.autoTargetEnemies) return;
         
+        const enemyManager = this.skill?.game?.enemyManager;
+        if (!enemyManager) return;
+        
+        const maxDistance = 30;
+        
+        // 1. Count how many clones currently target each enemy (only clones committed to a living target)
+        const targetCountByEnemy = new Map();
+        for (const clone of this.clones) {
+            if (!clone.group) continue;
+            const enemy = clone.target;
+            if (enemy && clone.hasTarget && this._isEnemyAlive(enemy)) {
+                targetCountByEnemy.set(enemy, (targetCountByEnemy.get(enemy) || 0) + 1);
+            }
+        }
+        
+        // 2. Assign target only to clones that have no target or whose target died
         for (const clone of this.clones) {
             if (!clone.group) continue;
             
-            // Find nearest enemy
-            const enemy = this._findNearestEnemy(clone.group.position);
-            
-            // Update clone target
-            clone.target = enemy;
-            
-            // Update clone state
-            if (enemy) {
-                clone.state = 'seeking';
-            } else {
-                clone.state = 'idle';
+            // Keep current target until it dies – don't reassign in the loop
+            if (clone.target && clone.hasTarget && this._isEnemyAlive(clone.target)) {
+                continue;
             }
+            
+            clone.target = null;
+            clone.hasTarget = false;
+            clone.state = 'idle';
+            
+            const nearbyEnemies = enemyManager.getEnemiesNearPosition(clone.group.position, maxDistance);
+            const aliveEnemies = nearbyEnemies.filter((e) => this._isEnemyAlive(e));
+            
+            if (aliveEnemies.length === 0) continue;
+            
+            let bestEnemy = null;
+            let bestCount = Infinity;
+            let bestDistance = Infinity;
+            
+            for (const enemy of aliveEnemies) {
+                const count = targetCountByEnemy.get(enemy) || 0;
+                const pos = typeof enemy.getPosition === 'function' ? enemy.getPosition() : enemy.position;
+                if (!pos) continue;
+                const dist = clone.group.position.distanceTo(pos);
+                if (count < bestCount || (count === bestCount && dist < bestDistance)) {
+                    bestCount = count;
+                    bestDistance = dist;
+                    bestEnemy = enemy;
+                }
+            }
+            
+            clone.target = bestEnemy;
+            clone.hasTarget = true;
+            clone.state = 'seeking';
+            targetCountByEnemy.set(bestEnemy, (targetCountByEnemy.get(bestEnemy) || 0) + 1);
         }
+    }
+    
+    /**
+     * Check if an enemy is alive
+     * @param {Object} enemy - Enemy instance
+     * @returns {boolean}
+     * @private
+     */
+    _isEnemyAlive(enemy) {
+        if (typeof enemy.isAlive === 'function') return enemy.isAlive();
+        if (enemy.state && enemy.state.isDead) return false;
+        return true;
     }
     
     /**
@@ -642,6 +694,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         
         if (!isTargetAlive) {
             clone.target = null;
+            clone.hasTarget = false;
             clone.state = 'idle';
             clone.followPlayer = true; // Return to following player when target dies
             return;
@@ -656,6 +709,8 @@ export class BulShadowCloneEffect extends SkillEffect {
         }
         
         if (!targetPosition) {
+            clone.target = null;
+            clone.hasTarget = false;
             clone.state = 'idle';
             clone.followPlayer = true;
             return;
@@ -670,6 +725,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         if (distance > 30) {
             clone.state = 'idle';
             clone.target = null;
+            clone.hasTarget = false;
             clone.followPlayer = true;
             return;
         }
