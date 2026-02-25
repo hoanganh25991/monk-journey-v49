@@ -54,12 +54,14 @@
     width: 100%;
     overflow-y: auto;
     box-sizing: border-box;
+    pointer-events: auto;
 }
 
 .tab-content.active {
     display: flex;
     flex-direction: column;
     width: 100%;
+    pointer-events: auto;
 }
 
 .settings-section {
@@ -96,6 +98,7 @@
     border-radius: 8px;
     padding: 12px 15px;
     border-left: 3px solid rgba(255, 204, 0, 0.5);
+    pointer-events: auto;
 }
 
 /* Setting item header */
@@ -115,6 +118,7 @@
     justify-content: space-between;
     margin-bottom: 10px;
     width: 100%;
+    pointer-events: auto;
 }
 
 /* Settings label styling */

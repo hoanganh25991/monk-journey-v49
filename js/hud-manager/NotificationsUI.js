@@ -24,7 +24,7 @@ export class NotificationsUI extends UIComponent {
         this.processingInterval = 50; // Milliseconds between processing messages
         this.maxVisibleNotifications = 5; // Default max visible notifications
         /** Types that show on left side and float up (above joystick) */
-        this.floatTypes = ['equip', 'consume-health', 'consume-mana', 'skip', 'pick'];
+        this.floatTypes = ['equip', 'consume-health', 'consume-mana', 'skip'];
     }
     
     /**
@@ -194,10 +194,10 @@ export class NotificationsUI extends UIComponent {
     }
     
     /**
-     * Display a float notification (left side, above joystick, floats up). Red=health, blue=mana, yellow=equip, white=skip, green=pick.
+     * Display a float notification (left side, above joystick, floats up). Red=health, blue=mana, yellow=equip, white=skip.
      * @param {string} message - Message to display
-     * @param {string} type - 'equip' | 'consume-health' | 'consume-mana' | 'skip' | 'pick'
-     * @param {{ name: string, icon?: string }} [item] - For equip/skip/pick: show item icon
+     * @param {string} type - 'equip' | 'consume-health' | 'consume-mana' | 'skip'
+     * @param {{ name: string, icon?: string }} [item] - For equip/skip: show item icon
      */
     displayFloatNotification(message, type, item) {
         console.log('NotificationsUI: Displaying float notification', { message, type, item, floatContainer: this.floatContainer });
@@ -210,7 +210,7 @@ export class NotificationsUI extends UIComponent {
         const notification = document.createElement('div');
         notification.className = `notification-float notification-float--${type}`;
         
-        if ((type === 'equip' || type === 'skip' || type === 'pick') && item) {
+        if ((type === 'equip' || type === 'skip') && item) {
             const iconSpan = document.createElement('span');
             iconSpan.className = 'notification-float-icon';
             iconSpan.textContent = (item.icon != null && item.icon !== '') ? item.icon : '📦';
@@ -232,8 +232,8 @@ export class NotificationsUI extends UIComponent {
             if (old && old.element) old.element.remove();
         }
         
-        // Equip notifications should float for 5 seconds, pick and skip for 3 seconds minimum, others for 2.2 seconds
-        const lifetime = type === 'equip' ? 5.0 : (type === 'pick' || type === 'skip' ? 3.0 : 2.2);
+        // Equip notifications should float for 5 seconds, skip for 3 seconds minimum, others for 2.2 seconds
+        const lifetime = type === 'equip' ? 5.0 : (type === 'skip' ? 3.0 : 2.2);
         
         this.floatNotifications.push({
             element: notification,

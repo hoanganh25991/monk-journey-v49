@@ -12,6 +12,7 @@ import { AudioTab } from './settings-menu/AudioTab.js';
 import { ControlsTab } from './settings-menu/ControlsTab.js';
 import { EnemyPreviewTab } from './settings-menu/EnemyPreviewTab.js';
 import { ItemPreviewTab } from './settings-menu/ItemPreviewTab.js';
+import { HUDTab } from './settings-menu/HUDTab.js';
 
 export class SettingsMenu extends UIComponent {
     /**
@@ -101,6 +102,7 @@ export class SettingsMenu extends UIComponent {
         this.tabs.controls = new ControlsTab(this.game, this);
         this.tabs['enemy-preview'] = new EnemyPreviewTab(this.game, this);
         this.tabs['item-preview'] = new ItemPreviewTab(this.game, this);
+        this.tabs.hud = new HUDTab(this.game, this);
     }
     
     /**

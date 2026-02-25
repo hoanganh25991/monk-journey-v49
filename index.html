@@ -684,6 +684,7 @@
                     <button id="tab-game" class="tab-icon" title="Game">🎮</button>
                     <button id="tab-controls" class="tab-icon" title="Controls">🎛️</button>
                     <button id="tab-audio" class="tab-icon" title="Audio">🔊</button>
+                    <button id="tab-hud" class="tab-icon" title="HUD">📊</button>
                     <button id="tab-model-preview" class="tab-icon" title="Model Preview">👤</button>
                     <button id="tab-skills-preview" class="tab-icon" title="Skills Preview">✨</button>
                     <button id="tab-enemy-preview" class="tab-icon" title="Enemy Preview">👹</button>
@@ -1124,6 +1125,93 @@
                 </div>
 
                 <!-- Performance Settings Tab -->
+                <!-- HUD Tab -->
+                <div id="hud-tab" class="tab-content">
+                    <h2 id="hud-title">HUD Preview</h2>
+                    <div id="hud-container" class="settings-section">
+                        <!-- Enemy Health Bar Preview -->
+                        <div class="setting-item">
+                            <h3>Enemy Health Bar</h3>
+                            <div class="settings-description" style="margin-bottom: 15px;">
+                                Preview of the enemy health bar that appears at the top center of the screen during combat.
+                            </div>
+                            
+                            <!-- Mock Enemy Health Bar -->
+                            <div style="display: flex; justify-content: center; margin: 20px 0;">
+                                <div id="mock-enemy-health-bar" style="width: 400px; max-width: 90%;">
+                                    <div style="text-align: center; color: #ff6666; font-size: 14px; font-weight: bold; margin-bottom: 5px;">
+                                        Elite Skeleton Warrior
+                                    </div>
+                                    <div style="background: rgba(0, 0, 0, 0.7); border: 2px solid rgba(255, 100, 100, 0.6); border-radius: 8px; padding: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">
+                                        <div style="position: relative; height: 20px; background: rgba(50, 20, 20, 0.8); border-radius: 4px; overflow: hidden;">
+                                            <div style="position: absolute; top: 0; left: 0; height: 100%; width: 66.67%; background: linear-gradient(90deg, #ff4444 0%, #ff6666 100%); transition: width 0.3s ease;"></div>
+                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); z-index: 1;">
+                                                2000 / 3000
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notification Types Explanation -->
+                        <div class="setting-item">
+                            <h3>Notification Types</h3>
+                            <div class="settings-description" style="margin-bottom: 15px;">
+                                <p><strong>📍 Pick:</strong> Shows in CENTER when you pick up an item (white text, 3s duration)</p>
+                                <p><strong>🟡 Equip:</strong> Floats LEFT when an item is auto-equipped (yellow text, 5s duration)</p>
+                                <p><strong>⚪ Skip:</strong> Floats LEFT when an item is skipped (white text, 3s duration)</p>
+                                <p><strong>🔴 Consume Health:</strong> Floats LEFT when consuming health items (red text, 2.2s duration)</p>
+                                <p><strong>🔵 Consume Mana:</strong> Floats LEFT when consuming mana items (blue text, 2.2s duration)</p>
+                            </div>
+                        </div>
+
+                        <!-- Test Notifications -->
+                        <div class="setting-item">
+                            <h3>Test Notifications</h3>
+                            <div class="settings-description" style="margin-bottom: 10px;">
+                                Click the buttons below to see how each notification type looks:
+                            </div>
+                            
+                            <div class="setting-row">
+                                <div class="settings-label">Test Pick Notification</div>
+                                <button id="test-notification-pick" class="settings-button">Show Pick</button>
+                            </div>
+                            
+                            <div class="setting-row">
+                                <div class="settings-label">Test Equip Notification</div>
+                                <button id="test-notification-equip" class="settings-button">Show Equip</button>
+                            </div>
+                            
+                            <div class="setting-row">
+                                <div class="settings-label">Test Skip Notification</div>
+                                <button id="test-notification-skip" class="settings-button">Show Skip</button>
+                            </div>
+                            
+                            <div class="setting-row">
+                                <div class="settings-label">Test Consume Health</div>
+                                <button id="test-notification-consume-health" class="settings-button">Show Health</button>
+                            </div>
+                            
+                            <div class="setting-row">
+                                <div class="settings-label">Test Consume Mana</div>
+                                <button id="test-notification-consume-mana" class="settings-button">Show Mana</button>
+                            </div>
+                        </div>
+
+                        <!-- Notification Behavior -->
+                        <div class="setting-item">
+                            <h3>Notification Behavior</h3>
+                            <div class="settings-description">
+                                <p><strong>Center Notifications:</strong> Pick items appear at top-center of screen</p>
+                                <p><strong>Float Notifications:</strong> Equip, Skip, Consume appear on the left side, above the joystick</p>
+                                <p><strong>Style:</strong> All notifications have a consistent black background (70% opacity) with colored text</p>
+                                <p><strong>Animation:</strong> Float notifications move upward and fade out before disappearing</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="debug-tab" class="tab-content">
                     <h2 id="debug-title">Debug Settings</h2>
                     <div id="debug-container" class="settings-section">

@@ -25,6 +25,12 @@
     min-width: 120px;
     text-align: center;
     white-space: nowrap;
+    pointer-events: auto;
+    z-index: 10;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .settings-button::before {
