@@ -5,7 +5,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260225T185451';
+const CACHE_VERSION = '20260226T023016';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 // Minimal assets to pre-cache (entry + manifest only; rest loaded on demand)
