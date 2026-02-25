@@ -15,7 +15,7 @@ export const PRIMARY_ATTACKS = [
         damage: 20, // Balanced primary attack damage
         manaCost: 0,
         cooldown: 0.2, // Very short cooldown for basic attack
-        range: 15, // Teleport range
+        range: 25, // Teleport range
         radius: 3, // Increased area of effect for more reliable hits
         duration: 0.5, // Short duration
         get color() { return SKILL_ICONS[this.name].color; },
