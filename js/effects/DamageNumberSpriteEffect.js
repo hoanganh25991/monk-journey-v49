@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { TextGeometry } from '../../libs/three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from '../../libs/three/examples/jsm/loaders/FontLoader.js';
 
@@ -352,7 +353,7 @@ export class DamageNumberSpriteEffect {
                 // Calculate angle to camera on horizontal plane (XZ)
                 const dx = cameraPos.x - meshPos.x;
                 const dz = cameraPos.z - meshPos.z;
-                const angleY = Math.atan2(dx, dz);
+                const angleY = fastAtan2(dx, dz);
                 
                 // Only update if angle changed significantly (> 0.1 radians)
                 if (Math.abs(angleY - this.lastCameraAngle) > 0.1) {

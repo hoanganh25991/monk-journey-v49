@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq2D } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastAtan2 } from '../../../../utils/FastMath.js';
 import { InnerSanctuaryEffect } from '../../InnerSanctuaryEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -304,7 +304,7 @@ export class SanctifiedGroundEffect extends InnerSanctuaryEffect {
                 const distance = Math.sqrt(x0 * x0 + z0 * z0);
                 
                 // Spiral movement
-                const angle = Math.atan2(z0, x0) + delta * (0.2 + distance * 0.1);
+                const angle = fastAtan2(z0, x0) + delta * (0.2 + distance * 0.1);
                 const radius = distance;
                 
                 // Update position

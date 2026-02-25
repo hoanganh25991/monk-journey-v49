@@ -1,5 +1,6 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 
@@ -54,7 +55,7 @@ export class MysticAllyEffect extends SkillEffect {
         
         // Position effect
         effectGroup.position.copy(adjustedPosition);
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         
         // Store effect
         this.effect = effectGroup;

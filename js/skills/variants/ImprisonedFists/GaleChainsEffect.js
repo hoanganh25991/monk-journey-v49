@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { fastAtan2, fastCos, fastSin, fastInvSqrt } from '../../../../utils/FastMath.js';
 import { ImprisonedFistsEffect } from '../../ImprisonedFistsEffect.js';
 
 /**
@@ -355,11 +356,12 @@ export class GaleChainsEffect extends ImprisonedFistsEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Rotate particles around the beam
-                    const angle = Math.atan2(y, x) + (delta * (2.0 + Math.random() * 1.0));
-                    const radius = Math.sqrt(x * x + y * y);
+                    const angle = fastAtan2(y, x) + (delta * (2.0 + Math.random() * 1.0));
+                    const rSq = x * x + y * y;
+                    const radius = rSq > 0 ? rSq * fastInvSqrt(rSq) : 0;
                     
-                    positions[i * 3] = Math.cos(angle) * radius;
-                    positions[i * 3 + 1] = Math.sin(angle) * radius;
+                    positions[i * 3] = fastCos(angle) * radius;
+                    positions[i * 3 + 1] = fastSin(angle) * radius;
                     
                     // Fast forward movement
                     positions[i * 3 + 2] = z + delta * (3.0 + Math.random() * 2.0);

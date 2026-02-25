@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { BreathOfHeavenEffect } from '../../BreathOfHeavenEffect.js';
-import { distanceApprox3D } from '../../../../utils/FastMath.js';
+import { distanceApprox3D, fastAtan2 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Infused with Light variant of Breath of Heaven
@@ -191,7 +191,7 @@ export class InfusedWithLightEffect extends BreathOfHeavenEffect {
                     const distance = distanceApprox3D(0, 0, 0, x, y, z);
                     
                     // Move particles in a spiral pattern
-                    const angle = Math.atan2(z, x) + delta * 0.5;
+                    const angle = fastAtan2(z, x) + delta * 0.5;
                     const newDistance = distance * (1 + Math.sin(this.elapsedTime * 2) * 0.05);
                     
                     positions[i * 3] = Math.cos(angle) * newDistance;

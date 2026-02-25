@@ -32,10 +32,6 @@ export class GameplayTab extends SettingsTab {
         this.difficultySelect = document.getElementById('difficulty-select');
         this.customSkillsCheckbox = document.getElementById('custom-skills-checkbox');
         
-        // Camera settings
-        this.cameraZoomSlider = document.getElementById('camera-zoom-slider');
-        this.cameraZoomValue = document.getElementById('camera-zoom-value');
-        
         // UI settings
         this.showMinimapCheckbox = document.getElementById('show-minimap-checkbox');
         
@@ -89,12 +85,6 @@ export class GameplayTab extends SettingsTab {
             this.difficultySelect.value = newValue || 'basic';
         } else if (key === STORAGE_KEYS.CUSTOM_SKILLS && this.customSkillsCheckbox) {
             this.customSkillsCheckbox.checked = newValue === true || newValue === 'true';
-        } else if (key === STORAGE_KEYS.CAMERA_ZOOM && this.cameraZoomSlider) {
-            const zoomValue = parseInt(newValue) || 15;
-            this.cameraZoomSlider.value = zoomValue;
-            if (this.cameraZoomValue) {
-                this.cameraZoomValue.textContent = zoomValue;
-            }
         } else if (key === STORAGE_KEYS.TARGET_FPS && this.fpsSlider && this.fpsValue) {
             const parsedFPS = parseInt(newValue) || 120;
             this.fpsSlider.value = parsedFPS;
@@ -230,55 +220,6 @@ export class GameplayTab extends SettingsTab {
                 if (this.game && this.game.player && this.game.player.skills) {
                     this.game.player.skills.updateCustomSkillsVisibility();
                 }
-            });
-        }
-        
-        // Initialize camera zoom slider if it exists
-        if (this.cameraZoomSlider) {
-            // Set min, max and default values
-            this.cameraZoomSlider.min = 10;  // Closest zoom (10 units)
-            this.cameraZoomSlider.max = 100;  // Furthest zoom (100 units)
-            this.cameraZoomSlider.step = 1;  // 1 unit increments
-            
-            // Get stored zoom value synchronously or use default
-            const defaultZoom = 15; // Default camera distance
-            const storedZoom = this.loadSettingSync(STORAGE_KEYS.CAMERA_ZOOM, defaultZoom);
-            const currentZoom = parseInt(storedZoom) || defaultZoom;
-            
-            // Set the slider to the current zoom value
-            this.cameraZoomSlider.value = currentZoom;
-            
-            // Update the display value
-            if (this.cameraZoomValue) {
-                this.cameraZoomValue.textContent = currentZoom;
-            }
-            
-            // Add event listener for zoom changes with debounce
-            let zoomDebounceTimeout = null;
-            this.cameraZoomSlider.addEventListener('input', () => {
-                const zoomValue = parseInt(this.cameraZoomSlider.value);
-                
-                // Update the display value immediately
-                if (this.cameraZoomValue) {
-                    this.cameraZoomValue.textContent = zoomValue;
-                }
-                
-                // Apply zoom immediately if game is available
-                if (this.game && this.game.hudManager && this.game.hudManager.components && this.game.hudManager.components.cameraControlUI) {
-                    // Use the new setCameraDistance method
-                    this.game.hudManager.components.cameraControlUI.setCameraDistance(zoomValue);
-                }
-                
-                // Clear previous timeout
-                if (zoomDebounceTimeout) {
-                    clearTimeout(zoomDebounceTimeout);
-                }
-                
-                // Set new timeout for saving
-                zoomDebounceTimeout = setTimeout(() => {
-                    // Store the zoom value
-                    this.saveSetting(STORAGE_KEYS.CAMERA_ZOOM, zoomValue.toString());
-                }, 300); // Debounce for 300ms
             });
         }
         
@@ -497,10 +438,6 @@ export class GameplayTab extends SettingsTab {
             savePromises.push(this.saveSetting(STORAGE_KEYS.CUSTOM_SKILLS, this.customSkillsCheckbox.checked.toString()));
         }
         
-        if (this.cameraZoomSlider) {
-            savePromises.push(this.saveSetting(STORAGE_KEYS.CAMERA_ZOOM, parseInt(this.cameraZoomSlider.value).toString()));
-        }
-        
         if (this.fpsSlider) {
             savePromises.push(this.saveSetting(STORAGE_KEYS.TARGET_FPS, parseInt(this.fpsSlider.value).toString()));
         }
@@ -530,15 +467,6 @@ export class GameplayTab extends SettingsTab {
         
         if (this.customSkillsCheckbox) {
             this.customSkillsCheckbox.checked = false;
-        }
-        
-        if (this.cameraZoomSlider) {
-            this.cameraZoomSlider.value = 15; // Default camera distance
-            
-            // Update the display value
-            if (this.cameraZoomValue) {
-                this.cameraZoomValue.textContent = 15;
-            }
         }
         
         if (this.fpsSlider && this.fpsValue) {

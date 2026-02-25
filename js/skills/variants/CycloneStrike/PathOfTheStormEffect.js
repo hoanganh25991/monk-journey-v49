@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { CycloneStrikeEffect } from '../../CycloneStrikeEffect.js';
 
 /**
@@ -270,15 +271,15 @@ export class PathOfTheStormEffect extends CycloneStrikeEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Calculate angle and distance from center
-                    const angle = Math.atan2(z, x);
-                    const distance = Math.sqrt(x * x + z * z);
+                    const angle = fastAtan2(z, x);
+                    const distance = distanceApprox2D(0, 0, x, z);
                     
                     // Rotate particles around center and move upward
                     const newAngle = angle + delta * (1 - distance / this.skill.radius); // Faster rotation near center
                     
-                    positions[i * 3] = Math.cos(newAngle) * distance;
+                    positions[i * 3] = fastCos(newAngle) * distance;
                     positions[i * 3 + 1] = y + delta * 0.5; // Move upward
-                    positions[i * 3 + 2] = Math.sin(newAngle) * distance;
+                    positions[i * 3 + 2] = fastSin(newAngle) * distance;
                     
                     // Reset particles that go too high
                     if (y > 3 || Math.random() < 0.01) {

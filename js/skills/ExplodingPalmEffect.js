@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from "./SkillEffect.js";
 
 /**
@@ -39,7 +40,7 @@ export class ExplodingPalmEffect extends SkillEffect {
       
       // Set the correct rotation to face the direction (horizontal only, no vertical tilt)
       if (direction) {
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         // No rotation.x - keep skill vertical, only adjust height naturally
       }
       
@@ -497,7 +498,7 @@ export class ExplodingPalmEffect extends SkillEffect {
     }
 
     // Update angle to match direction (horizontal only, no vertical tilt)
-    this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+    this.effect.rotation.y = fastAtan2(this.direction.x, this.direction.z);
     // No rotation.x - keep skill vertical, only adjust height naturally
     
     // Update palm state age

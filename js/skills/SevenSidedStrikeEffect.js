@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -315,7 +316,7 @@ export class SevenSidedStrikeEffect extends SkillEffect {
                 // Face toward center
                 const direction = new THREE.Vector3();
                 direction.subVectors(this.effect.position, nextPoint.position).normalize();
-                monk.rotation.y = Math.atan2(direction.x, direction.z);
+                monk.rotation.y = fastAtan2(direction.x, direction.z);
                 
                 // Store data
                 monk.userData = {

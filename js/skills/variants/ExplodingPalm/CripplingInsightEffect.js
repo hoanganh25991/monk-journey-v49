@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
 
 /**
@@ -149,20 +150,14 @@ export class CripplingInsightEffect extends ExplodingPalmEffect {
                 positions[i * 3 + 1] = position.y + Math.random() * 0.2 - t * 0.5;
                 
                 // Spread outward slightly
-                const angle = Math.atan2(
-                    positions[i * 3 + 2] - position.z,
-                    positions[i * 3] - position.x
-                );
-                
-                const distance = Math.sqrt(
-                    Math.pow(positions[i * 3] - position.x, 2) +
-                    Math.pow(positions[i * 3 + 2] - position.z, 2)
-                );
-                
+                const dx = positions[i * 3] - position.x;
+                const dz = positions[i * 3 + 2] - position.z;
+                const angle = fastAtan2(dz, dx);
+                const distance = distanceApprox2D(position.x, position.z, positions[i * 3], positions[i * 3 + 2]);
                 const newDistance = distance + t * 0.1;
                 
-                positions[i * 3] = position.x + Math.cos(angle) * newDistance;
-                positions[i * 3 + 2] = position.z + Math.sin(angle) * newDistance;
+                positions[i * 3] = position.x + fastCos(angle) * newDistance;
+                positions[i * 3 + 2] = position.z + fastSin(angle) * newDistance;
             }
             
             particleGeometry.attributes.position.needsUpdate = true;

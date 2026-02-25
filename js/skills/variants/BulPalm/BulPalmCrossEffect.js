@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { fastAtan2 } from '../../../../utils/FastMath.js';
 import { BulPalmEffect } from "../../BulPalmEffect.js";
 
 /**
@@ -250,7 +251,7 @@ export class BulPalmCrossEffect extends BulPalmEffect {
     handGroup.rotation.x = 0; // Palm flat (horizontal)
     
     // Rotate around Y-axis to face the center
-    const angle = Math.atan2(-direction.x, -direction.z);
+    const angle = fastAtan2(-direction.x, -direction.z);
     handGroup.rotation.y = angle;
     
     // Add hand to palm group

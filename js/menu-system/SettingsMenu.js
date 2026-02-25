@@ -13,6 +13,7 @@ import { ControlsTab } from './settings-menu/ControlsTab.js';
 import { EnemyPreviewTab } from './settings-menu/EnemyPreviewTab.js';
 import { ItemPreviewTab } from './settings-menu/ItemPreviewTab.js';
 import { HUDTab } from './settings-menu/HUDTab.js';
+import { CameraTab } from './settings-menu/CameraTab.js';
 
 export class SettingsMenu extends UIComponent {
     /**
@@ -96,6 +97,7 @@ export class SettingsMenu extends UIComponent {
         // Create tab components
         this.tabs.debug = new DebugTab(this.game, this);
         this.tabs.game = new GameplayTab(this.game, this);
+        this.tabs.camera = new CameraTab(this.game, this);
         this.tabs['model-preview'] = new CharacterModelTab(this.game, this);
         this.tabs['skills-preview'] = new SkillsPreviewTab(this.game, this);
         this.tabs.audio = new AudioTab(this.game, this);

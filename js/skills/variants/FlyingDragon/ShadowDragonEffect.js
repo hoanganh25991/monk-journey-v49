@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { fastAtan2 } from '../../../../utils/FastMath.js';
 import { FlyingDragonEffect } from '../../FlyingDragonEffect.js';
 
 /**
@@ -378,7 +379,7 @@ export class ShadowDragonEffect extends FlyingDragonEffect {
             
             // Face same direction as player
             if (playerDirection.x !== 0 || playerDirection.z !== 0) {
-                const angle = Math.atan2(playerDirection.x, playerDirection.z);
+                const angle = fastAtan2(playerDirection.x, playerDirection.z);
                 this.shadowCloneObject.rotation.y = angle;
             }
             

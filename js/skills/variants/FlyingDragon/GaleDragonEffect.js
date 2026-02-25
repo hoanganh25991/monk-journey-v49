@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox3D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { FlyingDragonEffect } from '../../FlyingDragonEffect.js';
 
 /**
@@ -279,17 +280,17 @@ export class GaleDragonEffect extends FlyingDragonEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Calculate distance from center
-                    const distance = Math.sqrt(x * x + y * y + z * z);
+                    const distance = distanceApprox3D(0, 0, 0, x, y, z);
                     
                     // Move in a circular pattern
                     const speed = 0.5 * (1 - distance / this.deflectionRadius);
                     
                     // Calculate rotation around y-axis
-                    const angle = Math.atan2(z, x) + delta * speed;
+                    const angle = fastAtan2(z, x) + delta * speed;
                     
                     // Update position
-                    positions[i * 3] = Math.cos(angle) * distance;
-                    positions[i * 3 + 2] = Math.sin(angle) * distance;
+                    positions[i * 3] = fastCos(angle) * distance;
+                    positions[i * 3 + 2] = fastSin(angle) * distance;
                     
                     // Add some vertical movement
                     positions[i * 3 + 1] += delta * (Math.random() - 0.5) * 0.2;
@@ -310,7 +311,7 @@ export class GaleDragonEffect extends FlyingDragonEffect {
                 this.deflectionField.rotation.x += delta * 0.1;
                 
                 // Pulse the field
-                const pulseFactor = 1 + 0.05 * Math.sin(this.elapsedTime * 3);
+                const pulseFactor = 1 + 0.05 * fastSin(this.elapsedTime * 3);
                 this.deflectionField.scale.set(pulseFactor, pulseFactor, pulseFactor);
             }
             

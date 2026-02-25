@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { BreathOfHeavenEffect } from '../../BreathOfHeavenEffect.js';
 
 /**
@@ -183,14 +184,14 @@ export class SoothingMistEffect extends BreathOfHeavenEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Slow drifting motion
-                    const angle = Math.atan2(z, x);
-                    const distance = Math.sqrt(x * x + z * z);
+                    const angle = fastAtan2(z, x);
+                    const distance = distanceApprox2D(0, 0, x, z);
                     
                     // Slightly change angle for drifting effect
                     const newAngle = angle + delta * (Math.random() - 0.5) * 0.5;
                     
-                    positions[i * 3] = Math.cos(newAngle) * distance;
-                    positions[i * 3 + 2] = Math.sin(newAngle) * distance;
+                    positions[i * 3] = fastCos(newAngle) * distance;
+                    positions[i * 3 + 2] = fastSin(newAngle) * distance;
                     
                     // Slight up and down motion
                     positions[i * 3 + 1] = y + delta * (Math.random() - 0.5) * 0.2;

@@ -8,7 +8,7 @@
 
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
-import { distanceApprox3D, normalize3D, tempVec3 } from '../utils/FastMath.js';
+import { distanceApprox3D, fastAtan2, normalize3D, tempVec3 } from '../utils/FastMath.js';
 
 export class ImprisonedFistsEffect extends SkillEffect {
     constructor(skill) {
@@ -271,7 +271,7 @@ export class ImprisonedFistsEffect extends SkillEffect {
         // Apply rotation to ensure the indicator is flat on the ground and aligned with direction
         
         // 1. Calculate the angle in the XZ plane based on the effect's direction
-        const angle = Math.atan2(effectDirection.x, effectDirection.z);
+        const angle = fastAtan2(effectDirection.x, effectDirection.z);
         
         // 2. Reset rotation and apply in the correct sequence
         this.groundIndicator.quaternion.identity(); // Reset to identity quaternion

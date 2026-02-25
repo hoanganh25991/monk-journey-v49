@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { CycloneStrikeEffect } from '../../CycloneStrikeEffect.js';
 
 /**
@@ -252,24 +253,24 @@ export class EyeOfTheStormEffect extends CycloneStrikeEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Calculate distance from center
-                    const distance = Math.sqrt(x * x + z * z);
+                    const distance = distanceApprox2D(0, 0, x, z);
                     
                     // Move inward and upward
-                    const angle = Math.atan2(z, x);
+                    const angle = fastAtan2(z, x);
                     const newDistance = distance * 0.98; // Move inward
                     
-                    positions[i * 3] = Math.cos(angle) * newDistance;
+                    positions[i * 3] = fastCos(angle) * newDistance;
                     positions[i * 3 + 1] = y + delta * 0.5; // Move upward
-                    positions[i * 3 + 2] = Math.sin(angle) * newDistance;
+                    positions[i * 3 + 2] = fastSin(angle) * newDistance;
                     
                     // If snowflake gets too close to center or too high, reset it
                     if (newDistance < 0.2 || y > 3) {
                         const newAngle = Math.random() * Math.PI * 2;
                         const newRadius = this.skill.radius * 0.8 + Math.random() * this.skill.radius * 0.2;
                         
-                        positions[i * 3] = Math.cos(newAngle) * newRadius;
+                        positions[i * 3] = fastCos(newAngle) * newRadius;
                         positions[i * 3 + 1] = 0;
-                        positions[i * 3 + 2] = Math.sin(newAngle) * newRadius;
+                        positions[i * 3 + 2] = fastSin(newAngle) * newRadius;
                     }
                 }
                 

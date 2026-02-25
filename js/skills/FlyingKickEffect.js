@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2 } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -44,7 +45,7 @@ export class FlyingKickEffect extends SkillEffect {
         
         // Position effect at player height
         effectGroup.position.copy(castPosition);
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         // No rotation.x - keep skill vertical, only adjust height naturally
         
         // Store effect
@@ -198,7 +199,7 @@ export class FlyingKickEffect extends SkillEffect {
         this.effect.position.z += this.direction.z * moveDistance;
 
         // Update rotation to match direction (horizontal only, no vertical tilt)
-        this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
+        this.effect.rotation.y = fastAtan2(this.direction.x, this.direction.z);
         // No rotation.x - keep skill vertical, only adjust height naturally
         
         // IMPORTANT: Update the skill's position property to match the effect's position

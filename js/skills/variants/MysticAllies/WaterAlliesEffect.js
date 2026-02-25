@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq2D } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastAtan2 } from '../../../../utils/FastMath.js';
 import { MysticAllyEffect } from '../../MysticAllyEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -364,7 +364,7 @@ export class WaterAlliesEffect extends MysticAllyEffect {
                     const distance = Math.sqrt(x0 * x0 + z0 * z0);
                     
                     // Flowing movement for water
-                    const angle = Math.atan2(z0, x0) + delta * (0.3 + distance * 0.2);
+                    const angle = fastAtan2(z0, x0) + delta * (0.3 + distance * 0.2);
                     
                     // Update position with flowing motion
                     positions[i * 3] = Math.cos(angle) * distance;

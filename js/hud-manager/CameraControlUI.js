@@ -294,7 +294,7 @@ export class CameraControlUI extends UIComponent {
             // Load camera zoom setting
             const storedZoom = localStorage.getItem(STORAGE_KEYS.CAMERA_ZOOM);
             if (storedZoom) {
-                this.cameraDistance = parseInt(storedZoom);
+                this.cameraDistance = parseFloat(storedZoom);
                 console.debug("Loaded camera distance from settings:", this.cameraDistance);
                 
                 // Update the camera distances for the current mode

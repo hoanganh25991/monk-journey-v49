@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
-import { normalize3D, distanceApprox2D, tempVec3 } from '../../../../utils/FastMath.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin, normalize3D, tempVec3 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Breath of Incense variant of Exploding Palm
@@ -301,24 +301,24 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
                 const y = positions[i * 3 + 1];
                 const z = positions[i * 3 + 2];
                 
-                const angle = Math.atan2(z, x);
+                const angle = fastAtan2(z, x);
                 const distance = distanceApprox2D(0, 0, x, z);
 
                 // Rotate around and move upward
                 const newAngle = angle + (this.skill.game.deltaTime || 0.016) * 2;
                 
-                positions[i * 3] = Math.cos(newAngle) * distance;
+                positions[i * 3] = fastCos(newAngle) * distance;
                 positions[i * 3 + 1] = y + (this.skill.game.deltaTime || 0.016) * 0.5;
-                positions[i * 3 + 2] = Math.sin(newAngle) * distance;
+                positions[i * 3 + 2] = fastSin(newAngle) * distance;
                 
                 // Reset particles that go too high
                 if (y > 3 || Math.random() < 0.01) {
                     const newRadius = 0.5 + Math.random() * 0.5;
                     const newAngle = Math.random() * Math.PI * 2;
                     
-                    positions[i * 3] = Math.cos(newAngle) * newRadius;
+                    positions[i * 3] = fastCos(newAngle) * newRadius;
                     positions[i * 3 + 1] = Math.random() * 0.5;
-                    positions[i * 3 + 2] = Math.sin(newAngle) * newRadius;
+                    positions[i * 3 + 2] = fastSin(newAngle) * newRadius;
                 }
             }
             

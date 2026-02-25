@@ -258,7 +258,7 @@ export class PlayerMovement {
             }
             
             // Update rotation to face movement direction
-            this.rotation.y = Math.atan2(direction.x, direction.z);
+            this.rotation.y = fastAtan2(direction.x, direction.z);
             if (this.modelGroup) {
                 this.modelGroup.rotation.y = this.rotation.y;
             }

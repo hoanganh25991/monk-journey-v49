@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { CycloneStrikeEffect } from '../../CycloneStrikeEffect.js';
-import { distanceApprox2D } from '../../../../utils/FastMath.js';
+import { distanceApprox2D, fastAtan2 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Storm Spirit variant of Cyclone Strike
@@ -234,7 +234,7 @@ export class StormSpiritEffect extends CycloneStrikeEffect {
                     const z = positions[i * 3 + 2];
                     
                     // Calculate angle and distance from center (approx for perf)
-                    const angle = Math.atan2(z, x);
+                    const angle = fastAtan2(z, x);
                     const distance = distanceApprox2D(0, 0, x, z);
                     
                     // Rotate particles around center and move upward
