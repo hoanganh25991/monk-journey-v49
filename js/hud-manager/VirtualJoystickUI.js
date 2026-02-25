@@ -81,7 +81,7 @@ export class VirtualJoystickUI extends UIComponent {
             jumpBtn.id = 'jump-button';
             jumpBtn.className = 'jump-button';
             jumpBtn.title = 'Jump (Space)';
-            jumpBtn.textContent = '🚀';
+            jumpBtn.innerHTML = '🚀<div class="jump-key">_</div>';
             jumpBtn.setAttribute('aria-label', 'Jump');
             document.body.appendChild(jumpBtn);
         }

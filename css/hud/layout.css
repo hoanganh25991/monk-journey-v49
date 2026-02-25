@@ -41,6 +41,17 @@
     z-index: 50; /* HUD Elements - Skills */
 }
 
+/* Desktop layout: center the right-side-ui at bottom-middle */
+@media (hover: hover) and (pointer: fine) {
+    #right-side-ui {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        align-items: center;
+        bottom: 10px;
+    }
+}
+
 /* Top Right Container for Home Button and Mini Map */
 #top-right-container {
     position: absolute;

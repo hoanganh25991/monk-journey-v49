@@ -15,6 +15,13 @@
     z-index: 120; /* Higher than joystick overlay to ensure camera buttons work */
 }
 
+/* Desktop layout: camera controls in a single row with consistent spacing */
+@media (hover: hover) and (pointer: fine) {
+    #camera-controls {
+        gap: 8px;
+    }
+}
+
 /* Jump button slot - same as teleport slot, first in row next to camera */
 #jump-button-slot {
     position: relative;
@@ -33,6 +40,30 @@
     bottom: auto;
     left: auto;
     margin: 0;
+}
+
+/* Key hint for jump button */
+.jump-button .jump-key {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid #6b4c2a;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: 9px;
+    color: white;
+    font-weight: bold;
+    z-index: 50;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+/* Hide jump key hint on mobile/touch - for desktop keyboard only */
+@media (hover: none) {
+    .jump-button .jump-key {
+        display: none !important;
+    }
 }
 
 /* Teleport slot - both buttons overlap, one visible at a time */

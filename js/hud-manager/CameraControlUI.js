@@ -83,9 +83,9 @@ export class CameraControlUI extends UIComponent {
         this.cameraState.isTouch = false;
         this.cameraState.touchId = null; // Track which touch is controlling camera
         
-        // View control mode: tap camera button to enable, then drag anywhere on right side to look (like joystick for movement)
-        this.cameraState.viewControlModeActive = false;
-        this.cameraState.tapToExitViewControl = false; // When true, next tap on button will exit view control mode
+        // View control mode: always enabled by default, tap camera button to reset to origin
+        this.cameraState.viewControlModeActive = true; // Always enabled by default
+        this.cameraState.tapToResetCamera = false; // When true, next tap on button will reset camera to origin
         this.cameraOverlay = null; // Right-side overlay for drag-to-look when view control mode is on
         
         console.debug("CameraControlUI initialized with camera mode support");
@@ -423,7 +423,7 @@ export class CameraControlUI extends UIComponent {
         
         // Set tooltip for camera button (desktop hover + reinforces tap message)
         if (this.cameraButton) {
-            this.cameraButton.title = 'Enable change view';
+            this.cameraButton.title = 'Reset camera to origin';
         }
         
         // Update the camera mode button UI based on current mode
@@ -498,26 +498,18 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Update camera button and overlay when view control mode toggles
+     * Update camera button and overlay (360 view is always active)
      */
     updateViewControlModeUI() {
         if (this.cameraButton) {
-            if (this.cameraState.viewControlModeActive) {
-                this.cameraButton.classList.add('view-control-active');
-                this.cameraButton.title = 'Disable 360 view';
-            } else {
-                this.cameraButton.classList.remove('view-control-active');
-                this.cameraButton.title = 'Enable change view';
-            }
+            // Always show as active since 360 view is always enabled
+            this.cameraButton.classList.add('view-control-active');
+            this.cameraButton.title = 'Reset camera to origin';
         }
         if (this.cameraOverlay) {
-            if (this.cameraState.viewControlModeActive) {
-                this.cameraOverlay.style.display = 'block';
-                this.cameraOverlay.style.pointerEvents = 'auto';
-            } else {
-                this.cameraOverlay.style.display = 'none';
-                this.cameraOverlay.style.pointerEvents = 'none';
-            }
+            // Always enabled
+            this.cameraOverlay.style.display = 'block';
+            this.cameraOverlay.style.pointerEvents = 'auto';
         }
     }
     updateCameraModeButtonUI() {
@@ -567,29 +559,10 @@ export class CameraControlUI extends UIComponent {
             event.preventDefault();
             event.stopPropagation();
             
-            // If view control mode is on, this tap might be to exit (handled in touchend)
-            if (this.cameraState.viewControlModeActive) {
-                this.cameraState.tapToExitViewControl = true;
-                this.cameraState.touchId = event.touches[0].identifier;
-                this.cameraState.potentialDrag = false;
-                return;
-            }
-            
-            const touch = event.touches[0];
-            this.cameraState.isTouch = true;
-            this.cameraState.touchId = touch.identifier;
-            
-            // Store touch start position but don't activate camera control yet
-            // We'll wait for movement to confirm it's a drag and not a tap
-            this.cameraState.startX = touch.clientX;
-            this.cameraState.startY = touch.clientY;
-            this.cameraState.currentX = touch.clientX;
-            this.cameraState.currentY = touch.clientY;
-            this.cameraState.potentialDrag = true; // Mark as potential drag
-            this.cameraState.active = false; // Not active until we confirm it's a drag
-            
-            // Store initial camera rotation for potential drag
-            this.storeInitialCameraRotation();
+            // Since 360 view is always on, tapping the button will reset the camera
+            this.cameraState.tapToResetCamera = true;
+            this.cameraState.touchId = event.touches[0].identifier;
+            this.cameraState.potentialDrag = false;
             
             // Visual feedback - make button slightly larger
             this.cameraButton.style.transform = 'scale(0.95)';
@@ -600,34 +573,14 @@ export class CameraControlUI extends UIComponent {
             event.preventDefault();
             event.stopPropagation();
             
-            // If view control mode is on, this click might be to exit (handled in mouseup)
-            if (this.cameraState.viewControlModeActive) {
-                this.cameraState.tapToExitViewControl = true;
-                this.cameraState.potentialDrag = false;
-                document.addEventListener('mousemove', this.handleMouseMove);
-                document.addEventListener('mouseup', this.handleMouseUp);
-                return;
-            }
-            
-            this.cameraState.isTouch = false;
-            
-            // Store mouse start position but don't activate camera control yet
-            // We'll wait for movement to confirm it's a drag and not a click
-            this.cameraState.startX = event.clientX;
-            this.cameraState.startY = event.clientY;
-            this.cameraState.currentX = event.clientX;
-            this.cameraState.currentY = event.clientY;
-            this.cameraState.potentialDrag = true; // Mark as potential drag
-            this.cameraState.active = false; // Not active until we confirm it's a drag
-            
-            // Store initial camera rotation for potential drag
-            this.storeInitialCameraRotation();
+            // Since 360 view is always on, clicking the button will reset the camera
+            this.cameraState.tapToResetCamera = true;
+            this.cameraState.potentialDrag = false;
             
             // Visual feedback - make button slightly larger
             this.cameraButton.style.transform = 'scale(0.95)';
             
-            // Add global mouse move and up events
-            document.addEventListener('mousemove', this.handleMouseMove);
+            // Add global mouse up event to handle the reset
             document.addEventListener('mouseup', this.handleMouseUp);
         });
         
@@ -669,35 +622,21 @@ export class CameraControlUI extends UIComponent {
             // Check if our camera touch ended (or all touches ended)
             const ourTouchEnded = this.cameraState.touchId === null ||
                 Array.from(event.changedTouches).some(t => t.identifier === this.cameraState.touchId);
-            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) && ourTouchEnded) {
+            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToResetCamera) && ourTouchEnded) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // Tap to exit view control mode (tap on button when mode was on)
-                if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
-                    this.cameraState.viewControlModeActive = false;
-                    this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360° View Off');
-                    this.cameraState.tapToExitViewControl = false;
+                // Tap to reset camera (tap on button)
+                if (this.cameraState.tapToResetCamera && !this.cameraState.active) {
+                    this.resetCameraToDefault();
+                    this.showCameraHintTooltip('Camera Reset — Drag right side to change view');
+                    this.cameraState.tapToResetCamera = false;
                     this.cameraState.touchId = null;
                     return;
                 }
                 
-                // Simple tap on button when view control mode is off -> enable view control mode
-                if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.cameraState.viewControlModeActive = true;
-                    this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360° View On — Drag to look around');
-                    this.cameraState.potentialDrag = false;
-                    this.cameraState.touchId = null;
-                    return;
-                }
-                
-                // If it was just a tap (not a drag), show hint
-                if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.showCameraHintTooltip();
-                } else {
-                    // Otherwise handle as camera control end
+                // Otherwise handle as camera control end
+                if (this.cameraState.active) {
                     this.handleCameraControlEnd();
                 }
                 
@@ -711,12 +650,12 @@ export class CameraControlUI extends UIComponent {
         document.addEventListener('touchcancel', (event) => {
             const ourTouchCancelled = this.cameraState.touchId === null ||
                 Array.from(event.changedTouches || []).some(t => t.identifier === this.cameraState.touchId);
-            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) && ourTouchCancelled) {
+            if ((this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToResetCamera) && ourTouchCancelled) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 this.handleCameraControlEnd();
                 this.cameraState.potentialDrag = false;
-                this.cameraState.tapToExitViewControl = false;
+                this.cameraState.tapToResetCamera = false;
                 this.cameraState.touchId = null;
             }
         });
@@ -750,31 +689,22 @@ export class CameraControlUI extends UIComponent {
         
         // Mouse up handler (defined as property to allow removal)
         this.handleMouseUp = (event) => {
-            if (this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToExitViewControl) {
+            if (this.cameraState.potentialDrag || this.cameraState.active || this.cameraState.tapToResetCamera) {
                 // Reset button visual feedback
                 this.cameraButton.style.transform = 'scale(1)';
                 
-                // Tap to exit view control mode
-                if (this.cameraState.tapToExitViewControl && !this.cameraState.active) {
-                    this.cameraState.viewControlModeActive = false;
-                    this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360° View Off');
-                    this.cameraState.tapToExitViewControl = false;
+                // Tap to reset camera (click on button)
+                if (this.cameraState.tapToResetCamera && !this.cameraState.active) {
+                    this.resetCameraToDefault();
+                    this.showCameraHintTooltip('Camera Reset — Drag right side to change view');
+                    this.cameraState.tapToResetCamera = false;
                     this.cameraState.potentialDrag = false;
-                    document.removeEventListener('mousemove', this.handleMouseMove);
                     document.removeEventListener('mouseup', this.handleMouseUp);
                     return;
                 }
                 
-                // Simple click on button when view control mode is off -> enable view control mode
-                if (!this.cameraState.viewControlModeActive && this.cameraState.potentialDrag && !this.cameraState.active) {
-                    this.cameraState.viewControlModeActive = true;
-                    this.updateViewControlModeUI();
-                    this.showCameraHintTooltip('360° View On — Drag to look around');
-                } else if (this.cameraState.potentialDrag && !this.cameraState.active) {
-                    // If it was just a click (not a drag), show hint
-                    this.showCameraHintTooltip();
-                } else {
+                // Otherwise handle as camera control end
+                if (this.cameraState.active) {
                     this.handleCameraControlEnd();
                 }
                 
@@ -795,10 +725,24 @@ export class CameraControlUI extends UIComponent {
      */
     /**
      * Store the initial camera rotation for potential drag
+     * Uses the current stored rotation values to enable continuous dragging
      */
     storeInitialCameraRotation() {
-        // Calculate the current camera rotation based on its position relative to the player
-        if (this.game && this.game.camera && this.game.player) {
+        // Use the current stored rotation values if they exist (for continuous dragging)
+        // Otherwise, calculate from camera position
+        if (this.cameraState.rotationX !== undefined && this.cameraState.rotationY !== undefined) {
+            // Use existing rotation values for continuous dragging
+            this.cameraState.originalRotationX = this.cameraState.rotationX;
+            this.cameraState.originalRotationY = this.cameraState.rotationY;
+            
+            console.debug("Using stored rotation for continuous drag:", {
+                originalX: this.cameraState.originalRotationX,
+                originalY: this.cameraState.originalRotationY,
+                verticalDegrees: THREE.MathUtils.radToDeg(this.cameraState.originalRotationX),
+                horizontalDegrees: THREE.MathUtils.radToDeg(this.cameraState.originalRotationY)
+            });
+        } else if (this.game && this.game.camera && this.game.player) {
+            // Calculate initial rotation from camera position (first time)
             const playerPosition = this.game.player.getPosition();
             const cameraPosition = this.game.camera.position;
             
@@ -814,12 +758,11 @@ export class CameraControlUI extends UIComponent {
             const dy = cameraPosition.y - (playerPosition.y + 20); // Adjust for height offset
             const verticalAngle = Math.atan2(dy, horizontalDistance);
             
-            // Only store the original rotation values for when we actually drag.
-            // Do NOT update rotationX/rotationY here - that would cause the camera to jump
-            // on a simple click/tap (when cameraUpdatePending is true, the update loop
-            // would apply these values). Only update rotation when user actually drags.
+            // Store both original and current rotation values
             this.cameraState.originalRotationX = verticalAngle;
             this.cameraState.originalRotationY = horizontalAngle;
+            this.cameraState.rotationX = verticalAngle;
+            this.cameraState.rotationY = horizontalAngle;
             
             console.debug("Initial camera rotation calculated:", {
                 x: this.cameraState.rotationX,
@@ -829,25 +772,24 @@ export class CameraControlUI extends UIComponent {
                 verticalDegrees: THREE.MathUtils.radToDeg(verticalAngle),
                 horizontalDegrees: THREE.MathUtils.radToDeg(horizontalAngle)
             });
-            
-            // Make sure orbit controls are enabled
-            if (this.game.controls) {
-                this.game.controls.enabled = true;
-            }
-        } else {
+        } else if (this.game && this.game.camera) {
             // Fallback to using camera rotation directly if we can't calculate from position
-            if (this.game && this.game.camera) {
-                // Only store original values - don't update rotationX/rotationY to avoid camera jump on click
-                this.cameraState.originalRotationX = this.game.camera.rotation.x;
-                this.cameraState.originalRotationY = this.game.camera.rotation.y;
-                
-                console.debug("Initial camera rotation (fallback):", {
-                    x: this.cameraState.rotationX,
-                    y: this.cameraState.rotationY,
-                    originalX: this.cameraState.originalRotationX,
-                    originalY: this.cameraState.originalRotationY
-                });
-            }
+            this.cameraState.originalRotationX = this.game.camera.rotation.x;
+            this.cameraState.originalRotationY = this.game.camera.rotation.y;
+            this.cameraState.rotationX = this.game.camera.rotation.x;
+            this.cameraState.rotationY = this.game.camera.rotation.y;
+            
+            console.debug("Initial camera rotation (fallback):", {
+                x: this.cameraState.rotationX,
+                y: this.cameraState.rotationY,
+                originalX: this.cameraState.originalRotationX,
+                originalY: this.cameraState.originalRotationY
+            });
+        }
+        
+        // Make sure orbit controls are enabled
+        if (this.game && this.game.controls) {
+            this.game.controls.enabled = true;
         }
     }
     
@@ -1041,7 +983,7 @@ export class CameraControlUI extends UIComponent {
     
     /**
      * Show a brief tooltip above the camera button.
-     * @param {string} [message] - Message to show (e.g. "Change view enabled" or "360° View Off"). If omitted, shows "Enable change view".
+     * @param {string} [message] - Message to show (e.g. "Camera Reset" or custom message). If omitted, shows "Drag right side to change view".
      */
     showCameraHintTooltip(message) {
         this.createCameraHintTooltip();
@@ -1049,7 +991,7 @@ export class CameraControlUI extends UIComponent {
         
         this.hideCameraHintTooltip();
         
-        this.cameraHintTooltip.textContent = message || 'Enable change view';
+        this.cameraHintTooltip.textContent = message || 'Drag right side to change view';
         
         const rect = this.cameraButton.getBoundingClientRect();
         this.cameraHintTooltip.style.left = `${rect.left + rect.width / 2}px`;
@@ -1087,8 +1029,8 @@ export class CameraControlUI extends UIComponent {
         this.cameraState.currentX = clientX;
         this.cameraState.currentY = clientY;
         
-        // Calculate delta from START position instead of current position
-        // This allows the camera to return to its original position when dragged back
+        // Calculate delta from START position for continuous rotation
+        // Each new drag adds to the existing rotation (accumulated)
         const totalDeltaX = clientX - this.cameraState.startX;
         const totalDeltaY = clientY - this.cameraState.startY;
         
@@ -1098,14 +1040,15 @@ export class CameraControlUI extends UIComponent {
         const horizontalSensitivity = baseSensitivity;
         const verticalSensitivity = baseSensitivity;
         
-        // Calculate horizontal rotation (around Y axis) from the original rotation
+        // Calculate horizontal rotation (around Y axis) - add to original rotation
+        // This makes rotation continuous: each drag adds to the previous rotation
         const rotationY = this.cameraState.originalRotationY - totalDeltaX * horizontalSensitivity;
         
-        // Calculate vertical rotation (around X axis) from the original rotation
+        // Calculate vertical rotation (around X axis) - add to original rotation
         // Allow full vertical rotation range from -89° to +89° (in radians)
         const maxVerticalRotation = THREE.MathUtils.degToRad(89);
         
-        // Calculate new rotation from the original rotation value
+        // Calculate new rotation from the original rotation value (from start of this drag)
         let newRotationX = this.cameraState.originalRotationX - totalDeltaY * verticalSensitivity;
         
         // Clamp to prevent flipping

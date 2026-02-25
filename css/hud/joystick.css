@@ -22,6 +22,17 @@
     z-index: 100;
 }
 
+/* Hide joystick on desktop (devices with hover capability) */
+@media (hover: hover) and (pointer: fine) {
+    #virtual-joystick-container {
+        display: none !important;
+    }
+    
+    #joystick-overlay {
+        display: none !important;
+    }
+}
+
 #virtual-joystick-base {
     position: absolute;
     top: 0;
@@ -107,4 +118,12 @@
 .jump-button:hover {
     border-color: #ff9600;
     box-shadow: 0 0 15px rgba(255, 150, 0, 0.5);
+}
+
+/* Hide standalone jump button on desktop - it will be in camera-controls */
+@media (hover: hover) and (pointer: fine) {
+    body > #jump-button,
+    body > .jump-button {
+        display: none !important;
+    }
 }

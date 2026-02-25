@@ -15,6 +15,15 @@
     z-index: 120; /* Higher than joystick overlay to ensure skill buttons work */
 }
 
+/* Desktop layout: skills at bottom-middle, 8 buttons in 1 row */
+@media (hover: hover) and (pointer: fine) {
+    #skills-container {
+        grid-template-rows: 1fr;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 8px;
+    }
+}
+
 /* Change Skills Button */
 .change-skills-button {
     grid-column: 1 / span 4;
