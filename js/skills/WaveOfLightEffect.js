@@ -27,7 +27,7 @@ export class WaveOfLightEffect extends SkillEffect {
 
     /**
      * Create a Wave of Light effect
-     * @param {THREE.Vector3} position - Starting position
+     * @param {THREE.Vector3} position - Starting position (player position)
      * @param {THREE.Vector3} direction - Direction to travel
      * @returns {THREE.Group} - The created effect
      */
@@ -36,8 +36,10 @@ export class WaveOfLightEffect extends SkillEffect {
         // Create a group for the effect
         const effectGroup = new THREE.Group();
         
-        // Store initial position and direction for movement
+        // Store initial position (player position) and direction for movement
+        // This is crucial - we need to preserve the player's position for calculating bell start height
         this.initialPosition.copy(position);
+        this.playerStartPosition = position.clone(); // Store player position separately
         this.direction.copy(direction);
         this.distanceTraveled = 0;
         
@@ -244,10 +246,12 @@ export class WaveOfLightEffect extends SkillEffect {
         effectGroup.position.copy(targetPosition);
         
         // Calculate the bell's starting height relative to the effect group
-        // The bell should start from player's height + 50, so we need to calculate
-        // the offset from the target ground position
-        const playerHeight = this.initialPosition.y; // Player's current Y position
+        // The bell should ALWAYS start from player's height + 50, regardless of target position
+        // Use playerStartPosition which we stored in create() method
+        const playerHeight = this.playerStartPosition ? this.playerStartPosition.y : this.initialPosition.y;
         const startHeightAboveGround = (playerHeight - groundHeight) + 50;
+        
+        console.debug(`Wave of Light: Player height: ${playerHeight}, Ground height: ${groundHeight}, Start height: ${startHeightAboveGround}`);
         
         // Position the bell at the calculated height above the target ground
         bellGroup.position.y = startHeightAboveGround;

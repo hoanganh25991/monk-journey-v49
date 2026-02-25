@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { distanceSq2D } from '../utils/FastMath.js';
 import { Enemy } from './Enemy.js';
 import { 
     ZONE_ENEMIES, 
@@ -855,16 +856,17 @@ export class EnemyManager {
         let nearestEnemy = null;
         let nearestDistanceSq = maxDistance * maxDistance; // Compare squared distances
         
+        const px = position.x;
+        const pz = position.z;
+        
         for (const [id, enemy] of this.enemies.entries()) {
             // Skip dead enemies
             if (enemy.isDead()) continue;
             
             const enemyPosition = enemy.getPosition();
             
-            // Calculate squared horizontal distance (X and Z, ignore Y)
-            const dx = enemyPosition.x - position.x;
-            const dz = enemyPosition.z - position.z;
-            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            // Calculate squared horizontal distance using optimized function
+            const distanceSq = distanceSq2D(px, pz, enemyPosition.x, enemyPosition.z);
             
             if (distanceSq < nearestDistanceSq) {
                 nearestDistanceSq = distanceSq;
@@ -1014,13 +1016,14 @@ export class EnemyManager {
         const nearbyEnemies = [];
         const radiusSq = radius * radius; // Compare squared distances for performance
         
+        const px = position.x;
+        const pz = position.z;
+        
         for (const [id, enemy] of this.enemies.entries()) {
             const enemyPosition = enemy.getPosition();
             
-            // Calculate squared horizontal distance (X and Z, ignore Y)
-            const dx = enemyPosition.x - position.x;
-            const dz = enemyPosition.z - position.z;
-            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            // Calculate squared horizontal distance using optimized function
+            const distanceSq = distanceSq2D(px, pz, enemyPosition.x, enemyPosition.z);
             
             if (distanceSq <= radiusSq) {
                 nearbyEnemies.push(enemy);
@@ -1147,15 +1150,16 @@ export class EnemyManager {
         let closestEnemy = null;
         let closestDistanceSq = maxDistance * maxDistance; // Compare squared distances for performance
         
+        const px = position.x;
+        const pz = position.z;
+        
         // Use for loop instead of forEach for better performance
         for (let i = 0; i < this.enemies.length; i++) {
             const enemy = this.enemies[i];
             const enemyPosition = enemy.getPosition();
             
-            // Calculate squared horizontal distance (X and Z, ignore Y)
-            const dx = enemyPosition.x - position.x;
-            const dz = enemyPosition.z - position.z;
-            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            // Calculate squared horizontal distance using optimized function
+            const distanceSq = distanceSq2D(px, pz, enemyPosition.x, enemyPosition.z);
             
             if (distanceSq < closestDistanceSq) {
                 closestEnemy = enemy;

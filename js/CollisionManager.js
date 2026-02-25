@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { distanceSq2D, normalize2D, tempVec2 } from '../utils/FastMath.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {
@@ -73,15 +74,16 @@ export class CollisionManager {
         
         // Check collision with each enemy (use for loop for better performance)
         const enemies = this.enemyManager.enemies;
+        const px = playerPosition.x;
+        const pz = playerPosition.z;
+        
         for (let i = 0; i < enemies.length; i++) {
             const enemy = enemies[i];
             const enemyPosition = enemy.getPosition();
             const enemyRadius = enemy.getCollisionRadius();
             
-            // Calculate squared distance for performance (avoid Math.sqrt)
-            const dx = enemyPosition.x - playerPosition.x;
-            const dz = enemyPosition.z - playerPosition.z;
-            const distanceSq = dx * dx + dz * dz;
+            // Calculate squared distance using optimized function
+            const distanceSq = distanceSq2D(px, pz, enemyPosition.x, enemyPosition.z);
             const collisionRadiusSum = playerRadius + enemyRadius;
             const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
             
@@ -98,19 +100,17 @@ export class CollisionManager {
         const playerPosition = this.player.getPosition();
         const enemyPosition = enemy.getPosition();
         
-        // Calculate direction from enemy to player (optimized - avoid Vector3 allocation)
+        // Calculate direction from enemy to player using optimized normalize
         const dx = playerPosition.x - enemyPosition.x;
         const dz = playerPosition.z - enemyPosition.z;
-        const length = Math.sqrt(dx * dx + dz * dz);
-        const dirX = length > 0 ? dx / length : 0;
-        const dirZ = length > 0 ? dz / length : 0;
+        normalize2D(tempVec2, dx, dz);
         
         // Move player away from enemy
         const pushDistance = 0.1;
         this.player.setPosition(
-            playerPosition.x + dirX * pushDistance,
+            playerPosition.x + tempVec2.x * pushDistance,
             playerPosition.y,
-            playerPosition.z + dirZ * pushDistance
+            playerPosition.z + tempVec2.z * pushDistance
         );
     }
     
@@ -138,10 +138,8 @@ export class CollisionManager {
                     boundingBox.getSize(size);
                     const objectRadius = Math.max(size.x, size.z) / 2;
                     
-                    // Calculate squared distance for performance (2D, avoid Math.sqrt)
-                    const dx = center.x - playerPosition.x;
-                    const dz = center.z - playerPosition.z;
-                    const distanceSq = dx * dx + dz * dz;
+                    // Calculate squared distance using optimized function
+                    const distanceSq = distanceSq2D(playerPosition.x, playerPosition.z, center.x, center.z);
                     const collisionRadiusSum = playerRadius + objectRadius;
                     const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                     
@@ -200,19 +198,17 @@ export class CollisionManager {
     handlePlayerObjectCollision(object, objectCenter) {
         const playerPosition = this.player.getPosition();
         
-        // Calculate direction from object to player (optimized - avoid Vector2 allocation)
+        // Calculate direction from object to player using optimized normalize
         const dx = playerPosition.x - objectCenter.x;
         const dz = playerPosition.z - objectCenter.z;
-        const length = Math.sqrt(dx * dx + dz * dz);
-        const dirX = length > 0 ? dx / length : 0;
-        const dirZ = length > 0 ? dz / length : 0;
+        normalize2D(tempVec2, dx, dz);
         
         // Move player away from object
         const pushDistance = 0.1;
         this.player.setPosition(
-            playerPosition.x + dirX * pushDistance,
+            playerPosition.x + tempVec2.x * pushDistance,
             playerPosition.y,
-            playerPosition.z + dirZ * pushDistance
+            playerPosition.z + tempVec2.z * pushDistance
         );
     }
     
@@ -263,15 +259,16 @@ export class CollisionManager {
             
             // Check collision with each enemy (use for loop for better performance)
             const enemies = this.enemyManager.enemies;
+            const sx = skillPosition.x;
+            const sz = skillPosition.z;
+            
             for (let j = 0; j < enemies.length; j++) {
                 const enemy = enemies[j];
                 const enemyPosition = enemy.getPosition();
                 const enemyRadius = enemy.getCollisionRadius();
                 
-                // Calculate squared distance for performance
-                const dx = enemyPosition.x - skillPosition.x;
-                const dz = enemyPosition.z - skillPosition.z;
-                const distanceSq = dx * dx + dz * dz;
+                // Calculate squared distance using optimized function
+                const distanceSq = distanceSq2D(sx, sz, enemyPosition.x, enemyPosition.z);
                 const collisionRadiusSum = skillRadius + enemyRadius;
                 const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                 
@@ -424,26 +421,24 @@ export class CollisionManager {
         const position1 = enemy1.getPosition();
         const position2 = enemy2.getPosition();
         
-        // Calculate direction from enemy2 to enemy1 (optimized - avoid Vector3 allocation)
+        // Calculate direction from enemy2 to enemy1 using optimized normalize
         const dx = position1.x - position2.x;
         const dz = position1.z - position2.z;
-        const length = Math.sqrt(dx * dx + dz * dz);
-        const dirX = length > 0 ? dx / length : 0;
-        const dirZ = length > 0 ? dz / length : 0;
+        normalize2D(tempVec2, dx, dz);
         
         // Move enemies away from each other
         const pushDistance = 0.05;
         
         enemy1.setPosition(
-            position1.x + dirX * pushDistance,
+            position1.x + tempVec2.x * pushDistance,
             position1.y,
-            position1.z + dirZ * pushDistance
+            position1.z + tempVec2.z * pushDistance
         );
         
         enemy2.setPosition(
-            position2.x - dirX * pushDistance,
+            position2.x - tempVec2.x * pushDistance,
             position2.y,
-            position2.z - dirZ * pushDistance
+            position2.z - tempVec2.z * pushDistance
         );
     }
 }
