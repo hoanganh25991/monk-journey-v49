@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq2D } from '../../../../utils/FastMath.js';
 import { MysticAllyEffect } from '../../MysticAllyEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -464,9 +465,10 @@ export class WaterAlliesEffect extends MysticAllyEffect {
         const player = this.skill.game.player;
         if (player && player.stats && player.getPosition) {
             const playerPosition = player.getPosition();
-            const distance = playerPosition.distanceTo(allyPosition);
+            const radiusSq = this.healingRadius * this.healingRadius;
+            const distSq = distanceSq2D(playerPosition.x, playerPosition.z, allyPosition.x, allyPosition.z);
             
-            if (distance <= this.healingRadius) {
+            if (distSq <= radiusSq) {
                 // Apply healing
                 const healAmount = this.healingPerSecond * this.healingInterval;
                 player.stats.heal(healAmount);

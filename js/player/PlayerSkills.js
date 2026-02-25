@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from '../utils/FastMath.js';
 import { Skill } from '../skills/Skill.js';
 import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
@@ -419,7 +420,7 @@ export class PlayerSkills {
                 targetDirection = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                 
                 // Update player rotation to face enemy
-                this.playerRotation.y = Math.atan2(targetDirection.x, targetDirection.z);
+                this.playerRotation.y = fastAtan2(targetDirection.x, targetDirection.z);
                 
                 console.debug(`Auto-targeting enemy for skill ${skillTemplate.name}, facing direction: ${this.playerRotation.y}`);
                 
@@ -493,7 +494,7 @@ export class PlayerSkills {
             
             if (moveDir.length() > 0) {
                 // Player is actively moving - use that direction
-                this.playerRotation.y = Math.atan2(moveDir.x, moveDir.z);
+                this.playerRotation.y = fastAtan2(moveDir.x, moveDir.z);
                 console.debug(`Using movement direction for skill: ${moveDir.x.toFixed(2)}, ${moveDir.z.toFixed(2)}`);
             } else {
                 // Player is not moving - use current facing direction
@@ -603,7 +604,7 @@ export class PlayerSkills {
                 const direction = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                 
                 // Update player rotation to face enemy
-                this.playerRotation.y = Math.atan2(direction.x, direction.z);
+                this.playerRotation.y = fastAtan2(direction.x, direction.z);
                 
                 // Create skill effect at the current position (async - lazy-loads effect module)
                 const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
@@ -632,15 +633,16 @@ export class PlayerSkills {
                     // Get enemy position
                     const enemyPosition = teleportRangeEnemy.getPosition();
                     
-                    // Calculate distance to enemy
-                    const distSq = (enemyPosition.x - this.playerPosition.x) ** 2 + (enemyPosition.z - this.playerPosition.z) ** 2;
-                    const distanceToEnemy = Math.sqrt(distSq);
+                    // Distance to enemy (squared for threshold; approximate for teleport math)
+                    const distSq = distanceSq2D(this.playerPosition.x, this.playerPosition.z, enemyPosition.x, enemyPosition.z);
+                    const minTeleportRangeSq = minTeleportRange * minTeleportRange;
+                    const distanceToEnemy = distanceApprox2D(this.playerPosition.x, this.playerPosition.z, enemyPosition.x, enemyPosition.z);
                     
                     // Calculate direction to enemy
                     const direction = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                     
                     // Update player rotation to face enemy
-                    this.playerRotation.y = Math.atan2(direction.x, direction.z);
+                    this.playerRotation.y = fastAtan2(direction.x, direction.z);
                     
                     // Use mana
                     this.playerStats.setMana(this.playerStats.getMana() - skillTemplate.manaCost);
@@ -655,12 +657,12 @@ export class PlayerSkills {
                     // Pass game reference to the new skill instance
                     newSkillInstance.game = this.game;
                     
-                    // Check if this is a stationary attack skill or if enemy is too close for teleport
+                    // Check if this is a stationary attack skill or if enemy is too close for teleport (squared compare)
                     if (skillTemplate.stationaryAttack || 
                         skillTemplate.name === "Deadly Reach" || 
-                        distanceToEnemy < minTeleportRange) {
+                        distSq < minTeleportRangeSq) {
                         
-                        if (distanceToEnemy < minTeleportRange) {
+                        if (distSq < minTeleportRangeSq) {
                             console.debug(`Enemy at distance ${distanceToEnemy.toFixed(2)} is too close for teleport (min: ${minTeleportRange}), using ranged attack`);
                         } else {
                             console.debug(`Primary attack ${skillTemplate.name} has stationaryAttack flag or is Deadly Reach, player will not move`);
@@ -743,9 +745,9 @@ export class PlayerSkills {
                     if (skillTemplate.name === "Fist of Thunder") {
                         const dashDistance = skillTemplate.range || 25; // Distance to teleport when no enemy (matches skill range)
                         const direction = new THREE.Vector3(
-                            Math.sin(this.playerRotation.y),
+                            fastSin(this.playerRotation.y),
                             0,
-                            Math.cos(this.playerRotation.y)
+                            fastCos(this.playerRotation.y)
                         );
                         const teleportPosition = new THREE.Vector3(
                             this.playerPosition.x + direction.x * dashDistance,

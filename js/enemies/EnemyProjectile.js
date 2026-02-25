@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { distanceSq3D, distanceApprox3D } from '../utils/FastMath.js';
 
 /**
  * A single projectile fired by a ranged enemy (e.g. arrow, orb).
@@ -47,7 +48,10 @@ export class EnemyProjectile {
         if (this.flightStyle === 'direct') {
             this.direction.subVectors(this.curveEnd, this.curveStart).normalize();
         } else {
-            this.curveTotalDistance = this.curveStart.distanceTo(this.curveEnd);
+            this.curveTotalDistance = distanceApprox3D(
+                this.curveStart.x, this.curveStart.y, this.curveStart.z,
+                this.curveEnd.x, this.curveEnd.y, this.curveEnd.z
+            );
         }
 
         this._createMesh();
@@ -139,9 +143,11 @@ export class EnemyProjectile {
             this.mesh.quaternion.setFromUnitVectors(forward, this.direction.clone().normalize());
         }
 
-        // Hit check
-        const distToTarget = this.mesh.position.distanceTo(this.curveEnd);
-        if (distToTarget <= this.hitRadius) {
+        // Hit check (squared distance to avoid sqrt)
+        const px = this.mesh.position.x, py = this.mesh.position.y, pz = this.mesh.position.z;
+        const ex = this.curveEnd.x, ey = this.curveEnd.y, ez = this.curveEnd.z;
+        const hitRadiusSq = this.hitRadius * this.hitRadius;
+        if (distanceSq3D(px, py, pz, ex, ey, ez) <= hitRadiusSq) {
             this._onHit();
             return false;
         }

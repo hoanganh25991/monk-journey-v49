@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
-import { distanceSq2D, normalize2D, tempVec2 } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastInvSqrt, normalize2D, tempVec2 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Reaching Rebuke variant of Exploding Palm
@@ -324,27 +324,21 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
                 const originalY = positions[idx + 1];
                 const originalZ = positions[idx + 2];
                 
-                const distance = Math.sqrt(
-                    originalX * originalX + 
-                    originalY * originalY + 
-                    originalZ * originalZ
-                );
+                const lenSq = originalX * originalX + originalY * originalY + originalZ * originalZ;
+                const distance = lenSq > 0 ? lenSq * fastInvSqrt(lenSq) : 0;
                 
                 // Add some noise to positions
                 positions[idx] = originalX + (Math.random() - 0.5) * 0.1;
                 positions[idx + 1] = originalY + (Math.random() - 0.5) * 0.1;
                 positions[idx + 2] = originalZ + (Math.random() - 0.5) * 0.1;
                 
-                // Normalize to maintain distance
-                const newDistance = Math.sqrt(
-                    positions[idx] * positions[idx] + 
-                    positions[idx + 1] * positions[idx + 1] + 
-                    positions[idx + 2] * positions[idx + 2]
-                );
-                
-                positions[idx] *= distance / newDistance;
-                positions[idx + 1] *= distance / newDistance;
-                positions[idx + 2] *= distance / newDistance;
+                // Normalize to maintain distance (fast approximate length)
+                const newLenSq = positions[idx] * positions[idx] + positions[idx + 1] * positions[idx + 1] + positions[idx + 2] * positions[idx + 2];
+                const newDistance = newLenSq > 0 ? newLenSq * fastInvSqrt(newLenSq) : 1;
+                const scale = distance / newDistance;
+                positions[idx] *= scale;
+                positions[idx + 1] *= scale;
+                positions[idx + 2] *= scale;
             }
             
             particleGeometry.attributes.position.needsUpdate = true;

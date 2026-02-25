@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin } from '../../../../utils/FastMath.js';
 import { InnerSanctuaryEffect } from '../../InnerSanctuaryEffect.js';
 
 /**
@@ -349,15 +350,15 @@ export class CircleOfWrathEffect extends InnerSanctuaryEffect {
                 const y = positions[i * 3 + 1];
                 const z = positions[i * 3 + 2];
                 
-                // Calculate distance from center
-                const distance = Math.sqrt(x * x + z * z);
+                // Calculate distance from center (approximate, fast)
+                const distance = distanceApprox2D(0, 0, x, z);
                 
                 // Spiral movement
-                const angle = Math.atan2(z, x) + delta * (0.5 + distance * 0.2);
+                const angle = fastAtan2(z, x) + delta * (0.5 + distance * 0.2);
                 
                 // Update position
-                positions[i * 3] = Math.cos(angle) * distance;
-                positions[i * 3 + 2] = Math.sin(angle) * distance;
+                positions[i * 3] = fastCos(angle) * distance;
+                positions[i * 3 + 2] = fastSin(angle) * distance;
                 
                 // Random vertical movement
                 positions[i * 3 + 1] = y + (Math.random() - 0.4) * delta * 0.5;

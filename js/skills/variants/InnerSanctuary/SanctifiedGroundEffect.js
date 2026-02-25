@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq2D } from '../../../../utils/FastMath.js';
 import { InnerSanctuaryEffect } from '../../InnerSanctuaryEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -344,9 +345,10 @@ export class SanctifiedGroundEffect extends InnerSanctuaryEffect {
         const player = this.skill.game.player;
         if (player && player.stats && player.getPosition) {
             const playerPosition = player.getPosition();
-            const distance = playerPosition.distanceTo(sanctuaryPosition);
+            const radiusSq = radius * radius;
+            const distSq = distanceSq2D(playerPosition.x, playerPosition.z, sanctuaryPosition.x, sanctuaryPosition.z);
             
-            if (distance <= radius) {
+            if (distSq <= radiusSq) {
                 // Apply healing
                 const healAmount = this.healingPerSecond * this.healingInterval;
                 player.stats.heal(healAmount);

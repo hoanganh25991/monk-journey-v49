@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { distanceSq2D } from '../../utils/FastMath.js';
 
 /**
  * WaveManager - Manages wave-based enemy spawning with consistent enemy counts
@@ -306,10 +307,11 @@ export class WaveManager {
         this.lastPlayerPositionCheck = currentTime;
         
         const playerPosition = this.game.player.getPosition();
-        const distance = playerPosition.distanceTo(this.waveAreaCenter);
+        const radiusSq = this.waveAreaRadius * this.waveAreaRadius;
+        const distSq = distanceSq2D(playerPosition.x, playerPosition.z, this.waveAreaCenter.x, this.waveAreaCenter.z);
         
-        if (distance > this.waveAreaRadius) {
-            console.debug(`Player left wave area: distance ${distance.toFixed(1)} > radius ${this.waveAreaRadius}`);
+        if (distSq > radiusSq) {
+            console.debug(`Player left wave area: distance > radius ${this.waveAreaRadius}`);
             return false;
         }
         

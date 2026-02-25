@@ -1,4 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
+import { distanceSq2D } from '../../../../utils/FastMath.js';
 import { BulPalmRainEffect } from "./BulPalmRainEffect.js";
 
 /**
@@ -186,8 +187,9 @@ export class StormOfPalmsEffect extends BulPalmRainEffect {
     // Now get current hero position from the skill's position
     const skillPosition = this.skill.position.clone();
     
-    // Check if the hero has moved significantly
-    if (skillPosition.distanceTo(this.lastHeroPosition) > this.moveWithHeroThreshold) {
+    // Check if the hero has moved significantly (squared distance to avoid sqrt)
+    const thresholdSq = this.moveWithHeroThreshold * this.moveWithHeroThreshold;
+    if (distanceSq2D(skillPosition.x, skillPosition.z, this.lastHeroPosition.x, this.lastHeroPosition.z) > thresholdSq) {
       // Update the center position to follow the hero
       this.centerPosition.x = skillPosition.x;
       this.centerPosition.z = skillPosition.z;
