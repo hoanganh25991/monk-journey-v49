@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { distanceApprox3D } from '../../utils/FastMath.js';
 import { Tree } from './Tree.js';
 import { LOD } from '../../../libs/three/three.module.js';
 
@@ -332,7 +333,8 @@ export class TreeCluster {
      * @returns {number} - Distance to the cluster center
      */
     distanceToPoint(point) {
-        return this.centerPosition.distanceTo(point);
+        const c = this.centerPosition;
+        return distanceApprox3D(c.x, c.y, c.z, point.x, point.y, point.z);
     }
     
     /**

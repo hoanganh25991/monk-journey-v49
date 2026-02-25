@@ -32,7 +32,7 @@ export class CameraTab extends SettingsTab {
         this.cameraZoomSlider.max = 100;
         this.cameraZoomSlider.step = 0.1;
 
-        const defaultZoom = 15;
+        const defaultZoom = 10;
         const storedZoom = this.loadSettingSync(STORAGE_KEYS.CAMERA_ZOOM, defaultZoom);
         const currentZoom = parseFloat(storedZoom) || defaultZoom;
 
@@ -78,7 +78,7 @@ export class CameraTab extends SettingsTab {
     handleStorageUpdate(event) {
         const { key, newValue } = event.detail;
         if (key === STORAGE_KEYS.CAMERA_ZOOM && this.cameraZoomSlider) {
-            const zoomValue = parseFloat(newValue) || 15;
+            const zoomValue = parseFloat(newValue) || 10;
             this.cameraZoomSlider.value = zoomValue;
             if (this.cameraZoomValue) {
                 this.cameraZoomValue.textContent = this.formatZoomDisplay(zoomValue);
@@ -103,9 +103,9 @@ export class CameraTab extends SettingsTab {
      */
     async resetToDefaults() {
         if (this.cameraZoomSlider) {
-            this.cameraZoomSlider.value = 15;
+            this.cameraZoomSlider.value = 10;
             if (this.cameraZoomValue) {
-                this.cameraZoomValue.textContent = 15;
+                this.cameraZoomValue.textContent = 10;
             }
         }
         return this.saveSettings();

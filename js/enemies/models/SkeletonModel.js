@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 import { EnemyModel } from './EnemyModel.js';
 
 export class SkeletonModel extends EnemyModel {
@@ -104,8 +105,8 @@ export class SkeletonModel extends EnemyModel {
                 
                 // Make the skeleton's body sway slightly when idle (X and Z rotation only)
                 if (body) {
-                    body.rotation.x = Math.sin(time * idleSpeed) * idleAmplitude * 0.5;
-                    body.rotation.z = Math.cos(time * idleSpeed * 0.7) * idleAmplitude * 0.3;
+                    body.rotation.x = fastSin(time * idleSpeed) * idleAmplitude * 0.5;
+                    body.rotation.z = fastCos(time * idleSpeed * 0.7) * idleAmplitude * 0.3;
                 }
             } else if (this.enemy.state.isAttacking && body) {
                 // Reset body rotation during attack to prevent tilting

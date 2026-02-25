@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { distanceApprox3D, fastCos, fastSin } from '../../utils/FastMath.js';
 import { Path } from './Path.js';
 
 /**
@@ -79,7 +80,7 @@ export class CircularPath extends Path {
         const radiusPoint = points[1];
         
         // Calculate radius as distance from center to radius point
-        const radius = center.distanceTo(radiusPoint);
+        const radius = distanceApprox3D(center.x, center.y, center.z, radiusPoint.x, radiusPoint.y, radiusPoint.z);
         
         // Create circle points
         const circlePoints = [];
@@ -87,8 +88,8 @@ export class CircularPath extends Path {
         
         for (let i = 0; i <= segments; i++) {
             const angle = (i / segments) * Math.PI * 2;
-            const x = center.x + radius * Math.cos(angle);
-            const z = center.z + radius * Math.sin(angle);
+            const x = center.x + radius * fastCos(angle);
+            const z = center.z + radius * fastSin(angle);
             
             circlePoints.push(new THREE.Vector3(x, 0, z));
         }
@@ -109,7 +110,7 @@ export class CircularPath extends Path {
         
         // Add a central feature and perimeter markers
         this.addCentralFeature(pathGroup, points[0], pathColor);
-        this.addPerimeterMarkers(pathGroup, points[0], points[0].distanceTo(points[1]));
+        this.addPerimeterMarkers(pathGroup, points[0], distanceApprox3D(points[0].x, points[0].y, points[0].z, points[1].x, points[1].y, points[1].z));
     }
     
     /**

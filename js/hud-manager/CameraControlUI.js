@@ -40,8 +40,8 @@ export class CameraControlUI extends UIComponent {
         
         // Camera distances for different modes
         this.cameraDistances = {
-            [this.cameraModes.THIRD_PERSON]: 15,     // Default distance for third-person
-            [this.cameraModes.OVER_SHOULDER]: 15      // Increased distance for over-shoulder view to be further behind player
+            [this.cameraModes.THIRD_PERSON]: 10,     // Default distance for third-person
+            [this.cameraModes.OVER_SHOULDER]: 10      // Default distance for over-shoulder view
         };
         
         // Default camera distance (can be modified via settings)

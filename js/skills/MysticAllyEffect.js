@@ -1,6 +1,6 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { fastAtan2 } from '../utils/FastMath.js';
+import { fastAtan2, fastSin, fastCos } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 
@@ -157,9 +157,9 @@ export class MysticAllyEffect extends SkillEffect {
             
             // Position rune
             rune.position.set(
-                Math.cos(angle) * radius,
+                fastCos(angle) * radius,
                 0.1,
-                Math.sin(angle) * radius
+                fastSin(angle) * radius
             );
             
             // Rotate rune to face up
@@ -457,14 +457,14 @@ export class MysticAllyEffect extends SkillEffect {
             // Update runes
             if (child.userData && child.userData.pulseSpeed) {
                 // Pulse size
-                const scale = 1.0 + 0.2 * Math.sin(this.mysticAllyState.age * child.userData.pulseSpeed);
+                const scale = 1.0 + 0.2 * fastSin(this.mysticAllyState.age * child.userData.pulseSpeed);
                 child.scale.set(scale, scale, scale);
                 
                 // Move in a circular pattern
                 if (child.userData.initialAngle !== undefined) {
                     const newAngle = child.userData.initialAngle + (this.mysticAllyState.age * child.userData.moveSpeed);
-                    child.position.x = Math.cos(newAngle) * child.userData.radius;
-                    child.position.z = Math.sin(newAngle) * child.userData.radius;
+                    child.position.x = fastCos(newAngle) * child.userData.radius;
+                    child.position.z = fastSin(newAngle) * child.userData.radius;
                 }
             }
         }
@@ -477,9 +477,9 @@ export class MysticAllyEffect extends SkillEffect {
                 const speed = particle.userData.speed;
                 
                 particle.position.set(
-                    initialPos.x + Math.sin(this.mysticAllyState.age * speed * 0.5) * 0.2,
-                    initialPos.y + Math.sin(this.mysticAllyState.age * speed) * 0.3,
-                    initialPos.z + Math.sin(this.mysticAllyState.age * speed * 0.7) * 0.2
+                    initialPos.x + fastSin(this.mysticAllyState.age * speed * 0.5) * 0.2,
+                    initialPos.y + fastSin(this.mysticAllyState.age * speed) * 0.3,
+                    initialPos.z + fastSin(this.mysticAllyState.age * speed * 0.7) * 0.2
                 );
                 
                 // Adjust opacity based on phase
@@ -534,7 +534,7 @@ export class MysticAllyEffect extends SkillEffect {
             });
             
             // Make ally "breathe" by scaling slightly
-            const breathScale = 1.0 + 0.05 * Math.sin(this.mysticAllyState.age * 0.5);
+            const breathScale = 1.0 + 0.05 * fastSin(this.mysticAllyState.age * 0.5);
             ally.scale.set(breathScale, breathScale, breathScale);
         }
         
@@ -552,12 +552,12 @@ export class MysticAllyEffect extends SkillEffect {
                 const newAngle = child.userData.initialAngle + (this.mysticAllyState.age * child.userData.orbitSpeed);
                 const radius = 0.5;
                 
-                child.position.x = Math.cos(newAngle) * radius;
-                child.position.z = Math.sin(newAngle) * radius;
+child.position.x = fastCos(newAngle) * radius;
+                    child.position.z = fastSin(newAngle) * radius;
                 
                 // Pulse wisps
                 if (child.userData.pulseSpeed) {
-                    const scale = 1.0 + 0.3 * Math.sin(this.mysticAllyState.age * child.userData.pulseSpeed);
+                    const scale = 1.0 + 0.3 * fastSin(this.mysticAllyState.age * child.userData.pulseSpeed);
                     child.scale.set(scale, scale, scale);
                 }
             }
@@ -566,11 +566,11 @@ export class MysticAllyEffect extends SkillEffect {
         // Make ally face the direction of movement if it's active
         if (this.mysticAllyState.phase === 'active') {
             // Simple bobbing motion
-            const bobHeight = Math.sin(this.mysticAllyState.age * 2) * 0.1;
+            const bobHeight = fastSin(this.mysticAllyState.age * 2) * 0.1;
             ally.position.y = bobHeight;
             
             // Simple rotation
-            ally.rotation.y = Math.sin(this.mysticAllyState.age * 0.5) * 0.5;
+            ally.rotation.y = fastSin(this.mysticAllyState.age * 0.5) * 0.5;
         }
     }
 
