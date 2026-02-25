@@ -1136,33 +1136,19 @@
                                 Preview of the enemy health bar that appears at the top center of the screen during combat.
                             </div>
                             
-                            <!-- Mock Enemy Health Bar -->
-                            <div style="display: flex; justify-content: center; margin: 20px 0;">
-                                <div id="mock-enemy-health-bar" style="width: 400px; max-width: 90%;">
-                                    <div style="text-align: center; color: #ff6666; font-size: 14px; font-weight: bold; margin-bottom: 5px;">
+                            <!-- Mock Enemy Health Bar - Exact match with actual implementation -->
+                            <div style="display: flex; justify-content: center; margin: 30px 0 20px 0; padding-top: 20px;">
+                                <div style="position: relative; width: 300px; margin-top: 20px;">
+                                    <div style="position: absolute; top: -20px; left: 0; width: 100%; text-align: center; color: white; font-size: 14px; text-shadow: 1px 1px 2px black;">
                                         Elite Skeleton Warrior
                                     </div>
-                                    <div style="background: rgba(0, 0, 0, 0.7); border: 2px solid rgba(255, 100, 100, 0.6); border-radius: 8px; padding: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);">
-                                        <div style="position: relative; height: 20px; background: rgba(50, 20, 20, 0.8); border-radius: 4px; overflow: hidden;">
-                                            <div style="position: absolute; top: 0; left: 0; height: 100%; width: 66.67%; background: linear-gradient(90deg, #ff4444 0%, #ff6666 100%); transition: width 0.3s ease;"></div>
-                                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); z-index: 1;">
-                                                2000 / 3000
-                                            </div>
+                                    <div style="position: relative; width: 100%; height: 1rem; background-color: rgba(0, 0, 0, 0.5); border: 2px solid #333; border-radius: 5px; overflow: hidden;">
+                                        <div style="height: 100%; width: 66.67%; background-color: #f00; border-radius: 3px;"></div>
+                                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 12px; text-shadow: 1px 1px 2px black; white-space: nowrap;">
+                                            2000 / 3000
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Notification Types Explanation -->
-                        <div class="setting-item">
-                            <h3>Notification Types</h3>
-                            <div class="settings-description" style="margin-bottom: 15px;">
-                                <p><strong>📍 Pick:</strong> Shows in CENTER when you pick up an item (white text, 3s duration)</p>
-                                <p><strong>🟡 Equip:</strong> Floats LEFT when an item is auto-equipped (yellow text, 5s duration)</p>
-                                <p><strong>⚪ Skip:</strong> Floats LEFT when an item is skipped (white text, 3s duration)</p>
-                                <p><strong>🔴 Consume Health:</strong> Floats LEFT when consuming health items (red text, 2.2s duration)</p>
-                                <p><strong>🔵 Consume Mana:</strong> Floats LEFT when consuming mana items (blue text, 2.2s duration)</p>
                             </div>
                         </div>
 
@@ -1196,17 +1182,6 @@
                             <div class="setting-row">
                                 <div class="settings-label">Test Consume Mana</div>
                                 <button id="test-notification-consume-mana" class="settings-button">Show Mana</button>
-                            </div>
-                        </div>
-
-                        <!-- Notification Behavior -->
-                        <div class="setting-item">
-                            <h3>Notification Behavior</h3>
-                            <div class="settings-description">
-                                <p><strong>Center Notifications:</strong> Pick items appear at top-center of screen</p>
-                                <p><strong>Float Notifications:</strong> Equip, Skip, Consume appear on the left side, above the joystick</p>
-                                <p><strong>Style:</strong> All notifications have a consistent black background (70% opacity) with colored text</p>
-                                <p><strong>Animation:</strong> Float notifications move upward and fade out before disappearing</p>
                             </div>
                         </div>
                     </div>
