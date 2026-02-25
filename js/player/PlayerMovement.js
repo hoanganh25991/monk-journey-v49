@@ -35,7 +35,7 @@ export class PlayerMovement {
         this.maxJumps = 3;
         this.jumpForces = [30, 21, 15]; // 0.75 of previous - lower jump height
         this.gravity = 32; // Heavier gravity = faster fall back
-        this.holdJumpBoost = 10; // Optional extra lift when holding (bonus feature)
+        this.holdJumpBoost = 0; // Disabled: was allowing near-infinite hover at max height when holding jump
         this.groundedTolerance = 0.2;
         this.isHoldingJump = false;
         
@@ -148,8 +148,8 @@ export class PlayerMovement {
             
             // Apply gravity and velocity when in air
             if (isInAir) {
-                // Apply sustained jump boost when holding jump button (only while ascending)
-                if (this.isHoldingJump && this.velocityY > 0) {
+                // Hold jump boost disabled to prevent floating at max height
+                if (this.holdJumpBoost > 0 && this.isHoldingJump && this.velocityY > 0) {
                     this.velocityY += this.holdJumpBoost * safeDelta;
                 }
                 

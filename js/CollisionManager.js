@@ -72,11 +72,13 @@ export class CollisionManager {
         const playerPosition = this.player.getPosition();
         const playerRadius = this.player.getCollisionRadius();
         
-        // Check collision with each enemy (iterate Map values)
+        // Check collision with each enemy (use cached array for performance)
         const px = playerPosition.x;
         const pz = playerPosition.z;
+        const enemies = this.enemyManager.getEnemiesArray();
         
-        for (const enemy of this.enemyManager.enemies.values()) {
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
             const enemyPosition = enemy.getPosition();
             const enemyRadius = enemy.getCollisionRadius();
             
@@ -255,11 +257,13 @@ export class CollisionManager {
             const skillPosition = skill.getPosition();
             const skillRadius = skill.getRadius();
             
-            // Check collision with each enemy (iterate Map values)
+            // Check collision with each enemy (use cached array for performance)
             const sx = skillPosition.x;
             const sz = skillPosition.z;
+            const enemies = this.enemyManager.getEnemiesArray();
             
-            for (const enemy of this.enemyManager.enemies.values()) {
+            for (let j = 0; j < enemies.length; j++) {
+                const enemy = enemies[j];
                 const enemyPosition = enemy.getPosition();
                 const enemyRadius = enemy.getCollisionRadius();
                 
@@ -383,8 +387,8 @@ export class CollisionManager {
     }
     
     checkEnemyEnemyCollisions() {
-        // Convert Map to array for pair iteration
-        const enemiesArray = Array.from(this.enemyManager.enemies.values());
+        // Use cached array for performance
+        const enemiesArray = this.enemyManager.getEnemiesArray();
         
         // Check each pair of enemies for collisions
         for (let i = 0; i < enemiesArray.length; i++) {

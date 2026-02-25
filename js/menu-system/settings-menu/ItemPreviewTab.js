@@ -28,6 +28,9 @@ export class ItemPreviewTab extends SettingsTab {
         this.itemDetailsContainer = document.getElementById('item-details');
         this.resetItemCameraButton = document.getElementById('reset-item-camera-button');
         this.generateRandomItemButton = document.getElementById('generate-random-item-button');
+        this.autoPickItemsCheckbox = document.getElementById('auto-pick-items');
+        this.autoConsumeItemsCheckbox = document.getElementById('auto-consume-items');
+        this.autoEquipItemsCheckbox = document.getElementById('auto-equip-items');
         
         this.itemPreview = null;
         this.currentItem = null;
@@ -66,7 +69,30 @@ export class ItemPreviewTab extends SettingsTab {
         // Set up generate random item button
         this.setupGenerateRandomItemButton();
         
+        // Item behavior settings (auto pick, auto consume, auto equip)
+        this.setupItemBehaviorSettings();
+        
         return true;
+    }
+    
+    /**
+     * Set up item behavior toggles and load/save from storage
+     * @private
+     */
+    setupItemBehaviorSettings() {
+        const keys = [
+            [this.autoPickItemsCheckbox, STORAGE_KEYS.AUTO_PICK_ITEMS, true],
+            [this.autoConsumeItemsCheckbox, STORAGE_KEYS.AUTO_CONSUME_ITEMS, false],
+            [this.autoEquipItemsCheckbox, STORAGE_KEYS.AUTO_EQUIP_ITEMS, false]
+        ];
+        keys.forEach(([el, key, defaultVal]) => {
+            if (!el) return;
+            const stored = this.loadSettingSync(key, defaultVal);
+            el.checked = stored === true || stored === 'true';
+            el.addEventListener('change', () => {
+                this.saveSetting(key, el.checked);
+            });
+        });
     }
     
     /**

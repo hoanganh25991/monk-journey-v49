@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { ItemModelFactory } from './models/ItemModelFactory.js';
 import { Item } from './Item.js';
+import storageService from '../save-manager/StorageService.js';
+import { STORAGE_KEYS } from '../config/storage-keys.js';
 
 /**
  * Manages item drops in the game world
@@ -185,8 +187,9 @@ export class ItemDropManager {
                     continue;
                 }
                 
-                // Auto-pickup if player is close enough (instant pickup) - 1.5 * 1.5 = 2.25
-                if (distanceSq < 2.25) {
+                // Auto-pickup if player is close enough and setting enabled (default on)
+                const autoPick = storageService.loadDataSync(STORAGE_KEYS.AUTO_PICK_ITEMS);
+                if (distanceSq < 2.25 && (autoPick !== false && autoPick !== 'false')) {
                     this.pickupItem(id);
                     continue; // Skip to next item since this one was picked up
                 }
@@ -258,10 +261,33 @@ export class ItemDropManager {
         // Add to player inventory
         if (this.game && this.game.player) {
             this.game.player.addToInventory(itemData.item);
-            
-            // Show notification
-            if (this.game.hudManager) {
-                this.game.hudManager.showNotification(`Picked up ${itemData.item.name}`);
+            const item = itemData.item;
+            const hud = this.game.hudManager;
+            const autoConsume = storageService.loadDataSync(STORAGE_KEYS.AUTO_CONSUME_ITEMS);
+            const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
+            const isConsumable = item.type === 'consumable' || item.consumable;
+            const isEquippable = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory' ||
+                (item.type === 'helmet' || item.type === 'boots' || item.type === 'gloves' || item.type === 'belt' || item.type === 'talisman');
+            let didConsume = false;
+            if (hud && (autoConsume === true || autoConsume === 'true') && isConsumable) {
+                const invUI = hud.components && hud.components.inventoryUI;
+                if (invUI && typeof invUI.useConsumableItem === 'function') {
+                    invUI.useConsumableItem(item);
+                    didConsume = true;
+                }
+            }
+            if (!didConsume && hud) {
+                if ((autoEquip === true || autoEquip === 'true') && isEquippable) {
+                    const result = this.tryAutoEquip(item);
+                    if (result === 'equipped') {
+                        hud.showNotification(`Auto equipped ${item.name}`);
+                    } else if (result === 'similar') {
+                        hud.showNotification(`Similar to current, not auto-equipping`);
+                    }
+                    // else weaker: no notification
+                } else {
+                    hud.showNotification(`Picked up ${item.name}`);
+                }
             }
         }
         
@@ -293,6 +319,46 @@ export class ItemDropManager {
         
         // Remove from map
         this.droppedItems.delete(itemId);
+    }
+    
+    /**
+     * Try to auto-equip if item is stronger than current. Returns 'equipped' | 'similar' | 'weaker'.
+     * @param {Object} item - The picked-up item
+     * @returns {string}
+     */
+    tryAutoEquip(item) {
+        if (!this.game || !this.game.player) return 'weaker';
+        const inv = this.game.player.inventory;
+        let slot = item.type;
+        if (item.type === 'accessory') {
+            if (item.subType === 'talisman') slot = 'talisman';
+            else if (!inv.equipment.accessory1) slot = 'accessory1';
+            else if (!inv.equipment.accessory2) slot = 'accessory2';
+            else slot = 'accessory1';
+        }
+        if (!inv.equipment.hasOwnProperty(slot)) return 'weaker';
+        const current = inv.equipment[slot];
+        const getMainStat = (i) => {
+            if (!i) return 0;
+            const base = i.baseStats || {};
+            const sec = (i.secondaryStats || []).reduce((s, x) => s + (x.value || 0), 0);
+            if (slot === 'weapon') return (base.damage || 0) + sec;
+            if (['armor', 'helmet', 'boots', 'gloves', 'belt'].includes(slot)) return (base.defense || 0) + sec;
+            return (base.damage || 0) + (base.defense || 0) + (base.manaBonus || 0) + (base.healthBonus || 0) + sec;
+        };
+        const newStat = getMainStat(item);
+        const curStat = getMainStat(current);
+        if (!current) {
+            inv.equipItem(item);
+            return 'equipped';
+        }
+        if (newStat > curStat) {
+            inv.equipItem(item);
+            return 'equipped';
+        }
+        const ratio = curStat > 0 ? Math.abs(newStat - curStat) / curStat : 0;
+        if (ratio <= 0.15) return 'similar';
+        return 'weaker';
     }
     
     /**

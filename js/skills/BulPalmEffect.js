@@ -183,9 +183,6 @@ export class BulPalmEffect extends SkillEffect {
         true // orbit animation
       );
       
-      // Add trailing energy effect
-      this.createTrailingEffect(handGroup);
-      
       // Set hand orientation
       handGroup.rotation.x = -Math.PI / 2; // Point fingers forward
       
@@ -416,35 +413,6 @@ export class BulPalmEffect extends SkillEffect {
     }
     
     return particles;
-  }
-
-  /**
-   * Create trailing energy effect
-   * @param {THREE.Group} handGroup - Group to add the trail to
-   * @private
-   */
-  createTrailingEffect(handGroup) {
-    const trailCount = 9;
-    this.trails = [];
-    
-    for (let i = 0; i < trailCount; i++) {
-      const trailGeometry = new THREE.PlaneGeometry(1.5, 1.5);
-      const trailMaterial = this.createMaterial(
-        this.getSkillColor(), 
-        0, 
-        false, 
-        0.8 - i * 0.08, 
-        false, 
-        true
-      );
-      
-      const trail = new THREE.Mesh(trailGeometry, trailMaterial);
-      trail.position.z = -0.8 - i * 0.5;
-      trail.rotation.x = Math.PI / 2;
-      
-      handGroup.add(trail);
-      this.trails.push(trail);
-    }
   }
 
   /**
@@ -712,9 +680,6 @@ export class BulPalmEffect extends SkillEffect {
     // Animate particles
     this.updateOrbitingParticles(this.particles, this.age);
     
-    // Animate trails
-    this.updateTrails(delta);
-    
     // Create periodic explosions along the path
     this.createPeriodicExplosions(delta);
     
@@ -743,20 +708,6 @@ export class BulPalmEffect extends SkillEffect {
         
         particle.position.copy(initialPos);
       }
-    }
-  }
-
-  /**
-   * Update trailing effects
-   * @param {number} delta - Time since last update in seconds
-   * @private
-   */
-  updateTrails(delta) {
-    for (let i = 0; i < this.trails.length; i++) {
-      const trail = this.trails[i];
-      // Fade out trails based on distance
-      const maxDistance = this.skill.range || 40;
-      trail.material.opacity = (0.8 - i * 0.08) * (1 - this.distanceTraveled / maxDistance);
     }
   }
 
@@ -1050,7 +1001,6 @@ export class BulPalmEffect extends SkillEffect {
     
     // Clear references
     this.particles = [];
-    this.trails = [];
     this.handGroup = null;
     this.explosionGroup = null;
     this.palmGroup = null;

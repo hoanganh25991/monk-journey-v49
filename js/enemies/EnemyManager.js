@@ -62,7 +62,9 @@ export class EnemyManager {
         this.scene = scene;
         this.player = player;
         this.loadingManager = loadingManager;
-        this.enemies = new Map(); // Changed to Map for easier lookup by ID
+        this.enemies = new Map(); // Map for O(1) lookups and deletes by ID
+        this.enemiesArray = []; // Cached array for fast iteration in collision detection
+        this.enemiesArrayDirty = false; // Flag to rebuild array when enemies change
         this.enemyMeshes = [];
         this.maxEnemies = 50 * 2; // Increased max enemies for world exploration
         this.spawnRadius = 90; // 3x increased spawn radius (was 30)
@@ -333,6 +335,7 @@ export class EnemyManager {
         
         // Add to enemies map
         this.enemies.set(id, enemy);
+        this.enemiesArrayDirty = true; // Mark array as needing rebuild
         
         // Track when this enemy was last updated
         this.enemyLastUpdated.set(id, Date.now());
@@ -347,6 +350,19 @@ export class EnemyManager {
      */
     getEnemyById(id) {
         return this.enemies.get(id);
+    }
+    
+    /**
+     * Get enemies as an array (cached for performance)
+     * Use this for iteration in hot paths like collision detection
+     * @returns {Array} - Array of enemy instances
+     */
+    getEnemiesArray() {
+        if (this.enemiesArrayDirty || this.enemiesArray.length !== this.enemies.size) {
+            this.enemiesArray = Array.from(this.enemies.values());
+            this.enemiesArrayDirty = false;
+        }
+        return this.enemiesArray;
     }
     
     /**
@@ -449,6 +465,7 @@ export class EnemyManager {
                 if (enemy) {
                     enemy.remove();
                     this.enemies.delete(id);
+                    this.enemiesArrayDirty = true;
                     this.processedDrops.delete(id);
                     this.enemyLastUpdated.delete(id);
                 }
@@ -1100,9 +1117,24 @@ export class EnemyManager {
         // This ensures the boss stays at the carefully calculated spawn position
         boss.disableTerrainHeightUpdates();
         
-        // Play boss spawn effect
+        // Play boss spawn effect (retry if buffer not loaded yet)
         if (this.game && this.game.audioManager) {
-            this.game.audioManager.playSound('bossSpawn');
+            const tryPlay = (attempt = 0) => {
+                const sound = this.game.audioManager.sounds && this.game.audioManager.sounds['bossSpawn'];
+                if (sound) {
+                    try {
+                        if (sound.buffer) {
+                            if (sound.isPlaying) sound.stop();
+                            sound.play();
+                        } else if (attempt < 5) {
+                            setTimeout(() => tryPlay(attempt + 1), 150 * (attempt + 1));
+                        }
+                    } catch (e) {
+                        if (attempt < 3) setTimeout(() => tryPlay(attempt + 1), 200);
+                    }
+                }
+            };
+            tryPlay();
         }
         
         // Show notification
@@ -1471,6 +1503,7 @@ export class EnemyManager {
                 if (enemy) {
                     enemy.remove();
                     this.enemies.delete(id);
+                    this.enemiesArrayDirty = true;
                     this.processedDrops.delete(id);
                     this.enemyLastUpdated.delete(id);
                 }

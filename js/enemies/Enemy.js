@@ -32,6 +32,9 @@ export class Enemy {
         this.color = config.color || 0xcccccc;
         this.scale = config.scale || 1;
         this.isBoss = config.isBoss || false;
+        this.behavior = config.behavior || 'aggressive';
+        // Ranged enemies can attack player in the air; melee cannot
+        this.isRanged = (this.behavior === 'ranged' || this.attackRange > 4);
         this.isActive = true;
         
         // Flag for minimap identification
@@ -63,7 +66,8 @@ export class Enemy {
         
         // Enemy collision
         this.collisionRadius = 0.5 * this.scale;
-        this.heightOffset = 0.4 * this.scale; // Adjusted to place enemies on the ground
+        // Bosses need larger height offset so the model sits on the ground (not half in terrain)
+        this.heightOffset = (this.isBoss ? 0.65 : 0.4) * this.scale;
         
         // Enemy model
         this.modelGroup = null;
@@ -361,8 +365,22 @@ export class Enemy {
             }
         }
         
+        // Melee enemies cannot attack when player is in the air; only ranged can
+        let playerInAir = false;
+        if (this.world && this.targetPlayer.getPosition) {
+            const pp = this.targetPlayer.getPosition();
+            try {
+                const terrainY = this.world.getTerrainHeight(pp.x, pp.z);
+                if (terrainY != null && isFinite(terrainY)) {
+                    const groundY = terrainY + 1.0; // player heightOffset
+                    playerInAir = pp.y > groundY + 0.35;
+                }
+            } catch (_) { /* ignore */ }
+        }
+        const canAttackTarget = distanceToPlayer <= this.attackRange && (!playerInAir || this.isRanged);
+
         // Check if target (player or remote player) is in attack range
-        if (distanceToPlayer <= this.attackRange) {
+        if (canAttackTarget) {
             console.debug(`Enemy ${this.id} in attack range of target, distance: ${distanceToPlayer.toFixed(2)}, attack range: ${this.attackRange.toFixed(2)}, cooldown: ${this.state.attackCooldown.toFixed(2)}`);
             
             // Stop moving when in attack range
@@ -383,6 +401,10 @@ export class Enemy {
             // Set aggressive state when target is in attack range
             this.state.isAggressive = true;
             this.state.aggressionEndTime = Date.now() + (this.aggressionTimeout * 1000);
+        } else if (distanceToPlayer <= this.attackRange && playerInAir && !this.isRanged) {
+            // In range but player in air and we're melee: just face target, don't attack
+            this.state.isMoving = false;
+            this.faceTarget(playerPosition);
         } else if (distanceToPlayer <= this.detectionRange || this.state.isAggressive) {
             // Move towards target if within detection range or if enemy is in aggressive state
             
