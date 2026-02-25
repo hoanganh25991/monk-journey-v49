@@ -382,7 +382,9 @@ export class PlayerSkills {
         if (this.game && this.game.enemyManager) {
             // Always try to find the nearest enemy for targeting
             // Use skill range for targeting, or a default range if skill has no range
-            const targetRange = skillTemplate.range > 0 ? skillTemplate.range : 15;
+            // Auto-targeting range is 2x the skill's base range
+            const baseRange = skillTemplate.range > 0 ? skillTemplate.range : 15;
+            const targetRange = baseRange * 2;
             targetEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, targetRange);
             
             if (targetEnemy) {
