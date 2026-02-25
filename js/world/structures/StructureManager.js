@@ -73,6 +73,40 @@ export class StructureManager {
         } else {
             console.debug("Structure manager initialized without initial structures");
         }
+        
+        this.createHomeVillage();
+    }
+    
+    /**
+     * Create a village at the home position (0,0,0)
+     */
+    createHomeVillage() {
+        const homeVillage = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE, { 
+            x: 0, 
+            z: 0,
+            size: 'medium',
+            hasTower: true,
+            hasWell: true,
+            hasMarket: true,
+            layout: 'circular'
+        });
+        
+        if (homeVillage) {
+            this.structures.push({
+                type: STRUCTURE_OBJECTS.VILLAGE,
+                object: homeVillage,
+                position: new THREE.Vector3(0, 0, 0),
+                id: 'home_village'
+            });
+            
+            this.specialStructures['home_village'] = { 
+                x: 0, 
+                z: 0, 
+                type: STRUCTURE_OBJECTS.VILLAGE 
+            };
+            
+            console.debug("Home village created at spawn position (0,0,0)");
+        }
     }
     
     /**
@@ -768,6 +802,20 @@ export class StructureManager {
         return this.worldManager?.getZoneTypeAt?.(x, z) ?? 'Terrant';
     }
     
+    /**
+     * Get cave positions for enemy spawning and path generation
+     * @returns {Array<{x: number, z: number}>} - Cave positions
+     */
+    getCavePositions() {
+        const caves = [];
+        for (const s of this.structures) {
+            if (s.type === STRUCTURE_OBJECTS.CAVE && s.position) {
+                caves.push({ x: s.position.x, z: s.position.z });
+            }
+        }
+        return caves;
+    }
+    
     // Note: createBuilding method has been removed
     // Use structureFactory.createStructure() directly instead
     
@@ -933,8 +981,10 @@ export class StructureManager {
         // Find structures that are too far away
         this.structures.forEach((structureInfo, index) => {
             if (structureInfo.position && playerPosition) {
-                const distance = structureInfo.position.distanceTo(playerPosition);
-                if (distance > maxDistance) {
+                const dx = structureInfo.position.x - playerPosition.x;
+                const dz = structureInfo.position.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
+                if (distanceSq > maxDistance * maxDistance) {
                     structuresToRemove.push(index);
                 }
             }

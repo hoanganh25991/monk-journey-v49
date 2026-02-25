@@ -1,4 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
+import { distanceSq2D } from '../utils/FastMath.js';
 
 /**
  * Portal Button UI component
@@ -175,32 +176,33 @@ export class PortalButton extends UIComponent {
             // Debug: Log the number of portals
             console.debug(`Found ${portals.length} portals in total`);
             
-            // Check if any portal is within interaction range
+            // Check if any portal is within interaction range (use squared distance for performance)
             let closestPortal = null;
-            let closestDistance = teleportManager.interactionRadius || 4;
+            const interactionRadius = teleportManager.interactionRadius || 4;
+            let closestDistanceSq = interactionRadius * interactionRadius;
             let validPortalCount = 0;
-            
+
             for (const portal of portals) {
                 // Check portal properties
                 if (!portal.position) {
                     console.debug(`Portal ${portal.id || 'unknown'} missing position property`);
                     continue;
                 }
-                
+
                 // For now, we'll only check for position property to show the button
                 // We'll validate sourcePosition and targetPosition when the button is clicked
                 const portalPos = portal.position;
-                const distance = Math.sqrt(
-                    Math.pow(playerPosition.x - portalPos.x, 2) + 
-                    Math.pow(playerPosition.z - portalPos.z, 2)
+                const distanceSq = distanceSq2D(
+                    playerPosition.x, playerPosition.z,
+                    portalPos.x, portalPos.z
                 );
-                
+
                 validPortalCount++;
-                
-                if (distance < closestDistance) {
+
+                if (distanceSq < closestDistanceSq) {
                     closestPortal = portal;
-                    closestDistance = distance;
-                    console.debug(`Found nearby portal: ${portal.sourceName || portal.name || 'unknown'} at distance ${distance.toFixed(2)}`);
+                    closestDistanceSq = distanceSq;
+                    console.debug(`Found nearby portal: ${portal.sourceName || portal.name || 'unknown'} at distance ${Math.sqrt(distanceSq).toFixed(2)}`);
                 }
             }
             
@@ -212,7 +214,7 @@ export class PortalButton extends UIComponent {
             if (closestPortal && closestPortal !== this.nearbyPortal) {
                 this.nearbyPortal = closestPortal;
                 this.showButton();
-                console.debug(`Near portal: ${closestPortal.name || 'Unknown'} (distance: ${closestDistance.toFixed(1)})`);
+                console.debug(`Near portal: ${closestPortal.name || 'Unknown'} (distance: ${Math.sqrt(closestDistanceSq).toFixed(1)})`);
             } else if (!closestPortal && this.nearbyPortal) {
                 this.nearbyPortal = null;
                 this.hideButton();

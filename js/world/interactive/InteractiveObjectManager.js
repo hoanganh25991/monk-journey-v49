@@ -2,6 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';
+import { distanceSq2D } from '../../utils/FastMath.js';
 
 /**
  * Manages interactive objects in the world
@@ -262,8 +263,9 @@ export class InteractiveObjectManager {
      */
     getObjectsNear(position, radius) {
         return this.interactiveObjects.filter(obj => {
-            const distance = position.distanceTo(obj.position);
-            return distance <= (radius + obj.interactionRadius);
+            const maxDist = radius + (obj.interactionRadius || 0);
+            const distanceSq = distanceSq2D(position.x, position.z, obj.position.x, obj.position.z);
+            return distanceSq <= maxDist * maxDist;
         });
     }
     
@@ -311,12 +313,16 @@ export class InteractiveObjectManager {
      */
     cleanupDistantObjects(playerPosition, maxDistance) {
         const objectsToRemove = [];
-        
+        const maxDistanceSq = maxDistance * maxDistance;
+
         // Find objects that are too far away
         this.interactiveObjects.forEach((objectInfo, index) => {
             if (objectInfo.position && playerPosition) {
-                const distance = objectInfo.position.distanceTo(playerPosition);
-                if (distance > maxDistance) {
+                const distanceSq = distanceSq2D(
+                    objectInfo.position.x, objectInfo.position.z,
+                    playerPosition.x, playerPosition.z
+                );
+                if (distanceSq > maxDistanceSq) {
                     objectsToRemove.push(index);
                 }
             }

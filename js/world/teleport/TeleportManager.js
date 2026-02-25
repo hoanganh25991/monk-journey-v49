@@ -609,7 +609,9 @@ export class TeleportManager {
         
         try {
             // Calculate distance to portal
-            const distance = playerPosition.distanceTo(portal.sourcePosition);
+            const dx = portal.sourcePosition.x - playerPosition.x;
+            const dz = portal.sourcePosition.z - playerPosition.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
             
             // Check if player is within interaction radius
             if (distance <= this.interactionRadius) {
@@ -817,7 +819,9 @@ export class TeleportManager {
                 const originalScale = miniMap.scale;
                 
                 // Calculate zoom factor based on distance
-                const distance = portal.sourcePosition.distanceTo(portal.targetPosition);
+                const sp = portal.sourcePosition, tp = portal.targetPosition;
+                const dx = tp.x - sp.x, dz = tp.z - sp.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
                 const zoomFactor = Math.min(10, Math.max(3, Math.floor(distance / 500)));
                 
                 console.debug(`Teleport distance: ${distance.toFixed(2)}, using zoom factor: ${zoomFactor}`);
@@ -1132,7 +1136,9 @@ export class TeleportManager {
         if (!this.game || !this.game.player) return;
         
         // Calculate distance to determine effect intensity
-        const distance = portal.sourcePosition.distanceTo(portal.targetPosition);
+        const sp = portal.sourcePosition, tp = portal.targetPosition;
+        const dx = tp.x - sp.x, dz = tp.z - sp.z;
+        const distance = Math.sqrt(dx * dx + dz * dz);
         const isLongDistance = distance > 1000;
         const isExtremeDistance = distance > 5000;
         

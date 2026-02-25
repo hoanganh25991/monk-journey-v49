@@ -1092,12 +1092,12 @@ export const COMBAT_BALANCE = {
             mythic: 0.5     // 50% chance
         },
         
-        // Item type drop weights
+        // Item type drop weights (consumable 50% so players can use health/mana/effect items)
         itemTypeWeights: {
-            weapon: 40,
-            armor: 30,
+            weapon: 15,
+            armor: 15,
             accessory: 20,
-            consumable: 10
+            consumable: 50
         },
         
         // Elemental damage types

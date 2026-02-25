@@ -38,6 +38,23 @@ export function distanceSq3D(x1, y1, z1, x2, y2, z2) {
 }
 
 /**
+ * Fast approximate distance (3D)
+ * Octagonal-style approximation - faster than sqrt, ~5% error
+ * @param {number} x1,y1,z1 - First point
+ * @param {number} x2,y2,z2 - Second point
+ * @returns {number} Approximate distance
+ */
+export function distanceApprox3D(x1, y1, z1, x2, y2, z2) {
+    const dx = Math.abs(x2 - x1);
+    const dy = Math.abs(y2 - y1);
+    const dz = Math.abs(z2 - z1);
+    const max = Math.max(dx, dy, dz);
+    const min = Math.min(dx, dy, dz);
+    const mid = dx + dy + dz - max - min;
+    return max + (min + mid) * 0.43;
+}
+
+/**
  * Fast approximate distance (2D horizontal)
  * Uses approximation: faster than sqrt but less accurate
  * Good for rough distance checks where exact value doesn't matter
@@ -96,20 +113,23 @@ export function normalize3D(out, dx, dy, dz) {
     }
 }
 
+// Reusable buffer for fastInvSqrt (avoids allocation in hot path)
+const _invSqrtBuf = new ArrayBuffer(4);
+const _invSqrtF32 = new Float32Array(_invSqrtBuf);
+const _invSqrtI32 = new Int32Array(_invSqrtBuf);
+
 /**
- * Fast inverse square root (Quake III algorithm adapted for JS)
- * Useful for normalization without full sqrt
- * @param {number} x - Input number
+ * Fast inverse square root (Quake III style, one Newton-Raphson iteration)
+ * Use for normalization when approximate 1/sqrt is acceptable.
+ * @param {number} x - Input number (must be > 0)
  * @returns {number} Approximate 1/sqrt(x)
  */
 export function fastInvSqrt(x) {
-    // JavaScript doesn't have direct memory access like C
-    // But we can use a good approximation
-    const halfX = 0.5 * x;
-    let i = Math.fround(x);
-    // Newton-Raphson iteration for better accuracy
-    i = Math.fround(1.5 - halfX * i * i);
-    return i;
+    if (x <= 0) return 0;
+    _invSqrtF32[0] = x;
+    _invSqrtI32[0] = 0x5f3759df - (_invSqrtI32[0] >> 1);
+    const y = _invSqrtF32[0];
+    return y * (1.5 - (x * 0.5 * y * y));
 }
 
 /**
@@ -151,6 +171,19 @@ export function fastFloor(x) {
  */
 export function fastAbs(x) {
     return (x ^ (x >> 31)) - (x >> 31);
+}
+
+/**
+ * Check if two 2D points are within maxDist of each other (squared distance)
+ * @param {number} x1 - First point X
+ * @param {number} z1 - First point Z
+ * @param {number} x2 - Second point X
+ * @param {number} z2 - Second point Z
+ * @param {number} maxDist - Maximum distance threshold
+ * @returns {boolean} True if distance <= maxDist
+ */
+export function isNear2D(x1, z1, x2, z2, maxDist) {
+    return distanceSq2D(x1, z1, x2, z2) <= maxDist * maxDist;
 }
 
 /**

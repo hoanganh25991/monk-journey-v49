@@ -5,6 +5,17 @@
 export const PLAYER_SPACE_CHUNKS = 5;
 
 /**
+ * Terrain height profiles - used when map has terrain.profile
+ * Must match scripts/generate-maps.js TERRAIN_PROFILES
+ */
+export const TERRAIN_PROFILES = {
+  flat:      { amplitude: 4,  frequency: 0.003 },
+  gentle:    { amplitude: 8,  frequency: 0.005 },
+  hills:     { amplitude: 16, frequency: 0.006 },
+  mountains: { amplitude: 24, frequency: 0.004 },
+};
+
+/**
  * Configuration settings for terrain generation and rendering
  */
 export const TERRAIN_CONFIG = {

@@ -51,74 +51,64 @@ export class EnemyModel {
      */
     updateAnimations(delta) {
         // Default implementation for basic animations
-        // This will be called if a subclass doesn't override it
-        
+        // Always called each frame - ensures visible move/attack/idle feedback
         if (!this.modelGroup || !this.enemy) return;
-        
-        // Only animate if the enemy is moving or attacking
-        if (this.enemy.state.isMoving) {
-            this.animateMovement(delta);
-        }
         
         if (this.enemy.state.isAttacking) {
             this.animateAttack(delta);
+        } else if (this.enemy.state.isMoving) {
+            this.animateMovement(delta);
+        } else {
+            this.animateIdle(delta);
         }
     }
     
     /**
-     * Animate enemy movement
-     * @param {number} delta - Time since last update in seconds
+     * Subtle idle animation - always visible when not moving/attacking
+     */
+    animateIdle(delta) {
+        if (!this.modelGroup || this.modelGroup.children.length < 2) return;
+        const time = Date.now() * 0.001;
+        const body = this.modelGroup.children[0];
+        if (body && body.scale) {
+            const breath = 1.0 + Math.sin(time * 2) * 0.03;
+            body.scale.set(breath, breath, breath);
+        }
+    }
+    
+    /**
+     * Animate enemy movement - more pronounced for visibility
      */
     animateMovement(delta) {
         if (!this.modelGroup) return;
+        const time = Date.now() * 0.001;
+        const walkSpeed = 6;
+        const walkAmplitude = 0.25;
+        const armSwing = 0.55;
         
-        // Walking animation
-        const walkSpeed = 5;
-        const walkAmplitude = 0.1;
-        
-        // Animate legs
         if (this.modelGroup.children.length >= 6) {
             const leftLeg = this.modelGroup.children[4];
             const rightLeg = this.modelGroup.children[5];
-            
-            if (leftLeg && leftLeg.position) {
-                leftLeg.position.z = Math.sin(Date.now() * 0.01 * walkSpeed) * walkAmplitude;
-            }
-            
-            if (rightLeg && rightLeg.position) {
-                rightLeg.position.z = -Math.sin(Date.now() * 0.01 * walkSpeed) * walkAmplitude;
-            }
+            if (leftLeg?.position) leftLeg.position.z = Math.sin(time * walkSpeed) * walkAmplitude;
+            if (rightLeg?.position) rightLeg.position.z = -Math.sin(time * walkSpeed) * walkAmplitude;
         }
-        
-        // Animate arms
         if (this.modelGroup.children.length >= 4) {
             const leftArm = this.modelGroup.children[2];
             const rightArm = this.modelGroup.children[3];
-            
-            if (leftArm && leftArm.rotation) {
-                leftArm.rotation.x = Math.sin(Date.now() * 0.01 * walkSpeed) * 0.2;
-            }
-            
-            if (rightArm && rightArm.rotation) {
-                rightArm.rotation.x = -Math.sin(Date.now() * 0.01 * walkSpeed) * 0.2;
-            }
+            if (leftArm?.rotation) leftArm.rotation.x = Math.sin(time * walkSpeed) * armSwing;
+            if (rightArm?.rotation) rightArm.rotation.x = -Math.sin(time * walkSpeed) * armSwing;
         }
     }
     
     /**
-     * Animate enemy attack
-     * @param {number} delta - Time since last update in seconds
+     * Animate enemy attack - more dramatic swing
      */
     animateAttack(delta) {
-        if (!this.modelGroup) return;
-        
-        // Simple attack animation
-        if (this.modelGroup.children.length >= 4) {
-            const rightArm = this.modelGroup.children[3];
-            
-            if (rightArm && rightArm.rotation) {
-                rightArm.rotation.x = Math.sin(Date.now() * 0.02) * 0.5;
-            }
+        if (!this.modelGroup || this.modelGroup.children.length < 4) return;
+        const time = Date.now() * 0.001;
+        const rightArm = this.modelGroup.children[3];
+        if (rightArm?.rotation) {
+            rightArm.rotation.x = -0.8 - Math.sin(time * 12) * 0.6;
         }
     }
 }

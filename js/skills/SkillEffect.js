@@ -168,8 +168,12 @@ export class SkillEffect {
         const lodConfig = this.skill?.game?.world?.performanceProfile?.skillEffectLod;
         if (lodConfig && this.skill?.game?.camera) {
             this.effect.getWorldPosition(SkillEffect._lodCheckPos);
-            const dist = SkillEffect._lodCheckPos.distanceTo(this.skill.game.camera.position);
-            this.effect.visible = dist <= (lodConfig.hide ?? 120);
+            const cp = this.skill.game.camera.position;
+            const dx = SkillEffect._lodCheckPos.x - cp.x;
+            const dy = SkillEffect._lodCheckPos.y - cp.y;
+            const dz = SkillEffect._lodCheckPos.z - cp.z;
+            const hideDist = lodConfig.hide ?? 120;
+            this.effect.visible = (dx * dx + dy * dy + dz * dz) <= (hideDist * hideDist);
         }
 
         this.elapsedTime += delta;

@@ -4,6 +4,7 @@
  */
 
 import * as THREE from '../../libs/three/three.module.js';
+import { normalize2D, tempVec2, fastAtan2 } from '../../utils/FastMath.js';
 
 /** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
 const MAX_JUMP_HEIGHT = 50;
@@ -113,30 +114,25 @@ export class PlayerMovement {
             
             // Move towards target (0.1 * 0.1 = 0.01)
             if (distanceSq > 0.01) {
-                // Only calculate actual distance when needed for normalization
-                const distance = Math.sqrt(distanceSq);
-                const direction = new THREE.Vector3(dx / distance, dy / distance, dz / distance);
-                // Calculate movement step
+                // Use FastMath for 2D normalization (movement is horizontal)
+                normalize2D(tempVec2, dx, dz);
                 const step = this.playerStats.getMovementSpeed() * delta;
-                
+
                 // Calculate new position (only update X and Z, let updateTerrainHeight handle Y)
-                const newPosition = new THREE.Vector3(
-                    this.position.x + direction.x * step,
-                    this.position.y,
-                    this.position.z + direction.z * step
-                );
-                
+                const newX = this.position.x + tempVec2.x * step;
+                const newZ = this.position.z + tempVec2.z * step;
+
                 // Update position (only X and Z)
-                this.position.x = newPosition.x;
-                this.position.z = newPosition.z;
-                
+                this.position.x = newX;
+                this.position.z = newZ;
+
                 // Update model position - use the full position vector to ensure proper update
                 if (this.modelGroup) {
                     this.modelGroup.position.set(this.position.x, this.modelGroup.position.y, this.position.z);
                 }
-                
+
                 // Update rotation to face movement direction
-                this.rotation.y = Math.atan2(direction.x, direction.z);
+                this.rotation.y = fastAtan2(tempVec2.x, tempVec2.z);
                 if (this.modelGroup) {
                     this.modelGroup.rotation.y = this.rotation.y;
                 }

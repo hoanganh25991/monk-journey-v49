@@ -278,26 +278,25 @@ export class InputHandler {
             return;
         }
         
-        // Find the nearest interactive object within range
+        // Find the nearest interactive object within range (squared distance only)
         let nearestObject = null;
-        let minDistance = interactionRange;
-        
+        let minDistanceSq = interactionRange * interactionRange;
+
         for (const obj of interactiveObjects) {
             if (obj.mesh) {
                 // Get object position
                 const objPosition = new THREE.Vector3();
                 obj.mesh.getWorldPosition(objPosition);
-                
+
                 // Calculate squared distance for performance
                 const dx = objPosition.x - playerPosition.x;
                 const dz = objPosition.z - playerPosition.z;
                 const distanceSq = dx * dx + dz * dz;
-                
+
                 // Check if this object is closer than the current nearest
-                const minDistanceSq = minDistance * minDistance;
                 if (distanceSq < minDistanceSq) {
                     nearestObject = obj;
-                    minDistance = Math.sqrt(distanceSq); // Update actual distance for next comparison
+                    minDistanceSq = distanceSq;
                 }
             }
         }

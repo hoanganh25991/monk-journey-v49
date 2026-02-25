@@ -64,6 +64,21 @@ export class PlayerSkills {
     // setGame method removed - game is now passed in constructor
     
     /**
+     * Trigger attack animation on player model (hand/staff swing)
+     * @param {number} [durationMs=500] - How long to show attack pose
+     */
+    triggerAttackAnimation(durationMs = 500) {
+        if (this.game?.player?.state) {
+            this.game.player.state.setAttacking(true);
+            setTimeout(() => {
+                if (this.game?.player?.state) {
+                    this.game.player.state.setAttacking(false);
+                }
+            }, durationMs);
+        }
+    }
+    
+    /**
      * Updates custom skills visibility based on the flag in localStorage
      * Reloads skills and updates UI components accordingly
      * @returns {void}
@@ -508,6 +523,7 @@ export class PlayerSkills {
         }
 
         // Sound is now handled by the skill itself in createEffect method
+        this.triggerAttackAnimation(500);
         // Add to active skills
         this.activeSkills.push(newSkillInstance);
         
@@ -600,6 +616,7 @@ export class PlayerSkills {
                     this.game.audioManager.playSound('playerAttack');
                 }
                 
+                this.triggerAttackAnimation(500);
                 // Add to active skills
                 this.activeSkills.push(newSkillInstance);
                 
@@ -616,7 +633,8 @@ export class PlayerSkills {
                     const enemyPosition = teleportRangeEnemy.getPosition();
                     
                     // Calculate distance to enemy
-                    const distanceToEnemy = this.playerPosition.distanceTo(enemyPosition);
+                    const distSq = (enemyPosition.x - this.playerPosition.x) ** 2 + (enemyPosition.z - this.playerPosition.z) ** 2;
+                    const distanceToEnemy = Math.sqrt(distSq);
                     
                     // Calculate direction to enemy
                     const direction = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
@@ -680,6 +698,7 @@ export class PlayerSkills {
                         this.game.audioManager.playSound('playerAttack');
                     }
                     
+                    this.triggerAttackAnimation(500);
                     // Add to active skills
                     this.activeSkills.push(newSkillInstance);
                     
@@ -713,6 +732,7 @@ export class PlayerSkills {
                             this.game.audioManager.playSound('playerAttack');
                         }
                         
+                        this.triggerAttackAnimation(500);
                         // Add to active skills
                         this.activeSkills.push(newSkillInstance);
                         
@@ -751,6 +771,7 @@ export class PlayerSkills {
                         if (this.game && this.game.audioManager) {
                             this.game.audioManager.playSound('playerAttack');
                         }
+                        this.triggerAttackAnimation(500);
                         this.activeSkills.push(newSkillInstance);
                         return true;
                     }

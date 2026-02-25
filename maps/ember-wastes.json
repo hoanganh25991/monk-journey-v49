@@ -15,6 +15,9 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "gentle"
+  },
   "structures": [
     {
       "type": "altar",
@@ -26,7 +29,7 @@
       "scale": 0.8985851384699345
     },
     {
-      "type": "tower",
+      "type": "fortress",
       "position": {
         "x": -345,
         "z": -21
@@ -44,7 +47,7 @@
       "scale": 1.0138973094522954
     },
     {
-      "type": "tower",
+      "type": "fortress",
       "position": {
         "x": 64,
         "z": 22
@@ -53,7 +56,7 @@
       "scale": 0.8289563439786435
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -85,
         "z": -80
@@ -62,7 +65,7 @@
       "scale": 1.099769935756922
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -10,
         "z": -287
@@ -71,7 +74,7 @@
       "scale": 0.8692140124738217
     },
     {
-      "type": "tower",
+      "type": "fortress",
       "position": {
         "x": 51,
         "z": -290
@@ -80,7 +83,7 @@
       "scale": 0.985280165821314
     },
     {
-      "type": "altar",
+      "type": "house",
       "position": {
         "x": -247,
         "z": -338
@@ -98,7 +101,7 @@
       "scale": 0.8471613980829716
     },
     {
-      "type": "house",
+      "type": "tower",
       "position": {
         "x": -127,
         "z": -183
@@ -107,7 +110,7 @@
       "scale": 1.0639635108411314
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": -31,
         "z": 35
@@ -116,7 +119,7 @@
       "scale": 1.184803280979395
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -282,
         "z": 126
@@ -125,7 +128,7 @@
       "scale": 1.1259260438382626
     },
     {
-      "type": "tower",
+      "type": "fortress",
       "position": {
         "x": 308,
         "z": -185
@@ -134,7 +137,7 @@
       "scale": 1.195251712948084
     },
     {
-      "type": "tower",
+      "type": "fortress",
       "position": {
         "x": 342,
         "z": -215
@@ -161,7 +164,7 @@
       "scale": 0.8215315602719784
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -88,
         "z": -284
@@ -170,7 +173,7 @@
       "scale": 1.1610330678522587
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": 47,
         "z": -255
@@ -179,7 +182,7 @@
       "scale": 0.9267077468335629
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": 191,
         "z": -18
@@ -188,7 +191,7 @@
       "scale": 1.1737390376627446
     },
     {
-      "type": "altar",
+      "type": "house",
       "position": {
         "x": 274,
         "z": -92
@@ -231,6 +234,78 @@
       },
       "rotation": 0.8168140899333463,
       "scale": 0.9876479886472226
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -339,
+        "z": -174
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 0.9113777315244079
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -158,
+        "z": -266
+      },
+      "rotation": 6.157521601035994,
+      "scale": 1.08364675398916
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 10,
+        "z": -218
+      },
+      "rotation": 1.0681415022205298,
+      "scale": 1.0794410144910216
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 337,
+        "z": -215
+      },
+      "rotation": 0.9424777960769379,
+      "scale": 0.9361140286549926
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -289,
+        "z": -136
+      },
+      "rotation": 1.4451326206513049,
+      "scale": 0.950394312106073
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -14,
+        "z": -64
+      },
+      "rotation": 4.272566008882119,
+      "scale": 1.0783853804692627
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 34,
+        "z": -119
+      },
+      "rotation": 4.39822971502571,
+      "scale": 0.9355657493695617
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 335,
+        "z": -113
+      },
+      "rotation": 3.015928947446201,
+      "scale": 0.9967889344319701
     }
   ],
   "environment": [

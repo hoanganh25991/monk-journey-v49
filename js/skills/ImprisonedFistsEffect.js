@@ -8,6 +8,7 @@
 
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
+import { distanceApprox3D, normalize3D, tempVec3 } from '../utils/FastMath.js';
 
 export class ImprisonedFistsEffect extends SkillEffect {
     constructor(skill) {
@@ -198,8 +199,11 @@ export class ImprisonedFistsEffect extends SkillEffect {
         effectDirection.applyQuaternion(this.effect.quaternion); // Transform to world space
         effectDirection.normalize();
         
-        // Calculate the distance from start to current position
-        const distance = this.startPosition.distanceTo(currentPosition);
+        // Calculate the distance from start to current position (approx for perf)
+        const distance = distanceApprox3D(
+            this.startPosition.x, this.startPosition.y, this.startPosition.z,
+            currentPosition.x, currentPosition.y, currentPosition.z
+        );
         
         // Calculate the midpoint between start and current position
         const midpoint = new THREE.Vector3().addVectors(this.startPosition, currentPosition).multiplyScalar(0.5);
@@ -326,12 +330,25 @@ export class ImprisonedFistsEffect extends SkillEffect {
 
         // Move the effect towards the target if movement is not complete
         const currentPosition = this.effect.position.clone();
-        const distanceToTarget = currentPosition.distanceTo(this.targetPosition);
-        const direction = new THREE.Vector3().subVectors(this.targetPosition, currentPosition).normalize();
+        const dx = this.targetPosition.x - currentPosition.x;
+        const dy = this.targetPosition.y - currentPosition.y;
+        const dz = this.targetPosition.z - currentPosition.z;
+        const distanceToTarget = distanceApprox3D(
+            currentPosition.x, currentPosition.y, currentPosition.z,
+            this.targetPosition.x, this.targetPosition.y, this.targetPosition.z
+        );
         const moveDistance = Math.min(this.moveSpeed * delta, distanceToTarget);
+        let direction;
+        if ((dx * dx + dy * dy + dz * dz) > 0.0001) {
+            normalize3D(tempVec3, dx, dy, dz);
+            direction = new THREE.Vector3(tempVec3.x, tempVec3.y, tempVec3.z);
+        } else {
+            direction = new THREE.Vector3(0, 0, 0);
+        }
         const newPosition = new THREE.Vector3().copy(currentPosition).add(
             direction.multiplyScalar(moveDistance)
         );
+        const newPosition = currentPosition.clone().add(direction.multiplyScalar(moveDistance));
         this.effect.position.copy(newPosition);
 
         // Update particle system

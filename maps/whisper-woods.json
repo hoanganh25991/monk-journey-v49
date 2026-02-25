@@ -15,9 +15,12 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "hills"
+  },
   "structures": [
     {
-      "type": "tower",
+      "type": "temple",
       "position": {
         "x": 232,
         "z": -140
@@ -26,7 +29,7 @@
       "scale": 0.9091038558632136
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": -84,
         "z": -142
@@ -35,7 +38,7 @@
       "scale": 0.9174697365611792
     },
     {
-      "type": "tower",
+      "type": "temple",
       "position": {
         "x": 317,
         "z": 346
@@ -44,7 +47,7 @@
       "scale": 0.9073666784912349
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": 169,
         "z": 118
@@ -53,7 +56,7 @@
       "scale": 1.054297360405326
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 328,
         "z": 270
@@ -71,7 +74,7 @@
       "scale": 1.1560293879359962
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": 165,
         "z": 201
@@ -98,7 +101,7 @@
       "scale": 0.9018278453499079
     },
     {
-      "type": "tavern",
+      "type": "shop",
       "position": {
         "x": -120,
         "z": -264
@@ -116,7 +119,7 @@
       "scale": 0.9724554751068354
     },
     {
-      "type": "altar",
+      "type": "tavern",
       "position": {
         "x": -4,
         "z": 330
@@ -143,7 +146,7 @@
       "scale": 0.9464253630489111
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": -178,
         "z": 236
@@ -152,7 +155,7 @@
       "scale": 1.118735072389245
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": -244,
         "z": 88
@@ -179,7 +182,7 @@
       "scale": 0.8523632492870092
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": -304,
         "z": 105
@@ -188,7 +191,7 @@
       "scale": 0.958937093988061
     },
     {
-      "type": "ruins",
+      "type": "village",
       "position": {
         "x": -259,
         "z": -202
@@ -206,7 +209,7 @@
       "scale": 1.1695263478904963
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": 11,
         "z": -16
@@ -251,7 +254,7 @@
       "scale": 0.8990977253764868
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 256,
         "z": 222
@@ -269,7 +272,7 @@
       "scale": 0.9195877637714148
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 36,
         "z": -286
@@ -278,7 +281,7 @@
       "scale": 1.184287080541253
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 212,
         "z": 143
@@ -287,7 +290,7 @@
       "scale": 0.8564958777278662
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": 196,
         "z": -81
@@ -296,13 +299,94 @@
       "scale": 0.8631948921829462
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": -209,
         "z": 1
       },
       "rotation": 4.838052686528282,
       "scale": 0.9110549774020911
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -263,
+        "z": -337
+      },
+      "rotation": 2.0734511513692637,
+      "scale": 1.0740791637450458
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -21,
+        "z": -221
+      },
+      "rotation": 0.7539822368615503,
+      "scale": 0.9728995401412249
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 113,
+        "z": -224
+      },
+      "rotation": 0.5026548245743669,
+      "scale": 0.9307851631194354
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 196,
+        "z": -235
+      },
+      "rotation": 1.382300767579509,
+      "scale": 1.094122751429677
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -256,
+        "z": -31
+      },
+      "rotation": 2.324778563656447,
+      "scale": 0.9405490238219499
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -50,
+        "z": -128
+      },
+      "rotation": 1.2566370614359172,
+      "scale": 1.078950699046254
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 109,
+        "z": -79
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 1.0494644958525896
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 170,
+        "z": -9
+      },
+      "rotation": 5.654866776461628,
+      "scale": 0.9234771329909564
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -286,
+        "z": 74
+      },
+      "rotation": 2.1362830044410597,
+      "scale": 0.9036253292113543
     }
   ],
   "environment": [

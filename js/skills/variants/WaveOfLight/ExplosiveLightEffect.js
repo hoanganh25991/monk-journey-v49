@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
+import { distanceApprox3D } from '../../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Wave of Light - Explosive Light variant
@@ -270,8 +271,9 @@ export class ExplosiveLightEffect extends WaveOfLightEffect {
         const enemies = this.skill.game.enemyManager.getEnemiesInRadius(position, this.explosionRadius);
         
         for (const enemy of enemies) {
-            // Calculate distance from explosion center
-            const distance = enemy.getPosition().distanceTo(position);
+            // Calculate distance from explosion center (approx for damage falloff)
+            const ep = enemy.getPosition();
+            const distance = distanceApprox3D(position.x, position.y, position.z, ep.x, ep.y, ep.z);
             
             // Calculate damage falloff based on distance
             const damageFalloff = 1 - (distance / this.explosionRadius);

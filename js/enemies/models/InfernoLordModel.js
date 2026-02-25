@@ -260,23 +260,25 @@ export class InfernoLordModel extends EnemyModel {
         if (!this.modelGroup) return;
         
         const time = Date.now() * 0.001;
+        const moveBoost = this.enemy.state.isMoving ? 1.5 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 2.0 : 1;
         
-        // Pulsing fire effects
+        // Pulsing fire effects (intense when attacking)
         this.modelGroup.children.forEach((child, index) => {
             if (child.material && child.material.emissive) {
-                // Vary emissive intensity for fire effects
-                const baseIntensity = child.material.emissiveIntensity || 0.3;
-                child.material.emissiveIntensity = baseIntensity + Math.sin(time * 3 + index) * 0.2;
+                const baseIntensity = (child.material.emissiveIntensity || 0.3) * (this.enemy.state.isAttacking ? 1.3 : 1);
+                child.material.emissiveIntensity = baseIntensity + Math.sin(time * 3 * attackBoost + index) * 0.2;
             }
         });
         
-        // Cape animation
+        // Cape animation (billow more when moving/attacking)
         const cape = this.modelGroup.children.find(child => 
             child.geometry instanceof THREE.PlaneGeometry
         );
         if (cape) {
-            cape.rotation.x = Math.PI / 6 + Math.sin(time * 2) * 0.1;
-            cape.position.z = -0.8 + Math.sin(time * 1.5) * 0.1;
+            const capeAmp = 0.1 * moveBoost * (this.enemy.state.isAttacking ? 1.5 : 1);
+            cape.rotation.x = Math.PI / 6 + Math.sin(time * 2 * moveBoost) * capeAmp;
+            cape.position.z = -0.8 + Math.sin(time * 1.5 * moveBoost) * 0.1;
         }
         
         // Crown flames flickering
@@ -288,12 +290,13 @@ export class InfernoLordModel extends EnemyModel {
             flame.rotation.y += delta * (1 + index * 0.2);
         });
         
-        // Sword blade glow
+        // Sword blade glow (intense when attacking)
         const blade = this.modelGroup.children.find(child => 
             child.position.x > 1.8 && child.geometry instanceof THREE.BoxGeometry
         );
         if (blade && blade.material) {
-            blade.material.emissiveIntensity = 0.6 + Math.sin(time * 5) * 0.3;
+            const bladeBase = this.enemy.state.isAttacking ? 1.0 : 0.6;
+            blade.material.emissiveIntensity = bladeBase + Math.sin(time * 5 * attackBoost) * 0.3;
         }
     }
 }

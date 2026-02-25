@@ -142,19 +142,25 @@ export class FrostElementalModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Pulsating core
+        // Pulsating core + move/attack animations
         if (this.modelGroup && this.modelGroup.children.length > 0) {
             const time = Date.now() * 0.001; // Convert to seconds
             const core = this.modelGroup.children[0];
             const shell = this.modelGroup.children[1];
             
+            const moveBoost = this.enemy.state.isMoving ? 1.5 : 1;
+            const attackBoost = this.enemy.state.isAttacking ? 2.0 : 1;
+            
             if (core && shell) {
-                // Pulsate the core
-                const pulseFactor = 1.0 + Math.sin(time * 2.0) * 0.1;
+                // Pulsate the core (faster when moving, intense when attacking)
+                const pulseBase = this.enemy.state.isAttacking ? 0.2 : 0.1;
+                const pulseSpeed = 2.0 * moveBoost * attackBoost;
+                const pulseFactor = 1.0 + Math.sin(time * pulseSpeed) * pulseBase;
                 core.scale.set(pulseFactor, pulseFactor, pulseFactor);
                 
                 // Pulsate the outer shell more dramatically
-                const shellPulseFactor = 1.0 + Math.sin(time * 1.5) * 0.15;
+                const shellPulseBase = this.enemy.state.isAttacking ? 0.25 : 0.15;
+                const shellPulseFactor = 1.0 + Math.sin(time * 1.5 * moveBoost) * shellPulseBase;
                 shell.scale.set(shellPulseFactor, shellPulseFactor, shellPulseFactor);
             }
             

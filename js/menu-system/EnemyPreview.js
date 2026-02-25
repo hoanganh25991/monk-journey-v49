@@ -39,6 +39,9 @@ export class EnemyPreview {
         this.animationId = null;
         this.currentEnemy = null;
         this.currentModel = new THREE.Group();
+        this.currentModelInstance = null;  // EnemyModel for procedural animations
+        this.previewFakeEnemy = null;      // Fake enemy with state for model.updateAnimations
+        this.previewAnimationState = null; // { isMoving, isAttacking } - applied when model loads
         this.animations = {};
         this.currentAnimation = null;
         this.visible = true;
@@ -122,12 +125,15 @@ export class EnemyPreview {
             this.controls.maxDistance = 10;
             this.controls.maxPolarAngle = Math.PI / 2;
             
-            // Add a ground plane
+            // Add a ground plane (semi-transparent so model parts below ground are visible)
             const groundGeometry = new THREE.PlaneGeometry(10, 10);
             const groundMaterial = new THREE.MeshStandardMaterial({ 
                 color: 0x333333,
                 roughness: 0.8,
-                metalness: 0.2
+                metalness: 0.2,
+                transparent: true,
+                opacity: 0.35,
+                depthWrite: true
             });
             const ground = new THREE.Mesh(groundGeometry, groundMaterial);
             ground.rotation.x = -Math.PI / 2;
@@ -164,6 +170,13 @@ export class EnemyPreview {
         if (!enemy) return;
         
         this.currentEnemy = enemy;
+        this.currentModelInstance = null;
+        
+        // Create fake enemy with state for procedural model animations
+        this.previewFakeEnemy = {
+            ...enemy,
+            state: { isMoving: false, isAttacking: false },
+        };
         
         // Clear existing model and animations
         if (this.currentModel) {
@@ -182,16 +195,24 @@ export class EnemyPreview {
         
         try {
             // Create a model using the factory (async - lazy-loads model module)
-            const model = await EnemyModelFactory.createModelAsync(enemy, this.currentModel);
+            const model = await EnemyModelFactory.createModelAsync(this.previewFakeEnemy, this.currentModel);
             
             // Call createModel() to build the actual geometry
             model.createModel();
+
+            // Store model reference for updateAnimations
+            this.currentModelInstance = model;
 
             // Add the model to the scene
             this.scene.add(this.currentModel);
             
             // Add a nameplate above the model
             this.addNameplate(enemy.name);
+            
+            // Apply stored animation state (from setAnimation or default)
+            if (this.previewAnimationState) {
+                Object.assign(this.previewFakeEnemy.state, this.previewAnimationState);
+            }
             
             // Reset camera position
             this.resetCamera();
@@ -247,6 +268,18 @@ export class EnemyPreview {
     }
     
     /**
+     * Set the preview animation state (Idle, Move, Attack).
+     * @param {Object} animation - { id, name, state: { isMoving, isAttacking } }
+     */
+    setAnimation(animation) {
+        if (!animation || !animation.state) return;
+        this.previewAnimationState = { ...animation.state };
+        if (this.previewFakeEnemy) {
+            Object.assign(this.previewFakeEnemy.state, this.previewAnimationState);
+        }
+    }
+    
+    /**
      * Reset the camera to the default position
      */
     resetCamera() {
@@ -268,9 +301,15 @@ export class EnemyPreview {
         // Update controls
         this.controls.update();
         
-        // Update animations
+        const delta = this.clock.getDelta();
+        
+        // Update procedural model animations (Idle / Move / Attack)
+        if (this.currentModelInstance && typeof this.currentModelInstance.updateAnimations === 'function') {
+            this.currentModelInstance.updateAnimations(delta);
+        }
+        
+        // Update GLB/AnimationMixer animations (if any)
         if (this.animationMixer) {
-            const delta = this.clock.getDelta();
             this.animationMixer.update(delta);
         }
         

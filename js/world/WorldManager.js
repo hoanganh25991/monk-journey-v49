@@ -9,6 +9,7 @@ import { LightingManager } from './lighting/LightingManager.js';
 import { FogManager } from './environment/FogManager.js';
 import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
+import { PathManager } from './PathManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
@@ -35,6 +36,7 @@ export class WorldManager {
         this.structureManager = new StructureManager(scene, this, game, this.qualityLevel);
         this.environmentManager = new EnvironmentManager(scene, this, game, this.qualityLevel);
         this.interactiveManager = new InteractiveObjectManager(scene, this, game);
+        this.pathManager = new PathManager(scene, this, game);
         // LodManager only when LOD is enabled (not on minimal - reduces overhead)
         this.lodManager = this.performanceProfile.lodEnabled ? new LodManager(this, this.qualityLevel) : null;
         this.teleportManager = new TeleportManager(scene, this, game);
@@ -102,6 +104,28 @@ export class WorldManager {
         this.structureManager?.clear();
         this.environmentManager?.clear();
 
+        // Apply terrain profile (hills, mountains, etc.) - regenerates terrain with new height variation
+        if (mapData.terrain?.profile && this.terrainManager?.applyTerrainConfig) {
+            const spawn = mapData.spawn || { x: 0, y: 1, z: -13 };
+            this.terrainManager.applyTerrainConfig(mapData.terrain, new THREE.Vector3(spawn.x ?? 0, spawn.y ?? 1, spawn.z ?? -13));
+        }
+        
+        // Regenerate paths when map loads - defer by 2 frames so terrain profile is applied and heights are correct
+        if (this.pathManager) {
+            this.pathManager.clear();
+            const pathMapData = mapData;
+            let frameCount = 0;
+            const schedulePathGen = () => {
+                frameCount++;
+                if (frameCount >= 2) {
+                    this.pathManager.init(pathMapData);
+                } else {
+                    requestAnimationFrame(schedulePathGen);
+                }
+            };
+            requestAnimationFrame(schedulePathGen);
+        }
+
         const structures = mapData.structures && Array.isArray(mapData.structures) ? mapData.structures : [];
         const environment = mapData.environment && Array.isArray(mapData.environment) ? mapData.environment : [];
 
@@ -145,6 +169,23 @@ export class WorldManager {
      */
     getMapBounds() {
         return this.currentMap?.bounds || null;
+    }
+    
+    /**
+     * Get cave positions for enemy spawning (from map data or placed structures)
+     * @returns {Array<{x: number, z: number}>}
+     */
+    getCavePositions() {
+        const fromMap = [];
+        if (this.currentMap?.structures) {
+            for (const s of this.currentMap.structures) {
+                if (s.type === 'cave' && s.position) {
+                    fromMap.push({ x: s.position.x, z: s.position.z });
+                }
+            }
+        }
+        if (fromMap.length > 0) return fromMap;
+        return this.structureManager?.getCavePositions?.() ?? [];
     }
     
     /**
@@ -221,6 +262,11 @@ export class WorldManager {
             this.structureManager.init();
             this.interactiveManager.init();
             this.teleportManager.init();
+            
+            // Initialize path system for continuous navigation
+            if (this.pathManager) {
+                this.pathManager.init();
+            }
             
             // Generate initial world content
             await this.generateInitialContent();

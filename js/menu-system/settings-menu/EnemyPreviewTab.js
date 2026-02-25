@@ -6,6 +6,7 @@
 import { SettingsTab } from './SettingsTab.js';
 import { EnemyPreview } from '../EnemyPreview.js';
 import { ENEMY_TYPES, BOSS_TYPES } from '../../config/game-balance.js';
+import { ENEMY_PREVIEW_ANIMATIONS } from '../../config/enemy-preview-animations.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
 
 export class EnemyPreviewTab extends SettingsTab {
@@ -66,8 +67,10 @@ export class EnemyPreviewTab extends SettingsTab {
             this.enemyPreviewSelect.remove(0);
         }
         
-        // Combine regular enemies and bosses
-        const allEnemies = [...ENEMY_TYPES, ...BOSS_TYPES];
+        // Combine regular enemies and bosses, sorted A-Z by name
+        const allEnemies = [...ENEMY_TYPES, ...BOSS_TYPES]
+            .slice()
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         
         // Add enemy options
         allEnemies.forEach((enemy, index) => {
@@ -91,15 +94,15 @@ export class EnemyPreviewTab extends SettingsTab {
         this.currentEnemy = allEnemies[selectedEnemyIndex];
         
         // Add change event listener
-        this.enemyPreviewSelect.addEventListener('change', () => {
+        this.enemyPreviewSelect.addEventListener('change', async () => {
             const selectedIndex = parseInt(this.enemyPreviewSelect.value);
             localStorage.setItem(STORAGE_KEYS.SELECTED_ENEMY_PREVIEW, selectedIndex);
             
             // Update the current enemy
             this.currentEnemy = allEnemies[selectedIndex];
             
-            // Update the enemy preview
-            this.updateEnemyPreview();
+            // Update the enemy preview (await so model is ready before setting animation)
+            await this.updateEnemyPreview();
             
             // Update the enemy details
             this.updateEnemyDetails();
@@ -114,8 +117,10 @@ export class EnemyPreviewTab extends SettingsTab {
      * @private
      */
     setupEnemyNavigationButtons() {
-        // Combine regular enemies and bosses
-        const allEnemies = [...ENEMY_TYPES, ...BOSS_TYPES];
+        // Combine regular enemies and bosses, sorted A-Z by name (must match initializeEnemyOptions)
+        const allEnemies = [...ENEMY_TYPES, ...BOSS_TYPES]
+            .slice()
+            .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
         
         if (this.prevEnemyButton) {
             this.prevEnemyButton.addEventListener('click', () => {
@@ -166,11 +171,14 @@ export class EnemyPreviewTab extends SettingsTab {
     }
     
     /**
-     * Initialize enemy animation options in the select element
+     * Initialize enemy animation options in the select element.
+     * Uses ENEMY_PREVIEW_ANIMATIONS (Idle, Move, Attack) for procedural models.
      * @private
      */
     initializeEnemyAnimationOptions() {
         if (!this.enemyAnimationSelect || !this.currentEnemy) return;
+        
+        const animations = ENEMY_PREVIEW_ANIMATIONS;
         
         // Clear existing options
         while (this.enemyAnimationSelect.options.length > 0) {
@@ -178,60 +186,56 @@ export class EnemyPreviewTab extends SettingsTab {
         }
         
         // Add animation options
-        if (this.currentEnemy.animations && this.currentEnemy.animations.length > 0) {
-            this.currentEnemy.animations.forEach((animation, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = animation.name || `Animation ${index + 1}`;
-                this.enemyAnimationSelect.appendChild(option);
-            });
-        }
+        animations.forEach((animation, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = animation.name;
+            this.enemyAnimationSelect.appendChild(option);
+        });
         
         // Get the stored selected animation index or default to 0
         let selectedAnimationIndex = 0;
         const storedAnimationIndex = localStorage.getItem(STORAGE_KEYS.SELECTED_ENEMY_ANIMATION);
         
-        if (storedAnimationIndex !== null && !isNaN(parseInt(storedAnimationIndex)) && 
-            parseInt(storedAnimationIndex) >= 0 && this.currentEnemy.animations && 
-            parseInt(storedAnimationIndex) < this.currentEnemy.animations.length) {
+        if (storedAnimationIndex !== null && !isNaN(parseInt(storedAnimationIndex)) &&
+            parseInt(storedAnimationIndex) >= 0 && parseInt(storedAnimationIndex) < animations.length) {
             selectedAnimationIndex = parseInt(storedAnimationIndex);
         }
         
         // Set the selected animation
         this.enemyAnimationSelect.value = selectedAnimationIndex;
         
-        // Add change event listener
-        this.enemyAnimationSelect.addEventListener('change', () => {
+        // Use onchange to avoid stacking listeners when re-initializing
+        this.enemyAnimationSelect.onchange = () => {
             const selectedIndex = parseInt(this.enemyAnimationSelect.value);
             localStorage.setItem(STORAGE_KEYS.SELECTED_ENEMY_ANIMATION, selectedIndex);
-            
-            // Update the enemy preview animation
-            if (this.enemyPreview && this.currentEnemy.animations && this.currentEnemy.animations.length > 0) {
-                this.enemyPreview.setAnimation(this.currentEnemy.animations[selectedIndex]);
+            if (this.enemyPreview && animations[selectedIndex]) {
+                this.enemyPreview.setAnimation(animations[selectedIndex]);
             }
-        });
+        };
         
         // Set up animation navigation buttons
         if (this.prevEnemyAnimButton) {
-            this.prevEnemyAnimButton.addEventListener('click', () => {
-                if (!this.currentEnemy.animations || this.currentEnemy.animations.length === 0) return;
-                
+            this.prevEnemyAnimButton.onclick = () => {
                 const currentIndex = parseInt(this.enemyAnimationSelect.value);
-                const newIndex = (currentIndex - 1 + this.currentEnemy.animations.length) % this.currentEnemy.animations.length;
+                const newIndex = (currentIndex - 1 + animations.length) % animations.length;
                 this.enemyAnimationSelect.value = newIndex;
                 this.enemyAnimationSelect.dispatchEvent(new Event('change'));
-            });
+            };
         }
         
         if (this.nextEnemyAnimButton) {
-            this.nextEnemyAnimButton.addEventListener('click', () => {
-                if (!this.currentEnemy.animations || this.currentEnemy.animations.length === 0) return;
-                
+            this.nextEnemyAnimButton.onclick = () => {
                 const currentIndex = parseInt(this.enemyAnimationSelect.value);
-                const newIndex = (currentIndex + 1) % this.currentEnemy.animations.length;
+                const newIndex = (currentIndex + 1) % animations.length;
                 this.enemyAnimationSelect.value = newIndex;
                 this.enemyAnimationSelect.dispatchEvent(new Event('change'));
-            });
+            };
+        }
+        
+        // Apply current selection to preview
+        if (this.enemyPreview && animations[selectedAnimationIndex]) {
+            this.enemyPreview.setAnimation(animations[selectedAnimationIndex]);
         }
     }
     
@@ -239,19 +243,16 @@ export class EnemyPreviewTab extends SettingsTab {
      * Update the enemy preview with the current enemy
      * @private
      */
-    updateEnemyPreview() {
+    async updateEnemyPreview() {
         if (!this.enemyPreview || !this.currentEnemy) return;
         
-        // Load the enemy model
-        this.enemyPreview.loadEnemyModel(this.currentEnemy);
+        await this.enemyPreview.loadEnemyModel(this.currentEnemy);
         
-        // Get the selected animation
-        const selectedAnimationIndex = parseInt(this.enemyAnimationSelect.value || 0);
-        
-        // Set the animation if available
-        if (this.currentEnemy.animations && this.currentEnemy.animations.length > 0) {
-            // Note: Animation handling is done within loadEnemyModel
-            // If we need to set a specific animation, we would need to add that functionality
+        // Re-apply selected animation after model loads
+        const selectedIndex = parseInt(this.enemyAnimationSelect?.value || 0);
+        const anim = ENEMY_PREVIEW_ANIMATIONS[selectedIndex];
+        if (anim && this.enemyPreview) {
+            this.enemyPreview.setAnimation(anim);
         }
     }
     

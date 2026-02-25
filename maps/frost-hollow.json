@@ -15,6 +15,9 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "mountains"
+  },
   "structures": [
     {
       "type": "fortress",
@@ -26,7 +29,7 @@
       "scale": 1.1461671194061638
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": 57,
         "z": -89
@@ -35,7 +38,7 @@
       "scale": 1.1648950705304744
     },
     {
-      "type": "house",
+      "type": "altar",
       "position": {
         "x": 87,
         "z": -147
@@ -62,7 +65,7 @@
       "scale": 0.981795926950872
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": 124,
         "z": 8
@@ -80,7 +83,7 @@
       "scale": 0.8981051465496421
     },
     {
-      "type": "altar",
+      "type": "bridge",
       "position": {
         "x": -292,
         "z": -205
@@ -89,7 +92,7 @@
       "scale": 0.9550498435273767
     },
     {
-      "type": "altar",
+      "type": "bridge",
       "position": {
         "x": -331,
         "z": -295
@@ -98,7 +101,7 @@
       "scale": 1.1572341522201897
     },
     {
-      "type": "bridge",
+      "type": "temple",
       "position": {
         "x": -263,
         "z": -258
@@ -107,7 +110,7 @@
       "scale": 1.0870452770963313
     },
     {
-      "type": "fortress",
+      "type": "tower",
       "position": {
         "x": 284,
         "z": -261
@@ -161,7 +164,7 @@
       "scale": 1.0948323437944056
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": 91,
         "z": 246
@@ -197,7 +200,7 @@
       "scale": 0.9900375435128809
     },
     {
-      "type": "house",
+      "type": "altar",
       "position": {
         "x": -172,
         "z": 232
@@ -206,7 +209,7 @@
       "scale": 0.8900811156257987
     },
     {
-      "type": "ruins",
+      "type": "fortress",
       "position": {
         "x": 184,
         "z": 268
@@ -215,7 +218,7 @@
       "scale": 1.1602314481511713
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": 231,
         "z": -257
@@ -242,13 +245,103 @@
       "scale": 0.9143077930435539
     },
     {
-      "type": "fortress",
+      "type": "tower",
       "position": {
         "x": -85,
         "z": 340
       },
       "rotation": 3.707079331235956,
       "scale": 0.8669627556577325
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -251,
+        "z": -236
+      },
+      "rotation": 0.3141592653589793,
+      "scale": 1.045079618599266
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -53,
+        "z": -338
+      },
+      "rotation": 5.529203070318036,
+      "scale": 0.953918945696205
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 103,
+        "z": -309
+      },
+      "rotation": 3.958406743523139,
+      "scale": 1.0687027155421673
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 211,
+        "z": -211
+      },
+      "rotation": 3.141592653589793,
+      "scale": 0.9789084671996534
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -178,
+        "z": -147
+      },
+      "rotation": 5.403539364174444,
+      "scale": 1.0724512397311627
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -6,
+        "z": -13
+      },
+      "rotation": 4.39822971502571,
+      "scale": 1.0356835721991957
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 154,
+        "z": -87
+      },
+      "rotation": 0.8168140899333463,
+      "scale": 0.9533955036662519
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 216,
+        "z": -94
+      },
+      "rotation": 5.654866776461628,
+      "scale": 1.0088145731948317
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -180,
+        "z": 23
+      },
+      "rotation": 5.717698629533424,
+      "scale": 0.9836058198474348
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -54,
+        "z": 27
+      },
+      "rotation": 4.272566008882119,
+      "scale": 0.9578717826865614
     }
   ],
   "environment": [

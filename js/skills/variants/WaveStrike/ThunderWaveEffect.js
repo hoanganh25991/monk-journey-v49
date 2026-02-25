@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveStrikeEffect } from '../../WaveStrikeEffect.js';
+import { distanceApprox2D } from '../../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Wave Strike - Thunder Wave variant
@@ -413,11 +414,12 @@ export class ThunderWaveEffect extends WaveStrikeEffect {
             
             // Chain to closest valid target
             if (validTargets.length > 0) {
-                // Sort by distance
+                // Sort by distance (squared for performance)
                 validTargets.sort((a, b) => {
-                    const distA = a.getPosition().distanceTo(target.position);
-                    const distB = b.getPosition().distanceTo(target.position);
-                    return distA - distB;
+                    const tp = target.position;
+                    const distSqA = (a.getPosition().x - tp.x) ** 2 + (a.getPosition().z - tp.z) ** 2;
+                    const distSqB = (b.getPosition().x - tp.x) ** 2 + (b.getPosition().z - tp.z) ** 2;
+                    return distSqA - distSqB;
                 });
                 
                 // Get closest enemy
@@ -535,7 +537,7 @@ export class ThunderWaveEffect extends WaveStrikeEffect {
         if (!this.lightningContainer) return;
         
         // Create a jagged path for the lightning
-        const distance = startPoint.distanceTo(endPoint);
+        const distance = distanceApprox2D(startPoint.x, startPoint.z, endPoint.x, endPoint.z);
         const segments = Math.max(5, Math.floor(distance * 2));
         const points = [];
         

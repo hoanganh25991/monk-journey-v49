@@ -1030,21 +1030,25 @@ export class EnemyManager {
     }
     
     getRandomSpawnPosition() {
-        // Get player position as reference point
         const playerPos = this.player.getPosition();
         
-        // Get random angle
+        // Prefer spawning near caves (65% chance) when caves exist - creates enemy groups around caves
+        const caves = this.game?.world?.getCavePositions?.() ?? [];
+        if (caves.length > 0 && Math.random() < 0.65) {
+            const cave = caves[Math.floor(Math.random() * caves.length)];
+            const spreadRadius = 12 + Math.random() * 18;
+            const angle = Math.random() * Math.PI * 2;
+            const x = cave.x + Math.cos(angle) * spreadRadius;
+            const z = cave.z + Math.sin(angle) * spreadRadius;
+            return new THREE.Vector3(x, 0, z);
+        }
+        
+        // Fallback: spawn around player
         const angle = Math.random() * Math.PI * 2;
-        
-        // Get random distance from player
         const distance = this.spawnRadius * 0.5 + Math.random() * this.spawnRadius * 0.5;
-        
-        // Calculate position relative to player
         const x = playerPos.x + Math.cos(angle) * distance;
         const z = playerPos.z + Math.sin(angle) * distance;
         
-        // Don't set Y position here - let the spawnEnemy method handle terrain height
-        // This prevents conflicts and ensures consistent terrain height calculation
         return new THREE.Vector3(x, 0, z);
     }
     
@@ -1391,29 +1395,35 @@ export class EnemyManager {
         const angleStep = inMultiplierZone ? (Math.PI * 2) / numGroups : 0;
         let startAngle = Math.random() * Math.PI * 2;
         
+        const caves = this.game?.world?.getCavePositions?.() ?? [];
+        
         for (let g = 0; g < numGroups; g++) {
             // Select a random enemy type from the zone for this group
             const groupEnemyType = zoneEnemyTypes[Math.floor(Math.random() * zoneEnemyTypes.length)];
             
-            // Determine group position
-            let groupAngle;
+            let groupX, groupZ;
             
-            if (inMultiplierZone) {
-                // In multiplier zones, distribute groups more evenly around the player
-                // This creates a surrounding effect that's harder to escape
-                groupAngle = startAngle + (angleStep * g);
+            // 50% chance to spawn group near a cave when caves exist
+            if (caves.length > 0 && Math.random() < 0.5) {
+                const cave = caves[Math.floor(Math.random() * caves.length)];
+                const spreadRadius = 15 + Math.random() * 25;
+                const angle = Math.random() * Math.PI * 2;
+                groupX = cave.x + Math.cos(angle) * spreadRadius;
+                groupZ = cave.z + Math.sin(angle) * spreadRadius;
             } else {
-                // Normal random angle
-                groupAngle = Math.random() * Math.PI * 2;
+                // Determine group position around player
+                let groupAngle;
+                if (inMultiplierZone) {
+                    groupAngle = startAngle + (angleStep * g);
+                } else {
+                    groupAngle = Math.random() * Math.PI * 2;
+                }
+                const groupDistance = inMultiplierZone ?
+                    60 + Math.random() * 30 :
+                    75 + Math.random() * 30;
+                groupX = playerPosition.x + Math.cos(groupAngle) * groupDistance;
+                groupZ = playerPosition.z + Math.sin(groupAngle) * groupDistance;
             }
-            
-            // Adjust distance based on multiplier - closer in multiplier zones (3x increased)
-            const groupDistance = inMultiplierZone ?
-                60 + Math.random() * 30 : // Closer in multiplier zones (60-90 units) - 3x increased
-                75 + Math.random() * 30;  // Normal distance (75-105 units) - 3x increased
-                
-            const groupX = playerPosition.x + Math.cos(groupAngle) * groupDistance;
-            const groupZ = playerPosition.z + Math.sin(groupAngle) * groupDistance;
             
             // Spawn the group of enemies
             for (let i = 0; i < enemiesPerGroup; i++) {

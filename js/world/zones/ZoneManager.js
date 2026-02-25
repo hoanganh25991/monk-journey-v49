@@ -1,6 +1,7 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { ZONE_DEFINITIONS } from '../../config/density.js';
+import { distanceSq2D } from '../../utils/FastMath.js';
 
 /**
  * Manages world zones and their properties
@@ -105,15 +106,13 @@ export class ZoneManager {
                 let zoneType = 'Terrant'; // Default
                 
                 if (mainZone) {
-                    // Calculate distance from chunk to main zone center
-                    const distance = Math.sqrt(
-                        Math.pow(chunkX - mainZone.center.x, 2) + 
-                        Math.pow(chunkZ - mainZone.center.z, 2)
-                    );
-                    
+                    // Calculate squared distance from chunk to main zone center
+                    const distanceSq = distanceSq2D(chunkX, chunkZ, mainZone.center.x, mainZone.center.z);
+                    const mainZoneRadiusSq = (mainZone.radius * 1.2) * (mainZone.radius * 1.2);
+
                     // If within 70% of the main zone's radius, use the main zone type
                     // This ensures approximately 70% of the map uses the main theme color
-                    if (distance <= mainZone.radius * 1.2) {
+                    if (distanceSq <= mainZoneRadiusSq) {
                         zoneType = mainZone.name;
                     } else {
                         // Otherwise, find the closest zone
@@ -314,21 +313,23 @@ export class ZoneManager {
         }
         
         // Simple distance-based lookup - find the zone that contains this position
+        const px = position.x;
+        const pz = position.z;
         for (const zone of this.zones) {
-            const distance = position.distanceTo(zone.center);
-            if (distance <= zone.radius) {
+            const distanceSq = distanceSq2D(px, pz, zone.center.x, zone.center.z);
+            if (distanceSq <= zone.radius * zone.radius) {
                 return zone;
             }
         }
-        
+
         // If no zone contains the position, return the closest one
         let closestZone = this.zones[0];
-        let closestDistance = position.distanceTo(this.zones[0].center);
-        
+        let closestDistanceSq = distanceSq2D(px, pz, this.zones[0].center.x, this.zones[0].center.z);
+
         for (let i = 1; i < this.zones.length; i++) {
-            const distance = position.distanceTo(this.zones[i].center);
-            if (distance < closestDistance) {
-                closestDistance = distance;
+            const distanceSq = distanceSq2D(px, pz, this.zones[i].center.x, this.zones[i].center.z);
+            if (distanceSq < closestDistanceSq) {
+                closestDistanceSq = distanceSq;
                 closestZone = this.zones[i];
             }
         }

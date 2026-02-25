@@ -30,6 +30,16 @@ export class PlayerInventory {
             defenseBonus: 0,
             speedBonus: 0
         };
+        
+        // Reference to player model for visual updates
+        this.playerModel = null;
+    }
+    
+    /**
+     * Set player model reference for equipment visuals
+     */
+    setPlayerModel(playerModel) {
+        this.playerModel = playerModel;
     }
     
     // Inventory management
@@ -115,6 +125,11 @@ export class PlayerInventory {
         // Recalculate equipment bonuses
         this.calculateEquipmentBonuses();
         
+        // Update equipment visuals (weapon, armor, etc.)
+        if (this.playerModel && this.playerModel.updateEquipmentVisuals) {
+            this.playerModel.updateEquipmentVisuals(this.equipment);
+        }
+        
         return true;
     }
     
@@ -137,6 +152,11 @@ export class PlayerInventory {
         
         // Recalculate equipment bonuses
         this.calculateEquipmentBonuses();
+        
+        // Update equipment visuals
+        if (this.playerModel && this.playerModel.updateEquipmentVisuals) {
+            this.playerModel.updateEquipmentVisuals(this.equipment);
+        }
         
         return true;
     }

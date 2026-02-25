@@ -2,6 +2,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
+import { distanceSq2D, fastAtan2, normalize2D, tempVec2 } from '../utils/FastMath.js';
 
 export class Enemy {
     // Static counter for generating unique IDs
@@ -77,6 +78,16 @@ export class Enemy {
         // Special height offset for necromancer_lord boss to prevent underground clipping
         if (this.type === 'necromancer_lord') {
             this.heightOffset += 0.5;
+        }
+        
+        // Swamp Horror needs -0.5 to sit on the ground
+        if (this.type === 'swamp_horror') {
+            this.heightOffset -= 0.5;
+        }
+        
+        // Lava Golem needs +0.2
+        if (this.type === 'lava_golem') {
+            this.heightOffset += 0.2;
         }
         
         // Enemy model
@@ -184,30 +195,6 @@ export class Enemy {
         this.lodObject.update(camera);
     }
     
-    /**
-     * Calculate rotation to face a target position
-     * @param {THREE.Vector3} targetPosition - The position to face
-     */
-    faceTarget(targetPosition) {
-        const directionX = targetPosition.x - this.position.x;
-        const directionZ = targetPosition.z - this.position.z;
-        const length = Math.sqrt(directionX * directionX + directionZ * directionZ);
-        
-        if (length > 0) {
-            const normalizedDirectionX = directionX / length;
-            const normalizedDirectionZ = directionZ / length;
-            const newRotation = Math.atan2(normalizedDirectionX, normalizedDirectionZ);
-            
-            // Debug log rotation changes (only log occasionally to avoid spam)
-            if (Math.random() < 0.01) { // ~1% chance each frame
-                const rotationDegrees = (newRotation * 180 / Math.PI).toFixed(1);
-                console.debug(`Enemy ${this.id} facing target at ${rotationDegrees}°`);
-            }
-            
-            this.rotation.y = newRotation;
-        }
-    }
-
     updateAnimations(delta) {
         // Use the model's updateAnimations method
         if (this.model && typeof this.model.updateAnimations === 'function') {
@@ -358,18 +345,21 @@ export class Enemy {
         // Find the closest player (local or remote)
         this.findClosestPlayer();
         
-        // Get distance to target player
+        // Get squared distance to target player (avoids Math.sqrt in hot path)
         const playerPosition = this.targetPlayer.getPosition();
         const dx = playerPosition.x - this.position.x;
         const dz = playerPosition.z - this.position.z;
-        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-        
+        const distanceSqToPlayer = dx * dx + dz * dz;
+        const attackRangeSq = this.attackRange * this.attackRange;
+        const detectionRangeSq = this.detectionRange * this.detectionRange;
+
         // Debug log for targeting - log every 2 seconds to avoid spam
         if (Math.random() < 0.01) { // ~1% chance each frame to log
             const targetType = this.targetPlayer === this.player ? "player" : "remote player";
+            const distanceToPlayer = Math.sqrt(distanceSqToPlayer);
             console.debug(`Enemy ${this.id} targeting ${targetType}, distance: ${distanceToPlayer.toFixed(2)}, attack range: ${this.attackRange.toFixed(2)}`);
         }
-        
+
         // Special abilities for certain enemy types
         if (this.type === 'frost_titan') {
             // Initialize special ability cooldowns if not already
@@ -390,16 +380,20 @@ export class Enemy {
             }
             
             // Ice Storm ability (ranged)
-            if (distanceToPlayer <= 10 && distanceToPlayer > this.attackRange && this.specialAbilityCooldowns.iceStorm <= 0) {
+            const iceStormRangeSq = 10 * 10;
+            if (distanceSqToPlayer <= iceStormRangeSq && distanceSqToPlayer > attackRangeSq && this.specialAbilityCooldowns.iceStorm <= 0) {
                 this.castIceStorm(playerPosition);
                 this.specialAbilityCooldowns.iceStorm = 8; // 8 second cooldown
+                this.updateAnimations(delta);
                 return;
             }
-            
+
             // Frost Nova ability (close range)
-            if (distanceToPlayer <= this.attackRange * 1.5 && this.specialAbilityCooldowns.frostNova <= 0) {
+            const frostNovaRangeSq = (this.attackRange * 1.5) * (this.attackRange * 1.5);
+            if (distanceSqToPlayer <= frostNovaRangeSq && this.specialAbilityCooldowns.frostNova <= 0) {
                 this.castFrostNova();
                 this.specialAbilityCooldowns.frostNova = 5; // 5 second cooldown
+                this.updateAnimations(delta);
                 return;
             }
         }
@@ -416,84 +410,50 @@ export class Enemy {
                 }
             } catch (_) { /* ignore */ }
         }
-        const canAttackTarget = distanceToPlayer <= this.attackRange && (!playerInAir || this.isRanged);
+        const canAttackTarget = distanceSqToPlayer <= attackRangeSq && (!playerInAir || this.isRanged);
 
         // Check if target (player or remote player) is in attack range
         if (canAttackTarget) {
-            console.debug(`Enemy ${this.id} in attack range of target, distance: ${distanceToPlayer.toFixed(2)}, attack range: ${this.attackRange.toFixed(2)}, cooldown: ${this.state.attackCooldown.toFixed(2)}`);
-            
-            // Stop moving when in attack range
+            // Stop moving when in range - attack immediately, no face-to-face required
             this.state.isMoving = false;
             
-            // Still face the target even when not moving
-            this.faceTarget(playerPosition);
-            
-            // Attack target if cooldown is ready
+            // Attack target if cooldown is ready (attack from any direction)
             if (this.state.attackCooldown <= 0) {
-                console.debug(`Enemy ${this.id} attacking target, cooldown ready`);
-                this.attackPlayer(); // This will attack whatever is set as targetPlayer
+                this.attackPlayer();
                 this.state.attackCooldown = 1 / this.attackSpeed;
-            } else {
-                console.debug(`Enemy ${this.id} waiting for attack cooldown: ${this.state.attackCooldown.toFixed(2)}`);
             }
             
             // Set aggressive state when target is in attack range
             this.state.isAggressive = true;
             this.state.aggressionEndTime = Date.now() + (this.aggressionTimeout * 1000);
-        } else if (distanceToPlayer <= this.attackRange && playerInAir && !this.isRanged) {
-            // In range but player in air and we're melee: just face target, don't attack
+        } else if (distanceSqToPlayer <= attackRangeSq && playerInAir && !this.isRanged) {
+            // In range but player in air and we're melee: wait, don't attack
             this.state.isMoving = false;
-            this.faceTarget(playerPosition);
-        } else if (distanceToPlayer <= this.detectionRange || this.state.isAggressive) {
-            // Move towards target if within detection range or if enemy is in aggressive state
+        } else if (distanceSqToPlayer <= detectionRangeSq || this.state.isAggressive) {
+            // Move directly towards player (no formation/orbit - just chase)
             
             // Check if aggression should end
             if (this.state.isAggressive && Date.now() > this.state.aggressionEndTime && !this.persistentAggression) {
                 this.state.isAggressive = false;
             }
             
-            // Only chase if within detection range or still aggressive
-            if (distanceToPlayer <= this.detectionRange || this.state.isAggressive) {
+            if (distanceSqToPlayer <= detectionRangeSq || this.state.isAggressive) {
                 this.state.isMoving = true;
-                
-                // Get all enemies near the player to calculate formation
-                const nearbyEnemies = this.game?.enemyManager?.getEnemiesNearPosition(playerPosition, this.detectionRange) || [];
-                const enemiesTargetingPlayer = nearbyEnemies.filter(e => !e.isDead() && e.id !== this.id);
-                
-                // Calculate this enemy's index among enemies targeting the player
-                const myIndex = enemiesTargetingPlayer.findIndex(e => e.id < this.id);
-                const totalEnemies = enemiesTargetingPlayer.length + 1; // +1 for this enemy
-                
-                // Calculate attack position around the player (circular formation)
-                const attackRadius = this.attackRange * 1.2; // Position slightly outside attack range
-                const angleOffset = (myIndex / totalEnemies) * Math.PI * 2;
-                const currentTime = Date.now() / 1000;
-                const attackAngle = angleOffset + currentTime * 0.05; // Slowly rotate positions
-                
-                const attackPositionX = playerPosition.x + Math.cos(attackAngle) * attackRadius;
-                const attackPositionZ = playerPosition.z + Math.sin(attackAngle) * attackRadius;
-                
-                // Calculate direction to attack position (not player center)
-                const directionX = attackPositionX - this.position.x;
-                const directionZ = attackPositionZ - this.position.z;
-                
-                // Calculate distance to attack position
-                const distanceToAttackPos = Math.sqrt(directionX * directionX + directionZ * directionZ);
-                
-                // If far from attack position, move towards it
-                if (distanceToAttackPos > 0.5) {
-                    // Normalize direction
-                    const normalizedDirectionX = directionX / distanceToAttackPos;
-                    const normalizedDirectionZ = directionZ / distanceToAttackPos;
+
+                // Face target when moving (not when attacking - attack can happen from any direction)
+                this.faceTarget();
+
+                // Move directly towards player (simple chase, no circular formation)
+                const directionX = playerPosition.x - this.position.x;
+                const directionZ = playerPosition.z - this.position.z;
+                const distanceSq = directionX * directionX + directionZ * directionZ;
+
+                if (distanceSq > 0.01) {
+                    normalize2D(tempVec2, directionX, directionZ);
+                    const moveSpeed = this.speed * delta * 1.5;
+                    const newX = this.position.x + tempVec2.x * moveSpeed;
+                    const newZ = this.position.z + tempVec2.z * moveSpeed;
                     
-                    // Calculate new position
-                    // Apply 1.5x speed multiplier for faster movement
-                    const speedMultiplier = 1.5;
-                    const moveSpeed = this.speed * delta * speedMultiplier;
-                    const newX = this.position.x + normalizedDirectionX * moveSpeed;
-                    const newZ = this.position.z + normalizedDirectionZ * moveSpeed;
-                    
-                    // Calculate proper Y position based on terrain height
                     let newY = this.position.y;
                     if (this.world && this.allowTerrainHeightUpdates) {
                         const terrainHeight = this.world.getTerrainHeight(newX, newZ);
@@ -502,19 +462,11 @@ export class Enemy {
                         }
                     }
                     
-                    // Update position
                     this.setPosition(newX, newY, newZ);
-                    console.debug(`Enemy ${this.id} moving toward attack position, distance: ${distanceToPlayer.toFixed(2)}`);
-                } else {
-                    // At attack position, just maintain position with small adjustments
-                    console.debug(`Enemy ${this.id} maintaining attack position around player`);
                 }
                 
-                // Always face the player (not the attack position)
-                this.faceTarget(playerPosition);
-                
-                // If target is within detection range, refresh aggression timer
-                if (distanceToPlayer <= this.detectionRange) {
+                // Refresh aggression timer
+                if (distanceSqToPlayer <= detectionRangeSq) {
                     this.state.isAggressive = true;
                     this.state.aggressionEndTime = Date.now() + (this.aggressionTimeout * 1000);
                 }
@@ -531,38 +483,53 @@ export class Enemy {
     }
 
     /**
+     * Face the target (player) - used only when moving toward target.
+     * When in attack range, we do NOT call this - enemy can attack from any direction.
+     */
+    faceTarget() {
+        const playerPos = this.targetPlayer.getPosition();
+        const dx = playerPos.x - this.position.x;
+        const dz = playerPos.z - this.position.z;
+        if (dx * dx + dz * dz > 0.01) {
+            this.rotation.y = fastAtan2(dx, dz);
+        }
+    }
+
+    /**
      * Find the closest player (local or remote) to target
      */
     findClosestPlayer() {
         // Start with the local player as the default target
         this.targetPlayer = this.player;
-        let closestDistance = Number.MAX_VALUE;
-        
+        let closestDistanceSq = Number.MAX_VALUE;
+
         // Get local player position
         const localPlayerPos = this.player.getPosition();
-        let dx = localPlayerPos.x - this.position.x;
-        let dz = localPlayerPos.z - this.position.z;
-        closestDistance = Math.sqrt(dx * dx + dz * dz);
-        
+        closestDistanceSq = distanceSq2D(
+            this.position.x, this.position.z,
+            localPlayerPos.x, localPlayerPos.z
+        );
+
         // Check if we have access to the game and multiplayer manager
-        if (this.player.game && 
-            this.player.game.multiplayerManager && 
+        if (this.player.game &&
+            this.player.game.multiplayerManager &&
             this.player.game.multiplayerManager.remotePlayerManager) {
-            
+
             // Get all remote players
             const remotePlayers = this.player.game.multiplayerManager.remotePlayerManager.getPlayers();
-            
+
             // Check each remote player
             remotePlayers.forEach((remotePlayer, peerId) => {
                 if (remotePlayer && remotePlayer.group) {
                     const remotePos = remotePlayer.group.position;
-                    dx = remotePos.x - this.position.x;
-                    dz = remotePos.z - this.position.z;
-                    const distance = Math.sqrt(dx * dx + dz * dz);
-                    
+                    const distanceSq = distanceSq2D(
+                        this.position.x, this.position.z,
+                        remotePos.x, remotePos.z
+                    );
+
                     // If this remote player is closer, target them instead
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
+                    if (distanceSq < closestDistanceSq) {
+                        closestDistanceSq = distanceSq;
                         // Create a wrapper object that mimics the player interface
                         this.targetPlayer = {
                             getPosition: () => remotePos,
@@ -640,11 +607,12 @@ export class Enemy {
         
         // Deal damage to player if in area
         const playerPos = this.player.getPosition();
-        const dx = targetPosition.x - playerPos.x;
-        const dz = targetPosition.z - playerPos.z;
-        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-        
-        if (distanceToPlayer < 5) {
+        const distanceSqToPlayer = distanceSq2D(
+            targetPosition.x, targetPosition.z,
+            playerPos.x, playerPos.z
+        );
+
+        if (distanceSqToPlayer < 25) { // 5^2
             this.player.takeDamage(this.damage * 1.5);
             // Apply slow effect to player
             this.player.applyEffect('slow', 3);
@@ -666,11 +634,10 @@ export class Enemy {
         
         // Deal damage to player if in area
         const playerPos = this.player.getPosition();
-        const dx = this.position.x - playerPos.x;
-        const dz = this.position.z - playerPos.z;
-        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
-        
-        if (distanceToPlayer < this.attackRange * 1.5) {
+        const frostNovaRangeSq = (this.attackRange * 1.5) * (this.attackRange * 1.5);
+        const distanceSq = distanceSq2D(this.position.x, this.position.z, playerPos.x, playerPos.z);
+
+        if (distanceSq < frostNovaRangeSq) {
             this.player.takeDamage(this.damage);
             // Apply freeze effect to player
             this.player.applyEffect('freeze', 2);

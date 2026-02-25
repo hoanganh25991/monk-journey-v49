@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
+import { distanceSq2D, distanceApprox2D, normalize3D, tempVec3 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Grace's Bounty variant of Flying Kick
@@ -242,12 +243,13 @@ export class GracesBountyEffect extends FlyingKickEffect {
                 const enemyPosition = enemy.getPosition();
                 if (!enemyPosition || !effectObject.player) return;
                 
-                const dx = enemyPosition.x - effectObject.player.position.x;
-                const dz = enemyPosition.z - effectObject.player.position.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                
-                // If close enough, hit the enemy
-                if (distance < 1.5) {
+                const distSq = distanceSq2D(
+                    effectObject.player.position.x, effectObject.player.position.z,
+                    enemyPosition.x, enemyPosition.z
+                );
+
+                // If close enough, hit the enemy (1.5^2 = 2.25)
+                if (distSq < 2.25) {
                     // IMPORTANT: THIS CHECKED BY COLLISIONMANAGER
                     // Apply damage
                     // const damage = this.calculateDamage(enemy);
@@ -483,8 +485,8 @@ export class GracesBountyEffect extends FlyingKickEffect {
                 const dy = positions[i * 3 + 1] - position.y - 0.5;
                 const dz = positions[i * 3 + 2] - position.z;
                 
-                // Calculate distance and angle
-                const distance = Math.sqrt(dx * dx + dz * dz);
+                // Calculate distance and angle (approx for perf)
+                const distance = distanceApprox2D(position.x, position.z, positions[i * 3], positions[i * 3 + 2]);
                 const angle = Math.atan2(dz, dx) + delta * 5; // Rotate around
                 
                 // Increase distance

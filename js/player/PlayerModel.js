@@ -22,6 +22,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
+import { PlayerEquipmentVisuals } from './PlayerEquipmentVisuals.js';
 
 /**
  * @typedef {Object} ModelAdjustment
@@ -88,6 +89,9 @@ export class PlayerModel {
         
         // Create the attack effect handler
         this.attackEffect = new PlayerAttackEffect(scene);
+        
+        // Create equipment visuals handler
+        this.equipmentVisuals = new PlayerEquipmentVisuals(scene, this, game);
         
         // Try to load model ID from localStorage, or use default
         this.currentModelId = localStorage.getItem('monk_journey_character_model') || DEFAULT_CHARACTER_MODEL;
@@ -184,10 +188,20 @@ export class PlayerModel {
 
             // Add the loaded model to our group
             this.modelGroup.add(this.gltfModel);
-            
+
             // Add model to scene
             this.scene.add(this.modelGroup);
             
+            // Initialize equipment visuals
+            if (this.equipmentVisuals) {
+                this.equipmentVisuals.initAttachmentPoints();
+                // Refresh visuals for any equipment player already has (e.g. from save, or auto-equip)
+                const equipment = this.game?.player?.inventory?.equipment;
+                if (equipment) {
+                    this.equipmentVisuals.updateEquipmentVisuals(equipment);
+                }
+            }
+
             // Log to confirm player model was added
             console.debug(`Model from ${this.modelPath} loaded and added to scene:`, this.modelGroup);
         } catch (error) {
@@ -206,15 +220,19 @@ export class PlayerModel {
      * @returns {void}
      */
     updateAnimations(delta, playerState) {
+        if (this.equipmentVisuals) {
+            this.equipmentVisuals.update(delta);
+        }
+        
         // If we have a loaded GLB model with animations
         if (this.mixer && this.gltfModel) {
             // Use the delta time passed from the game's update loop
             // This ensures consistent timing across all game systems
-            
+
             // Use a minimum delta time to ensure animations always progress
             // This prevents the animation from freezing when delta is too small
             const effectiveDelta = Math.max(delta, 0.008); // Minimum 8ms delta (roughly 120fps)
-            
+
             // First, always update the mixer with effective delta time
             // This is crucial for proper animation timing
             this.mixer.update(effectiveDelta);
@@ -598,5 +616,14 @@ export class PlayerModel {
             return this.modelGroup.position.clone();
         }
         return new THREE.Vector3(0, 0, 0);
+    }
+    
+    /**
+     * Update equipment visuals when items are equipped/unequipped
+     */
+    updateEquipmentVisuals(equipment) {
+        if (this.equipmentVisuals) {
+            this.equipmentVisuals.updateEquipmentVisuals(equipment);
+        }
     }
 }

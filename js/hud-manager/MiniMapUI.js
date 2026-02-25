@@ -403,6 +403,9 @@ export class MiniMapUI extends UIComponent {
         // Draw large structures (towers, villages)
         this.drawStructures(playerX, playerY, centerX, centerY);
 
+        // Draw cave markers (distinct from other structures)
+        this.drawCaves(playerX, playerY, centerX, centerY);
+
         // Draw teleport portals
         this.drawTeleportPortals(playerX, playerY, centerX, centerY);
         
@@ -677,9 +680,25 @@ export class MiniMapUI extends UIComponent {
                 this.ctx.beginPath();
                 this.ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
                 this.ctx.fill();
+            } else if (shape === 'diamond') {
+                // Diamond for caves
+                this.ctx.beginPath();
+                this.ctx.moveTo(screenX, screenY - size);
+                this.ctx.lineTo(screenX + size, screenY);
+                this.ctx.lineTo(screenX, screenY + size);
+                this.ctx.lineTo(screenX - size, screenY);
+                this.ctx.closePath();
+                this.ctx.fill();
             }
         };
         
+        // Add cave to categories for when caves are in structure manager
+        structureCategories[STRUCTURE_OBJECTS.CAVE] = 'natural';
+        structureColorMap['cave'] = 'rgba(60, 45, 35, 0.9)';
+        structureShapeCategories[STRUCTURE_OBJECTS.CAVE] = 'natural';
+        structureShapeMap['cave'] = 'diamond';
+        structureSizeMap['cave'] = 8;
+
         // Draw all structures from the structure manager
         structures.forEach(structure => {
             if (structure && structure.position) {
@@ -693,6 +712,56 @@ export class MiniMapUI extends UIComponent {
                 // Draw the structure
                 drawStructure(structure.position, type, size, shape);
             }
+        });
+    }
+
+    /**
+     * Draw cave markers on the mini map (from map data - always visible)
+     * @param {number} playerX - Player's X position in the world
+     * @param {number} playerY - Player's Z position in the world
+     * @param {number} centerX - Center X of the mini map
+     * @param {number} centerY - Center Y of the mini map
+     */
+    drawCaves(playerX, playerY, centerX, centerY) {
+        const cavePositions = this.game.world?.getCavePositions?.() || [];
+        if (cavePositions.length === 0) return;
+
+        cavePositions.forEach(pos => {
+            const relX = (pos.x - playerX) * this.scale;
+            const relY = (pos.z - playerY) * this.scale;
+            const screenX = centerX + relX + this.mapOffsetX;
+            const screenY = centerY + relY + this.mapOffsetY;
+
+            const distFromCenter = Math.sqrt(
+                Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
+            );
+            if (distFromCenter > (this.mapSize / 2 - 2)) return;
+
+            const size = 8;
+            // Dark outer (cave entrance)
+            this.ctx.fillStyle = 'rgba(45, 35, 25, 0.95)';
+            this.ctx.beginPath();
+            this.ctx.moveTo(screenX, screenY - size);
+            this.ctx.lineTo(screenX + size, screenY);
+            this.ctx.lineTo(screenX, screenY + size);
+            this.ctx.lineTo(screenX - size, screenY);
+            this.ctx.closePath();
+            this.ctx.fill();
+            // Lighter inner (entrance opening)
+            this.ctx.fillStyle = 'rgba(80, 60, 45, 0.8)';
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, size * 0.4, 0, Math.PI * 2);
+            this.ctx.fill();
+            // Border
+            this.ctx.strokeStyle = 'rgba(100, 80, 60, 0.9)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(screenX, screenY - size);
+            this.ctx.lineTo(screenX + size, screenY);
+            this.ctx.lineTo(screenX, screenY + size);
+            this.ctx.lineTo(screenX - size, screenY);
+            this.ctx.closePath();
+            this.ctx.stroke();
         });
     }
     

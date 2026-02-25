@@ -326,34 +326,37 @@ export class MountainTrollModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement troll-specific animations
+        // Implement troll-specific animations + move/attack
         const time = Date.now() * 0.001; // Convert to seconds
+        const moveBoost = this.enemy.state.isMoving ? 1.8 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 2.5 : 1;
         
         if (this.modelGroup) {
             // IMPORTANT: Do not modify this.modelGroup.position.y!
             // The Y position is managed by the Enemy class for proper terrain positioning.
             // Instead, apply vertical movement to individual children or use rotations.
             
-            // Apply slow breathing motion to the torso instead of the whole model
+            // Breathing motion (faster when moving)
             const torso = this.modelGroup.children[0]; // Torso is first child
             if (torso && torso.userData.originalY === undefined) {
                 torso.userData.originalY = torso.position.y;
             }
             if (torso) {
-                torso.position.y = torso.userData.originalY + Math.sin(time * 0.5) * 0.05;
+                const breathAmp = 0.05 * moveBoost;
+                torso.position.y = torso.userData.originalY + Math.sin(time * 0.5 * moveBoost) * breathAmp;
             }
             
-            // Slight swaying (only X and Z rotation, Y rotation handled by Enemy class)
-            this.modelGroup.rotation.x = Math.sin(time * 0.3) * 0.02;
-            this.modelGroup.rotation.z = Math.cos(time * 0.4) * 0.03;
+            // Swaying (faster when moving)
+            this.modelGroup.rotation.x = Math.sin(time * 0.3 * moveBoost) * 0.02;
+            this.modelGroup.rotation.z = Math.cos(time * 0.4 * moveBoost) * 0.03;
             
-            // Animate club
+            // Animate club (raise when attacking)
             const clubHandle = this.modelGroup.children[10]; // Club handle
             const clubHead = this.modelGroup.children[11]; // Club head
             
             if (clubHandle && clubHead) {
-                // Swing the club slightly
-                const swingAngle = Math.sin(time * 0.7) * 0.1;
+                const swingBase = this.enemy.state.isAttacking ? 0.4 : 0.1;
+                const swingAngle = Math.sin(time * (0.7 * (this.enemy.state.isAttacking ? 4 : 1))) * swingBase;
                 clubHandle.rotation.z = Math.PI / 6 + swingAngle;
                 
                 // Update club head position to follow handle

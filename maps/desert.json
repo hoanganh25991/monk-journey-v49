@@ -15,9 +15,12 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "gentle"
+  },
   "structures": [
     {
-      "type": "house",
+      "type": "tower",
       "position": {
         "x": -18,
         "z": -1
@@ -62,7 +65,7 @@
       "scale": 1.0266355987638236
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": 222,
         "z": -290
@@ -80,7 +83,7 @@
       "scale": 0.8717055436223746
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -178,
         "z": -253
@@ -89,7 +92,7 @@
       "scale": 1.1073141161352398
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": 279,
         "z": 134
@@ -98,7 +101,7 @@
       "scale": 1.1980647798627615
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -27,
         "z": 336
@@ -116,7 +119,7 @@
       "scale": 1.0025516863912345
     },
     {
-      "type": "temple",
+      "type": "altar",
       "position": {
         "x": -49,
         "z": -146
@@ -143,7 +146,7 @@
       "scale": 1.0998598281294107
     },
     {
-      "type": "house",
+      "type": "tower",
       "position": {
         "x": -116,
         "z": -168
@@ -152,7 +155,7 @@
       "scale": 0.925058900937438
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": 206,
         "z": -40
@@ -188,7 +191,7 @@
       "scale": 1.0561217185109855
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -260,
         "z": 198
@@ -197,7 +200,7 @@
       "scale": 0.9234300915151835
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -186,
         "z": -103
@@ -206,7 +209,7 @@
       "scale": 0.996400785073638
     },
     {
-      "type": "altar",
+      "type": "house",
       "position": {
         "x": -241,
         "z": 182
@@ -224,13 +227,103 @@
       "scale": 0.9063846703618765
     },
     {
-      "type": "altar",
+      "type": "house",
       "position": {
         "x": -185,
         "z": 165
       },
       "rotation": 5.7805304826052195,
       "scale": 1.038725382462144
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -273,
+        "z": -306
+      },
+      "rotation": 6.094689747964199,
+      "scale": 1.0714524801820517
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -15,
+        "z": -251
+      },
+      "rotation": 2.3876104167282426,
+      "scale": 1.0315637405961753
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 96,
+        "z": -186
+      },
+      "rotation": 4.335397861953914,
+      "scale": 0.9433092173188925
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 322,
+        "z": -194
+      },
+      "rotation": 1.319468914507713,
+      "scale": 1.0067865666002036
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -260,
+        "z": -106
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 0.9158434446901084
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -18,
+        "z": -16
+      },
+      "rotation": 1.5707963267948966,
+      "scale": 1.0580775078386069
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 135,
+        "z": -107
+      },
+      "rotation": 3.267256359733385,
+      "scale": 0.9148364122956991
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 313,
+        "z": -143
+      },
+      "rotation": 3.392920065876977,
+      "scale": 1.061217814311385
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -217,
+        "z": 23
+      },
+      "rotation": 4.71238898038469,
+      "scale": 0.966069370135665
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -141,
+        "z": 107
+      },
+      "rotation": 4.1469023027385274,
+      "scale": 0.9919887360185385
     }
   ],
   "environment": [

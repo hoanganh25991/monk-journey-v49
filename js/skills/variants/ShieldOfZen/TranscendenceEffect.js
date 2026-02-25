@@ -176,8 +176,11 @@ export class TranscendenceEffect extends ShieldOfZenEffect {
                     particle.position.add(particle.userData.direction.clone().multiplyScalar(moveAmount));
                     
                     // If particle moves too far from initial position, reverse direction
-                    const distance = particle.position.distanceTo(particle.userData.initialPos);
-                    if (distance > particle.userData.distance) {
+                    const dx = particle.position.x - particle.userData.initialPos.x;
+                    const dy = particle.position.y - particle.userData.initialPos.y;
+                    const dz = particle.position.z - particle.userData.initialPos.z;
+                    const distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq > particle.userData.distance * particle.userData.distance) {
                         particle.userData.direction.multiplyScalar(-1);
                     }
                     
@@ -199,8 +202,10 @@ export class TranscendenceEffect extends ShieldOfZenEffect {
             
             // Check if player is moving
             if (this.lastPlayerPosition) {
-                const moveDistance = currentPosition.distanceTo(this.lastPlayerPosition);
-                this.isMoving = moveDistance > 0.01;
+                const mdx = currentPosition.x - this.lastPlayerPosition.x;
+                const mdz = currentPosition.z - this.lastPlayerPosition.z;
+                const moveDistSq = mdx * mdx + mdz * mdz;
+                this.isMoving = moveDistSq > 0.0001;
             }
             
             // Update last position

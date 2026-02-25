@@ -19,6 +19,7 @@ export class SceneOptimizer {
         scene.traverse(object => {
             if (object.isMesh) {
                 const isPlayerModel = object.userData && object.userData.isPlayerModel;
+                const isPath = object.userData && object.userData.isPath;
 
                 // Enable frustum culling
                 object.frustumCulled = true;
@@ -46,8 +47,8 @@ export class SceneOptimizer {
                             material.precision = 'mediump';
                         }
                         
-                        // Only use fog if scene has fog
-                        material.fog = !!scene.fog;
+                        // Only use fog if scene has fog (paths stay fog-free for visibility at distance)
+                        if (!isPath) material.fog = !!scene.fog;
                         
                         // Optimize textures if present (player model keeps smoother filtering)
                         if (material.map) {

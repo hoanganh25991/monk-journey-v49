@@ -148,6 +148,112 @@ export class DemonModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement demon-specific animations here if needed
+        if (!this.modelGroup || this.modelGroup.children.length < 8) {
+            return;
+        }
+        
+        const time = Date.now() * 0.001;
+        
+        const body = this.modelGroup.children[0];
+        const head = this.modelGroup.children[1];
+        const leftArm = this.modelGroup.children[5];
+        const rightArm = this.modelGroup.children[6];
+        const leftLeg = this.modelGroup.children[7];
+        const rightLeg = this.modelGroup.children[8];
+        
+        if (!body.userData.initialized) {
+            body.userData.originalY = body.position.y;
+            head.userData.originalY = head.position.y;
+            body.userData.initialized = true;
+        }
+        
+        if (this.enemy.state.isAttacking) {
+            const attackSpeed = 12;
+            const attackCycle = (time * attackSpeed) % (Math.PI * 2);
+            
+            if (attackCycle < Math.PI * 0.6) {
+                const progress = attackCycle / (Math.PI * 0.6);
+                rightArm.rotation.x = -progress * Math.PI * 0.8;
+                rightArm.rotation.z = -Math.PI / 6 - progress * 0.4;
+                body.rotation.x = -progress * 0.15;
+            } else {
+                const progress = (attackCycle - Math.PI * 0.6) / (Math.PI * 1.4);
+                rightArm.rotation.x = -Math.PI * 0.8 + progress * Math.PI * 0.8;
+                rightArm.rotation.z = -Math.PI / 6 - 0.4 + progress * 0.4;
+                body.rotation.x = -0.15 + progress * 0.15;
+            }
+            
+            leftArm.rotation.x = Math.sin(time * attackSpeed * 0.8) * 0.3;
+            
+            if (this.enemy.type === 'demon_lord') {
+                const leftWing = this.modelGroup.children[9];
+                const rightWing = this.modelGroup.children[10];
+                if (leftWing && rightWing) {
+                    leftWing.rotation.y = Math.PI / 4 + Math.sin(time * 15) * 0.2;
+                    rightWing.rotation.y = -Math.PI / 4 - Math.sin(time * 15) * 0.2;
+                }
+            }
+            
+        } else if (this.enemy.state.isMoving) {
+            const walkSpeed = 7;
+            const walkAmp = 0.18;
+            const armSwing = 0.5;
+            
+            body.rotation.x = 0.1;
+            
+            leftLeg.rotation.x = Math.sin(time * walkSpeed) * 0.5;
+            rightLeg.rotation.x = -Math.sin(time * walkSpeed) * 0.5;
+            
+            leftArm.rotation.x = -Math.sin(time * walkSpeed) * armSwing;
+            rightArm.rotation.x = Math.sin(time * walkSpeed) * armSwing;
+            rightArm.rotation.z = -Math.PI / 6;
+            
+            const bodyBob = Math.abs(Math.sin(time * walkSpeed)) * 0.1;
+            body.position.y = body.userData.originalY + bodyBob;
+            head.position.y = head.userData.originalY + bodyBob;
+            
+            if (this.enemy.type === 'demon_lord') {
+                const leftWing = this.modelGroup.children[9];
+                const rightWing = this.modelGroup.children[10];
+                if (leftWing && rightWing) {
+                    leftWing.rotation.y = Math.PI / 4 + Math.sin(time * 5) * 0.15;
+                    rightWing.rotation.y = -Math.PI / 4 - Math.sin(time * 5) * 0.15;
+                    leftWing.rotation.x = Math.PI / 6 + Math.sin(time * 5) * 0.1;
+                    rightWing.rotation.x = Math.PI / 6 + Math.sin(time * 5) * 0.1;
+                }
+            }
+            
+        } else {
+            const idleSpeed = 2;
+            const idleAmp = 0.05;
+            
+            body.rotation.x = Math.sin(time * idleSpeed) * idleAmp;
+            body.rotation.z = Math.cos(time * idleSpeed * 0.8) * idleAmp * 0.5;
+            
+            head.rotation.x = Math.sin(time * 1.3) * 0.08;
+            head.rotation.y = Math.sin(time) * 0.15;
+            
+            const breathe = Math.sin(time * idleSpeed) * 0.04;
+            body.position.y = body.userData.originalY + breathe;
+            head.position.y = head.userData.originalY + breathe;
+            
+            leftArm.rotation.x = Math.sin(time * idleSpeed * 0.6) * 0.08;
+            rightArm.rotation.x = Math.cos(time * idleSpeed * 0.6) * 0.08;
+            rightArm.rotation.z = -Math.PI / 6;
+            
+            leftLeg.rotation.x = 0;
+            rightLeg.rotation.x = 0;
+            
+            if (this.enemy.type === 'demon_lord') {
+                const leftWing = this.modelGroup.children[9];
+                const rightWing = this.modelGroup.children[10];
+                if (leftWing && rightWing) {
+                    leftWing.rotation.y = Math.PI / 4 + Math.sin(time * 2) * 0.1;
+                    rightWing.rotation.y = -Math.PI / 4 - Math.sin(time * 2) * 0.1;
+                    leftWing.rotation.x = Math.PI / 6 + Math.sin(time * 1.5) * 0.08;
+                    rightWing.rotation.x = Math.PI / 6 + Math.sin(time * 1.5) * 0.08;
+                }
+            }
+        }
     }
 }

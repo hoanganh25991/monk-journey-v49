@@ -325,22 +325,25 @@ export class SpiderQueenModel extends EnemyModel {
         if (!this.modelGroup) return;
         
         const time = Date.now() * 0.001;
+        const moveBoost = this.enemy.state.isMoving ? 1.8 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 2.2 : 1;
         
-        // Pulsing eye glow
+        // Pulsing eye glow (intense when attacking)
         this.modelGroup.children.forEach(child => {
             if (child.material && child.material.emissive && 
                 child.geometry instanceof THREE.SphereGeometry && 
                 child.position.y > 0.9) {
-                // This is likely an eye
-                child.material.emissiveIntensity = 0.3 + Math.sin(time * 2) * 0.2;
+                // This is likely an eye (intense when attacking)
+                const eyeIntensity = this.enemy.state.isAttacking ? 0.6 : 0.3;
+                child.material.emissiveIntensity = eyeIntensity + Math.sin(time * 2 * attackBoost) * 0.2;
             }
         });
         
-        // Leg movement simulation
+        // Leg movement (faster when moving)
         const legGroups = this.modelGroup.children.filter(child => child instanceof THREE.Group);
         legGroups.forEach((legGroup, index) => {
-            legGroup.rotation.y = Math.sin(time * 1.5 + index) * 0.1;
-            legGroup.position.y = 0.8 + Math.sin(time * 2 + index) * 0.05;
+            legGroup.rotation.y = Math.sin(time * 1.5 * moveBoost + index) * 0.1;
+            legGroup.position.y = 0.8 + Math.sin(time * 2 * moveBoost + index) * 0.05;
         });
         
         // Abdomen breathing motion
@@ -351,12 +354,12 @@ export class SpiderQueenModel extends EnemyModel {
             abdomen.scale.y = 0.8 + Math.sin(time * 1.2) * 0.1;
         }
         
-        // Pedipalp movement
+        // Pedipalp movement (aggressive when attacking)
         this.modelGroup.children.forEach(child => {
             if (child.geometry instanceof THREE.CylinderGeometry && 
                 child.position.z > 0.7 && child.position.y < 0.8) {
-                // This is likely a pedipalp
-                child.rotation.x = -Math.PI / 4 + Math.sin(time * 3) * 0.2;
+                const pedipalpAmp = this.enemy.state.isAttacking ? 0.5 : 0.2;
+                child.rotation.x = -Math.PI / 4 + Math.sin(time * 3 * attackBoost) * pedipalpAmp;
             }
         });
         

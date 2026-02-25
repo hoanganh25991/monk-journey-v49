@@ -650,7 +650,10 @@ export class BulPalmEffect extends SkillEffect {
   updateTravelingPhase(delta) {
     // Calculate distance to target
     const currentPosition = this.effect.position.clone();
-    const distanceToTarget = currentPosition.distanceTo(this.targetPosition);
+    const dx = this.targetPosition.x - currentPosition.x;
+    const dy = this.targetPosition.y - currentPosition.y;
+    const dz = this.targetPosition.z - currentPosition.z;
+    const distanceToTarget = Math.sqrt(dx * dx + dy * dy + dz * dz);
     
     // Calculate movement speed
     const speed = this.skill.projectileSpeed || 18;

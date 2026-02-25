@@ -15,6 +15,9 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "hills"
+  },
   "structures": [
     {
       "type": "tavern",
@@ -26,7 +29,7 @@
       "scale": 0.825347943417728
     },
     {
-      "type": "house",
+      "type": "tower",
       "position": {
         "x": 298,
         "z": -160
@@ -35,7 +38,7 @@
       "scale": 0.9190028565004469
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 327,
         "z": -35
@@ -53,7 +56,7 @@
       "scale": 1.0124554233625531
     },
     {
-      "type": "tavern",
+      "type": "shop",
       "position": {
         "x": 62,
         "z": 105
@@ -71,7 +74,7 @@
       "scale": 1.0404601829126479
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": -257,
         "z": 324
@@ -89,7 +92,7 @@
       "scale": 1.1606038050726057
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 185,
         "z": -28
@@ -98,7 +101,7 @@
       "scale": 1.102760667912662
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": -70,
         "z": 93
@@ -107,7 +110,7 @@
       "scale": 0.9666057722643018
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 47,
         "z": 284
@@ -116,7 +119,7 @@
       "scale": 0.9624225152656436
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 170,
         "z": 1
@@ -125,7 +128,7 @@
       "scale": 0.9070683794096113
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": 171,
         "z": 222
@@ -143,7 +146,7 @@
       "scale": 1.104226733930409
     },
     {
-      "type": "house",
+      "type": "tower",
       "position": {
         "x": -125,
         "z": -348
@@ -152,7 +155,7 @@
       "scale": 0.8709942949935794
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": -61,
         "z": 237
@@ -170,7 +173,7 @@
       "scale": 0.8859808875247837
     },
     {
-      "type": "bridge",
+      "type": "cave",
       "position": {
         "x": 320,
         "z": -89
@@ -188,7 +191,7 @@
       "scale": 0.9388060344383121
     },
     {
-      "type": "tavern",
+      "type": "shop",
       "position": {
         "x": 185,
         "z": 335
@@ -197,7 +200,7 @@
       "scale": 1.1564695434644818
     },
     {
-      "type": "tower",
+      "type": "temple",
       "position": {
         "x": 247,
         "z": -237
@@ -206,7 +209,7 @@
       "scale": 0.8643635345622898
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": -189,
         "z": 120
@@ -215,7 +218,7 @@
       "scale": 0.9316682117059827
     },
     {
-      "type": "shop",
+      "type": "bridge",
       "position": {
         "x": -77,
         "z": 20
@@ -224,7 +227,7 @@
       "scale": 1.0645393742248417
     },
     {
-      "type": "tower",
+      "type": "temple",
       "position": {
         "x": 315,
         "z": 17
@@ -233,7 +236,7 @@
       "scale": 0.9354803519323469
     },
     {
-      "type": "tavern",
+      "type": "shop",
       "position": {
         "x": -49,
         "z": 175
@@ -242,7 +245,7 @@
       "scale": 0.9894617272540928
     },
     {
-      "type": "temple",
+      "type": "tavern",
       "position": {
         "x": 187,
         "z": -91
@@ -260,13 +263,85 @@
       "scale": 1.0187509549781681
     },
     {
-      "type": "tavern",
+      "type": "shop",
       "position": {
         "x": -128,
         "z": -345
       },
       "rotation": 5.277875658030852,
       "scale": 0.864955790527165
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -183,
+        "z": -283
+      },
+      "rotation": 2.3876104167282426,
+      "scale": 0.9454753830097616
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -50,
+        "z": -190
+      },
+      "rotation": 2.638937829015426,
+      "scale": 0.9906145109795035
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 45,
+        "z": -311
+      },
+      "rotation": 4.461061568097506,
+      "scale": 1.0258350445888937
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 325,
+        "z": -252
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 1.0870988979004323
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -297,
+        "z": -153
+      },
+      "rotation": 0.6283185307179586,
+      "scale": 1.0338054849766194
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -65,
+        "z": -92
+      },
+      "rotation": 4.900884539600077,
+      "scale": 1.048791719879955
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 106,
+        "z": -170
+      },
+      "rotation": 5.215043804959056,
+      "scale": 0.9383320166729391
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 276,
+        "z": -84
+      },
+      "rotation": 1.9477874452256718,
+      "scale": 1.0321382894180715
     }
   ],
   "environment": [

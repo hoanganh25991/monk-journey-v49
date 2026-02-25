@@ -114,57 +114,94 @@ export class SimpleEnemyModel extends EnemyModel {
      * @param {number} delta - Time since last update in seconds
      */
     updateAnimations(delta) {
-        // Use the base class animations for movement and attack
-        super.updateAnimations(delta);
+        if (!this.modelGroup || this.modelGroup.children.length < 6) {
+            return;
+        }
         
-        // Add simple bobbing and head movement animations
-        if (this.modelGroup) {
-            const time = Date.now() * 0.001; // Convert to seconds
+        const time = Date.now() * 0.001;
+        
+        const body = this.modelGroup.children[0];
+        const head = this.modelGroup.children[1];
+        const leftArm = this.modelGroup.children[2];
+        const rightArm = this.modelGroup.children[3];
+        const leftLeg = this.modelGroup.children[4];
+        const rightLeg = this.modelGroup.children[5];
+        
+        if (!body.userData.originalY) {
+            body.userData.originalY = body.position.y;
+            head.userData.originalY = head.position.y;
+            leftArm.userData.originalPos = leftArm.position.clone();
+            rightArm.userData.originalPos = rightArm.position.clone();
+            leftLeg.userData.originalPos = leftLeg.position.clone();
+            rightLeg.userData.originalPos = rightLeg.position.clone();
+            leftArm.userData.originalRot = leftArm.rotation.clone();
+            rightArm.userData.originalRot = rightArm.rotation.clone();
+        }
+        
+        if (this.enemy.state.isAttacking) {
+            const attackSpeed = 10;
+            const attackCycle = (time * attackSpeed) % (Math.PI * 2);
             
-            // IMPORTANT: Do not modify this.modelGroup.position.y!
-            // The Y position is managed by the Enemy class for proper terrain positioning.
-            // Only animate individual child elements or apply offsets to child positions.
+            body.rotation.x = 0;
+            body.rotation.z = 0;
             
-            // Apply subtle whole-body bobbing by offsetting all children slightly
-            // Only apply bobbing if not moving or attacking (to avoid conflicting animations)
-            if (!this.enemy.state.isMoving && !this.enemy.state.isAttacking) {
-                const bobbingOffset = Math.sin(time * 1.5) * 0.05; // Small bobbing motion
-                
-                // Apply bobbing to all children by adjusting their Y positions slightly
-                for (let i = 0; i < this.modelGroup.children.length; i++) {
-                    const child = this.modelGroup.children[i];
-                    if (child && child.userData && child.userData.originalY !== undefined) {
-                        // Use stored original Y position
-                        child.position.y = child.userData.originalY + bobbingOffset;
-                    } else if (child && child.position) {
-                        // Store original Y position if not already stored
-                        if (child.userData.originalY === undefined) {
-                            child.userData.originalY = child.position.y;
-                        }
-                        child.position.y = child.userData.originalY + bobbingOffset;
-                    }
-                }
+            if (attackCycle < Math.PI) {
+                const progress = attackCycle / Math.PI;
+                rightArm.rotation.x = -progress * Math.PI * 0.7;
+                rightArm.rotation.z = rightArm.userData.originalRot.z - progress * 0.3;
+                rightArm.position.z = rightArm.userData.originalPos.z + progress * 0.2;
             } else {
-                // When moving or attacking, reset children to their original positions
-                for (let i = 0; i < this.modelGroup.children.length; i++) {
-                    const child = this.modelGroup.children[i];
-                    if (child && child.userData && child.userData.originalY !== undefined) {
-                        child.position.y = child.userData.originalY;
-                    }
-                }
+                const progress = (attackCycle - Math.PI) / Math.PI;
+                rightArm.rotation.x = -Math.PI * 0.7 + progress * Math.PI * 0.7;
+                rightArm.rotation.z = rightArm.userData.originalRot.z - 0.3 + progress * 0.3;
+                rightArm.position.z = rightArm.userData.originalPos.z + 0.2 - progress * 0.2;
             }
             
-            // Apply subtle head movement without affecting the main facing direction
-            // The main Y rotation (facing direction) is handled by the Enemy class
-            if (!this.enemy.state.isAttacking && this.modelGroup.children.length > 1) {
-                // Only animate the head (second child) for subtle movement
-                const head = this.modelGroup.children[1]; // Head is the second child
-                if (head) {
-                    // Subtle head bobbing and turning
-                    head.rotation.x = Math.sin(time * 1.2) * 0.05; // Slight nod
-                    head.rotation.y = Math.sin(time * 0.8) * 0.1;  // Slight head turn
-                }
-            }
+            leftArm.rotation.x = Math.sin(time * attackSpeed) * 0.2;
+            
+        } else if (this.enemy.state.isMoving) {
+            const walkSpeed = 6;
+            const walkAmp = 0.15;
+            const armSwing = 0.4;
+            
+            body.rotation.x = 0;
+            body.rotation.z = 0;
+            
+            leftLeg.position.z = leftLeg.userData.originalPos.z + Math.sin(time * walkSpeed) * walkAmp;
+            rightLeg.position.z = rightLeg.userData.originalPos.z - Math.sin(time * walkSpeed) * walkAmp;
+            
+            leftArm.rotation.x = Math.sin(time * walkSpeed) * armSwing;
+            rightArm.rotation.x = -Math.sin(time * walkSpeed) * armSwing;
+            leftArm.rotation.z = leftArm.userData.originalRot.z;
+            rightArm.rotation.z = rightArm.userData.originalRot.z;
+            rightArm.position.z = rightArm.userData.originalPos.z;
+            
+            const bodyBob = Math.abs(Math.sin(time * walkSpeed)) * 0.08;
+            body.position.y = body.userData.originalY + bodyBob;
+            head.position.y = head.userData.originalY + bodyBob;
+            
+        } else {
+            const idleSpeed = 1.8;
+            const idleAmp = 0.04;
+            
+            body.rotation.x = Math.sin(time * idleSpeed) * idleAmp * 0.5;
+            body.rotation.z = Math.cos(time * idleSpeed * 0.7) * idleAmp * 0.3;
+            
+            head.rotation.x = Math.sin(time * 1.2) * 0.06;
+            head.rotation.y = Math.sin(time * 0.9) * 0.12;
+            
+            const breathe = Math.sin(time * idleSpeed) * 0.03;
+            body.position.y = body.userData.originalY + breathe;
+            head.position.y = head.userData.originalY + breathe;
+            
+            leftArm.rotation.x = Math.sin(time * idleSpeed * 0.5) * 0.05;
+            rightArm.rotation.x = Math.cos(time * idleSpeed * 0.5) * 0.05;
+            leftArm.rotation.z = leftArm.userData.originalRot.z;
+            rightArm.rotation.z = rightArm.userData.originalRot.z;
+            rightArm.position.z = rightArm.userData.originalPos.z;
+            
+            leftLeg.position.z = leftLeg.userData.originalPos.z;
+            rightLeg.position.z = rightLeg.userData.originalPos.z;
         }
     }
 }

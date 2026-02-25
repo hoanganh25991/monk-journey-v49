@@ -11,6 +11,7 @@ import { DarkSanctum } from './DarkSanctum.js';
 import { Mountain } from './Mountain.js';
 import { Bridge } from './Bridge.js';
 import { Village } from './Village.js';
+import { Cave } from './Cave.js';
 
 /**
  * Structure Factory - Creates structure objects based on type
@@ -177,9 +178,9 @@ export class StructureFactory {
         });
         
         // Register village structures
-        this.register(STRUCTURE_OBJECTS.VILLAGE, (x, z) => {
+        this.register(STRUCTURE_OBJECTS.VILLAGE, (x, z, options = {}) => {
             const zoneType = this.getZoneTypeAt(x, z);
-            const village = new Village(zoneType);
+            const village = new Village(zoneType, options);
             const villageGroup = village.createMesh();
             
             // Position village on terrain
@@ -279,6 +280,21 @@ export class StructureFactory {
             
             return buildingGroup;
         });
+        
+        // Register cave structures (enemy spawn hubs, zone-specific appearance)
+        this.register(STRUCTURE_OBJECTS.CAVE, (x, z) => {
+            const zoneType = this.getZoneTypeAt(x, z);
+            const cave = new Cave(zoneType);
+            const caveGroup = cave.createMesh();
+            
+            // Position cave on terrain
+            caveGroup.position.set(x, this.getTerrainHeight(x, z), z);
+            
+            // Add to scene
+            this.scene.add(caveGroup);
+            
+            return caveGroup;
+        });
     }
     
     /**
@@ -307,7 +323,7 @@ export class StructureFactory {
         }
         
         // Extract common parameters
-        const { x, z, width, depth, height, style, scale, rotation } = params;
+        const { x, z, width, depth, height, style, scale, rotation, size, hasTower, hasWell, hasMarket, layout } = params;
         
         // Call the creator function with appropriate parameters
         let result;
@@ -322,6 +338,8 @@ export class StructureFactory {
             result = creator(x, z, scale);
         } else if (type === STRUCTURE_OBJECTS.BRIDGE) {
             result = creator(x, z, rotation);
+        } else if (type === STRUCTURE_OBJECTS.VILLAGE) {
+            result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout });
         } else {
             result = creator(x, z);
         }

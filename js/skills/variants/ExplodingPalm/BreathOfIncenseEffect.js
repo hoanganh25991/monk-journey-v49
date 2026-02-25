@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
+import { normalize3D, distanceApprox2D, tempVec3 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Breath of Incense variant of Exploding Palm
@@ -184,11 +185,12 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
                 const dz = positions[i * 3 + 2] - position.z;
                 
                 // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random();
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                const lenSq = dx * dx + dy * dy + dz * dz;
+                normalize3D(tempVec3, dx, dy, dz);
+                const dirX = lenSq > 0.0001 ? tempVec3.x : Math.random() - 0.5;
+                const dirY = lenSq > 0.0001 ? tempVec3.y : Math.random();
+                const dirZ = lenSq > 0.0001 ? tempVec3.z : Math.random() - 0.5;
+
                 // Move outward and upward
                 const speed = 1 + Math.random();
                 positions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);
@@ -300,8 +302,8 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
                 const z = positions[i * 3 + 2];
                 
                 const angle = Math.atan2(z, x);
-                const distance = Math.sqrt(x * x + z * z);
-                
+                const distance = distanceApprox2D(0, 0, x, z);
+
                 // Rotate around and move upward
                 const newAngle = angle + (this.skill.game.deltaTime || 0.016) * 2;
                 
@@ -420,11 +422,12 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
                 const dz = positions[i * 3 + 2] - position.z;
                 
                 // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() + 0.5; // Mostly upward
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                const lenSq2 = dx * dx + dy * dy + dz * dz;
+                normalize3D(tempVec3, dx, dy, dz);
+                const dirX = lenSq2 > 0.0001 ? tempVec3.x : Math.random() - 0.5;
+                const dirY = lenSq2 > 0.0001 ? tempVec3.y : Math.random() + 0.5;
+                const dirZ = lenSq2 > 0.0001 ? tempVec3.z : Math.random() - 0.5;
+
                 // Move outward and upward
                 const speed = 1.5;
                 positions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);

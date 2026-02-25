@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
+import { normalize3D, tempVec3 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Scolding Storm variant of Exploding Palm
@@ -383,11 +384,12 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
                 const dz = shardPositions[i * 3 + 2] - position.z;
                 
                 // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() + 0.5; // Mostly upward
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                const lenSq0 = dx * dx + dy * dy + dz * dz;
+                normalize3D(tempVec3, dx, dy, dz);
+                const dirX = lenSq0 > 0.0001 ? tempVec3.x : Math.random() - 0.5;
+                const dirY = lenSq0 > 0.0001 ? tempVec3.y : Math.random() + 0.5;
+                const dirZ = lenSq0 > 0.0001 ? tempVec3.z : Math.random() - 0.5;
+
                 // Move outward
                 const speed = 3 + Math.random() * 2;
                 shardPositions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);
@@ -511,11 +513,12 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
                 const dz = positions[i * 3 + 2] - position.z;
                 
                 // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random();
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                normalize3D(tempVec3, dx, dy, dz);
+                const lenSq = dx * dx + dy * dy + dz * dz;
+                const dirX = lenSq > 0.0001 ? tempVec3.x : Math.random() - 0.5;
+                const dirY = lenSq > 0.0001 ? tempVec3.y : Math.random();
+                const dirZ = lenSq > 0.0001 ? tempVec3.z : Math.random() - 0.5;
+
                 // Move outward
                 const speed = 2;
                 positions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);

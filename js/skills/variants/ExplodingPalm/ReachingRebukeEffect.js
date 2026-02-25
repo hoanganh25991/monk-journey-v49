@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
+import { distanceSq2D, normalize2D, tempVec2 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Reaching Rebuke variant of Exploding Palm
@@ -88,17 +89,17 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
         
         if (validTargets.length === 0) return;
         
-        // Select the closest enemy
+        // Select the closest enemy (squared distance for performance)
         let closestEnemy = null;
-        let closestDistance = Infinity;
-        
+        let closestDistanceSq = Infinity;
+
         validTargets.forEach(enemy => {
             const enemyPosition = enemy.getPosition();
             if (!enemyPosition) return;
-            
-            const distance = sourcePosition.distanceTo(enemyPosition);
-            if (distance < closestDistance) {
-                closestDistance = distance;
+
+            const distSq = distanceSq2D(sourcePosition.x, sourcePosition.z, enemyPosition.x, enemyPosition.z);
+            if (distSq < closestDistanceSq) {
+                closestDistanceSq = distSq;
                 closestEnemy = enemy;
             }
         });
@@ -156,12 +157,12 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
             // Add randomness perpendicular to the line
             const perpX = -(endPosition.z - startPosition.z);
             const perpZ = endPosition.x - startPosition.x;
-            const perpLength = Math.sqrt(perpX * perpX + perpZ * perpZ);
-            
-            if (perpLength > 0) {
+            const perpLenSq = perpX * perpX + perpZ * perpZ;
+            if (perpLenSq > 0.0001) {
+                normalize2D(tempVec2, perpX, perpZ);
                 const randomOffset = (Math.random() - 0.5) * 0.5;
-                point.x += (perpX / perpLength) * randomOffset;
-                point.z += (perpZ / perpLength) * randomOffset;
+                point.x += tempVec2.x * randomOffset;
+                point.z += tempVec2.z * randomOffset;
             }
             
             // Add vertical randomness

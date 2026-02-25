@@ -203,7 +203,106 @@ export class FrostTitanModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement frost titan-specific animations here if needed
-        // For example, rotating the ice crystal or animating the frost particles
+        if (!this.modelGroup || this.modelGroup.children.length < 8) {
+            return;
+        }
+        
+        const time = Date.now() * 0.001;
+        
+        const body = this.modelGroup.children[0];
+        const head = this.modelGroup.children[1];
+        const leftArm = this.modelGroup.children[4];
+        const rightArm = this.modelGroup.children[5];
+        const leftLeg = this.modelGroup.children[6];
+        const rightLeg = this.modelGroup.children[7];
+        const staff = this.modelGroup.children.length > 9 ? this.modelGroup.children[9] : null;
+        const crystal = this.modelGroup.children.length > 10 ? this.modelGroup.children[10] : null;
+        
+        if (!body.userData.initialized) {
+            body.userData.originalY = body.position.y;
+            head.userData.originalY = head.position.y;
+            body.userData.initialized = true;
+        }
+        
+        if (crystal) {
+            crystal.rotation.x = time * 0.8;
+            crystal.rotation.y = time * 1.2;
+            const crystalPulse = 1.0 + Math.sin(time * 3) * 0.15;
+            crystal.scale.set(crystalPulse, crystalPulse, crystalPulse);
+        }
+        
+        for (let i = 11; i < this.modelGroup.children.length; i++) {
+            const particle = this.modelGroup.children[i];
+            if (particle && particle.position) {
+                const baseAngle = i * 0.5;
+                const angle = baseAngle + time * 0.5;
+                const radius = 1.2 + Math.sin(time * 2 + i) * 0.3;
+                particle.position.x = Math.cos(angle) * radius;
+                particle.position.z = Math.sin(angle) * radius;
+                particle.position.y = Math.sin(time * 1.5 + i) * 0.5 + 1;
+            }
+        }
+        
+        if (this.enemy.state.isAttacking) {
+            const attackSpeed = 8;
+            const attackCycle = (time * attackSpeed) % (Math.PI * 2);
+            
+            if (staff) {
+                if (attackCycle < Math.PI * 0.5) {
+                    const progress = attackCycle / (Math.PI * 0.5);
+                    staff.rotation.z = -Math.PI / 2 - progress * Math.PI * 0.4;
+                    staff.position.y = 1.2 + progress * 0.5;
+                } else {
+                    const progress = (attackCycle - Math.PI * 0.5) / (Math.PI * 1.5);
+                    staff.rotation.z = -Math.PI / 2 - Math.PI * 0.4 + progress * Math.PI * 0.4;
+                    staff.position.y = 1.7 - progress * 0.5;
+                }
+            }
+            
+            rightArm.rotation.x = Math.sin(time * attackSpeed) * 0.3;
+            leftArm.rotation.x = Math.sin(time * attackSpeed * 0.7) * 0.2;
+            
+        } else if (this.enemy.state.isMoving) {
+            const walkSpeed = 4;
+            const walkAmp = 0.12;
+            
+            leftLeg.rotation.x = Math.sin(time * walkSpeed) * 0.3;
+            rightLeg.rotation.x = -Math.sin(time * walkSpeed) * 0.3;
+            
+            leftArm.rotation.x = -Math.sin(time * walkSpeed) * 0.25;
+            rightArm.rotation.x = Math.sin(time * walkSpeed) * 0.25;
+            
+            const bodyBob = Math.abs(Math.sin(time * walkSpeed)) * 0.12;
+            body.position.y = body.userData.originalY + bodyBob;
+            head.position.y = head.userData.originalY + bodyBob;
+            
+            if (staff) {
+                staff.rotation.z = -Math.PI / 2 + Math.sin(time * walkSpeed) * 0.1;
+            }
+            
+        } else {
+            const idleSpeed = 1.5;
+            
+            body.rotation.x = Math.sin(time * idleSpeed) * 0.03;
+            body.rotation.z = Math.cos(time * idleSpeed * 0.7) * 0.02;
+            
+            head.rotation.x = Math.sin(time * 1.1) * 0.05;
+            head.rotation.y = Math.sin(time * 0.8) * 0.08;
+            
+            const breathe = Math.sin(time * idleSpeed) * 0.05;
+            body.position.y = body.userData.originalY + breathe;
+            head.position.y = head.userData.originalY + breathe;
+            
+            leftArm.rotation.x = Math.sin(time * idleSpeed * 0.4) * 0.06;
+            rightArm.rotation.x = Math.cos(time * idleSpeed * 0.4) * 0.06;
+            
+            leftLeg.rotation.x = 0;
+            rightLeg.rotation.x = 0;
+            
+            if (staff) {
+                staff.rotation.z = -Math.PI / 2;
+                staff.position.y = 1.2;
+            }
+        }
     }
 }

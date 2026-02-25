@@ -250,13 +250,17 @@ export class CorruptedTreantModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement treant-specific animations
+        // Implement treant-specific animations + move/attack
         const time = Date.now() * 0.001; // Convert to seconds
+        const moveBoost = this.enemy.state.isMoving ? 1.6 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 2.0 : 1;
         
         if (this.modelGroup) {
-            // Slow swaying motion like a tree in the wind
-            this.modelGroup.rotation.x = Math.sin(time * 0.3) * 0.05;
-            this.modelGroup.rotation.z = Math.sin(time * 0.5) * 0.05;
+            // Swaying motion (faster when moving, lean forward when attacking)
+            const swayAmp = 0.05 * moveBoost;
+            const attackLean = this.enemy.state.isAttacking ? Math.sin(time * 6) * 0.15 : 0;
+            this.modelGroup.rotation.x = Math.sin(time * 0.3 * moveBoost) * swayAmp + attackLean;
+            this.modelGroup.rotation.z = Math.sin(time * 0.5 * moveBoost) * swayAmp;
             
             // Pulse the corrupted areas
             const children = this.modelGroup.children;

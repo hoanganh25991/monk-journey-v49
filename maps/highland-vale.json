@@ -15,9 +15,12 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "mountains"
+  },
   "structures": [
     {
-      "type": "bridge",
+      "type": "temple",
       "position": {
         "x": 349,
         "z": -63
@@ -44,7 +47,7 @@
       "scale": 1.1133166359737516
     },
     {
-      "type": "house",
+      "type": "altar",
       "position": {
         "x": -163,
         "z": 301
@@ -71,7 +74,7 @@
       "scale": 0.8666786117479206
     },
     {
-      "type": "bridge",
+      "type": "temple",
       "position": {
         "x": 75,
         "z": 305
@@ -80,7 +83,7 @@
       "scale": 0.9607030319049955
     },
     {
-      "type": "bridge",
+      "type": "temple",
       "position": {
         "x": -182,
         "z": -38
@@ -125,7 +128,7 @@
       "scale": 0.9693535191938282
     },
     {
-      "type": "bridge",
+      "type": "temple",
       "position": {
         "x": -239,
         "z": -228
@@ -152,7 +155,7 @@
       "scale": 1.0080537961795928
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": -62,
         "z": -284
@@ -161,7 +164,7 @@
       "scale": 1.1693393690511584
     },
     {
-      "type": "house",
+      "type": "altar",
       "position": {
         "x": 316,
         "z": 300
@@ -170,7 +173,7 @@
       "scale": 1.0173941003158689
     },
     {
-      "type": "mountain",
+      "type": "house",
       "position": {
         "x": 53,
         "z": -208
@@ -179,7 +182,7 @@
       "scale": 1.0361502451822162
     },
     {
-      "type": "mountain",
+      "type": "house",
       "position": {
         "x": -336,
         "z": 330
@@ -188,7 +191,7 @@
       "scale": 1.173154883272946
     },
     {
-      "type": "temple",
+      "type": "cave",
       "position": {
         "x": -72,
         "z": -50
@@ -233,7 +236,7 @@
       "scale": 1.0051974518224598
     },
     {
-      "type": "altar",
+      "type": "bridge",
       "position": {
         "x": 150,
         "z": 20
@@ -242,13 +245,103 @@
       "scale": 0.8956080542877317
     },
     {
-      "type": "fortress",
+      "type": "tower",
       "position": {
         "x": 168,
         "z": -52
       },
       "rotation": 0.6911503837897545,
       "scale": 1.0587385220453145
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -235,
+        "z": -318
+      },
+      "rotation": 4.523893421169302,
+      "scale": 0.9966614332981408
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -48,
+        "z": -273
+      },
+      "rotation": 6.031857894892402,
+      "scale": 0.998802545387298
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 83,
+        "z": -212
+      },
+      "rotation": 1.6964600329384885,
+      "scale": 1.0177638021297752
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 320,
+        "z": -277
+      },
+      "rotation": 4.649557127312894,
+      "scale": 0.999321570713073
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -212,
+        "z": -16
+      },
+      "rotation": 3.8327430373795477,
+      "scale": 0.9345647183246911
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -108,
+        "z": -1
+      },
+      "rotation": 4.838052686528282,
+      "scale": 0.9598946121521295
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 146,
+        "z": -44
+      },
+      "rotation": 1.6336281798666925,
+      "scale": 1.0570251193828881
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 305,
+        "z": -132
+      },
+      "rotation": 4.838052686528282,
+      "scale": 0.952982607204467
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -236,
+        "z": 3
+      },
+      "rotation": 0.8168140899333463,
+      "scale": 1.0201059428043664
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -142,
+        "z": 110
+      },
+      "rotation": 5.277875658030852,
+      "scale": 0.976046493370086
     }
   ],
   "environment": [

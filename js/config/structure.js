@@ -25,7 +25,8 @@ export const STRUCTURE_OBJECTS = {
     TEMPLE: 'temple',
     SHOP: 'shop',
     FORTRESS: 'fortress',
-    ALTAR: 'altar'
+    ALTAR: 'altar',
+    CAVE: 'cave'
 };
 
 /**
@@ -104,6 +105,12 @@ export const STRUCTURE_PROPERTIES = {
         depth: 5,
         height: 2,
         isBuilding: true
+    },
+    [STRUCTURE_OBJECTS.CAVE]: {
+        width: 8,
+        depth: 6,
+        height: 5,
+        isBuilding: false
     }
 };
 

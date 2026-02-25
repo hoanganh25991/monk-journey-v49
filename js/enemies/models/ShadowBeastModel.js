@@ -100,7 +100,97 @@ export class ShadowBeastModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Shadow beast specific animations
-        // For example, pulsating shadow aura or moving tendrils
+        if (!this.modelGroup || this.modelGroup.children.length < 9) {
+            return;
+        }
+        
+        const time = Date.now() * 0.001;
+        
+        const body = this.modelGroup.children[0];
+        const head = this.modelGroup.children[1];
+        const leftEye = this.modelGroup.children[2];
+        const rightEye = this.modelGroup.children[3];
+        const aura = this.modelGroup.children[8];
+        
+        if (!body.userData.initialized) {
+            body.userData.originalY = body.position.y;
+            head.userData.originalY = head.position.y;
+            body.userData.initialized = true;
+        }
+        
+        const morphSpeed = 2;
+        const morphAmp = 0.15;
+        body.scale.x = 1 + Math.sin(time * morphSpeed) * morphAmp;
+        body.scale.y = 0.8 + Math.cos(time * morphSpeed * 1.3) * morphAmp;
+        body.scale.z = 1.2 + Math.sin(time * morphSpeed * 0.8) * morphAmp;
+        
+        head.scale.x = 1 + Math.sin(time * morphSpeed * 1.5) * 0.1;
+        head.scale.y = 1 + Math.cos(time * morphSpeed * 1.2) * 0.1;
+        head.scale.z = 1 + Math.sin(time * morphSpeed * 0.9) * 0.1;
+        
+        const eyePulse = 1.0 + Math.sin(time * 5) * 0.3;
+        leftEye.scale.set(eyePulse, eyePulse, eyePulse);
+        rightEye.scale.set(eyePulse, eyePulse, eyePulse);
+        if (leftEye.material) {
+            leftEye.material.emissiveIntensity = 0.8 + Math.sin(time * 6) * 0.4;
+            rightEye.material.emissiveIntensity = 0.8 + Math.sin(time * 6) * 0.4;
+        }
+        
+        if (aura) {
+            aura.rotation.z = time * 0.5;
+            const auraScale = 1.0 + Math.sin(time * 2) * 0.2;
+            aura.scale.set(auraScale, auraScale, 1);
+            if (aura.material) {
+                aura.material.opacity = 0.2 + Math.sin(time * 3) * 0.15;
+            }
+        }
+        
+        for (let i = 4; i < 8; i++) {
+            const tendril = this.modelGroup.children[i];
+            if (tendril) {
+                const baseAngle = ((i - 4) / 4) * Math.PI * 2;
+                const waveAngle = baseAngle + time * 2;
+                const waveRadius = 0.5 + Math.sin(time * 3 + baseAngle) * 0.2;
+                
+                tendril.position.x = Math.cos(waveAngle) * waveRadius;
+                tendril.position.z = Math.sin(waveAngle) * waveRadius;
+                tendril.rotation.z = waveAngle;
+                
+                const tendrilScale = 1.0 + Math.sin(time * 4 + baseAngle) * 0.3;
+                tendril.scale.y = tendrilScale;
+            }
+        }
+        
+        if (this.enemy.state.isAttacking) {
+            const attackSpeed = 10;
+            const attackIntensity = Math.sin(time * attackSpeed);
+            
+            body.scale.x = 1 + attackIntensity * 0.3;
+            body.scale.z = 1.2 + attackIntensity * 0.3;
+            
+            for (let i = 4; i < 8; i++) {
+                const tendril = this.modelGroup.children[i];
+                if (tendril) {
+                    const baseAngle = ((i - 4) / 4) * Math.PI * 2;
+                    const attackAngle = baseAngle + time * 5;
+                    const attackRadius = 0.8 + Math.sin(time * attackSpeed) * 0.4;
+                    
+                    tendril.position.x = Math.cos(attackAngle) * attackRadius;
+                    tendril.position.z = Math.sin(attackAngle) * attackRadius;
+                    tendril.scale.y = 1.5 + Math.sin(time * attackSpeed) * 0.5;
+                }
+            }
+            
+            if (aura) {
+                aura.rotation.z = time * 2;
+                const attackAuraScale = 1.5 + Math.sin(time * attackSpeed) * 0.5;
+                aura.scale.set(attackAuraScale, attackAuraScale, 1);
+            }
+            
+        } else if (this.enemy.state.isMoving) {
+            const hover = Math.sin(time * 4) * 0.08;
+            body.position.y = body.userData.originalY + hover;
+            head.position.y = head.userData.originalY + hover;
+        }
     }
 }

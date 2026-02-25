@@ -275,14 +275,17 @@ export class VoidWraithModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement wraith-specific animations
+        // Implement wraith-specific animations + move/attack
         const time = Date.now() * 0.001; // Convert to seconds
+        const moveBoost = this.enemy.state.isMoving ? 1.8 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 2.5 : 1;
         
         if (this.modelGroup) {
             // IMPORTANT: Do not modify this.modelGroup.position.y!
             // The Y position is managed by the Enemy class for proper terrain positioning.
-            // Apply hovering motion to the torso instead of the whole model
-            const hoveringMotion = Math.sin(time * 0.8) * 0.1;
+            // Apply hovering motion to the torso (faster when moving, more intense when attacking)
+            const hoverAmp = 0.1 * moveBoost * (this.enemy.state.isAttacking ? 1.5 : 1);
+            const hoveringMotion = Math.sin(time * 0.8 * moveBoost) * hoverAmp;
             const torso = this.modelGroup.children[0]; // Torso is first child
             if (torso && torso.userData.originalY === undefined) {
                 torso.userData.originalY = torso.position.y;
@@ -300,16 +303,19 @@ export class VoidWraithModel extends EnemyModel {
             const glow = this.modelGroup.children[7]; // Outer glow
             
             if (core && glow) {
-                // Pulse the core
-                const corePulse = 1.0 + Math.sin(time * 3.0) * 0.2;
+                // Pulse the core (intense when attacking)
+                const corePulseBase = this.enemy.state.isAttacking ? 0.35 : 0.2;
+                const corePulse = 1.0 + Math.sin(time * 3.0 * attackBoost) * corePulseBase;
                 core.scale.set(corePulse, corePulse, corePulse);
                 
                 // Pulse the glow more dramatically
-                const glowPulse = 1.0 + Math.sin(time * 2.0) * 0.3;
+                const glowPulseBase = this.enemy.state.isAttacking ? 0.45 : 0.3;
+                const glowPulse = 1.0 + Math.sin(time * 2.0 * moveBoost) * glowPulseBase;
                 glow.scale.set(glowPulse, glowPulse, glowPulse);
                 
-                // Change the emissive intensity
-                core.material.emissiveIntensity = 0.8 + Math.sin(time * 4.0) * 0.2;
+                // Change the emissive intensity (brighter when attacking)
+                const coreIntensity = this.enemy.state.isAttacking ? 1.2 : 0.8;
+                core.material.emissiveIntensity = coreIntensity + Math.sin(time * 4.0) * 0.2;
                 glow.material.emissiveIntensity = 0.4 + Math.sin(time * 3.0) * 0.3;
             }
             

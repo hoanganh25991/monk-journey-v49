@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { INTERACTION_RANGE } from '../config/input.js';
 import { InteractionResultHandler } from '../InteractionResultHandler.js';
+import { distanceSq2D, distanceApprox2D, fastSin, fastCos } from '../utils/FastMath.js';
 
 /**
  * Centralized system for handling all interactions in the game
@@ -70,15 +71,17 @@ export class InteractionSystem {
         // Find the closest object for highlighting using squared distance
         if (this.nearbyInteractiveObjects.length > 0) {
             let closestObject = this.nearbyInteractiveObjects[0];
-            let dx = closestObject.position.x - playerPosition.x;
-            let dz = closestObject.position.z - playerPosition.z;
-            let closestDistanceSq = dx * dx + dz * dz;
-            
+            let closestDistanceSq = distanceSq2D(
+                playerPosition.x, playerPosition.z,
+                closestObject.position.x, closestObject.position.z
+            );
+
             for (let i = 1; i < this.nearbyInteractiveObjects.length; i++) {
                 const obj = this.nearbyInteractiveObjects[i];
-                dx = obj.position.x - playerPosition.x;
-                dz = obj.position.z - playerPosition.z;
-                const distanceSq = dx * dx + dz * dz;
+                const distanceSq = distanceSq2D(
+                    playerPosition.x, playerPosition.z,
+                    obj.position.x, obj.position.z
+                );
                 
                 if (distanceSq < closestDistanceSq) {
                     closestDistanceSq = distanceSq;
@@ -133,11 +136,11 @@ export class InteractionSystem {
         const playerPosition = this.player.getPosition();
         const playerRotation = this.player.getRotation();
         
-        // Calculate forward direction from player rotation
+        // Calculate forward direction from player rotation (FastMath for hot path)
         const playerForward = new THREE.Vector3(
-            Math.sin(playerRotation.y),
+            fastSin(playerRotation.y),
             0,
-            Math.cos(playerRotation.y)
+            fastCos(playerRotation.y)
         );
         
         // Find the object in front of the player
@@ -154,11 +157,12 @@ export class InteractionSystem {
             // Higher dot product means more directly in front
             const dotProduct = playerForward.dot(objDirection);
             
-            // Calculate distance factor (closer objects get priority)
-            const dx = obj.position.x - playerPosition.x;
-            const dz = obj.position.z - playerPosition.z;
-            const distance = Math.sqrt(dx * dx + dz * dz); // Need actual distance for factor calculation
-            const distanceFactor = 1.0 - (distance / INTERACTION_RANGE);
+            // Calculate distance factor (closer objects get priority) - use approx to avoid sqrt
+            const distanceApprox = distanceApprox2D(
+                playerPosition.x, playerPosition.z,
+                obj.position.x, obj.position.z
+            );
+            const distanceFactor = 1.0 - (distanceApprox / INTERACTION_RANGE);
             
             // Only consider objects somewhat in front of the player (dot product > 0)
             if (dotProduct > 0) {

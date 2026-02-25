@@ -771,8 +771,10 @@ export class EnvironmentManager {
         // Find objects that are too far away
         this.environmentObjects.forEach((objectInfo, index) => {
             if (objectInfo.position && playerPosition) {
-                const distance = objectInfo.position.distanceTo(playerPosition);
-                if (distance > maxDistance) {
+                const dx = objectInfo.position.x - playerPosition.x;
+                const dz = objectInfo.position.z - playerPosition.z;
+                const distanceSq = dx * dx + dz * dz;
+                if (distanceSq > maxDistance * maxDistance) {
                     objectsToRemove.push(index);
                 }
             }

@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
+import { distanceSq2D } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Lightning Burst variant of Wave of Light
@@ -95,17 +96,17 @@ export class LightningBurstEffect extends WaveOfLightEffect {
             );
             
             if (enemies.length > 0) {
-                // Find the closest enemy
+                // Find the closest enemy (squared distance for performance)
                 let closestEnemy = null;
-                let closestDistance = Infinity;
-                
+                let closestDistanceSq = Infinity;
+
                 enemies.forEach(enemy => {
                     const enemyPosition = enemy.getPosition();
                     if (!enemyPosition) return;
-                    
-                    const distance = position.distanceTo(enemyPosition);
-                    if (distance < closestDistance) {
-                        closestDistance = distance;
+
+                    const distSq = distanceSq2D(position.x, position.z, enemyPosition.x, enemyPosition.z);
+                    if (distSq < closestDistanceSq) {
+                        closestDistanceSq = distSq;
                         closestEnemy = enemy;
                     }
                 });
@@ -154,17 +155,17 @@ export class LightningBurstEffect extends WaveOfLightEffect {
         const validTargets = enemies.filter(enemy => !this.hitEnemies.has(enemy.id));
         
         if (validTargets.length > 0) {
-            // Find the closest enemy
+            // Find the closest enemy (squared distance for performance)
             let closestEnemy = null;
-            let closestDistance = Infinity;
-            
+            let closestDistanceSq = Infinity;
+
             validTargets.forEach(enemy => {
                 const enemyPosition = enemy.getPosition();
                 if (!enemyPosition) return;
-                
-                const distance = sourcePosition.distanceTo(enemyPosition);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
+
+                const distSq = distanceSq2D(sourcePosition.x, sourcePosition.z, enemyPosition.x, enemyPosition.z);
+                if (distSq < closestDistanceSq) {
+                    closestDistanceSq = distSq;
                     closestEnemy = enemy;
                 }
             });

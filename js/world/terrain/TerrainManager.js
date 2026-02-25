@@ -1,6 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
-import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS } from '../../config/terrain.js';
+import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS, TERRAIN_PROFILES } from '../../config/terrain.js';
 import { getPerformanceProfile } from '../../config/performance-profile.js';
 
 /**
@@ -64,6 +64,9 @@ export class TerrainManager {
         
         // Debug/testing configuration
         this.useTestPattern = false; // Set to true to use checkerboard test pattern instead of biome coloring
+        
+        // Map terrain profile (from map JSON terrain.profile) - overrides config.height for hills/peaks
+        this.mapTerrainProfile = null; // { amplitude, frequency } when set
         
         // Compatibility aliases for StructureManager, EnvironmentManager, etc.
         this.terrainChunkSize = this.config.chunkSize;
@@ -451,9 +454,16 @@ export class TerrainManager {
         }
         
         // 3-layer noise for smooth hills (reduced from 5 for performance)
+        // Use map terrain profile when set (hills, mountains, etc.), else config default
         let height = 0;
-        let amplitude = this.config.height || 10;
-        let frequency = 0.005;
+        let amplitude, frequency;
+        if (this.mapTerrainProfile) {
+            amplitude = this.mapTerrainProfile.amplitude;
+            frequency = this.mapTerrainProfile.frequency;
+        } else {
+            amplitude = this.config.height || 10;
+            frequency = 0.005;
+        }
         
         height += this.improvedNoise(x * frequency, z * frequency) * amplitude;
         amplitude *= 0.6; frequency *= 2.5;
@@ -1039,6 +1049,26 @@ export class TerrainManager {
      */
     hasChunk(chunkKey) {
         return this.chunks.has(chunkKey) || this.buffer.has(chunkKey);
+    }
+    
+    /**
+     * Apply terrain config from map (terrain.profile = 'hills', 'mountains', etc.)
+     * Clears existing chunks so they regenerate with new height variation.
+     * @param {Object} mapTerrain - { profile: string } from map JSON
+     * @param {THREE.Vector3} spawnPosition - Position to regenerate around (e.g. spawn)
+     */
+    applyTerrainConfig(mapTerrain, spawnPosition = null) {
+        if (!mapTerrain || !mapTerrain.profile) return;
+        const profile = TERRAIN_PROFILES[mapTerrain.profile];
+        if (!profile) {
+            console.warn('TerrainManager: Unknown terrain profile:', mapTerrain.profile);
+            return;
+        }
+        this.mapTerrainProfile = { amplitude: profile.amplitude, frequency: profile.frequency };
+        console.debug(`TerrainManager: Applied terrain profile "${mapTerrain.profile}" (amplitude=${profile.amplitude})`);
+        this.clear();
+        const pos = spawnPosition || new THREE.Vector3(0, 0, 0);
+        this.updateTerrain(pos);
     }
     
     /**

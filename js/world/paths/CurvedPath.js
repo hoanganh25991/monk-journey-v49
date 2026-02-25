@@ -78,7 +78,9 @@ export class CurvedPath extends Path {
             const midZ = (start.z + end.z) / 2;
             
             // Add some randomness to the control point
-            const offset = Math.min(start.distanceTo(end) * 0.3, 10);
+            const dx = end.x - start.x;
+            const dz = end.z - start.z;
+            const offset = Math.min(Math.sqrt(dx * dx + dz * dz) * 0.3, 10);
             const controlPoint = new THREE.Vector3(
                 midX + (Math.random() - 0.5) * offset,
                 0,

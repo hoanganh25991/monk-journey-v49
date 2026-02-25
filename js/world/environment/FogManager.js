@@ -1,5 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { FOG_CONFIG } from '../../config/render.js';
+import { distanceSq2D } from '../../utils/FastMath.js';
 
 /**
  * Manages fog effects in the game world
@@ -136,8 +137,13 @@ export class FogManager {
             return;
         }
         
-        // Skip update if player hasn't moved much
-        if (playerPosition.distanceTo(this.lastPlayerPosition) < this.positionUpdateThreshold) {
+        // Skip update if player hasn't moved much (squared distance for performance)
+        const moveThresholdSq = this.positionUpdateThreshold * this.positionUpdateThreshold;
+        const moveDistSq = distanceSq2D(
+            playerPosition.x, playerPosition.z,
+            this.lastPlayerPosition.x, this.lastPlayerPosition.z
+        );
+        if (moveDistSq < moveThresholdSq) {
             // Still update fog color and density transitions
             this.updateFogTransitions(deltaTime);
             return;

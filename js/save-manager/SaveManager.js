@@ -271,6 +271,16 @@ export class SaveManager extends ISaveSystem {
                 this.loadProgress.update('Warning: No inventory data found', 60);
             }
             
+            // Ensure player has visible weapon if none equipped (e.g. old/corrupt save)
+            if (this.game.player.ensureDefaultWeapon) {
+                this.game.player.ensureDefaultWeapon();
+            }
+            
+            // Refresh equipment visuals (load sets equipment directly, bypassing equipItem)
+            if (this.game.player.model?.equipmentVisuals) {
+                this.game.player.model.equipmentVisuals.updateEquipmentVisuals(this.game.player.inventory.equipment);
+            }
+            
             // Load quest data
             this.loadProgress.update('Loading quest data...', 65);
             await this.delay(150); // Small delay for UI update

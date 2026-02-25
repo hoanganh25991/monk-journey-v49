@@ -513,7 +513,9 @@ export class Village {
             const distances = [];
             for (let j = 0; j < buildings.length; j++) {
                 if (i !== j) {
-                    const dist = buildings[i].position.distanceTo(buildings[j].position);
+                    const dx = buildings[j].position.x - buildings[i].position.x;
+                    const dz = buildings[j].position.z - buildings[i].position.z;
+                    const dist = Math.sqrt(dx * dx + dz * dz);
                     
                     // Skip invalid distances
                     if (isFinite(dist) && !isNaN(dist) && dist > 0.1) {

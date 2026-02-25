@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
+import { distanceSq2D, normalize2D, normalize3D, tempVec2, tempVec3 } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Momentum's Flow variant of Flying Kick
@@ -297,17 +298,20 @@ export class MomentumFlowEffect extends FlyingKickEffect {
         );
         
         if (enemies.length > 0) {
-            // Find the closest enemy
+            // Find the closest enemy (squared distance for performance)
             let closestEnemy = null;
-            let closestDistance = Infinity;
-            
+            let closestDistanceSq = Infinity;
+
             enemies.forEach(enemy => {
                 const enemyPosition = enemy.getPosition();
                 if (!enemyPosition) return;
-                
-                const distance = playerPosition.distanceTo(enemyPosition);
-                if (distance < closestDistance) {
-                    closestDistance = distance;
+
+                const distSq = distanceSq2D(
+                    playerPosition.x, playerPosition.z,
+                    enemyPosition.x, enemyPosition.z
+                );
+                if (distSq < closestDistanceSq) {
+                    closestDistanceSq = distSq;
                     closestEnemy = enemy;
                 }
             });
@@ -367,12 +371,12 @@ export class MomentumFlowEffect extends FlyingKickEffect {
             // Add randomness perpendicular to the line
             const perpX = -(endPosition.z - startPosition.z);
             const perpZ = endPosition.x - startPosition.x;
-            const perpLength = Math.sqrt(perpX * perpX + perpZ * perpZ);
-            
-            if (perpLength > 0) {
+            const perpLenSq = perpX * perpX + perpZ * perpZ;
+            if (perpLenSq > 0.0001) {
+                normalize2D(tempVec2, perpX, perpZ);
                 const randomOffset = (Math.random() - 0.5) * 0.3;
-                point.x += (perpX / perpLength) * randomOffset;
-                point.z += (perpZ / perpLength) * randomOffset;
+                point.x += tempVec2.x * randomOffset;
+                point.z += tempVec2.z * randomOffset;
             }
             
             // Add vertical randomness
@@ -623,11 +627,12 @@ export class MomentumFlowEffect extends FlyingKickEffect {
                 const dz = positions[i * 3 + 2] - position.z;
                 
                 // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() - 0.3; // Mostly outward, not up
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                const lenSq = dx * dx + dy * dy + dz * dz;
+                normalize3D(tempVec3, dx, dy, dz);
+                const dirX = lenSq > 0.0001 ? tempVec3.x : Math.random() - 0.5;
+                const dirY = lenSq > 0.0001 ? tempVec3.y : Math.random() - 0.3;
+                const dirZ = lenSq > 0.0001 ? tempVec3.z : Math.random() - 0.5;
+
                 // Move outward
                 const speed = 2;
                 positions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);

@@ -79,28 +79,90 @@ export class ZombieModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Call the base class animations
-        super.updateAnimations(delta);
+        if (!this.modelGroup || this.modelGroup.children.length < 6) {
+            return;
+        }
         
-        // Zombie-specific animations
-        if (this.modelGroup) {
-            const time = Date.now() * 0.001; // Convert to seconds
+        const time = Date.now() * 0.001;
+        
+        const body = this.modelGroup.children[0];
+        const head = this.modelGroup.children[1];
+        const leftArm = this.modelGroup.children[2];
+        const rightArm = this.modelGroup.children[3];
+        const leftLeg = this.modelGroup.children[4];
+        const rightLeg = this.modelGroup.children[5];
+        
+        if (!body.userData.initialized) {
+            body.userData.originalY = body.position.y;
+            head.userData.originalY = head.position.y;
+            body.userData.initialized = true;
+        }
+        
+        if (this.enemy.state.isAttacking) {
+            const attackSpeed = 7;
+            const attackCycle = (time * attackSpeed) % (Math.PI * 2);
             
-            // IMPORTANT: Do not modify this.modelGroup.position.y!
-            // The Y position is managed by the Enemy class for proper terrain positioning.
+            this.modelGroup.rotation.z = 0;
+            this.modelGroup.rotation.x = 0;
             
-            // Add a shambling effect when moving
-            if (this.enemy.state.isMoving) {
-                // Slight side-to-side movement for shambling effect
-                this.modelGroup.rotation.z = Math.sin(time * 2.0) * 0.05;
-                
-                // Slight forward lean when moving
-                this.modelGroup.rotation.x = 0.1;
+            if (attackCycle < Math.PI) {
+                const progress = attackCycle / Math.PI;
+                leftArm.rotation.x = -progress * Math.PI * 0.6;
+                leftArm.rotation.z = Math.PI / 3 + progress * 0.3;
+                rightArm.rotation.x = -progress * Math.PI * 0.5;
+                rightArm.rotation.z = -Math.PI / 4 - progress * 0.2;
             } else {
-                // Reset rotation when not moving
-                this.modelGroup.rotation.z = 0;
-                this.modelGroup.rotation.x = 0;
+                const progress = (attackCycle - Math.PI) / Math.PI;
+                leftArm.rotation.x = -Math.PI * 0.6 + progress * Math.PI * 0.6;
+                leftArm.rotation.z = Math.PI / 3 + 0.3 - progress * 0.3;
+                rightArm.rotation.x = -Math.PI * 0.5 + progress * Math.PI * 0.5;
+                rightArm.rotation.z = -Math.PI / 4 - 0.2 + progress * 0.2;
             }
+            
+            head.rotation.x = Math.sin(time * attackSpeed) * 0.1;
+            
+        } else if (this.enemy.state.isMoving) {
+            const walkSpeed = 4;
+            const shambleAmp = 0.08;
+            
+            this.modelGroup.rotation.z = Math.sin(time * walkSpeed * 0.5) * shambleAmp;
+            this.modelGroup.rotation.x = 0.15;
+            
+            leftLeg.rotation.x = Math.sin(time * walkSpeed) * 0.35;
+            rightLeg.rotation.x = -Math.sin(time * walkSpeed) * 0.3;
+            
+            leftArm.rotation.x = Math.sin(time * walkSpeed * 0.8) * 0.3;
+            leftArm.rotation.z = Math.PI / 3 + Math.sin(time * walkSpeed * 0.5) * 0.1;
+            rightArm.rotation.x = -Math.sin(time * walkSpeed * 0.8) * 0.25;
+            rightArm.rotation.z = -Math.PI / 4;
+            
+            const bodyBob = Math.abs(Math.sin(time * walkSpeed)) * 0.1;
+            body.position.y = body.userData.originalY + bodyBob;
+            head.position.y = head.userData.originalY + bodyBob;
+            
+            head.rotation.x = Math.sin(time * walkSpeed * 1.2) * 0.08;
+            head.rotation.y = Math.sin(time * walkSpeed * 0.6) * 0.12;
+            
+        } else {
+            const idleSpeed = 1.2;
+            
+            this.modelGroup.rotation.z = Math.sin(time * idleSpeed) * 0.04;
+            this.modelGroup.rotation.x = 0.05;
+            
+            head.rotation.x = Math.sin(time * 0.9) * 0.1;
+            head.rotation.y = Math.sin(time * 0.7) * 0.15;
+            
+            const breathe = Math.sin(time * idleSpeed) * 0.04;
+            body.position.y = body.userData.originalY + breathe;
+            head.position.y = head.userData.originalY + breathe;
+            
+            leftArm.rotation.x = Math.sin(time * idleSpeed * 0.5) * 0.08;
+            leftArm.rotation.z = Math.PI / 3;
+            rightArm.rotation.x = Math.cos(time * idleSpeed * 0.5) * 0.06;
+            rightArm.rotation.z = -Math.PI / 4;
+            
+            leftLeg.rotation.x = 0;
+            rightLeg.rotation.x = 0;
         }
     }
 }

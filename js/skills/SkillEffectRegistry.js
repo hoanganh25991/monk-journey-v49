@@ -21,6 +21,7 @@ export const BASE_EFFECT_REGISTRY = {
     'Deadly Reach': { path: 'DeadlyReachEffect.js', exportName: 'DeadlyReachEffect' },
     'Imprisoned Fists': { path: 'ImprisonedFistsEffect.js', exportName: 'ImprisonedFistsEffect' },
     'Bul Palm': { path: 'BulPalmEffect.js', exportName: 'BulPalmEffect' },
+    'Mystic Strike': { path: 'MysticStrikeEffect.js', exportName: 'MysticStrikeEffect' },
     'Bul Breath Of Heaven': { path: 'BulBreathOfHeavenEffect.js', exportName: 'BulBreathOfHeavenEffect' },
     'Bul Shadow Clone': { path: 'BulShadowCloneEffect.js', exportName: 'BulShadowCloneEffect' }
 };

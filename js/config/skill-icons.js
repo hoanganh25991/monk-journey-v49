@@ -519,6 +519,46 @@ export const SKILL_ICONS = {
         cssClass: "icon-radiant-barrier",
         color: "#ffd700"
     },
+    "Transcendence": {
+        emoji: "☸️",
+        cssClass: "icon-transcendence",
+        color: "#ffd700"
+    },
+    "Retribution Aura": {
+        emoji: "⚔️",
+        cssClass: "icon-retribution-aura",
+        color: "#ff6600"
+    },
+    "Spiritual Protection": {
+        emoji: "🛡️",
+        cssClass: "icon-spiritual-protection",
+        color: "#87ceeb"
+    },
+    "Diamond Aura": {
+        emoji: "💎",
+        cssClass: "icon-diamond-aura",
+        color: "#b9f2ff"
+    },
+    "Explosive Light": {
+        emoji: "💥",
+        cssClass: "icon-explosive-light",
+        color: "#ffdd22"
+    },
+    "Lightning Bell": {
+        emoji: "🔔",
+        cssClass: "icon-lightning-bell",
+        color: "#00ffff"
+    },
+    "Pillar of the Light": {
+        emoji: "📿",
+        cssClass: "icon-pillar-of-the-light",
+        color: "#ffdd22"
+    },
+    "Wall of Light": {
+        emoji: "🧱",
+        cssClass: "icon-wall-of-light",
+        color: "#ffff99"
+    },
     "Rapid Palm": {
         emoji: "👋",
         cssClass: "icon-rapid-palm",

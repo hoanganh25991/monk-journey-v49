@@ -74,7 +74,9 @@ export class StraightPath extends Path {
         if (points.length < 2) return;
         
         // Only add markers if the path is long enough
-        if (points[0].distanceTo(points[points.length - 1]) < 10) return;
+        const p0 = points[0], p1 = points[points.length - 1];
+        const dx = p1.x - p0.x, dz = p1.z - p0.z;
+        if ((dx * dx + dz * dz) < 100) return; // 10^2
         
         // Add start marker
         this.addPathMarker(pathGroup, points[0], width, 'start');

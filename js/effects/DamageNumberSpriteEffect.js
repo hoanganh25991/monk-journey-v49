@@ -322,8 +322,11 @@ export class DamageNumberSpriteEffect {
         
         // Frustum culling - hide if too far from camera
         if (this.game?.camera) {
-            const distanceToCamera = this.group.position.distanceTo(this.game.camera.position);
-            if (distanceToCamera > 80) { // Hide damage numbers beyond 80 units
+            const dx = this.group.position.x - this.game.camera.position.x;
+            const dy = this.group.position.y - this.game.camera.position.y;
+            const dz = this.group.position.z - this.game.camera.position.z;
+            const distSqToCamera = dx * dx + dy * dy + dz * dz;
+            if (distSqToCamera > 6400) { // 80^2 // Hide damage numbers beyond 80 units
                 this.group.visible = false;
                 return true; // Keep alive but hidden
             } else {

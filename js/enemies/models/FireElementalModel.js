@@ -128,19 +128,25 @@ export class FireElementalModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Pulsating core
+        // Pulsating core + move/attack animations
         if (this.modelGroup && this.modelGroup.children.length > 0) {
             const time = Date.now() * 0.001; // Convert to seconds
             const core = this.modelGroup.children[0];
             const flame = this.modelGroup.children[1];
             
+            const moveBoost = this.enemy.state.isMoving ? 1.5 : 1;
+            const attackBoost = this.enemy.state.isAttacking ? 2.0 : 1;
+            
             if (core && flame) {
-                // Pulsate the core
-                const pulseFactor = 1.0 + Math.sin(time * 3.0) * 0.1;
+                // Pulsate the core (faster when moving, intense when attacking)
+                const pulseBase = this.enemy.state.isAttacking ? 0.25 : 0.1;
+                const pulseSpeed = 3.0 * moveBoost * attackBoost;
+                const pulseFactor = 1.0 + Math.sin(time * pulseSpeed) * pulseBase;
                 core.scale.set(pulseFactor, pulseFactor, pulseFactor);
                 
                 // Pulsate the outer flame more dramatically
-                const flamePulseFactor = 1.0 + Math.sin(time * 2.0) * 0.2;
+                const flamePulseBase = this.enemy.state.isAttacking ? 0.35 : 0.2;
+                const flamePulseFactor = 1.0 + Math.sin(time * 2.0 * moveBoost) * flamePulseBase;
                 flame.scale.set(flamePulseFactor, flamePulseFactor, flamePulseFactor);
             }
             

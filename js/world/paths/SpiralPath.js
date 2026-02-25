@@ -79,7 +79,9 @@ export class SpiralPath extends Path {
         const end = points[points.length - 1];
         
         // Calculate radius as distance from center to end
-        const radius = center.distanceTo(end);
+        const dx = end.x - center.x;
+        const dz = end.z - center.z;
+        const radius = Math.sqrt(dx * dx + dz * dz);
         
         // Create spiral points
         const spiralPoints = [];

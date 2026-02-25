@@ -440,13 +440,17 @@ export class AncientTreantModel extends EnemyModel {
     }
     
     updateAnimations(delta) {
-        // Implement ancient treant-specific animations
+        // Implement ancient treant-specific animations + move/attack
         const time = Date.now() * 0.001; // Convert to seconds
+        const moveBoost = this.enemy.state.isMoving ? 1.5 : 1;
+        const attackBoost = this.enemy.state.isAttacking ? 1.8 : 1;
         
         if (this.modelGroup) {
-            // Slower, more majestic swaying motion
-            this.modelGroup.rotation.x = Math.sin(time * 0.2) * 0.04;
-            this.modelGroup.rotation.z = Math.sin(time * 0.3) * 0.04;
+            // Majestic swaying (faster when moving, lean when attacking)
+            const swayAmp = 0.04 * moveBoost;
+            const attackLean = this.enemy.state.isAttacking ? Math.sin(time * 5) * 0.12 : 0;
+            this.modelGroup.rotation.x = Math.sin(time * 0.2 * moveBoost) * swayAmp + attackLean;
+            this.modelGroup.rotation.z = Math.sin(time * 0.3 * moveBoost) * swayAmp;
             
             // Pulse the glowing areas
             const children = this.modelGroup.children;

@@ -15,9 +15,12 @@
     "y": 1,
     "z": -13
   },
+  "terrain": {
+    "profile": "hills"
+  },
   "structures": [
     {
-      "type": "tower",
+      "type": "dark_sanctum",
       "position": {
         "x": 299,
         "z": 161
@@ -44,7 +47,7 @@
       "scale": 1.096067281998694
     },
     {
-      "type": "altar",
+      "type": "tower",
       "position": {
         "x": 111,
         "z": -332
@@ -98,7 +101,7 @@
       "scale": 1.1889154696837068
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -108,
         "z": -85
@@ -116,7 +119,7 @@
       "scale": 0.9649473393335939
     },
     {
-      "type": "altar",
+      "type": "tower",
       "position": {
         "x": -48,
         "z": -172
@@ -161,7 +164,7 @@
       "scale": 0.9782066529616714
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": 23,
         "z": 318
@@ -179,7 +182,7 @@
       "scale": 0.9898080116137863
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": 39,
         "z": -213
@@ -188,7 +191,7 @@
       "scale": 1.1375535929575564
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": -264,
         "z": 213
@@ -197,7 +200,7 @@
       "scale": 1.0361587828025223
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -314,
         "z": 13
@@ -224,7 +227,7 @@
       "scale": 1.062046035565436
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -308,
         "z": -128
@@ -233,7 +236,7 @@
       "scale": 1.0596954768523574
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -70,
         "z": -195
@@ -251,7 +254,7 @@
       "scale": 0.8688272004947066
     },
     {
-      "type": "fortress",
+      "type": "village",
       "position": {
         "x": 276,
         "z": 221
@@ -269,7 +272,7 @@
       "scale": 0.989099938236177
     },
     {
-      "type": "dark_sanctum",
+      "type": "fortress",
       "position": {
         "x": -275,
         "z": -39
@@ -278,13 +281,94 @@
       "scale": 0.9372531557455659
     },
     {
-      "type": "village",
+      "type": "cave",
       "position": {
         "x": -93,
         "z": -94
       },
       "rotation": 6.031857894892402,
       "scale": 0.8832639342173935
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -263,
+        "z": -240
+      },
+      "rotation": 5.717698629533424,
+      "scale": 1.0573680230416358
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -75,
+        "z": -306
+      },
+      "rotation": 0.8168140899333463,
+      "scale": 1.0673900374211371
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 71,
+        "z": -235
+      },
+      "rotation": 1.2566370614359172,
+      "scale": 1.0512069889344275
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 265,
+        "z": -237
+      },
+      "rotation": 5.403539364174444,
+      "scale": 0.906646026019007
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -332,
+        "z": -127
+      },
+      "rotation": 4.0212385965949355,
+      "scale": 0.9455967971123755
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -168,
+        "z": -90
+      },
+      "rotation": 2.3876104167282426,
+      "scale": 0.9940114506520331
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 22,
+        "z": -88
+      },
+      "rotation": 4.649557127312894,
+      "scale": 1.0919046350754797
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": 194,
+        "z": -112
+      },
+      "rotation": 4.084070449666731,
+      "scale": 0.9933534988202155
+    },
+    {
+      "type": "cave",
+      "position": {
+        "x": -284,
+        "z": 69
+      },
+      "rotation": 5.592034923389832,
+      "scale": 1.0664976903237402
     }
   ],
   "environment": [

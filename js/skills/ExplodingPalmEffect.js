@@ -478,7 +478,10 @@ export class ExplodingPalmEffect extends SkillEffect {
   updateFlyingPhase(delta) {
     // Calculate distance to target
     const currentPosition = this.effect.position.clone();
-    const distanceToTarget = currentPosition.distanceTo(this.targetPosition);
+    const dx = this.targetPosition.x - currentPosition.x;
+    const dy = this.targetPosition.y - currentPosition.y;
+    const dz = this.targetPosition.z - currentPosition.z;
+    const distanceToTarget = Math.sqrt(dx * dx + dy * dy + dz * dz);
     
     // Calculate movement speed
     const speed = this.explodingPalmState.flyingSpeed || 15;
@@ -536,7 +539,7 @@ export class ExplodingPalmEffect extends SkillEffect {
     
     // Check if palm has reached the target or maximum distance
     const maxDistance = this.explodingPalmState.maxDistance || 30;
-    if (distanceToTarget < 1.0 || this.distanceTraveled >= maxDistance) {
+    if ((dx * dx + dy * dy + dz * dz) < 1 || this.distanceTraveled >= maxDistance) {
       // Transition to exploding phase
       this.explodingPalmState.phase = "exploding";
       

@@ -44,7 +44,31 @@ export function playAnimation(animations, currentAnimation, primaryName, fallbac
         console.debug(`AnimationUtils: Found direct animation match: ${primaryName}`);
     }
     
-    // If no match found, use the first animation as fallback
+    // If no direct match, try keyword search (e.g. 'attack' matches 'wk_arc_sk_attack_versus')
+    if (!animationToPlay && primaryName && allAnimNames.length > 0) {
+        const keywordMatch = allAnimNames.find(name => 
+            name.toLowerCase().includes(primaryName.toLowerCase()));
+        if (keywordMatch) {
+            animationToPlay = animations[keywordMatch];
+            console.debug(`AnimationUtils: Found keyword match for ${primaryName}: ${keywordMatch}`);
+        }
+    }
+    
+    // Try fallback name (e.g. 'punch' for attack)
+    if (!animationToPlay && fallbackName && animations[fallbackName]) {
+        animationToPlay = animations[fallbackName];
+        console.debug(`AnimationUtils: Using fallback: ${fallbackName}`);
+    }
+    if (!animationToPlay && fallbackName && allAnimNames.length > 0) {
+        const keywordMatch = allAnimNames.find(name => 
+            name.toLowerCase().includes(fallbackName.toLowerCase()));
+        if (keywordMatch) {
+            animationToPlay = animations[keywordMatch];
+            console.debug(`AnimationUtils: Found fallback keyword match: ${keywordMatch}`);
+        }
+    }
+    
+    // Last resort: use first animation
     if (!animationToPlay && allAnimNames.length > 0) {
         const firstAnim = allAnimNames[0];
         animationToPlay = animations[firstAnim];
@@ -262,14 +286,14 @@ export function updateStateBasedAnimations(params) {
         };
     }
     
-    // Standard animation handling for other models
-    if (playerState.isMoving()) {
-        const result = playAnimation(animations, currentAnimation, 'walk', 'run', 0.3);
+    // Standard animation handling - attack takes priority over movement
+    if (playerState.isAttacking()) {
+        const result = playAnimation(animations, currentAnimation, 'attack', 'punch', 0.2);
         if (result.success) {
             newCurrentAnimation = result.currentAnimation;
         }
-    } else if (playerState.isAttacking()) {
-        const result = playAnimation(animations, currentAnimation, 'attack', 'punch', 0.2);
+    } else if (playerState.isMoving()) {
+        const result = playAnimation(animations, currentAnimation, 'walk', 'run', 0.3);
         if (result.success) {
             newCurrentAnimation = result.currentAnimation;
         }

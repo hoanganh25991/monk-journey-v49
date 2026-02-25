@@ -1,7 +1,9 @@
-// Skills configuration
+/**
+ * Skills configuration - SOURCE OF TRUTH for all playable skills.
+ * skill-tree.js, SkillEffectRegistry, and UI derive from this file.
+ */
 import { SKILL_ICONS } from './skill-icons.js';
 import { SKILL_SOUNDS } from './sounds.js';
-// Type definitions are available in skill-types.d.ts
 // @ts-check
 /** @typedef {import('./config.type.js').SkillConfig} SkillConfig */
 
@@ -263,6 +265,25 @@ export const NORMAL_SKILLS = [
         }
     },
     {
+        name: 'Mystic Strike',
+        description: "Dash forward and leave a spirit behind that returns to you, dealing damage.",
+        type: 'dash',
+        damage: 35,
+        manaCost: 25,
+        cooldown: 0.2,
+        range: 25,
+        radius: 3,
+        duration: 4,
+        kickSpeed: 35,
+        get color() { return SKILL_ICONS[this.name].color; },
+        get icon() { return SKILL_ICONS[this.name].emoji; },
+        sounds: {
+            cast: SKILL_SOUNDS.flyingKick.id,
+            impact: SKILL_SOUNDS.kickImpact.id,
+            end: SKILL_SOUNDS.kickLand.id
+        }
+    },
+    {
         name: 'Imprisoned Fists',
         description: 'A powerful strike that locks enemies in place, preventing them from moving.',
         type: 'control',
@@ -397,7 +418,6 @@ export const NORMAL_SKILLS = [
         autoTargetEnemies: true, // Clones automatically target enemies
         isCustomSkill: true,
     },
-    // TODO: Add more skills here
 ];
 
 // For backward compatibility, export a combined array of all skills
@@ -408,4 +428,12 @@ export const SKILLS = [...PRIMARY_ATTACKS, ...NORMAL_SKILLS];
 export const BATTLE_SKILLS = [
     PRIMARY_ATTACKS[1], // First primary skill
     ...NORMAL_SKILLS.slice(0, 7), // First 7 normal skills
-]
+];
+
+/** Ordered skill names - use this for consistent ordering (skill-tree, UI) */
+export const SKILL_ORDER = [...PRIMARY_ATTACKS, ...NORMAL_SKILLS].map(s => s.name);
+
+/** Map skill name -> config for quick lookup */
+export const SKILL_BY_NAME = Object.fromEntries(
+    [...PRIMARY_ATTACKS, ...NORMAL_SKILLS].map(s => [s.name, s])
+);

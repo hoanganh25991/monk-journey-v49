@@ -28,6 +28,7 @@ import { PlayerMovement } from './PlayerMovement.js';
 import { PlayerSkills } from './PlayerSkills.js';
 import { PlayerCombat } from './PlayerCombat.js';
 import { PlayerStatusEffects } from './PlayerStatusEffects.js';
+import { ITEM_TEMPLATES } from '../config/items.js';
 
 export class Player {
     /**
@@ -48,6 +49,9 @@ export class Player {
         this.stats = new PlayerStats();
         this.inventory = new PlayerInventory();
         this.model = new PlayerModel(scene, game);
+        
+        // Connect inventory to model for equipment visuals
+        this.inventory.setPlayerModel(this.model);
         
         // Components that need to be initialized after model is created
         this.movement = null;
@@ -76,9 +80,43 @@ export class Player {
         // Initialize skills
         this.skills.initializeSkills();
         
+        // Ensure player has a default weapon (visible staff) if none equipped
+        this.ensureDefaultWeapon();
+        
         console.debug("Player initialized with model group:", this.model.getModelGroup());
         
         return true;
+    }
+    
+    /**
+     * Give player a default starting weapon if they have none equipped
+     */
+    ensureDefaultWeapon() {
+        if (this.inventory.equipment.weapon) return;
+        
+        const staffTemplate = ITEM_TEMPLATES.find(t => t.id === 'basicStaff') || {
+            id: 'basicStaff',
+            name: 'Wooden Staff',
+            type: 'weapon',
+            subType: 'staff',
+            rarity: 'common',
+            icon: '🥢',
+            baseStats: { damage: 8, attackSpeed: 0.9, skillDamage: 10 }
+        };
+        
+        const defaultStaff = {
+            ...staffTemplate,
+            amount: 1
+        };
+        
+        this.inventory.addToInventory(defaultStaff);
+        this.inventory.equipItem(defaultStaff);
+        
+        if (this.model?.equipmentVisuals) {
+            this.model.equipmentVisuals.updateEquipmentVisuals(this.inventory.equipment);
+        }
+        
+        console.debug('Player given default Wooden Staff');
     }
     
     /**

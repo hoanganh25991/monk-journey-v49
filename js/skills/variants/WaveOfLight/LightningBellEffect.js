@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
+import { distanceApprox2D } from '../../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Wave of Light - Lightning Bell variant
@@ -155,11 +156,11 @@ export class LightningBellEffect extends WaveOfLightEffect {
         }
         // Otherwise, create lightning bolts to enemies
         else {
-            // Sort enemies by distance
+            // Sort enemies by distance (squared for performance)
             enemies.sort((a, b) => {
-                const distA = a.getPosition().distanceTo(bellPosition);
-                const distB = b.getPosition().distanceTo(bellPosition);
-                return distA - distB;
+                const distSqA = (a.getPosition().x - bellPosition.x) ** 2 + (a.getPosition().z - bellPosition.z) ** 2;
+                const distSqB = (b.getPosition().x - bellPosition.x) ** 2 + (b.getPosition().z - bellPosition.z) ** 2;
+                return distSqA - distSqB;
             });
             
             // Store targets for chaining
@@ -270,7 +271,7 @@ export class LightningBellEffect extends WaveOfLightEffect {
      */
     _createLightningBolt(startPoint, endPoint) {
         // Create a jagged path for the lightning
-        const distance = startPoint.distanceTo(endPoint);
+        const distance = distanceApprox2D(startPoint.x, startPoint.z, endPoint.x, endPoint.z);
         const segments = Math.max(5, Math.floor(distance * 2));
         const points = [];
         
