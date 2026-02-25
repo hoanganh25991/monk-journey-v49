@@ -385,13 +385,22 @@ export class PlayerSkills {
             // Auto-targeting range is 2x the skill's base range
             const baseRange = skillTemplate.range > 0 ? skillTemplate.range : 15;
             const targetRange = baseRange * 2;
-            targetEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, targetRange);
+            
+            // Use player's ground position for targeting (X, Z only, ignore height)
+            // This creates a circular targeting area on the ground regardless of player's height
+            const groundPosition = new THREE.Vector3(
+                this.playerPosition.x,
+                0, // Use ground level for targeting circle
+                this.playerPosition.z
+            );
+            
+            targetEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, targetRange);
             
             if (targetEnemy) {
                 // Get enemy position
                 const enemyPosition = targetEnemy.getPosition();
                 
-                // Calculate direction to enemy
+                // Calculate direction to enemy (horizontal only)
                 targetDirection = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                 
                 // Update player rotation to face enemy
@@ -538,8 +547,15 @@ export class PlayerSkills {
             const minTeleportRange = 4.0; // Minimum distance required for teleport
             const maxTeleportRange = skillTemplate.range || 15.0; // Maximum teleport range
             
+            // Use player's ground position for targeting (creates circular area on ground)
+            const groundPosition = new THREE.Vector3(
+                this.playerPosition.x,
+                0,
+                this.playerPosition.z
+            );
+            
             // First check if there's an enemy in melee range
-            const meleeEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, meleeRange);
+            const meleeEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, meleeRange);
             
             if (meleeEnemy) {
                 // Enemy is in melee range, use normal attack (no teleport)
@@ -591,7 +607,7 @@ export class PlayerSkills {
             } else {
                 // No enemy in melee range, check for enemies in teleport range
                 // First look for enemies between min and max teleport range
-                const teleportRangeEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, maxTeleportRange);
+                const teleportRangeEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, maxTeleportRange);
                 this.broadcastSkillCast(skillTemplate.name, teleportRangeEnemy);
                 
                 if (teleportRangeEnemy) {

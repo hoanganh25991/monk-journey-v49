@@ -850,18 +850,24 @@ export class EnemyManager {
     
     findNearestEnemy(position, maxDistance = 15) {
         // Find the nearest enemy within maxDistance
+        // Uses horizontal distance only (ignores Y/height) to create a circular area on the ground
+        // Optimized: uses squared distance to avoid expensive Math.sqrt() calls
         let nearestEnemy = null;
-        let nearestDistance = maxDistance;
+        let nearestDistanceSq = maxDistance * maxDistance; // Compare squared distances
         
         for (const [id, enemy] of this.enemies.entries()) {
             // Skip dead enemies
             if (enemy.isDead()) continue;
             
             const enemyPosition = enemy.getPosition();
-            const distance = position.distanceTo(enemyPosition);
             
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
+            // Calculate squared horizontal distance (X and Z, ignore Y)
+            const dx = enemyPosition.x - position.x;
+            const dz = enemyPosition.z - position.z;
+            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            
+            if (distanceSq < nearestDistanceSq) {
+                nearestDistanceSq = distanceSq;
                 nearestEnemy = enemy;
             }
         }
@@ -1006,10 +1012,17 @@ export class EnemyManager {
     
     getEnemiesNearPosition(position, radius) {
         const nearbyEnemies = [];
+        const radiusSq = radius * radius; // Compare squared distances for performance
         
         for (const [id, enemy] of this.enemies.entries()) {
-            const distance = position.distanceTo(enemy.getPosition());
-            if (distance <= radius) {
+            const enemyPosition = enemy.getPosition();
+            
+            // Calculate squared horizontal distance (X and Z, ignore Y)
+            const dx = enemyPosition.x - position.x;
+            const dz = enemyPosition.z - position.z;
+            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            
+            if (distanceSq <= radiusSq) {
                 nearbyEnemies.push(enemy);
             }
         }
@@ -1132,13 +1145,19 @@ export class EnemyManager {
     
     getClosestEnemy(position, maxDistance = Infinity) {
         let closestEnemy = null;
-        let closestDistance = maxDistance;
+        let closestDistanceSq = maxDistance * maxDistance; // Compare squared distances for performance
         
         this.enemies.forEach(enemy => {
-            const distance = position.distanceTo(enemy.getPosition());
-            if (distance < closestDistance) {
+            const enemyPosition = enemy.getPosition();
+            
+            // Calculate squared horizontal distance (X and Z, ignore Y)
+            const dx = enemyPosition.x - position.x;
+            const dz = enemyPosition.z - position.z;
+            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            
+            if (distanceSq < closestDistanceSq) {
                 closestEnemy = enemy;
-                closestDistance = distance;
+                closestDistanceSq = distanceSq;
             }
         });
         
@@ -1200,14 +1219,17 @@ export class EnemyManager {
         for (const [id, enemy] of this.enemies.entries()) {
             const position = enemy.getPosition();
             
-            // Calculate distance to player
-            const distance = position.distanceTo(playerPos);
+            // Calculate squared horizontal distance to player (ignore Y/height) for performance
+            const dx = position.x - playerPos.x;
+            const dz = position.z - playerPos.z;
+            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
             
             // Different distance thresholds for bosses and regular enemies
             const distanceThreshold = enemy.isBoss ? adjustedBossMaxDistance : adjustedMaxDistance;
+            const distanceThresholdSq = distanceThreshold * distanceThreshold;
             
             // If enemy is too far away, mark it for removal
-            if (distance > distanceThreshold) {
+            if (distanceSq > distanceThresholdSq) {
                 // In multiplier zones, don't remove all enemies at once - stagger removal
                 // This creates a more gradual transition as player moves
                 if (inMultiplierZone && Math.random() > 0.3) {

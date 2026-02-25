@@ -64,7 +64,7 @@ export const NORMAL_SKILLS = [
         cooldown: 0.2, // Reduced cooldown
         range: 25,
         radius: 5,
-        duration: 3.0, // Further increased duration from 3.5 to 5.0
+        duration: 15.0, // 5x increased duration (was 3.0) to allow bell to fall from high altitude
         get color() { return SKILL_ICONS[this.name].color; },
         get icon() { return SKILL_ICONS[this.name].emoji; },
         sounds: {

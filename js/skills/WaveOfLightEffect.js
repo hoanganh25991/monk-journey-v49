@@ -126,8 +126,10 @@ export class WaveOfLightEffect extends SkillEffect {
         striker.position.y = bellHeight * 0.32; // Position striker proportionally to bell size
         bellGroup.add(striker);
         
-        // Position the bell above the player
-        bellGroup.position.y = config.bellHeight;
+        // Position the bell high above the target position (player height + 50)
+        // Start from much higher so it has time to fall dramatically
+        const startHeight = this.initialPosition.y + 50;
+        bellGroup.position.y = startHeight;
         
         // Add bell to effect group
         effectGroup.add(bellGroup);
@@ -207,7 +209,6 @@ export class WaveOfLightEffect extends SkillEffect {
         
         // Check if we have a game reference and can find a target enemy
         let targetPosition = this.initialPosition.clone();
-        targetPosition.y -= 3.0;
         
         if (this.skill.game && this.skill.game.enemyManager) {
             // Try to find the nearest enemy within the skill's range
@@ -218,26 +219,43 @@ export class WaveOfLightEffect extends SkillEffect {
                 const enemyPosition = nearestEnemy.getPosition();
                 // Calculate target position (at the enemy's location)
                 targetPosition = enemyPosition.clone();
-                targetPosition.y -= 0.3;
                 console.debug(`Wave of Light targeting enemy at position: ${targetPosition.x}, ${targetPosition.z}`);
             } else {
-                // If no enemy found, use hero position
-                targetPosition = this.initialPosition.clone();
-                targetPosition.y -= 2.8;
-                console.debug('No enemy in range for Wave of Light, casting at hero position');
+                // If no enemy found, drop the bell at a position in front of the player on the ground
+                // Use the direction vector to calculate a position ahead of the player
+                const dropDistance = 5; // Distance ahead of player to drop the bell
+                targetPosition = new THREE.Vector3(
+                    this.initialPosition.x + this.direction.x * dropDistance,
+                    0, // Y will be set to ground height below
+                    this.initialPosition.z + this.direction.z * dropDistance
+                );
+                console.debug('No enemy in range for Wave of Light, dropping ahead of player at ground level');
             }
         }
 
-        // Move the effect group to the target position
+        // Get the terrain height at the target position to ensure bell stops at ground level
+        let groundHeight = 0;
+        if (this.skill.game && this.skill.game.world) {
+            const terrainHeight = this.skill.game.world.getTerrainHeight(targetPosition.x, targetPosition.z);
+            if (terrainHeight != null && isFinite(terrainHeight)) {
+                groundHeight = terrainHeight;
+            }
+        }
+        
+        // Position the effect group at ground level (bell will be positioned above this)
+        targetPosition.y = groundHeight;
         effectGroup.position.copy(targetPosition);
         
         // Store animation state with configuration and target position
+        const startHeight = this.initialPosition.y + 50;
         this.bellState = {
             phase: 'descending', // 'descending', 'impact', 'ascending'
-            initialHeight: config.bellHeight,
+            initialHeight: startHeight, // Store the actual start height
             impactTime: 0,
             config: config, // Store config for use in update method
-            targetPosition: targetPosition // Store the target position if an enemy was found
+            targetPosition: targetPosition, // Store the target position if an enemy was found
+            groundHeight: groundHeight, // Store ground height to prevent bell from going underground
+            hasImpacted: false // Track if bell has hit the ground yet
         };
         
         return effectGroup;
@@ -253,10 +271,23 @@ export class WaveOfLightEffect extends SkillEffect {
         try {
             this.elapsedTime += delta;
             
-            // Check if effect has expired
+            // Only check duration expiry if bell has completed its cycle (impact + ascent)
+            // This allows the bell to complete its animation naturally
+            if (this.bellState && this.bellState.phase === 'ascending') {
+                const bellGroup = this.effect.children[0];
+                // End effect when bell has ascended back up or faded out
+                if (bellGroup && bellGroup.position.y >= this.bellState.initialHeight || 
+                    (bellGroup && bellGroup.children[0] && bellGroup.children[0].material.opacity <= 0.05)) {
+                    this.isActive = false;
+                    this.dispose();
+                    return;
+                }
+            }
+            
+            // Fallback: if duration is exceeded and we're still active, force cleanup
             if (this.elapsedTime >= this.skill.duration) {
                 this.isActive = false;
-                this.dispose(); // Properly dispose of the effect when it expires
+                this.dispose();
                 return;
             }
             
@@ -299,12 +330,30 @@ export class WaveOfLightEffect extends SkillEffect {
                 const descentSpeed = 15 * Math.sqrt(config.bellSizeMultiplier); // Scale speed with bell size
                 bellGroup.position.y -= descentSpeed * delta;
                 
-                // When bell reaches near ground level, switch to impact phase
-                const groundClearance = 0.5 * config.bellSizeMultiplier;
+                // Update effect group position to match current terrain height
+                // This ensures the bell stops at the correct ground level even on slopes
+                if (this.skill?.game?.world) {
+                    const currentTerrainHeight = this.skill.game.world.getTerrainHeight(
+                        this.effect.position.x, 
+                        this.effect.position.z
+                    );
+                    if (currentTerrainHeight != null && isFinite(currentTerrainHeight)) {
+                        this.effect.position.y = currentTerrainHeight;
+                        this.bellState.groundHeight = currentTerrainHeight;
+                    }
+                }
+                
+                // Calculate the minimum height the bell rim should be above ground
+                // The bell rim is at y=0 in the bell group, so we need small clearance
+                const groundClearance = 0.2 * config.bellSizeMultiplier;
+                
+                // Check if bell has reached ground level
+                // Since effect group is positioned at ground height, bell should stop at groundClearance
                 if (bellGroup.position.y <= groundClearance) {
-                    bellGroup.position.y = groundClearance; // Ensure bell doesn't go below ground
+                    bellGroup.position.y = groundClearance; // Stop bell at ground level
                     this.bellState.phase = 'impact';
                     this.bellState.impactTime = 0;
+                    this.bellState.hasImpacted = true; // Mark that bell has hit the ground
                     
                     // Play bell ring sound
                     if (this.skill && this.skill.game && this.skill.game.audioManager) {
