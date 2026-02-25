@@ -179,11 +179,10 @@ export class PathManager {
     addEdgeStones(points) {
         if (points.length < 2) return;
         const halfWidth = this.config.pathWidth * 0.5;
-        const stoneSpacing = 1.2;
+        const stoneSpacing = 2.0;
         let totalLen = 0;
         for (let i = 1; i < points.length; i++) totalLen += points[i].distanceTo(points[i - 1]);
-        const stonesPerSide = Math.max(20, Math.floor(totalLen / stoneSpacing));
-        const stoneColors = [0x5a4a3a, 0x4a3a2a, 0x6a5a4a, 0x3a2a1a];
+        const stonesPerSide = Math.max(12, Math.min(40, Math.floor(totalLen / stoneSpacing)));
         const stoneGeometry = new THREE.DodecahedronGeometry(0.12, 0);
         const stoneMaterial = new THREE.MeshStandardMaterial({
             color: 0x5a4a3a,
@@ -220,7 +219,7 @@ export class PathManager {
                     const terrainH = this.worldManager.getTerrainHeight(stoneX, stoneZ);
                     if (terrainH != null && isFinite(terrainH)) stoneY = terrainH + 0.02;
                 }
-                const stone = new THREE.Mesh(stoneGeometry, stoneMaterial.clone());
+                const stone = new THREE.Mesh(stoneGeometry, stoneMaterial);
                 stone.position.set(stoneX, stoneY, stoneZ);
                 stone.rotation.set(
                     (Math.random() - 0.5) * 0.4,
@@ -228,13 +227,13 @@ export class PathManager {
                     (Math.random() - 0.5) * 0.3
                 );
                 stone.scale.setScalar(0.6 + Math.random() * 0.8);
-                stone.material.color.setHex(stoneColors[Math.floor(Math.random() * stoneColors.length)]);
                 stone.castShadow = true;
                 stone.receiveShadow = true;
                 stoneGroup.add(stone);
             }
         }
         stoneGroup.userData.sharedGeometry = stoneGeometry;
+        stoneGroup.userData.sharedMaterial = stoneMaterial;
         this.scene.add(stoneGroup);
         this.edgeStoneMeshes.push(stoneGroup);
     }
@@ -366,7 +365,7 @@ export class PathManager {
         pathMesh.receiveShadow = true;
         pathMesh.castShadow = true;
         pathMesh.renderOrder = 100;
-        pathMesh.frustumCulled = false;
+        pathMesh.frustumCulled = true;
         pathMesh.userData = { isPath: true, pathId: pathId };
         
         this.scene.add(pathMesh);
@@ -472,9 +471,8 @@ export class PathManager {
         this.edgeStoneMeshes.forEach(group => {
             const geom = group.userData.sharedGeometry;
             if (geom) geom.dispose();
-            group.traverse(child => {
-                if (child.isMesh && child.material) child.material.dispose();
-            });
+            const sharedMat = group.userData.sharedMaterial;
+            if (sharedMat) sharedMat.dispose();
             this.scene.remove(group);
         });
         this.edgeStoneMeshes = [];

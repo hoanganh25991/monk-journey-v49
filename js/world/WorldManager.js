@@ -83,6 +83,13 @@ export class WorldManager {
             lastCacheUpdate: 0,
             cacheInterval: 500 // Update cache every 500ms
         };
+        // Cache structure/env pending chunk lists when player chunk unchanged (avoids rebuild + sort every frame)
+        this._chunkGenCache = {
+            chunkX: -9999,
+            chunkZ: -9999,
+            structPending: [],
+            pending: []
+        };
         
         // Current map (from maps/ JSON) - buffered in memory, never saved to localStorage
         this.currentMap = null;
@@ -98,11 +105,15 @@ export class WorldManager {
             this.currentMap = null;
             this.structureManager?.clear();
             this.environmentManager?.clear();
+            this._chunkGenCache.chunkX = -9999;
+            this._chunkGenCache.chunkZ = -9999;
             return;
         }
         this.currentMap = mapData;
         this.structureManager?.clear();
         this.environmentManager?.clear();
+        this._chunkGenCache.chunkX = -9999;
+        this._chunkGenCache.chunkZ = -9999;
 
         // Apply terrain profile (hills, mountains, etc.) - regenerates terrain with new height variation
         if (mapData.terrain?.profile && this.terrainManager?.applyTerrainConfig) {
@@ -329,41 +340,44 @@ export class WorldManager {
         const skipProceduralEnvironment = isSelfDefinedMap || mapHasEnvironment;
 
         const maxStructureChunksPerFrame = this.performanceProfile.structureChunksPerFrame;
-        if (!skipProceduralStructures && this.structureManager && this.structureManager.generateStructuresForChunk) {
-            const structPending = [];
+        const cache = this._chunkGenCache;
+        const chunkChanged = cache.chunkX !== playerChunkX || cache.chunkZ !== playerChunkZ;
+        if (chunkChanged) {
+            cache.chunkX = playerChunkX;
+            cache.chunkZ = playerChunkZ;
+            cache.structPending.length = 0;
+            cache.pending.length = 0;
             for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
                 for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
                     const chunkKey = `${x},${z}`;
-                    if (!this.structureManager.structuresPlaced[chunkKey]) {
-                        const dx = x - playerChunkX, dz = z - playerChunkZ;
-                        structPending.push({ x, z, dist: dx * dx + dz * dz });
+                    const dx = x - playerChunkX, dz = z - playerChunkZ;
+                    const dist = dx * dx + dz * dz;
+                    if (!skipProceduralStructures && this.structureManager?.structuresPlaced && !this.structureManager.structuresPlaced[chunkKey]) {
+                        cache.structPending.push({ x, z, dist });
+                    }
+                    if (!skipProceduralEnvironment && this.environmentManager?.environmentObjectsByChunk && !this.environmentManager.environmentObjectsByChunk[chunkKey]) {
+                        cache.pending.push({ x, z, dist });
                     }
                 }
             }
-            structPending.sort((a, b) => a.dist - b.dist);
-            for (let i = 0; i < Math.min(maxStructureChunksPerFrame, structPending.length); i++) {
-                const c = structPending[i];
+            cache.structPending.sort((a, b) => a.dist - b.dist);
+            cache.pending.sort((a, b) => a.dist - b.dist);
+        }
+        if (!skipProceduralStructures && this.structureManager && this.structureManager.generateStructuresForChunk) {
+            const numStruct = Math.min(maxStructureChunksPerFrame, cache.structPending.length);
+            for (let i = 0; i < numStruct; i++) {
+                const c = cache.structPending[i];
                 this.structureManager.generateStructuresForChunk(c.x, c.z);
             }
+            if (numStruct > 0) cache.structPending.splice(0, numStruct);
         }
-        // Environment generation - throttled, prioritized by distance to avoid 3–5s freeze/flicker
-        const maxEnvChunksPerFrame = this.performanceProfile.envChunksPerFrame;
         if (!skipProceduralEnvironment && this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
-            const pending = [];
-            for (let x = playerChunkX - genDistance; x <= playerChunkX + genDistance; x++) {
-                for (let z = playerChunkZ - genDistance; z <= playerChunkZ + genDistance; z++) {
-                    const chunkKey = `${x},${z}`;
-                    if (!this.environmentManager.environmentObjectsByChunk[chunkKey]) {
-                        const dx = x - playerChunkX, dz = z - playerChunkZ;
-                        pending.push({ x, z, dist: dx * dx + dz * dz });
-                    }
-                }
-            }
-            pending.sort((a, b) => a.dist - b.dist);
-            for (let i = 0; i < Math.min(maxEnvChunksPerFrame, pending.length); i++) {
-                const c = pending[i];
+            const numEnv = Math.min(maxEnvChunksPerFrame, cache.pending.length);
+            for (let i = 0; i < numEnv; i++) {
+                const c = cache.pending[i];
                 this.environmentManager.generateEnvironmentForChunk(c.x, c.z);
             }
+            if (numEnv > 0) cache.pending.splice(0, numEnv);
         }
         // Update environment visibility and cleanup (uses same space radius)
         if (this.environmentManager && this.environmentManager.updateForPlayer) {

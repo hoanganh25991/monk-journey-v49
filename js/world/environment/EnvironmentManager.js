@@ -43,6 +43,9 @@ export class EnvironmentManager {
         
         // Combine both sets of types, removing duplicates
         this.environmentObjectTypes = [...new Set([...configTypes, ...factoryTypes])];
+        // Throttle visibility updates: process a slice per frame to avoid 120->80 FPS drop
+        this._visibilityUpdateIndex = 0;
+        this._visibilityBatchSize = 60;
     }
 
     /**
@@ -586,21 +589,23 @@ export class EnvironmentManager {
      * @param {number} drawDistanceMultiplier - Multiplier for draw distance
      */
     updateObjectVisibility(playerPosition, drawDistanceMultiplier = 1.0) {
-        const maxDistance = 100 * drawDistanceMultiplier; // Maximum visible distance
-        const maxDistanceSquared = maxDistance * maxDistance; // Use squared distance for performance
-        
-        // Update visibility for all environment objects
-        this.environmentObjects.forEach(envObj => {
-            if (envObj.object && envObj.position) {
-                const distanceSquared = playerPosition.distanceToSquared(envObj.position);
-                const shouldBeVisible = distanceSquared <= maxDistanceSquared;
-                
-                // Update visibility if it has changed
-                if (envObj.object.visible !== shouldBeVisible) {
-                    envObj.object.visible = shouldBeVisible;
-                }
+        const total = this.environmentObjects.length;
+        if (total === 0) return;
+        const maxDistance = 100 * drawDistanceMultiplier;
+        const maxDistanceSquared = maxDistance * maxDistance;
+        const batch = this._visibilityBatchSize;
+        const start = this._visibilityUpdateIndex % total;
+        this._visibilityUpdateIndex = (start + batch) % total;
+        for (let i = 0; i < batch; i++) {
+            const idx = (start + i) % total;
+            const envObj = this.environmentObjects[idx];
+            if (!envObj?.object || !envObj?.position) continue;
+            const distanceSquared = playerPosition.distanceToSquared(envObj.position);
+            const shouldBeVisible = distanceSquared <= maxDistanceSquared;
+            if (envObj.object.visible !== shouldBeVisible) {
+                envObj.object.visible = shouldBeVisible;
             }
-        });
+        }
     }
 
     /**
