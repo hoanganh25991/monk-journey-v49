@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
-import { distanceSq2D } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastInvSqrt } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Lightning Burst variant of Wave of Light
@@ -220,15 +220,15 @@ export class LightningBurstEffect extends WaveOfLightEffect {
                 startPoint.z + (endPoint.z - startPoint.z) * t
             );
             
-            // Add randomness perpendicular to the line
+            // Add randomness perpendicular to the line (fast normalize with fastInvSqrt)
             const perpX = -(endPoint.z - startPoint.z);
             const perpZ = endPoint.x - startPoint.x;
-            const perpLength = Math.sqrt(perpX * perpX + perpZ * perpZ);
-            
-            if (perpLength > 0) {
+            const perpLenSq = perpX * perpX + perpZ * perpZ;
+            const invPerpLen = perpLenSq > 0 ? fastInvSqrt(perpLenSq) : 0;
+            if (invPerpLen > 0) {
                 const randomOffset = (Math.random() - 0.5) * 0.5;
-                point.x += (perpX / perpLength) * randomOffset;
-                point.z += (perpZ / perpLength) * randomOffset;
+                point.x += perpX * invPerpLen * randomOffset;
+                point.z += perpZ * invPerpLen * randomOffset;
             }
             
             // Add vertical randomness
@@ -363,11 +363,12 @@ export class LightningBurstEffect extends WaveOfLightEffect {
                 const dy = positions[i * 3 + 1] - position.y;
                 const dz = positions[i * 3 + 2] - position.z;
                 
-                // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() - 0.5;
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
+                // Normalize direction (fast approximate inverse length)
+                const lenSq = dx * dx + dy * dy + dz * dz;
+                const invLen = lenSq > 0 ? fastInvSqrt(lenSq) : 0;
+                const dirX = invLen > 0 ? dx * invLen : Math.random() - 0.5;
+                const dirY = invLen > 0 ? dy * invLen : Math.random() - 0.5;
+                const dirZ = invLen > 0 ? dz * invLen : Math.random() - 0.5;
                 
                 // Move outward
                 const speed = 2;
@@ -436,15 +437,15 @@ export class LightningBurstEffect extends WaveOfLightEffect {
                             bolt.startPoint.z + (bolt.endPoint.z - bolt.startPoint.z) * t
                         );
                         
-                        // Add randomness perpendicular to the line
+                        // Add randomness perpendicular to the line (fast normalize)
                         const perpX = -(bolt.endPoint.z - bolt.startPoint.z);
                         const perpZ = bolt.endPoint.x - bolt.startPoint.x;
-                        const perpLength = Math.sqrt(perpX * perpX + perpZ * perpZ);
-                        
-                        if (perpLength > 0) {
+                        const perpLenSq = perpX * perpX + perpZ * perpZ;
+                        const invPerpLen = perpLenSq > 0 ? fastInvSqrt(perpLenSq) : 0;
+                        if (invPerpLen > 0) {
                             const randomOffset = (Math.random() - 0.5) * 0.5;
-                            point.x += (perpX / perpLength) * randomOffset;
-                            point.z += (perpZ / perpLength) * randomOffset;
+                            point.x += perpX * invPerpLen * randomOffset;
+                            point.z += perpZ * invPerpLen * randomOffset;
                         }
                         
                         // Add vertical randomness

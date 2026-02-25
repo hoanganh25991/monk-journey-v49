@@ -819,10 +819,12 @@ export class EnvironmentManager {
             const chunkObjects = this.environmentObjectsByChunk[chunkKey];
             const chunkObjectsToRemove = [];
             
+            const maxDistSq = maxDistance * maxDistance;
             chunkObjects.forEach((objectInfo, index) => {
                 if (objectInfo.position && playerPosition) {
-                    const distance = objectInfo.position.distanceTo(playerPosition);
-                    if (distance > maxDistance) {
+                    const dx = objectInfo.position.x - playerPosition.x;
+                    const dz = objectInfo.position.z - playerPosition.z;
+                    if ((dx * dx + dz * dz) > maxDistSq) {
                         chunkObjectsToRemove.push(index);
                     }
                 }

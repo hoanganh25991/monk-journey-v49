@@ -20,6 +20,7 @@
  * @property {PlayerSkills} skills - Manages player skills and abilities
  * @property {PlayerCombat} combat - Manages player combat interactions
  */
+import { fastAtan2 } from '../utils/FastMath.js';
 import { PlayerStats } from './PlayerStats.js';
 import { PlayerState } from './PlayerState.js';
 import { PlayerInventory } from './PlayerInventory.js';
@@ -253,7 +254,7 @@ export class Player {
         // Update player's look direction
         if (this.movement) {
             // Calculate the horizontal rotation (around Y axis)
-            const horizontalRotation = Math.atan2(direction.x, direction.z);
+            const horizontalRotation = fastAtan2(direction.x, direction.z);
             
             // Update movement component rotation
             this.movement.rotation.y = horizontalRotation;

@@ -16,6 +16,9 @@ export class CollisionManager {
         this.objectCollisionInterval = 100; // Check object collisions every 100ms by default
         this.enemyCollisionInterval = 50; // Check enemy-enemy collisions every 50ms by default
         this.frameCount = 0; // Track frames for staggered collision checks
+        // Reusable vectors to avoid allocations in structure collision loops
+        this._boxCenter = new THREE.Vector3();
+        this._boxSize = new THREE.Vector3();
     }
     
     update() {
@@ -140,10 +143,10 @@ export class CollisionManager {
                     
                     const boundingBox = structureData.boundingBox;
                     
-                    // Create a sphere that encompasses the bounding box
-                    const center = new THREE.Vector3();
+                    // Create a sphere that encompasses the bounding box (reuse scratch vectors)
+                    const center = this._boxCenter;
+                    const size = this._boxSize;
                     boundingBox.getCenter(center);
-                    const size = new THREE.Vector3();
                     boundingBox.getSize(size);
                     const objectRadius = Math.max(size.x, size.z) / 2;
                     
@@ -451,9 +454,9 @@ export class CollisionManager {
                     }
                     
                     const boundingBox = structureData.boundingBox;
-                    const center = new THREE.Vector3();
+                    const center = this._boxCenter;
+                    const size = this._boxSize;
                     boundingBox.getCenter(center);
-                    const size = new THREE.Vector3();
                     boundingBox.getSize(size);
                     const objectRadius = Math.max(size.x, size.z) / 2;
                     

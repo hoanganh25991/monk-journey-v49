@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { distanceSq2D, fastAtan2, normalize2D, tempVec2 } from '../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, fastCos, fastSin, fastInvSqrt, normalize2D, tempVec2 } from '../utils/FastMath.js';
 
 /**
  * PathManager - Creates continuous walkable paths across the terrain
@@ -61,21 +61,22 @@ export class PathManager {
         
         let pathId = 0;
         
-        // Build connected cave network: spanning tree + extra random connections
+        // Build connected cave network: spanning tree + extra random connections (squared distance avoids sqrt)
+        const minDistSq = 36; // 6 * 6
+        const maxDistSq = 64; // 8 * 8 - use squared for threshold checks
         if (cavePositions.length >= 2) {
             const usedPairs = new Set();
-            const dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
             
-            // Spanning tree: connect each cave to nearest in connected set
+            // Spanning tree: connect each cave to nearest in connected set (compare squared distances)
             const connected = new Set([0]);
             while (connected.size < cavePositions.length) {
-                let bestA = -1, bestB = -1, bestD = Infinity;
+                let bestA = -1, bestB = -1, bestDSq = Infinity;
                 for (const i of connected) {
                     for (let j = 0; j < cavePositions.length; j++) {
                         if (connected.has(j)) continue;
-                        const d = dist(cavePositions[i], cavePositions[j]);
-                        if (d < bestD && d > 6) {
-                            bestD = d;
+                        const dSq = distanceSq2D(cavePositions[i].x, cavePositions[i].z, cavePositions[j].x, cavePositions[j].z);
+                        if (dSq < bestDSq && dSq > minDistSq) {
+                            bestDSq = dSq;
                             bestA = i;
                             bestB = j;
                         }
@@ -104,34 +105,34 @@ export class PathManager {
                 const key = [a, b].sort().join(',');
                 if (usedPairs.has(key)) continue;
                 usedPairs.add(key);
-                const vecA = new THREE.Vector3(cavePositions[a].x, 0, cavePositions[a].z);
-                const vecB = new THREE.Vector3(cavePositions[b].x, 0, cavePositions[b].z);
-                if (vecA.distanceTo(vecB) > 8) {
+                const dSq = distanceSq2D(cavePositions[a].x, cavePositions[a].z, cavePositions[b].x, cavePositions[b].z);
+                if (dSq > maxDistSq) {
+                    const vecA = new THREE.Vector3(cavePositions[a].x, 0, cavePositions[a].z);
+                    const vecB = new THREE.Vector3(cavePositions[b].x, 0, cavePositions[b].z);
                     this.generatePathBetweenPoints(vecA, vecB, `cave_${pathId++}`);
                 }
             }
         }
         
-        // 1-2 paths: village/spawn -> nearest cave
+        // 1-2 paths: village/spawn -> nearest cave (squared distance for sort and threshold)
         let origin = { x: spawnX, z: spawnZ };
         if (villagePositions.length > 0) {
-            let bestDist = Infinity;
+            let bestDistSq = Infinity;
             for (const v of villagePositions) {
-                const d = (v.x - spawnX) ** 2 + (v.z - spawnZ) ** 2;
-                if (d < bestDist) { bestDist = d; origin = v; }
+                const dSq = (v.x - spawnX) ** 2 + (v.z - spawnZ) ** 2;
+                if (dSq < bestDistSq) { bestDistSq = dSq; origin = v; }
             }
         }
         const villageVec = new THREE.Vector3(origin.x, 0, origin.z);
         const villageToCaveCount = Math.min(this.config.villageToCaveCount, cavePositions.length);
         let nearestCaves = cavePositions
-            .map((c, i) => ({ i, d: villageVec.distanceTo(new THREE.Vector3(c.x, 0, c.z)) }))
-            .sort((a, b) => a.d - b.d);
+            .map((c, i) => ({ i, dSq: distanceSq2D(origin.x, origin.z, c.x, c.z) }))
+            .sort((a, b) => a.dSq - b.dSq);
         for (let i = 0; i < villageToCaveCount; i++) {
             const cave = cavePositions[nearestCaves[i].i];
+            if (nearestCaves[i].dSq <= maxDistSq) continue;
             const caveVec = new THREE.Vector3(cave.x, 0, cave.z);
-            if (villageVec.distanceTo(caveVec) > 8) {
-                this.generatePathBetweenPoints(villageVec, caveVec, `village_cave_${pathId++}`);
-            }
+            this.generatePathBetweenPoints(villageVec, caveVec, `village_cave_${pathId++}`);
         }
         
         console.debug(`PathManager: Generated ${this.paths.length} paths (cave network + ${villageToCaveCount} village links)`);
@@ -149,7 +150,7 @@ export class PathManager {
         const points = [firstPoint];
         const dx = end.x - start.x;
         const dz = end.z - start.z;
-        const totalLen = Math.sqrt(dx * dx + dz * dz);
+        const totalLen = distanceApprox2D(start.x, start.z, end.x, end.z);
         if (totalLen < 2) return;
         
         const numSegs = Math.max(2, Math.ceil(totalLen / this.config.segmentLength));
@@ -181,7 +182,10 @@ export class PathManager {
         const halfWidth = this.config.pathWidth * 0.5;
         const stoneSpacing = 2.0;
         let totalLen = 0;
-        for (let i = 1; i < points.length; i++) totalLen += points[i].distanceTo(points[i - 1]);
+        for (let i = 1; i < points.length; i++) {
+            const p0 = points[i - 1], p1 = points[i];
+            totalLen += distanceApprox2D(p0.x, p0.z, p1.x, p1.z);
+        }
         const stonesPerSide = Math.max(12, Math.min(40, Math.floor(totalLen / stoneSpacing)));
         const stoneGeometry = new THREE.DodecahedronGeometry(0.12, 0);
         const stoneMaterial = new THREE.MeshStandardMaterial({
@@ -205,9 +209,10 @@ export class PathManager {
                 const z = p0.z + (p1.z - p0.z) * segT;
                 let dx = p1.x - p0.x;
                 let dz = p1.z - p0.z;
-                const len = Math.sqrt(dx * dx + dz * dz) || 1;
-                dx /= len;
-                dz /= len;
+                const lenSq = dx * dx + dz * dz;
+                const invLen = lenSq > 0 ? fastInvSqrt(lenSq) : 1;
+                dx *= invLen;
+                dz *= invLen;
                 const perpX = -dz * sign;
                 const perpZ = dx * sign;
                 const ox = (Math.random() - 0.5) * 0.4;
@@ -260,8 +265,8 @@ export class PathManager {
             
             const angleVariation = (Math.random() - 0.5) * curve;
             const angle = fastAtan2(currentDir.y, currentDir.x) + angleVariation;
-            currentDir.x = Math.cos(angle);
-            currentDir.y = Math.sin(angle);
+            currentDir.x = fastCos(angle);
+            currentDir.y = fastSin(angle);
             
             currentPos.x += currentDir.x * segmentLength;
             currentPos.z += currentDir.y * segmentLength;
