@@ -188,11 +188,17 @@ export class Skill {
                 
                 // Validate enemy position
                 if (this.validateVector(enemyPosition)) {
-                    // Direction from player to enemy in 3D (include Y so skills cast at player height hit enemy)
-                    const targetDirection = new THREE.Vector3().subVectors(enemyPosition, this.position).normalize();
+                    // Direction from player to enemy - use HORIZONTAL direction only (no Y component)
+                    // This prevents skills from tilting when player is in the air
+                    // Skills should only rotate horizontally and adjust height naturally
+                    const horizontalDirection = new THREE.Vector3(
+                        enemyPosition.x - this.position.x,
+                        0, // Keep Y at 0 for horizontal-only direction
+                        enemyPosition.z - this.position.z
+                    ).normalize();
                     
-                    // Set skill direction - keep Y so projectile travels at correct height toward enemy
-                    this.direction.copy(targetDirection);
+                    // Set skill direction - horizontal only, no vertical tilt
+                    this.direction.copy(horizontalDirection);
                     
                     console.debug(`Skill ${this.name} targeting enemy at position: ${enemyPosition.x.toFixed(2)}, ${enemyPosition.y.toFixed(2)}, ${enemyPosition.z.toFixed(2)}`);
                 } else {

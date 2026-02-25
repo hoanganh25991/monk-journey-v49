@@ -235,9 +235,9 @@ export class DeadlyReachEffect extends SkillEffect {
         this.effect.position.y += this.direction.y * moveDistance;
         this.effect.position.z += this.direction.z * moveDistance;
 
-        // Update rotation to match current direction (pitch for up/down aim)
+        // Update rotation to match current direction (horizontal only, no vertical tilt)
         this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
-        this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
+        // No rotation.x - keep skill vertical, only adjust height naturally
         
         // IMPORTANT: Update the skill's position property to match the effect's position
         this.skill.position.copy(this.effect.position);

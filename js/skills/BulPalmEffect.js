@@ -123,10 +123,10 @@ export class BulPalmEffect extends SkillEffect {
       position.y += 0.3;
       effectGroup.position.copy(position);
       
-      // Set the correct rotation to face the direction (include pitch for up/down)
+      // Set the correct rotation to face the direction (horizontal only, no vertical tilt)
       if (direction) {
         effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
-        effectGroup.rotation.x = -Math.asin(Math.max(-1, Math.min(1, direction.y)));
+        // No rotation.x - keep skill vertical, only adjust height naturally
       }
       
       // Calculate target position based on direction and range
@@ -696,9 +696,9 @@ export class BulPalmEffect extends SkillEffect {
       this.effect.position.z += this.direction.z * moveDistance;
     }
 
-    // Update angle to match direction (tilt down when going toward enemy below)
+    // Update angle to match direction (horizontal only, no vertical tilt)
     this.effect.rotation.y = Math.atan2(this.direction.x, this.direction.z);
-    this.effect.rotation.x = -Math.asin(Math.max(-1, Math.min(1, this.direction.y)));
+    // No rotation.x - keep skill vertical, only adjust height naturally
     
     // Animate hand
     if (this.handGroup) {
