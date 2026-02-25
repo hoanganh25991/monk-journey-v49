@@ -71,8 +71,10 @@ export class CollisionManager {
         const playerPosition = this.player.getPosition();
         const playerRadius = this.player.getCollisionRadius();
         
-        // Check collision with each enemy
-        this.enemyManager.enemies.forEach(enemy => {
+        // Check collision with each enemy (use for loop for better performance)
+        const enemies = this.enemyManager.enemies;
+        for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
             const enemyPosition = enemy.getPosition();
             const enemyRadius = enemy.getCollisionRadius();
             
@@ -88,7 +90,7 @@ export class CollisionManager {
                 // Handle collision
                 this.handlePlayerEnemyCollision(enemy);
             }
-        });
+        }
     }
     
     handlePlayerEnemyCollision(enemy) {
@@ -96,15 +98,19 @@ export class CollisionManager {
         const playerPosition = this.player.getPosition();
         const enemyPosition = enemy.getPosition();
         
-        // Calculate direction from enemy to player
-        const direction = new THREE.Vector3().subVectors(playerPosition, enemyPosition).normalize();
+        // Calculate direction from enemy to player (optimized - avoid Vector3 allocation)
+        const dx = playerPosition.x - enemyPosition.x;
+        const dz = playerPosition.z - enemyPosition.z;
+        const length = Math.sqrt(dx * dx + dz * dz);
+        const dirX = length > 0 ? dx / length : 0;
+        const dirZ = length > 0 ? dz / length : 0;
         
         // Move player away from enemy
         const pushDistance = 0.1;
         this.player.setPosition(
-            playerPosition.x + direction.x * pushDistance,
+            playerPosition.x + dirX * pushDistance,
             playerPosition.y,
-            playerPosition.z + direction.z * pushDistance
+            playerPosition.z + dirZ * pushDistance
         );
     }
     
@@ -194,18 +200,19 @@ export class CollisionManager {
     handlePlayerObjectCollision(object, objectCenter) {
         const playerPosition = this.player.getPosition();
         
-        // Calculate direction from object to player
-        const direction = new THREE.Vector2(
-            playerPosition.x - objectCenter.x,
-            playerPosition.z - objectCenter.z
-        ).normalize();
+        // Calculate direction from object to player (optimized - avoid Vector2 allocation)
+        const dx = playerPosition.x - objectCenter.x;
+        const dz = playerPosition.z - objectCenter.z;
+        const length = Math.sqrt(dx * dx + dz * dz);
+        const dirX = length > 0 ? dx / length : 0;
+        const dirZ = length > 0 ? dz / length : 0;
         
         // Move player away from object
         const pushDistance = 0.1;
         this.player.setPosition(
-            playerPosition.x + direction.x * pushDistance,
+            playerPosition.x + dirX * pushDistance,
             playerPosition.y,
-            playerPosition.z + direction.z * pushDistance
+            playerPosition.z + dirZ * pushDistance
         );
     }
     
@@ -254,8 +261,10 @@ export class CollisionManager {
             const skillPosition = skill.getPosition();
             const skillRadius = skill.getRadius();
             
-            // Check collision with each enemy
-            this.enemyManager.enemies.forEach(enemy => {
+            // Check collision with each enemy (use for loop for better performance)
+            const enemies = this.enemyManager.enemies;
+            for (let j = 0; j < enemies.length; j++) {
+                const enemy = enemies[j];
                 const enemyPosition = enemy.getPosition();
                 const enemyRadius = enemy.getCollisionRadius();
                 
@@ -271,7 +280,7 @@ export class CollisionManager {
                     // Handle collision
                     this.handleSkillEnemyCollision(skill, enemy);
                 }
-            });
+            }
         });
     }
     
@@ -415,22 +424,26 @@ export class CollisionManager {
         const position1 = enemy1.getPosition();
         const position2 = enemy2.getPosition();
         
-        // Calculate direction from enemy2 to enemy1
-        const direction = new THREE.Vector3().subVectors(position1, position2).normalize();
+        // Calculate direction from enemy2 to enemy1 (optimized - avoid Vector3 allocation)
+        const dx = position1.x - position2.x;
+        const dz = position1.z - position2.z;
+        const length = Math.sqrt(dx * dx + dz * dz);
+        const dirX = length > 0 ? dx / length : 0;
+        const dirZ = length > 0 ? dz / length : 0;
         
         // Move enemies away from each other
         const pushDistance = 0.05;
         
         enemy1.setPosition(
-            position1.x + direction.x * pushDistance,
+            position1.x + dirX * pushDistance,
             position1.y,
-            position1.z + direction.z * pushDistance
+            position1.z + dirZ * pushDistance
         );
         
         enemy2.setPosition(
-            position2.x - direction.x * pushDistance,
+            position2.x - dirX * pushDistance,
             position2.y,
-            position2.z - direction.z * pushDistance
+            position2.z - dirZ * pushDistance
         );
     }
 }

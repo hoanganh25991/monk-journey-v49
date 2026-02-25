@@ -1147,7 +1147,9 @@ export class EnemyManager {
         let closestEnemy = null;
         let closestDistanceSq = maxDistance * maxDistance; // Compare squared distances for performance
         
-        this.enemies.forEach(enemy => {
+        // Use for loop instead of forEach for better performance
+        for (let i = 0; i < this.enemies.length; i++) {
+            const enemy = this.enemies[i];
             const enemyPosition = enemy.getPosition();
             
             // Calculate squared horizontal distance (X and Z, ignore Y)
@@ -1159,7 +1161,7 @@ export class EnemyManager {
                 closestEnemy = enemy;
                 closestDistanceSq = distanceSq;
             }
-        });
+        }
         
         return closestEnemy;
     }

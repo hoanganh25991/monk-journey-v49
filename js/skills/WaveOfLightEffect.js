@@ -126,12 +126,9 @@ export class WaveOfLightEffect extends SkillEffect {
         striker.position.y = bellHeight * 0.32; // Position striker proportionally to bell size
         bellGroup.add(striker);
         
-        // Position the bell high above the target position (player height + 50)
-        // Start from much higher so it has time to fall dramatically
-        const startHeight = this.initialPosition.y + 50;
-        bellGroup.position.y = startHeight;
-        
-        // Add bell to effect group
+        // The bell will start from player's height + 50
+        // We'll set this after we know the target position and ground height
+        // For now, just add the bell to the effect group
         effectGroup.add(bellGroup);
         
         // Create impact area (circle on the ground)
@@ -246,11 +243,19 @@ export class WaveOfLightEffect extends SkillEffect {
         targetPosition.y = groundHeight;
         effectGroup.position.copy(targetPosition);
         
+        // Calculate the bell's starting height relative to the effect group
+        // The bell should start from player's height + 50, so we need to calculate
+        // the offset from the target ground position
+        const playerHeight = this.initialPosition.y; // Player's current Y position
+        const startHeightAboveGround = (playerHeight - groundHeight) + 50;
+        
+        // Position the bell at the calculated height above the target ground
+        bellGroup.position.y = startHeightAboveGround;
+        
         // Store animation state with configuration and target position
-        const startHeight = this.initialPosition.y + 50;
         this.bellState = {
             phase: 'descending', // 'descending', 'impact', 'ascending'
-            initialHeight: startHeight, // Store the actual start height
+            initialHeight: startHeightAboveGround, // Store the actual start height relative to ground
             impactTime: 0,
             config: config, // Store config for use in update method
             targetPosition: targetPosition, // Store the target position if an enemy was found

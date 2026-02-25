@@ -317,10 +317,9 @@ export class Enemy {
         
         // Get distance to target player
         const playerPosition = this.targetPlayer.getPosition();
-        const distanceToPlayer = Math.sqrt(
-            Math.pow(playerPosition.x - this.position.x, 2) +
-            Math.pow(playerPosition.z - this.position.z, 2)
-        );
+        const dx = playerPosition.x - this.position.x;
+        const dz = playerPosition.z - this.position.z;
+        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
         
         // Debug log for targeting - log every 2 seconds to avoid spam
         if (Math.random() < 0.01) { // ~1% chance each frame to log
@@ -455,10 +454,9 @@ export class Enemy {
         
         // Get local player position
         const localPlayerPos = this.player.getPosition();
-        closestDistance = Math.sqrt(
-            Math.pow(localPlayerPos.x - this.position.x, 2) +
-            Math.pow(localPlayerPos.z - this.position.z, 2)
-        );
+        let dx = localPlayerPos.x - this.position.x;
+        let dz = localPlayerPos.z - this.position.z;
+        closestDistance = Math.sqrt(dx * dx + dz * dz);
         
         // Check if we have access to the game and multiplayer manager
         if (this.player.game && 
@@ -472,10 +470,9 @@ export class Enemy {
             remotePlayers.forEach((remotePlayer, peerId) => {
                 if (remotePlayer && remotePlayer.group) {
                     const remotePos = remotePlayer.group.position;
-                    const distance = Math.sqrt(
-                        Math.pow(remotePos.x - this.position.x, 2) +
-                        Math.pow(remotePos.z - this.position.z, 2)
-                    );
+                    dx = remotePos.x - this.position.x;
+                    dz = remotePos.z - this.position.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
                     
                     // If this remote player is closer, target them instead
                     if (distance < closestDistance) {
@@ -547,10 +544,10 @@ export class Enemy {
         console.debug(`${this.name} casts Ice Storm at position ${targetPosition.x}, ${targetPosition.z}`);
         
         // Deal damage to player if in area
-        const distanceToPlayer = Math.sqrt(
-            Math.pow(targetPosition.x - this.player.getPosition().x, 2) +
-            Math.pow(targetPosition.z - this.player.getPosition().z, 2)
-        );
+        const playerPos = this.player.getPosition();
+        const dx = targetPosition.x - playerPos.x;
+        const dz = targetPosition.z - playerPos.z;
+        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
         
         if (distanceToPlayer < 5) {
             this.player.takeDamage(this.damage * 1.5);
@@ -573,10 +570,10 @@ export class Enemy {
         console.debug(`${this.name} casts Frost Nova`);
         
         // Deal damage to player if in area
-        const distanceToPlayer = Math.sqrt(
-            Math.pow(this.position.x - this.player.getPosition().x, 2) +
-            Math.pow(this.position.z - this.player.getPosition().z, 2)
-        );
+        const playerPos = this.player.getPosition();
+        const dx = this.position.x - playerPos.x;
+        const dz = this.position.z - playerPos.z;
+        const distanceToPlayer = Math.sqrt(dx * dx + dz * dz);
         
         if (distanceToPlayer < this.attackRange * 1.5) {
             this.player.takeDamage(this.damage);
