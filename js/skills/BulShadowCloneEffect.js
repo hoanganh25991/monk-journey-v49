@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
+import { distanceSq2D, fastAtan2, fastSin, fastCos } from '../utils/FastMath.js';
 
 /**
  * Specialized effect for Bul Shadow Clone skill
@@ -69,7 +70,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         
         // Position effect
         effectGroup.position.copy(adjustedPosition);
-        effectGroup.rotation.y = Math.atan2(direction.x, direction.z);
+        effectGroup.rotation.y = fastAtan2(direction.x, direction.z);
         
         // Store effect
         this.effect = effectGroup;
@@ -109,7 +110,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         
         const circle = new THREE.Mesh(circleGeometry, circleMaterial);
         circle.rotation.x = -Math.PI / 2; // Lay flat on ground
-        circle.position.y = 0.05; // Slightly above ground to avoid z-fighting
+        circle.position.y = -0.9; // Lower to sit on ground
         summoningGroup.add(circle);
         
         // Create magical rings
@@ -128,7 +129,7 @@ export class BulShadowCloneEffect extends SkillEffect {
             
             const ring = new THREE.Mesh(ringGeometry, ringMaterial);
             ring.rotation.x = -Math.PI / 2; // Lay flat on ground
-            ring.position.y = 0.06 + (i * 0.01); // Stack slightly above each other
+            ring.position.y = -0.44 + (i * 0.01); // Stack slightly above each other
             
             // Store rotation data
             ring.userData = {
@@ -176,9 +177,9 @@ export class BulShadowCloneEffect extends SkillEffect {
             
             // Position rune
             rune.position.set(
-                Math.cos(angle) * radius,
-                0.1,
-                Math.sin(angle) * radius
+                fastCos(angle) * radius,
+                -0.4,
+                fastSin(angle) * radius
             );
             
             // Rotate rune to face up
@@ -219,9 +220,9 @@ export class BulShadowCloneEffect extends SkillEffect {
             
             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
             particle.position.set(
-                Math.cos(angle) * radius,
+                fastCos(angle) * radius,
                 height,
-                Math.sin(angle) * radius
+                fastSin(angle) * radius
             );
             
             // Store animation data
@@ -271,8 +272,8 @@ export class BulShadowCloneEffect extends SkillEffect {
         // Calculate position offset (spread clones in a circle)
         const angle = (index / this.allyCount) * Math.PI * 2;
         const radius = 2 + Math.random() * 2; // Random distance from center
-        const offsetX = Math.cos(angle) * radius;
-        const offsetZ = Math.sin(angle) * radius;
+        const offsetX = fastCos(angle) * radius;
+        const offsetZ = fastSin(angle) * radius;
         
         // Position the clone
         cloneGroup.position.copy(position);
@@ -438,7 +439,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         if (!enemies || enemies.length === 0) return null;
         
         let nearestEnemy = null;
-        let nearestDistance = maxDistance;
+        let nearestDistanceSq = maxDistance * maxDistance; // Use squared distance
         
         for (const enemy of enemies) {
             // Check if enemy is alive - use state.isDead if isAlive() doesn't exist
@@ -460,9 +461,10 @@ export class BulShadowCloneEffect extends SkillEffect {
             
             if (!enemyPosition) continue;
             
-            const distance = clonePosition.distanceTo(enemyPosition);
-            if (distance < nearestDistance) {
-                nearestDistance = distance;
+            // Use squared distance to avoid sqrt
+            const distSq = distanceSq2D(clonePosition.x, clonePosition.z, enemyPosition.x, enemyPosition.z);
+            if (distSq < nearestDistanceSq) {
+                nearestDistanceSq = distSq;
                 nearestEnemy = enemy;
             }
         }
@@ -519,10 +521,11 @@ export class BulShadowCloneEffect extends SkillEffect {
                 const count = targetCountByEnemy.get(enemy) || 0;
                 const pos = typeof enemy.getPosition === 'function' ? enemy.getPosition() : enemy.position;
                 if (!pos) continue;
-                const dist = clone.group.position.distanceTo(pos);
-                if (count < bestCount || (count === bestCount && dist < bestDistance)) {
+                // Use squared distance to avoid sqrt
+                const distSq = distanceSq2D(clone.group.position.x, clone.group.position.z, pos.x, pos.z);
+                if (count < bestCount || (count === bestCount && distSq < bestDistance)) {
                     bestCount = count;
-                    bestDistance = dist;
+                    bestDistance = distSq;
                     bestEnemy = enemy;
                 }
             }
@@ -633,17 +636,17 @@ export class BulShadowCloneEffect extends SkillEffect {
                 if (clone.followPlayer) {
                     // Calculate position in a circular formation around the player
                     const angle = (clone.index / this.allyCount) * Math.PI * 2 + this.elapsedTime * 0.2;
-                    const radius = 2 + Math.sin(this.elapsedTime + clone.index) * 0.5;
-                    targetX = playerPosition.x + Math.cos(angle) * radius;
-                    targetZ = playerPosition.z + Math.sin(angle) * radius;
+                    const radius = 2 + fastSin(this.elapsedTime + clone.index) * 0.5;
+                    targetX = playerPosition.x + fastCos(angle) * radius;
+                    targetZ = playerPosition.z + fastSin(angle) * radius;
                 } else {
                     // When not following, maintain current position but face same direction as player
                     targetX = clone.group.position.x;
                     targetZ = clone.group.position.z;
                     
                     // But if too far from player, start following again
-                    const distanceToPlayer = clone.group.position.distanceTo(playerPosition);
-                    if (distanceToPlayer > 15) {
+                    const distSqToPlayer = distanceSq2D(clone.group.position.x, clone.group.position.z, playerPosition.x, playerPosition.z);
+                    if (distSqToPlayer > 225) { // 15 * 15
                         clone.followPlayer = true;
                     }
                 }
@@ -652,17 +655,18 @@ export class BulShadowCloneEffect extends SkillEffect {
                 const moveSpeed = this.cloneSpeed * 0.5 * delta; // Move slower when idle
                 const dx = targetX - clone.group.position.x;
                 const dz = targetZ - clone.group.position.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
+                const distanceSq = dx * dx + dz * dz;
                 
-                if (distance > 0.1) {
-                    clone.group.position.x += (dx / distance) * moveSpeed;
-                    clone.group.position.z += (dz / distance) * moveSpeed;
+                if (distanceSq > 0.01) { // 0.1 * 0.1
+                    const invDistance = 1.0 / Math.sqrt(distanceSq); // Only one sqrt needed
+                    clone.group.position.x += dx * invDistance * moveSpeed;
+                    clone.group.position.z += dz * invDistance * moveSpeed;
                     
                     // Face movement direction
-                    clone.group.rotation.y = Math.atan2(dx, dz);
+                    clone.group.rotation.y = fastAtan2(dx, dz);
                 } else {
                     // When not moving, face same direction as player
-                    clone.group.rotation.y = Math.atan2(playerDirection.x, playerDirection.z);
+                    clone.group.rotation.y = fastAtan2(playerDirection.x, playerDirection.z);
                 }
                 
                 // Update Y to follow terrain at clone's current position
@@ -717,13 +721,13 @@ export class BulShadowCloneEffect extends SkillEffect {
             return;
         }
         
-        // Calculate distance to target
+        // Calculate distance to target (use squared distance)
         const dx = targetPosition.x - clone.group.position.x;
         const dz = targetPosition.z - clone.group.position.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
+        const distanceSq = dx * dx + dz * dz;
         
         // If target is too far away, go back to idle and follow player
-        if (distance > 30) {
+        if (distanceSq > 900) { // 30 * 30
             clone.state = 'idle';
             clone.target = null;
             clone.hasTarget = false;
@@ -732,22 +736,23 @@ export class BulShadowCloneEffect extends SkillEffect {
         }
         
         // If close enough, switch to attacking
-        if (distance < 1.5) {
+        if (distanceSq < 2.25) { // 1.5 * 1.5
             clone.state = 'attacking';
             clone.followPlayer = false; // Stop following player while attacking
             return;
         }
         
-        // Move towards target
+        // Move towards target (only compute sqrt once when needed)
         const moveSpeed = this.cloneSpeed * delta;
-        clone.group.position.x += (dx / distance) * moveSpeed;
-        clone.group.position.z += (dz / distance) * moveSpeed;
+        const invDistance = 1.0 / Math.sqrt(distanceSq);
+        clone.group.position.x += dx * invDistance * moveSpeed;
+        clone.group.position.z += dz * invDistance * moveSpeed;
         
         // Update Y to follow terrain at clone's current position
         this._updateCloneHeightForTerrain(clone);
         
         // Face target
-        clone.group.rotation.y = Math.atan2(dx, dz);
+        clone.group.rotation.y = fastAtan2(dx, dz);
         
         // While seeking, don't follow player
         clone.followPlayer = false;
@@ -814,20 +819,20 @@ export class BulShadowCloneEffect extends SkillEffect {
             return;
         }
         
-        // Calculate distance to target
+        // Calculate distance to target (use squared distance)
         const dx = targetPosition.x - clone.group.position.x;
         const dz = targetPosition.z - clone.group.position.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
+        const distanceSq = dx * dx + dz * dz;
         
         // If too far, switch back to seeking
-        if (distance > 2.0) {
+        if (distanceSq > 4.0) { // 2.0 * 2.0
             clone.state = 'seeking';
             clone.followPlayer = false; // Don't follow player while seeking
             return;
         }
         
         // Face target
-        clone.group.rotation.y = Math.atan2(dx, dz);
+        clone.group.rotation.y = fastAtan2(dx, dz);
         
         // Update Y to follow terrain at clone's current position
         this._updateCloneHeightForTerrain(clone);
@@ -971,8 +976,8 @@ export class BulShadowCloneEffect extends SkillEffect {
                         const angle = child.userData.initialAngle + this.elapsedTime * child.userData.moveSpeed;
                         const radius = child.userData.radius;
                         
-                        child.position.x = Math.cos(angle) * radius;
-                        child.position.z = Math.sin(angle) * radius;
+                        child.position.x = fastCos(angle) * radius;
+                        child.position.z = fastSin(angle) * radius;
                     }
                 }
                 
@@ -994,8 +999,8 @@ export class BulShadowCloneEffect extends SkillEffect {
                         const angle = Math.random() * Math.PI * 2;
                         const radius = Math.random() * 2;
                         
-                        child.position.x = Math.cos(angle) * radius;
-                        child.position.z = Math.sin(angle) * radius;
+                        child.position.x = fastCos(angle) * radius;
+                        child.position.z = fastSin(angle) * radius;
                         
                         if (child.material) {
                             child.material.opacity = 0.6 + (Math.random() * 0.4);
