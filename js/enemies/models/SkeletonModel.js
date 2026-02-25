@@ -182,8 +182,8 @@ export class SkeletonModel extends EnemyModel {
                 
                 if (rightArm) {
                     // Simple punching motion
-                    rightArm.rotation.z = -Math.PI / 4 + Math.sin(time * 8.0) * 0.5;
-                    rightArm.rotation.x = Math.sin(time * 8.0) * 0.5;
+                    rightArm.rotation.z = -Math.PI / 4 + fastSin(time * 8.0) * 0.5;
+                    rightArm.rotation.x = fastSin(time * 8.0) * 0.5;
                 }
             } else {
                 // Reset regular skeleton arm position when not attacking

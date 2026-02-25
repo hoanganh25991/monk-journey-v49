@@ -1,4 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 import { EnemyModel } from './EnemyModel.js';
 
 /**
@@ -221,9 +222,9 @@ export class SwampWitchModel extends EnemyModel {
             
             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
             particle.position.set(
-                Math.sin(angle) * radius,
+                fastSin(angle) * radius,
                 0.5,
-                Math.cos(angle) * radius
+                fastCos(angle) * radius
             );
             
             // Store the original angle for animation
@@ -244,7 +245,7 @@ export class SwampWitchModel extends EnemyModel {
             // IMPORTANT: Do not modify this.modelGroup.position.y!
             // The Y position is managed by the Enemy class for proper terrain positioning.
             // Apply hovering motion to the torso instead of the whole model
-            const hoveringMotion = Math.sin(time * 1.5) * 0.05;
+            const hoveringMotion = fastSin(time * 1.5) * 0.05;
             const torso = this.modelGroup.children[0]; // Torso is first child
             if (torso && torso.userData.originalY === undefined) {
                 torso.userData.originalY = torso.position.y;
@@ -262,36 +263,36 @@ export class SwampWitchModel extends EnemyModel {
             // Animate the staff orb
             if (orb) {
                 // Pulse the orb
-                const pulseFactor = 1.0 + Math.sin(time * 3.0) * 0.2;
+                const pulseFactor = 1.0 + fastSin(time * 3.0) * 0.2;
                 orb.scale.set(pulseFactor, pulseFactor, pulseFactor);
                 
                 // Change the orb's intensity
-                orb.material.emissiveIntensity = 0.6 + Math.sin(time * 2.0) * 0.3;
+                orb.material.emissiveIntensity = 0.6 + fastSin(time * 2.0) * 0.3;
             }
             
             // Attack animation - raise staff and cast spell
             if (this.enemy.state.isAttacking) {
                 // Raise the staff during attack
                 if (staff) {
-                    staff.rotation.z = Math.PI * 0.1 + Math.sin(time * 10.0) * 0.2;
-                    staff.position.y = 0.75 + Math.sin(time * 8.0) * 0.2;
+                    staff.rotation.z = Math.PI * 0.1 + fastSin(time * 10.0) * 0.2;
+                    staff.position.y = 0.75 + fastSin(time * 8.0) * 0.2;
                 }
                 
                 // Make the orb glow brighter and pulse faster during attack
                 if (orb) {
-                    orb.material.emissiveIntensity = 1.0 + Math.sin(time * 15.0) * 0.5;
-                    const attackPulse = 1.0 + Math.sin(time * 20.0) * 0.5;
+                    orb.material.emissiveIntensity = 1.0 + fastSin(time * 15.0) * 0.5;
+                    const attackPulse = 1.0 + fastSin(time * 20.0) * 0.5;
                     orb.scale.set(attackPulse, attackPulse, attackPulse);
                     
                     // Move the orb position slightly during attack
-                    orb.position.y = 1.5 + Math.sin(time * 12.0) * 0.2;
+                    orb.position.y = 1.5 + fastSin(time * 12.0) * 0.2;
                 }
                 
                 // Animate the right arm (staff arm) during attack
                 if (rightArm && rightHand) {
                     // Create a more dramatic arm movement for casting
-                    rightArm.rotation.x = Math.sin(time * 8.0) * 0.3;
-                    rightHand.position.y = 0.4 + Math.sin(time * 8.0) * 0.1;
+                    rightArm.rotation.x = fastSin(time * 8.0) * 0.3;
+                    rightHand.position.y = 0.4 + fastSin(time * 8.0) * 0.1;
                 }
                 
                 // Make particles move more aggressively during attack
@@ -300,8 +301,8 @@ export class SwampWitchModel extends EnemyModel {
                     if (particle && particle.userData && particle.userData.angle !== undefined) {
                         // During attack, particles move outward as if being cast
                         const attackAngle = particle.userData.angle + time * 2.0;
-                        const attackRadius = 0.6 + Math.sin(time * 8.0) * 0.5 + 0.5;
-                        const attackHeight = 0.5 + Math.sin(time * 10.0 + particle.userData.angle) * 0.3;
+                        const attackRadius = 0.6 + fastSin(time * 8.0) * 0.5 + 0.5;
+                        const attackHeight = 0.5 + fastSin(time * 10.0 + particle.userData.angle) * 0.3;
                         
                         particle.position.set(
                             Math.sin(attackAngle) * attackRadius,
@@ -310,12 +311,12 @@ export class SwampWitchModel extends EnemyModel {
                         );
                         
                         // Particles pulse more dramatically during attack
-                        const attackParticleScale = 1.0 + Math.sin(time * 15.0 + particle.userData.angle * 3.0) * 0.6;
+                        const attackParticleScale = 1.0 + fastSin(time * 15.0 + particle.userData.angle * 3.0) * 0.6;
                         particle.scale.set(attackParticleScale, attackParticleScale, attackParticleScale);
                         
                         // Make particles glow brighter during attack
                         if (particle.material) {
-                            particle.material.emissiveIntensity = 0.8 + Math.sin(time * 12.0) * 0.5;
+                            particle.material.emissiveIntensity = 0.8 + fastSin(time * 12.0) * 0.5;
                         }
                     }
                 }
@@ -326,8 +327,8 @@ export class SwampWitchModel extends EnemyModel {
                     if (particle && particle.userData && particle.userData.angle !== undefined) {
                         // Rotate the particles around the witch
                         const angle = particle.userData.angle + time * 0.5;
-                        const radius = 0.6 + Math.sin(time * 2.0 + particle.userData.angle) * 0.1;
-                        const height = 0.5 + Math.sin(time * 3.0 + particle.userData.angle) * 0.2;
+                        const radius = 0.6 + fastSin(time * 2.0 + particle.userData.angle) * 0.1;
+                        const height = 0.5 + fastSin(time * 3.0 + particle.userData.angle) * 0.2;
                         
                         particle.position.set(
                             Math.sin(angle) * radius,
@@ -336,7 +337,7 @@ export class SwampWitchModel extends EnemyModel {
                         );
                         
                         // Pulse the particles
-                        const particleScale = 1.0 + Math.sin(time * 4.0 + particle.userData.angle * 2.0) * 0.3;
+                        const particleScale = 1.0 + fastSin(time * 4.0 + particle.userData.angle * 2.0) * 0.3;
                         particle.scale.set(particleScale, particleScale, particleScale);
                         
                         // Reset particle glow
