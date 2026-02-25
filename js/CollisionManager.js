@@ -72,13 +72,11 @@ export class CollisionManager {
         const playerPosition = this.player.getPosition();
         const playerRadius = this.player.getCollisionRadius();
         
-        // Check collision with each enemy (use for loop for better performance)
-        const enemies = this.enemyManager.enemies;
+        // Check collision with each enemy (iterate Map values)
         const px = playerPosition.x;
         const pz = playerPosition.z;
         
-        for (let i = 0; i < enemies.length; i++) {
-            const enemy = enemies[i];
+        for (const enemy of this.enemyManager.enemies.values()) {
             const enemyPosition = enemy.getPosition();
             const enemyRadius = enemy.getCollisionRadius();
             
@@ -257,13 +255,11 @@ export class CollisionManager {
             const skillPosition = skill.getPosition();
             const skillRadius = skill.getRadius();
             
-            // Check collision with each enemy (use for loop for better performance)
-            const enemies = this.enemyManager.enemies;
+            // Check collision with each enemy (iterate Map values)
             const sx = skillPosition.x;
             const sz = skillPosition.z;
             
-            for (let j = 0; j < enemies.length; j++) {
-                const enemy = enemies[j];
+            for (const enemy of this.enemyManager.enemies.values()) {
                 const enemyPosition = enemy.getPosition();
                 const enemyRadius = enemy.getCollisionRadius();
                 
@@ -387,13 +383,14 @@ export class CollisionManager {
     }
     
     checkEnemyEnemyCollisions() {
-        const enemies = this.enemyManager.enemies;
+        // Convert Map to array for pair iteration
+        const enemiesArray = Array.from(this.enemyManager.enemies.values());
         
         // Check each pair of enemies for collisions
-        for (let i = 0; i < enemies.length; i++) {
-            for (let j = i + 1; j < enemies.length; j++) {
-                const enemy1 = enemies[i];
-                const enemy2 = enemies[j];
+        for (let i = 0; i < enemiesArray.length; i++) {
+            for (let j = i + 1; j < enemiesArray.length; j++) {
+                const enemy1 = enemiesArray[i];
+                const enemy2 = enemiesArray[j];
                 
                 const position1 = enemy1.getPosition();
                 const position2 = enemy2.getPosition();

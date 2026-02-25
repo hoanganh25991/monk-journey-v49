@@ -1153,9 +1153,8 @@ export class EnemyManager {
         const px = position.x;
         const pz = position.z;
         
-        // Use for loop instead of forEach for better performance
-        for (let i = 0; i < this.enemies.length; i++) {
-            const enemy = this.enemies[i];
+        // Iterate Map values (enemies is a Map, not Array)
+        for (const enemy of this.enemies.values()) {
             const enemyPosition = enemy.getPosition();
             
             // Calculate squared horizontal distance using optimized function

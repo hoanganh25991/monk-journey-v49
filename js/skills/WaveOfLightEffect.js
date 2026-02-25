@@ -249,7 +249,7 @@ export class WaveOfLightEffect extends SkillEffect {
         // The bell should ALWAYS start from player's height + 50, regardless of target position
         // Use playerStartPosition which we stored in create() method
         const playerHeight = this.playerStartPosition ? this.playerStartPosition.y : this.initialPosition.y;
-        const startHeightAboveGround = (playerHeight - groundHeight) + 50;
+        const startHeightAboveGround = (playerHeight - groundHeight) + 8;
         
         console.debug(`Wave of Light: Player height: ${playerHeight}, Ground height: ${groundHeight}, Start height: ${startHeightAboveGround}`);
         
