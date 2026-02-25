@@ -10,7 +10,7 @@
  */
 
 export class LodManager {
-    constructor(worldManager, qualityLevel = 'medium') {
+    constructor(worldManager, qualityLevel = 'high') {
         this.worldManager = worldManager;
         this.qualityLevel = qualityLevel;
     }

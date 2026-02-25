@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { PathFactory } from './PathFactory.js';
 import { PATH_PATTERNS, PATH_TYPES, PATH_MATERIALS } from '../../config/paths.js';
 

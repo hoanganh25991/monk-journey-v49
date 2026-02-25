@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * FairyCircle class - Creates a magical fairy circle environment object

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * AshPile - Creates piles of volcanic ash for desert/volcanic environments

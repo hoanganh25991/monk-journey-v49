@@ -94,16 +94,23 @@ export class PlayerInventory {
             return false;
         }
         
+        // Find the item in inventory to get the actual inventory instance
+        const inventoryItem = this.inventory.find(i => i.name === item.name);
+        if (!inventoryItem) {
+            // Item not in inventory, cannot equip
+            return false;
+        }
+        
         // Unequip current item if any
         if (this.equipment[slot]) {
             this.addToInventory(this.equipment[slot]);
         }
         
-        // Equip new item
-        this.equipment[slot] = item;
+        // Equip the item from inventory (use a copy to avoid reference issues)
+        this.equipment[slot] = { ...inventoryItem };
         
         // Remove from inventory
-        this.removeFromInventory(item.name);
+        this.removeFromInventory(item.name, 1);
         
         // Recalculate equipment bonuses
         this.calculateEquipmentBonuses();

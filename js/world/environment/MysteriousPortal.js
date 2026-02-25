@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * MysteriousPortal - Creates a mysterious portal environment object

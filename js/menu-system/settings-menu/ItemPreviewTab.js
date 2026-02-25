@@ -82,8 +82,8 @@ export class ItemPreviewTab extends SettingsTab {
     setupItemBehaviorSettings() {
         const keys = [
             [this.autoPickItemsCheckbox, STORAGE_KEYS.AUTO_PICK_ITEMS, true],
-            [this.autoConsumeItemsCheckbox, STORAGE_KEYS.AUTO_CONSUME_ITEMS, false],
-            [this.autoEquipItemsCheckbox, STORAGE_KEYS.AUTO_EQUIP_ITEMS, false]
+            [this.autoConsumeItemsCheckbox, STORAGE_KEYS.AUTO_CONSUME_ITEMS, true],
+            [this.autoEquipItemsCheckbox, STORAGE_KEYS.AUTO_EQUIP_ITEMS, true]
         ];
         keys.forEach(([el, key, defaultVal]) => {
             if (!el) return;

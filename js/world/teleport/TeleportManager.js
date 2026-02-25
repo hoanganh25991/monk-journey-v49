@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { MULTIPLIER_PORTALS, RETURN_PORTAL, DESTINATION_TERRAINS } from '../../config/teleport-portals.js';
 import { ZONE_ENEMIES } from '../../config/game-balance.js';
 import { PortalModelFactory } from './PortalModelFactory.js';

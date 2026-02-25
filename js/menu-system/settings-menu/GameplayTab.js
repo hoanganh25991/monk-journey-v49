@@ -364,17 +364,17 @@ export class GameplayTab extends SettingsTab {
                 this.materialQualitySelect.appendChild(optionElement);
             }
             
-            // Set current performance profile (default to 'medium' for better tablet compatibility)
-            const currentMaterialQuality = this.loadSettingSync(STORAGE_KEYS.QUALITY_LEVEL, 'medium');
+            // Set current performance profile (default to 'high')
+            const currentMaterialQuality = this.loadSettingSync(STORAGE_KEYS.QUALITY_LEVEL, 'high');
             
             console.debug(`Loading material quality setting: ${currentMaterialQuality}`);
             this.materialQualitySelect.value = currentMaterialQuality;
             
-            // If the value wasn't set correctly, explicitly set it to 'medium'
+            // If the value wasn't set correctly, explicitly set it to 'high'
             if (!this.materialQualitySelect.value) {
-                console.debug('Invalid performance profile detected, defaulting to medium');
-                this.materialQualitySelect.value = 'medium';
-                this.saveSetting(STORAGE_KEYS.QUALITY_LEVEL, 'medium');
+                console.debug('Invalid performance profile detected, defaulting to high');
+                this.materialQualitySelect.value = 'high';
+                this.saveSetting(STORAGE_KEYS.QUALITY_LEVEL, 'high');
             }
             
             // Add change event listener
@@ -547,7 +547,7 @@ export class GameplayTab extends SettingsTab {
         }
         
         if (this.materialQualitySelect) {
-            this.materialQualitySelect.value = 'medium'; // Default to high quality
+            this.materialQualitySelect.value = 'high';
         }
         
         // Save all the reset values

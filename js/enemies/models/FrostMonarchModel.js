@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { EnemyModel } from './EnemyModel.js';
 
 export class FrostMonarchModel extends EnemyModel {
@@ -17,7 +17,7 @@ export class FrostMonarchModel extends EnemyModel {
             opacity: 0.95
         });
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 1.25;
+        body.position.y = 0.0;
         body.castShadow = true;
         
         this.modelGroup.add(body);
@@ -32,7 +32,7 @@ export class FrostMonarchModel extends EnemyModel {
             opacity: 0.9
         });
         const head = new THREE.Mesh(headGeometry, headMaterial);
-        head.position.y = 3;
+        head.position.y = 1.75;
         head.castShadow = true;
         
         this.modelGroup.add(head);
@@ -47,7 +47,7 @@ export class FrostMonarchModel extends EnemyModel {
             opacity: 0.8
         });
         const crown = new THREE.Mesh(crownGeometry, crownMaterial);
-        crown.position.y = 3.4;
+        crown.position.y = 2.15;
         crown.castShadow = true;
         
         this.modelGroup.add(crown);
@@ -67,7 +67,7 @@ export class FrostMonarchModel extends EnemyModel {
             const crownSpike = new THREE.Mesh(spikeGeometry, spikeMaterial);
             crownSpike.position.set(
                 Math.cos(angle) * 0.8,
-                3.8,
+                2.55,
                 Math.sin(angle) * 0.8
             );
             crownSpike.rotation.x = Math.PI / 2;
@@ -89,7 +89,7 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Left pauldron
         const leftPauldron = new THREE.Mesh(pauldronGeometry, pauldronMaterial);
-        leftPauldron.position.set(-1.2, 2.2, 0);
+        leftPauldron.position.set(-1.2, 0.95, 0);
         leftPauldron.scale.set(1, 0.8, 1);
         leftPauldron.castShadow = true;
         
@@ -97,7 +97,7 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Right pauldron
         const rightPauldron = new THREE.Mesh(pauldronGeometry, pauldronMaterial);
-        rightPauldron.position.set(1.2, 2.2, 0);
+        rightPauldron.position.set(1.2, 0.95, 0);
         rightPauldron.scale.set(1, 0.8, 1);
         rightPauldron.castShadow = true;
         
@@ -115,7 +115,7 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Left arm
         const leftArm = new THREE.Mesh(armGeometry, armMaterial);
-        leftArm.position.set(-1.2, 1.5, 0);
+        leftArm.position.set(-1.2, 0.25, 0);
         leftArm.rotation.z = Math.PI / 6;
         leftArm.castShadow = true;
         
@@ -123,7 +123,7 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Right arm
         const rightArm = new THREE.Mesh(armGeometry, armMaterial);
-        rightArm.position.set(1.2, 1.5, 0);
+        rightArm.position.set(1.2, 0.25, 0);
         rightArm.rotation.z = -Math.PI / 6;
         rightArm.castShadow = true;
         
@@ -141,14 +141,14 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Left leg
         const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
-        leftLeg.position.set(-0.6, 0.1, 0);
+        leftLeg.position.set(-0.6, -1.15, 0);
         leftLeg.castShadow = true;
         
         this.modelGroup.add(leftLeg);
         
         // Right leg
         const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
-        rightLeg.position.set(0.6, 0.1, 0);
+        rightLeg.position.set(0.6, -1.15, 0);
         rightLeg.castShadow = true;
         
         this.modelGroup.add(rightLeg);
@@ -163,7 +163,7 @@ export class FrostMonarchModel extends EnemyModel {
             emissiveIntensity: 0.2
         });
         const scepter = new THREE.Mesh(scepterGeometry, scepterMaterial);
-        scepter.position.set(1.5, 1.5, 0);
+        scepter.position.set(1.5, 0.25, 0);
         scepter.rotation.z = -Math.PI / 2;
         scepter.castShadow = true;
         
@@ -181,7 +181,7 @@ export class FrostMonarchModel extends EnemyModel {
             emissiveIntensity: 0.5
         });
         const scepterHead = new THREE.Mesh(scepterHeadGeometry, scepterHeadMaterial);
-        scepterHead.position.set(2.8, 1.5, 0);
+        scepterHead.position.set(2.8, 0.25, 0);
         scepterHead.castShadow = true;
         
         this.modelGroup.add(scepterHead);
@@ -197,7 +197,7 @@ export class FrostMonarchModel extends EnemyModel {
             metalness: 0.5
         });
         const cape = new THREE.Mesh(capeGeometry, capeMaterial);
-        cape.position.set(0, 1.25, -0.8);
+        cape.position.set(0, 0.0, -0.8);
         cape.rotation.x = Math.PI / 12;
         
         this.modelGroup.add(cape);
@@ -241,13 +241,13 @@ export class FrostMonarchModel extends EnemyModel {
         
         // Left eye
         const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        leftEye.position.set(-0.25, 3, 0.35);
+        leftEye.position.set(-0.25, 1.75, 0.35);
         
         this.modelGroup.add(leftEye);
         
         // Right eye
         const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
-        rightEye.position.set(0.25, 3, 0.35);
+        rightEye.position.set(0.25, 1.75, 0.35);
         
         this.modelGroup.add(rightEye);
     }

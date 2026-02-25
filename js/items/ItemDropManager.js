@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { ItemModelFactory } from './models/ItemModelFactory.js';
 import { Item } from './Item.js';
 import storageService from '../save-manager/StorageService.js';
@@ -277,16 +277,28 @@ export class ItemDropManager {
                 }
             }
             if (!didConsume && hud) {
-                if ((autoEquip === true || autoEquip === 'true') && isEquippable) {
-                    const result = this.tryAutoEquip(item);
-                    if (result === 'equipped') {
-                        hud.showNotification(`Auto equipped ${item.name}`);
-                    } else if (result === 'similar') {
-                        hud.showNotification(`Similar to current, not auto-equipping`);
+                if (isEquippable) {
+                    if (autoEquip === true || autoEquip === 'true') {
+                        const result = this.tryAutoEquip(item);
+                        if (result === 'equipped') {
+                            // Show both: pick (center) + equip (left float)
+                            hud.showNotification(`Pick ${item.name}`);
+                            hud.showNotification(`Equip ${item.name}`, 'equip', { item });
+                        } else if (result === 'similar') {
+                            hud.showNotification(`Pick ${item.name}`);
+                            hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
+                        } else if (result === 'weaker') {
+                            hud.showNotification(`Pick ${item.name}`);
+                            hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
+                        }
+                    } else {
+                        // Auto-equip is OFF - show pick (center) + skip (left)
+                        hud.showNotification(`Pick ${item.name}`);
+                        hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
                     }
-                    // else weaker: no notification
                 } else {
-                    hud.showNotification(`Picked up ${item.name}`);
+                    // Non-equippable items - show pickup in center screen
+                    hud.showNotification(`Pick ${item.name}`);
                 }
             }
         }

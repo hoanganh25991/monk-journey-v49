@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * PortalModelFactory - Creates and manages Three.js models for teleport portals

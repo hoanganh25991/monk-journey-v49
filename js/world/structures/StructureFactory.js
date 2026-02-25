@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 // Import structure configuration
 import { STRUCTURE_OBJECTS, STRUCTURE_PROPERTIES } from '../../config/structure.js';

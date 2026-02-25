@@ -3,7 +3,7 @@
  * Handles the player's attack effects and animations
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import GeometryFactory from '../utils/GeometryFactory.js';
 
 export class PlayerAttackEffect {

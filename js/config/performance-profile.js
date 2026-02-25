@@ -167,7 +167,7 @@ export const SHADOW_CASTER_DISTANCE = {
  * @returns {Object} Merged profile config
  */
 export function getPerformanceProfile(qualityLevel) {
-    const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+    const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
     return {
         terrainLod: TERRAIN_LOD[level],
         viewDistance: VIEW_DISTANCE[level],

@@ -12,6 +12,8 @@ export class NotificationsUI extends UIComponent {
         super('notifications-container', game);
         this.notifications = [];
         this.damageNumbers = [];
+        /** @type {Array<{element: HTMLElement, lifetime: number, message: string, timestamp: number, floatOffset: number}>} */
+        this.floatNotifications = [];
         
         // Message queue for asynchronous processing
         this.messageQueue = [];
@@ -21,6 +23,8 @@ export class NotificationsUI extends UIComponent {
         this.maxQueueSize = 20; // Maximum number of messages in queue
         this.processingInterval = 50; // Milliseconds between processing messages
         this.maxVisibleNotifications = 5; // Default max visible notifications
+        /** Types that show on left side and float up (above joystick) */
+        this.floatTypes = ['equip', 'consume-health', 'consume-mana', 'skip'];
     }
     
     /**
@@ -29,6 +33,13 @@ export class NotificationsUI extends UIComponent {
      */
     init() {
         // No initial HTML needed, notifications are added dynamically
+        
+        // Float container: left side, above joystick, notifications float up
+        this.floatContainer = document.createElement('div');
+        this.floatContainer.id = 'notifications-float-container';
+        this.container.appendChild(this.floatContainer);
+        
+        console.log('NotificationsUI: Float container created and appended', this.floatContainer);
         
         // Calculate max visible notifications based on screen height
         this.updateMaxVisibleNotifications();
@@ -71,11 +82,13 @@ export class NotificationsUI extends UIComponent {
         this.isProcessingQueue = true;
         
         try {
-            // Pop the next message from the queue
-            const message = this.messageQueue.shift();
-            
-            // Display the message
-            this.displayNotification(message);
+            const entry = this.messageQueue.shift();
+            const message = typeof entry === 'string' ? entry : (entry && entry.message);
+            const type = typeof entry === 'object' && entry && typeof entry.type === 'string' ? entry.type : undefined;
+            const item = typeof entry === 'object' && entry && entry.item;
+            if (message != null) {
+                this.displayNotification(message, type, item);
+            }
         } catch (error) {
             console.error('Error processing notification message:', error);
         } finally {
@@ -95,14 +108,21 @@ export class NotificationsUI extends UIComponent {
     /**
      * Add a notification message to the queue
      * @param {string} message - Message to display
+     * @param {string|number} [typeOrDuration] - Optional: type ('equip', 'consume-health', 'consume-mana', 'warning', 'error', ...) or duration in ms
+     * @param {{ item?: { name: string, icon?: string } }} [extra] - Optional: for type 'equip', pass { item } to show item icon
      */
-    showNotification(message) {
-        // Add message to queue
-        this.messageQueue.push(message);
+    showNotification(message, typeOrDuration, extra) {
+        const isType = typeof typeOrDuration === 'string';
+        const entry = {
+            message: typeof message === 'string' ? message : (message && message.message) || String(message),
+            type: isType ? typeOrDuration : undefined,
+            duration: !isType && typeof typeOrDuration === 'number' ? typeOrDuration : undefined,
+            item: extra && extra.item ? extra.item : undefined
+        };
+        this.messageQueue.push(entry);
         
         // If queue gets too large, remove oldest messages
         if (this.messageQueue.length > this.maxQueueSize) {
-            // Keep only the most recent messages
             const messagesToKeep = Math.max(5, Math.floor(this.maxQueueSize * 0.5));
             this.messageQueue = this.messageQueue.slice(-messagesToKeep);
         }
@@ -111,80 +131,133 @@ export class NotificationsUI extends UIComponent {
     /**
      * Display a notification message (called from queue processor)
      * @param {string} message - Message to display
+     * @param {string} [type] - Optional type for styling: 'equip', 'consume-health', 'consume-mana', 'warning', 'error', ...
+     * @param {{ name: string, icon?: string }} [item] - Optional item for equip (show icon)
      */
-    displayNotification(message) {
-        // Get screen height to calculate maximum notification area (1/5 of screen height)
+    displayNotification(message, type, item) {
+        const useFloat = type && this.floatTypes.includes(type);
+        if (useFloat && this.floatContainer) {
+            this.displayFloatNotification(message, type, item);
+            return;
+        }
+        
+        // Center notifications (original behavior)
         const screenHeight = window.innerHeight;
         const maxNotificationAreaHeight = screenHeight / 5;
         
-        // Create notification element
         const notification = document.createElement('div');
-        notification.className = 'notification-item';
-        notification.style.top = '80px'; // Initial position, will be adjusted later
+        notification.className = 'notification-item' + (type ? ` notification-item--${type}` : '');
+        notification.style.top = '80px';
         notification.textContent = message;
         
-        // Add notification to container
         this.container.appendChild(notification);
         
-        // Calculate message rate to determine how aggressively to manage notifications
         const messageRate = this.getMessageRate();
-        
-        // Determine how many notifications to keep based on message rate
-        // When messages come in quickly, keep fewer notifications visible
         const notificationsToKeep = messageRate > 3 ? 
-            Math.max(2, this.maxVisibleNotifications - 2) : // High message rate - keep fewer
-            this.maxVisibleNotifications; // Normal rate - keep max allowed
+            Math.max(2, this.maxVisibleNotifications - 2) : this.maxVisibleNotifications;
         
-        // If we have too many notifications, remove the oldest ones immediately
         while (this.notifications.length >= notificationsToKeep) {
-            // Remove oldest notification
             const oldestNotification = this.notifications.shift();
             if (oldestNotification && oldestNotification.element) {
                 oldestNotification.element.remove();
             }
         }
         
-        // Add to notifications array with dynamic lifetime based on message rate
-        const lifetime = messageRate > 3 ? 0.3 : 0.7; // Shorter lifetime when messages come quickly
-
+        const lifetime = messageRate > 3 ? 0.3 : 0.7;
         this.notifications.push({
             element: notification,
             lifetime: lifetime,
-            message: message, // Store message for deduplication
-            timestamp: Date.now() // Store timestamp for message rate calculation
+            message: message,
+            timestamp: Date.now()
         });
         
-        // Check for duplicate messages and reduce their lifetime
         this.deduplicateNotifications();
         
-        // Adjust position for multiple notifications
         if (this.notifications.length > 1) {
-            // Calculate total height of all notifications
             let totalHeight = 0;
-            let availableHeight = maxNotificationAreaHeight;
-            
-            // Calculate how much space we need
+            const availableHeight = maxNotificationAreaHeight;
             for (let i = 0; i < this.notifications.length - 1; i++) {
                 const notif = this.notifications[i];
-                if (notif && notif.element) {
-                    const height = notif.element.offsetHeight + 5; // Height + smaller margin
-                    totalHeight += height;
-                }
+                if (notif && notif.element) totalHeight += notif.element.offsetHeight + 5;
             }
-            
-            // If we exceed the max height, compress the notifications
             if (totalHeight > availableHeight) {
-                // Compress notifications to fit in the available space
                 this.compressNotifications(availableHeight);
             } else {
-                // Just position the new notification below the last one
                 const previousNotification = this.notifications[this.notifications.length - 2];
                 if (previousNotification && previousNotification.element) {
                     const previousHeight = previousNotification.element.offsetHeight;
                     const previousTop = parseInt(previousNotification.element.style.top);
-                    notification.style.top = `${previousTop + previousHeight + 5}px`; // Smaller margin
+                    notification.style.top = `${previousTop + previousHeight + 5}px`;
                 }
             }
+        }
+    }
+    
+    /**
+     * Display a float notification (left side, above joystick, floats up). Red=health, blue=mana, yellow=equip, white=skip.
+     * @param {string} message - Message to display
+     * @param {string} type - 'equip' | 'consume-health' | 'consume-mana' | 'skip'
+     * @param {{ name: string, icon?: string }} [item] - For equip/skip: show item icon
+     */
+    displayFloatNotification(message, type, item) {
+        console.log('NotificationsUI: Displaying float notification', { message, type, item, floatContainer: this.floatContainer });
+        
+        if (!this.floatContainer) {
+            console.error('NotificationsUI: Float container not found!');
+            return;
+        }
+        
+        const notification = document.createElement('div');
+        notification.className = `notification-float notification-float--${type}`;
+        
+        if ((type === 'equip' || type === 'skip') && item) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'notification-float-icon';
+            iconSpan.textContent = (item.icon != null && item.icon !== '') ? item.icon : '📦';
+            iconSpan.setAttribute('aria-hidden', 'true');
+            notification.appendChild(iconSpan);
+        }
+        const textSpan = document.createElement('span');
+        textSpan.className = 'notification-float-text';
+        textSpan.textContent = message;
+        notification.appendChild(textSpan);
+        
+        this.floatContainer.appendChild(notification);
+        console.log('NotificationsUI: Float notification appended', notification);
+        
+        // Limit float notifications
+        const maxFloat = 6;
+        while (this.floatNotifications.length >= maxFloat) {
+            const old = this.floatNotifications.shift();
+            if (old && old.element) old.element.remove();
+        }
+        
+        // Equip notifications should float for 5 seconds, others for 2.2 seconds
+        const lifetime = type === 'equip' ? 5.0 : 2.2;
+        
+        this.floatNotifications.push({
+            element: notification,
+            lifetime: lifetime,
+            message: message,
+            timestamp: Date.now(),
+            floatOffset: 0
+        });
+        
+        this.layoutFloatNotifications();
+    }
+    
+    /**
+     * Position float notifications from bottom (newest at bottom), then they float up via update.
+     */
+    layoutFloatNotifications() {
+        const gap = 6;
+        let bottom = 0;
+        for (let i = this.floatNotifications.length - 1; i >= 0; i--) {
+            const n = this.floatNotifications[i];
+            if (!n || !n.element) continue;
+            n.element.style.bottom = `${bottom}px`;
+            n.element.style.transform = `translateY(${-(n.floatOffset || 0)}px)`;
+            bottom += n.element.offsetHeight + gap;
         }
     }
     
@@ -193,12 +266,35 @@ export class NotificationsUI extends UIComponent {
      * @param {number} delta - Time since last update in seconds
      */
     updateNotifications(delta) {
-        // Update existing notifications
-        let needsReorganization = false;
+        // Float notifications: move up and expire
+        const floatSpeed = 45 * delta; // px per second
+        let floatNeedsLayout = false;
+        for (let i = this.floatNotifications.length - 1; i >= 0; i--) {
+            const n = this.floatNotifications[i];
+            if (!n || !n.element) {
+                this.floatNotifications.splice(i, 1);
+                floatNeedsLayout = true;
+                continue;
+            }
+            n.lifetime -= (1 / 60) * (delta * 60);
+            n.floatOffset = (n.floatOffset || 0) + floatSpeed;
+            if (n.lifetime <= 0) {
+                n.element.remove();
+                this.floatNotifications.splice(i, 1);
+                floatNeedsLayout = true;
+            } else {
+                n.element.style.opacity = Math.max(0, n.lifetime / 0.6);
+                n.element.style.transform = `translateY(${-n.floatOffset}px)`;
+            }
+        }
+        if (floatNeedsLayout && this.floatNotifications.length > 0) {
+            this.layoutFloatNotifications();
+        }
         
-        // Calculate message rate to determine if we need to expire messages faster
+        // Center notifications
+        let needsReorganization = false;
         const messageRate = this.getMessageRate();
-        const fastExpiry = messageRate > 3; // If messages are coming in quickly
+        const fastExpiry = messageRate > 3;
         
         // If message rate is very high, aggressively reduce visible notifications
         if (messageRate > 5 && this.notifications.length > 3) {

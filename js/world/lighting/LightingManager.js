@@ -1,5 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { RENDER_CONFIG } from '../../config/render.js';
+import deviceCapabilities from '../../utils/DeviceCapabilities.js';
 
 /**
  * Manages world lighting
@@ -28,14 +29,15 @@ export class LightingManager {
      * Create lights for the world
      */
     createLights() {
-        // Ambient light
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        // Ambient light - darker for atmospheric mood
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.2);
         this.scene.add(ambientLight);
         this.lights.push(ambientLight);
         
         // Directional light (sun)
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(50, 100, 50);
+        // Positioned for longer shadows (like 15:00/3 PM sun angle)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(120, 40, 50);
         directionalLight.castShadow = true;
         
         // IMPROVED: Shadow camera must cover full visible terrain (chunked terrain with height)
@@ -62,8 +64,8 @@ export class LightingManager {
         this.lights.push(directionalLight);
         this.sunLight = directionalLight;
         
-        // Add a hemisphere light
-        const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x3a7e4f, 0.6);
+        // Add a hemisphere light - darker for atmospheric mood
+        const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x3a7e4f, 0.25);
         this.scene.add(hemisphereLight);
         this.lights.push(hemisphereLight);
         this.skyLight = hemisphereLight;
@@ -100,13 +102,15 @@ export class LightingManager {
         if (!this.sunLight) return;
         
         // Get the current sun angle and height from time of day
+        // Adjusted for lower sun angle (like 15:00/3 PM) to create longer shadows
         const sunAngle = Math.PI * 2 * this.timeOfDay - Math.PI / 2;
-        const sunHeight = Math.sin(sunAngle);
-        const sunDistance = 100;
+        const sunHeight = Math.sin(sunAngle) * 0.4; // Much lower sun for 15:00 angle
+        const sunDistance = 200; // Increased distance for longer shadows
         
         // Calculate sun position relative to player
+        // For 15:00 angle, we want low Y relative to horizontal distance
         const relativeX = Math.cos(sunAngle) * sunDistance;
-        const relativeY = Math.max(0.1, sunHeight) * sunDistance;
+        const relativeY = Math.max(20, sunHeight * 50 + 30); // Fixed low height for afternoon sun
         const relativeZ = 0;
         
         // Update sun position to be relative to player
@@ -133,12 +137,12 @@ export class LightingManager {
         const sunAngle = Math.PI * 2 * this.timeOfDay - Math.PI / 2;
         const sunHeight = Math.sin(sunAngle);
         
-        // Update sun intensity based on height
-        const sunIntensity = Math.max(0, sunHeight);
+        // Update sun intensity based on height - reduced for darker atmosphere
+        const sunIntensity = Math.max(0, sunHeight) * 0.5; // Reduced to 50% for darker mood
         this.sunLight.intensity = sunIntensity;
         
-        // Update ambient light based on time of day
-        const ambientIntensity = 0.2 + sunIntensity * 0.3;
+        // Update ambient light based on time of day - darker
+        const ambientIntensity = 0.15 + sunIntensity * 0.2; // Reduced base and multiplier
         this.lights[0].intensity = ambientIntensity;
         
         // Update sky light based on time of day
@@ -146,18 +150,18 @@ export class LightingManager {
         const groundColor = new THREE.Color();
         
         if (sunHeight > 0) {
-            // Day
-            skyColor.setHSL(0.6, 1, 0.5 + sunHeight * 0.5);
-            groundColor.setHSL(0.095, 0.5, 0.3 + sunHeight * 0.1);
+            // Day - darker colors for atmospheric mood
+            skyColor.setHSL(0.6, 0.7, 0.35 + sunHeight * 0.3); // Reduced saturation and lightness
+            groundColor.setHSL(0.095, 0.4, 0.25 + sunHeight * 0.08); // Darker ground
         } else {
-            // Night
-            skyColor.setHSL(0.7, 0.8, Math.max(0.1, 0.3 + sunHeight * 0.2));
-            groundColor.setHSL(0.095, 0.5, Math.max(0.1, 0.3 + sunHeight * 0.1));
+            // Night - darker
+            skyColor.setHSL(0.7, 0.6, Math.max(0.08, 0.25 + sunHeight * 0.15));
+            groundColor.setHSL(0.095, 0.4, Math.max(0.08, 0.25 + sunHeight * 0.08));
         }
         
         this.skyLight.color.copy(skyColor);
         this.skyLight.groundColor.copy(groundColor);
-        this.skyLight.intensity = 0.3 + sunIntensity * 0.3;
+        this.skyLight.intensity = 0.2 + sunIntensity * 0.2; // Reduced from 0.3 + 0.3
     }
     
     /**
@@ -198,19 +202,44 @@ export class LightingManager {
     }
 
     /**
-     * Apply shadow settings from quality profile only (no device override; high/medium = shadows on).
+     * Apply shadow settings with device capability detection.
+     * Desktop: Uses full quality settings (e.g., 4096 for high)
+     * Mobile: Automatically scales down to device-safe limits
      * @param {string} qualityLevel - 'high' | 'medium' | 'low' | 'minimal'
      */
     applyQuality(qualityLevel) {
         if (!this.sunLight) return;
-        const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        
+        const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
         const settings = RENDER_CONFIG[level]?.settings || RENDER_CONFIG.high.settings;
-        this.sunLight.castShadow = !!settings.shadowMapEnabled;
-        if (this.sunLight.castShadow && settings.shadowMapSize > 0) {
-            this.sunLight.shadow.mapSize.width = settings.shadowMapSize;
-            this.sunLight.shadow.mapSize.height = settings.shadowMapSize;
+        
+        // Check device capabilities for shadow support
+        const capabilities = deviceCapabilities.getCapabilities();
+        const shadowsEnabled = capabilities 
+            ? deviceCapabilities.shouldEnableShadows(qualityLevel)
+            : !!settings.shadowMapEnabled;
+        
+        this.sunLight.castShadow = shadowsEnabled;
+        
+        if (shadowsEnabled && settings.shadowMapSize > 0) {
+            // Get optimal shadow map size for this device
+            let shadowMapSize = settings.shadowMapSize;
+            
+            if (capabilities && capabilities.optimalShadowMapSize) {
+                const optimalSize = capabilities.optimalShadowMapSize[qualityLevel];
+                shadowMapSize = Math.min(settings.shadowMapSize, optimalSize);
+                
+                console.debug(`Light shadow map size adjusted from ${settings.shadowMapSize} to ${shadowMapSize} based on device capabilities`);
+            }
+            
+            this.sunLight.shadow.mapSize.width = shadowMapSize;
+            this.sunLight.shadow.mapSize.height = shadowMapSize;
             this.sunLight.shadow.radius = typeof settings.shadowRadius === 'number' ? settings.shadowRadius : 0.5;
             this.sunLight.shadow.normalBias = typeof settings.shadowNormalBias === 'number' ? settings.shadowNormalBias : 0.006;
+            
+            console.debug(`Light shadows enabled with ${shadowMapSize}x${shadowMapSize} map`);
+        } else {
+            console.debug(`Light shadows disabled for ${qualityLevel} quality on this device`);
         }
     }
 }

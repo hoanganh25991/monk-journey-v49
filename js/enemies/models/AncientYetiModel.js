@@ -1,5 +1,5 @@
 import { EnemyModel } from './EnemyModel.js';
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * Model class for Ancient Yeti enemies
@@ -45,22 +45,22 @@ export class AncientYetiModel extends EnemyModel {
         // Create main body (large torso)
         const bodyGeometry = new THREE.CylinderGeometry(1.2, 1.5, 2.5, 8);
         const bodyMesh = new THREE.Mesh(bodyGeometry, furMaterial);
-        bodyMesh.position.set(0, 1.0, 0);
+        bodyMesh.position.set(0, 1.5, 0);
         this.modelGroup.add(bodyMesh);
         
         // Create head (large and imposing)
         const headGeometry = new THREE.SphereGeometry(0.8, 8, 6);
         const headMesh = new THREE.Mesh(headGeometry, furMaterial);
-        headMesh.position.set(0, 2.8, 0.2);
+        headMesh.position.set(0, 3.3, 0.2);
         this.modelGroup.add(headMesh);
         
         // Create massive arms
-        this.createArm(-1.8, 1.5, 0, furMaterial);
-        this.createArm(1.8, 1.5, 0, furMaterial);
+        this.createArm(-1.8, 2.0, 0, furMaterial);
+        this.createArm(1.8, 2.0, 0, furMaterial);
         
         // Create powerful legs
-        this.createLeg(-0.6, -0.5, 0, furMaterial);
-        this.createLeg(0.6, -0.5, 0, furMaterial);
+        this.createLeg(-0.6, 0.0, 0, furMaterial);
+        this.createLeg(0.6, 0.0, 0, furMaterial);
         
         // Add facial features
         this.createFace(darkFurMaterial, iceMaterial);
@@ -165,7 +165,7 @@ export class AncientYetiModel extends EnemyModel {
         // Snout/muzzle
         const snoutGeometry = new THREE.CylinderGeometry(0.25, 0.35, 0.4, 6);
         const snoutMesh = new THREE.Mesh(snoutGeometry, darkMaterial);
-        snoutMesh.position.set(0, 2.6, 0.6);
+        snoutMesh.position.set(0, 3.1, 0.6);
         snoutMesh.rotation.x = Math.PI / 2;
         this.modelGroup.add(snoutMesh);
         
@@ -173,11 +173,11 @@ export class AncientYetiModel extends EnemyModel {
         const eyeGeometry = new THREE.SphereGeometry(0.15, 6, 4);
         
         const leftEye = new THREE.Mesh(eyeGeometry, iceMaterial);
-        leftEye.position.set(-0.3, 2.9, 0.5);
+        leftEye.position.set(-0.3, 3.4, 0.5);
         this.modelGroup.add(leftEye);
         
         const rightEye = new THREE.Mesh(eyeGeometry, iceMaterial);
-        rightEye.position.set(0.3, 2.9, 0.5);
+        rightEye.position.set(0.3, 3.4, 0.5);
         this.modelGroup.add(rightEye);
         
         // Intimidating horns
@@ -185,12 +185,12 @@ export class AncientYetiModel extends EnemyModel {
         const hornMaterial = new THREE.MeshPhongMaterial({ color: 0x2F4F4F });
         
         const leftHorn = new THREE.Mesh(hornGeometry, hornMaterial);
-        leftHorn.position.set(-0.4, 3.3, 0);
+        leftHorn.position.set(-0.4, 3.8, 0);
         leftHorn.rotation.z = 0.3;
         this.modelGroup.add(leftHorn);
         
         const rightHorn = new THREE.Mesh(hornGeometry, hornMaterial);
-        rightHorn.position.set(0.4, 3.3, 0);
+        rightHorn.position.set(0.4, 3.8, 0);
         rightHorn.rotation.z = -0.3;
         this.modelGroup.add(rightHorn);
     }
@@ -206,7 +206,7 @@ export class AncientYetiModel extends EnemyModel {
             const spikeMesh = new THREE.Mesh(spikeGeometry, iceMaterial);
             spikeMesh.position.set(
                 i === 0 ? -1.2 : 1.2,
-                2.2,
+                2.7,
                 -0.2
             );
             spikeMesh.rotation.z = (i === 0 ? 0.5 : -0.5);
@@ -220,7 +220,7 @@ export class AncientYetiModel extends EnemyModel {
                 const icicleMesh = new THREE.Mesh(icicleGeometry, iceMaterial);
                 icicleMesh.position.set(
                     side * 1.8 + (Math.random() - 0.5) * 0.4,
-                    0.8 - j * 0.3,
+                    1.3 - j * 0.3,
                     (Math.random() - 0.5) * 0.4
                 );
                 icicleMesh.rotation.x = Math.PI;
@@ -249,7 +249,7 @@ export class AncientYetiModel extends EnemyModel {
             const angle = (i / 8) * Math.PI * 2;
             crystalMesh.position.set(
                 Math.cos(angle) * 2.5,
-                1.5 + Math.sin(i) * 0.5,
+                2.0 + Math.sin(i) * 0.5,
                 Math.sin(angle) * 2.5
             );
             
@@ -268,7 +268,14 @@ export class AncientYetiModel extends EnemyModel {
     applyEnemyScale() {
         // Ancient Yeti is a boss, so make it imposing but fit in scene
         const baseScale = this.enemy.scale || 1.5; // Much smaller base scale
-        this.modelGroup.scale.setScalar(baseScale * 0.5); // Further reduction to fit in scene
+        const finalScale = baseScale * 0.5; // Further reduction to fit in scene
+        this.modelGroup.scale.setScalar(finalScale);
+        
+        // Adjust heightOffset to match the actual model scale
+        // The model's highest point is around y=3.5, so with final scale we need proper offset
+        // Original heightOffset was 0.65 * scale, but our model is scaled down
+        // We need to reduce the heightOffset proportionally
+        this.enemy.heightOffset = 0.35 * baseScale * 0.5; // Adjusted for actual model size
     }
     
     /**

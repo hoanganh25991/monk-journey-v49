@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -10,6 +10,7 @@ export class FistOfThunderEffect extends SkillEffect {
         this.teleportState = null;
         this.defenseBoostDuration = 3.0; // 3 seconds of defense boost
         this.defenseBoostIntensity = 0.5; // 50% damage reduction
+        this.pendingDefenseBoost = false; // Track if we need to retry applying the boost
     }
 
     /**
@@ -47,9 +48,29 @@ export class FistOfThunderEffect extends SkillEffect {
      * @private
      */
     _applyDefenseBoost() {
-        // Check if we have access to the game and player
-        if (!this.skill || !this.skill.game || !this.skill.game.player || !this.skill.game.player.statusEffects) {
-            console.warn('Cannot apply defense boost: missing required references');
+        // Check if we have access to the skill
+        if (!this.skill) {
+            console.warn('FistOfThunder: Cannot apply defense boost - skill reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the game
+        if (!this.skill.game) {
+            console.warn('FistOfThunder: Cannot apply defense boost - game reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the player
+        if (!this.skill.game.player) {
+            console.warn('FistOfThunder: Cannot apply defense boost - player reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the player's status effects
+        if (!this.skill.game.player.statusEffects) {
+            console.warn('FistOfThunder: Cannot apply defense boost - player.statusEffects is not initialized yet');
+            // Store that we need to apply this effect later
+            this.pendingDefenseBoost = true;
             return;
         }
         
@@ -60,6 +81,7 @@ export class FistOfThunderEffect extends SkillEffect {
             this.defenseBoostIntensity
         );
         
+        this.pendingDefenseBoost = false;
         console.debug(`Applied defense boost: ${this.defenseBoostIntensity * 100}% damage reduction for ${this.defenseBoostDuration} seconds`);
     }
 
@@ -168,6 +190,11 @@ export class FistOfThunderEffect extends SkillEffect {
         if (!this.isActive || !this.effect) return;
         
         this.elapsedTime += delta;
+        
+        // Retry applying defense boost if it was pending
+        if (this.pendingDefenseBoost) {
+            this._applyDefenseBoost();
+        }
         
         // Check if effect has expired
         if (this.elapsedTime >= this.skill.duration) {

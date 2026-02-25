@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { Tree } from './Tree.js';
-import { LOD } from 'three';
+import { LOD } from '../../../libs/three/three.module.js';
 
 /**
  * TreeCluster - Efficiently manages groups of trees as a single entity

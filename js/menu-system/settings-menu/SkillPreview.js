@@ -3,7 +3,7 @@
  * Creates a preview of skill effects for the settings menu
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Skill } from '../../skills/Skill.js';
 import { SKILLS } from '../../config/skills.js';

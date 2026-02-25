@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * AlpineFlower - Creates hardy mountain flowers that can survive in cold, high-altitude environments

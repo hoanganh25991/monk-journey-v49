@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * Manages the sky in the game world
@@ -12,20 +12,20 @@ export class SkyManager {
         this.timeOfDay = 'day'; // 'day', 'dawn', 'dusk', 'night'
         this.weather = 'clear'; // 'clear', 'rain', 'fog', 'storm'
         
-        // Sky colors for different times of day
+        // Sky colors for different times of day - darker for atmospheric mood
         this.skyColors = {
-            day: 0x87ceeb,    // Light sky blue
-            dawn: 0xffa07a,   // Light salmon
-            dusk: 0xff7f50,   // Coral
-            night: 0x191970   // Midnight blue
+            day: 0x6B7B8C,    // Darker blue-gray (was 0x87ceeb)
+            dawn: 0xB8866B,   // Darker salmon (was 0xffa07a)
+            dusk: 0xCC6644,   // Darker coral (was 0xff7f50)
+            night: 0x0F0F28   // Darker midnight blue (was 0x191970)
         };
         
-        // Weather modifiers
+        // Weather modifiers - darker for more atmospheric effect
         this.weatherModifiers = {
-            clear: new THREE.Color(1, 1, 1),
-            rain: new THREE.Color(0.7, 0.7, 0.8),
-            fog: new THREE.Color(0.8, 0.8, 0.8),
-            storm: new THREE.Color(0.5, 0.5, 0.6)
+            clear: new THREE.Color(0.85, 0.85, 0.85),
+            rain: new THREE.Color(0.6, 0.6, 0.7),
+            fog: new THREE.Color(0.7, 0.7, 0.7),
+            storm: new THREE.Color(0.4, 0.4, 0.5)
         };
         
         this.initSky();

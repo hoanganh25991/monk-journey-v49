@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { Tree } from './Tree.js';
 import { Rock } from './Rock.js';
 import { Bush } from './Bush.js';
@@ -15,11 +15,11 @@ import { getPerformanceProfile } from '../../config/performance-profile.js';
  * Simplified to focus only on loading environment objects from map data
  */
 export class EnvironmentManager {
-    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
+    constructor(scene, worldManager, game = null, qualityLevel = 'high') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
-        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
         this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Initialize the environment factory

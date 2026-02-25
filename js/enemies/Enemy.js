@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
@@ -35,7 +35,12 @@ export class Enemy {
         this.behavior = config.behavior || 'aggressive';
         // Ranged enemies can attack player in the air; melee cannot
         this.isRanged = (this.behavior === 'ranged' || this.attackRange > 4);
+        // Thrown projectile appearance and trajectory (for ranged enemies)
+        this.projectileType = config.projectileType ?? (this.isRanged ? 'arrow' : null);
+        this.projectileFlightStyle = config.projectileFlightStyle ?? 'direct';
         this.isActive = true;
+        /** @type {import("./EnemyProjectileManager.js").EnemyProjectileManager|null} */
+        this.projectileManager = null;
         
         // Flag for minimap identification
         this.isEnemy = true;
@@ -241,19 +246,48 @@ export class Enemy {
     }
 
     update(delta) {
-        // Skip update if not active (pooled) or dead, but allow minimal updates for death animation
-        if (!this.isActive || this.state.isDead) {
-            // For bosses, we want to minimize processing when dead to prevent lag
-            if (this.isBoss) {
-                // Only update if death animation is still in progress
-                if (this.deathAnimationInProgress) {
-                    // Just update the model position/rotation if needed
-                    if (this.modelGroup) {
-                        this.modelGroup.position.copy(this.position);
-                        this.modelGroup.rotation.copy(this.rotation);
-                    }
+        // Handle death animation if in progress
+        if (this.deathAnimationInProgress && this.deathAnimationData) {
+            const data = this.deathAnimationData;
+            const elapsed = Date.now() - data.startTime;
+            const progress = Math.min(elapsed / data.duration, 1);
+            
+            // Ease out function
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            
+            // Update position and rotation
+            this.position.x = data.startPosition.x + (data.targetPosition.x - data.startPosition.x) * easeOut;
+            this.position.y = data.startPosition.y + (data.targetPosition.y - data.startPosition.y) * easeOut;
+            this.position.z = data.startPosition.z + (data.targetPosition.z - data.startPosition.z) * easeOut;
+            
+            // Update model group position to match
+            if (data.modelGroup) {
+                data.modelGroup.position.copy(this.position);
+                
+                // Safely update rotation
+                if (data.modelGroup.rotation) {
+                    data.modelGroup.rotation.x = data.startRotation.x + (data.targetRotation.x - data.startRotation.x) * easeOut;
                 }
             }
+            
+            // Check if animation is complete
+            if (progress >= 1) {
+                // Final position and rotation
+                this.position.copy(data.targetPosition);
+                if (data.modelGroup && data.modelGroup.rotation) {
+                    data.modelGroup.rotation.x = data.targetRotation.x;
+                }
+                
+                // Mark animation as complete
+                this.deathAnimationInProgress = false;
+                this.deathAnimationData = null;
+            }
+            
+            return;
+        }
+        
+        // Skip update if not active (pooled) or dead
+        if (!this.isActive || this.state.isDead) {
             return;
         }
         
@@ -530,7 +564,16 @@ export class Enemy {
         // Play attack animation
         this.playAttackAnimation();
         
-        // Deal damage to target (player or remote player)
+        // Ranged enemies fire a visible projectile; damage is applied when it hits
+        if (this.isRanged && this.projectileManager && this.projectileType && this.targetPlayer) {
+            this.projectileManager.spawn(this);
+            setTimeout(() => {
+                this.state.isAttacking = false;
+            }, 500);
+            return;
+        }
+        
+        // Melee (or fallback): deal damage immediately
         if (this.targetPlayer) {
             const isRemotePlayer = this.targetPlayer !== this.player;
             console.debug(`ENEMY TARGET: Enemy ${this.id} has target: ${isRemotePlayer ? 'REMOTE PLAYER' : 'PLAYER'}`);
@@ -618,6 +661,11 @@ export class Enemy {
      * @returns {number} - The actual damage taken after reductions
      */
     takeDamage(amount, knockback = false, knockbackDirection = null, ignoreDefense = false) {
+        // Prevent damage if already dead
+        if (this.state.isDead) {
+            return 0;
+        }
+        
         // Calculate actual damage after defense
         let actualDamage = amount;
         
@@ -764,6 +812,11 @@ export class Enemy {
     }
     
     die() {
+        // Prevent multiple death animations - only check if animation is in progress
+        if (this.deathAnimationInProgress) {
+            return;
+        }
+        
         // Set dead state
         this.state.isDead = true;
         
@@ -822,6 +875,11 @@ export class Enemy {
      * Simplified death animation for bosses to prevent lag
      */
     playSimplifiedDeathAnimation() {
+        // Prevent animation if already has animation data (already started)
+        if (this.deathAnimationData) {
+            return;
+        }
+        
         if (this.modelGroup) {
             // For bosses, use a simpler animation with no requestAnimationFrame
             // This prevents potential lag from complex animations
@@ -863,6 +921,11 @@ export class Enemy {
     }
     
     playDeathAnimation() {
+        // Prevent animation if already has animation data (already started)
+        if (this.deathAnimationData) {
+            return;
+        }
+        
         // Implement death animation
         // This could be different based on enemy type
         if (this.modelGroup) {
@@ -892,51 +955,18 @@ export class Enemy {
             // This prevents issues if the main modelGroup reference is set to null
             const animationModelGroup = this.modelGroup;
             
-            const animateDeath = () => {
-                // Check if we should stop the animation
-                if (this.state.isDead === false || !animationModelGroup.parent) {
-                    this.deathAnimationInProgress = false;
-                    this.deathAnimationFrameId = null;
-                    return;
-                }
-                
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                
-                // Ease out function
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                
-                // Update position and rotation
-                this.position.x = startPosition.x + (targetPosition.x - startPosition.x) * easeOut;
-                this.position.y = startPosition.y + (targetPosition.y - startPosition.y) * easeOut;
-                this.position.z = startPosition.z + (targetPosition.z - startPosition.z) * easeOut;
-                
-                // Safely update rotation
-                if (animationModelGroup.rotation) {
-                    animationModelGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easeOut;
-                }
-                
-                // Continue animation if not complete
-                if (progress < 1) {
-                    this.deathAnimationFrameId = requestAnimationFrame(animateDeath);
-                } else {
-                    // Final position and rotation
-                    this.position.x = targetPosition.x;
-                    this.position.y = targetPosition.y;
-                    this.position.z = targetPosition.z;
-                    
-                    if (animationModelGroup.rotation) {
-                        animationModelGroup.rotation.x = targetRotation.x;
-                    }
-                    
-                    // Mark animation as complete
-                    this.deathAnimationInProgress = false;
-                    this.deathAnimationFrameId = null;
-                }
+            // Store animation data for game loop update instead of requestAnimationFrame
+            this.deathAnimationData = {
+                startPosition: startPosition,
+                startRotation: startRotation,
+                targetPosition: targetPosition,
+                targetRotation: targetRotation,
+                startTime: startTime,
+                duration: duration,
+                modelGroup: animationModelGroup
             };
             
-            // Start animation
-            this.deathAnimationFrameId = requestAnimationFrame(animateDeath);
+            // Animation will be updated in the update() method via game loop
         } else {
             // No model to animate, mark as complete immediately
             this.deathAnimationInProgress = false;
@@ -944,11 +974,10 @@ export class Enemy {
     }
 
     removeFromScene() {
-        // Cancel any ongoing death animation
-        if (this.deathAnimationFrameId) {
-            cancelAnimationFrame(this.deathAnimationFrameId);
-            this.deathAnimationFrameId = null;
+        // Clear any ongoing death animation data
+        if (this.deathAnimationInProgress) {
             this.deathAnimationInProgress = false;
+            this.deathAnimationData = null;
         }
         
         // Remove model from scene

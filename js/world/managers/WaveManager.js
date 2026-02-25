@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * WaveManager - Manages wave-based enemy spawning with consistent enemy counts

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { INTERACTION_RANGE } from '../config/input.js';
 import { InteractionResultHandler } from '../InteractionResultHandler.js';
 

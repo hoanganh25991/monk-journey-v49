@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { TerrainManager } from './terrain/TerrainManager.js';
 import { StructureManager } from './structures/StructureManager.js';
 import { EnvironmentManager } from './environment/EnvironmentManager.js';
@@ -20,11 +20,11 @@ import { LodManager } from './LodManager.js';
  * Focuses on core responsibilities: coordination, performance monitoring, and object management
  */
 export class WorldManager {
-    constructor(scene, loadingManager, game, qualityLevel = 'medium') {
+    constructor(scene, loadingManager, game, qualityLevel = 'high') {
         this.scene = scene;
         this.loadingManager = loadingManager;
         this.game = game;
-        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
         this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Core managers - only essential ones (pass quality for low-end tablet support)
@@ -600,9 +600,67 @@ export class WorldManager {
     
     /**
      * Get terrain height at position
+     * For entities that can jump/fly on structures (like player when jumping)
      */
     getTerrainHeight(x, z) {
         return this.terrainManager.getHeightAt(x, z);
+    }
+    
+    /**
+     * Get effective ground height for player (includes structure tops)
+     * This allows the player to land on top of structures when jumping
+     */
+    getPlayerGroundHeight(x, z) {
+        const terrainHeight = this.terrainManager.getHeightAt(x, z);
+        
+        // Check if player is above any structure (horizontally)
+        if (this.structureManager && this.structureManager.structures) {
+            let highestStructureTop = terrainHeight;
+            
+            for (const structureData of this.structureManager.structures) {
+                const object = structureData.object;
+                if (!object) continue;
+                
+                try {
+                    // Cache bounding box if not already cached
+                    if (!structureData.boundingBox) {
+                        structureData.boundingBox = new THREE.Box3().setFromObject(object);
+                    }
+                    
+                    const boundingBox = structureData.boundingBox;
+                    
+                    // Add a buffer zone (inset) to prevent edge jumping
+                    // This ensures player must be well within the structure bounds to land on top
+                    const insetBuffer = 0.8; // Buffer zone in world units
+                    const minX = boundingBox.min.x + insetBuffer;
+                    const maxX = boundingBox.max.x - insetBuffer;
+                    const minZ = boundingBox.min.z + insetBuffer;
+                    const maxZ = boundingBox.max.z - insetBuffer;
+                    
+                    // ONLY check horizontal bounds (x, z) with buffer - ignore vertical position
+                    // This allows player to jump from any height and land on the structure
+                    // But prevents the "jump up" effect when walking near the edge
+                    if (x >= minX && x <= maxX && z >= minZ && z <= maxZ) {
+                        // Player is horizontally above the structure (with buffer)
+                        // Use the top of the structure as the ground level
+                        const structureTop = boundingBox.max.y;
+                        
+                        // Only use structure top if it's higher than current highest
+                        // This handles overlapping structures and ensures we use the tallest one
+                        if (structureTop > highestStructureTop) {
+                            highestStructureTop = structureTop;
+                        }
+                    }
+                } catch (error) {
+                    // Skip this structure if there's an error
+                    continue;
+                }
+            }
+            
+            return highestStructureTop;
+        }
+        
+        return terrainHeight;
     }
     
     /**

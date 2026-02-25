@@ -105,13 +105,35 @@ export class PerformanceManager {
         return 1.0;
     }
 
+    /**
+     * Get particle multiplier based on quality level
+     * Used to scale particle counts for effects like bleeding
+     * @returns {number} - Multiplier between 0.3 and 1.0
+     */
+    getParticleMultiplier() {
+        const qualityLevel = this.getCurrentQualityLevel();
+        
+        // Return multiplier based on quality level
+        switch (qualityLevel) {
+            case 'minimal':
+                return 0.3; // Minimal particles for lowest quality
+            case 'low':
+                return 0.5; // Reduced particles for low quality
+            case 'medium':
+                return 0.8; // Slightly reduced for medium
+            case 'high':
+            default:
+                return 1.0; // Full particles for high quality
+        }
+    }
+
     getCurrentQualityLevel() {
         // Prefer game's materialQuality (from Settings) over cached value
         if (this.game && this.game.materialQuality) {
             return this.game.materialQuality;
         }
         const stored = localStorage.getItem(STORAGE_KEYS.QUALITY_LEVEL);
-        return ['high', 'medium', 'low', 'minimal'].includes(stored) ? stored : 'medium';
+        return ['high', 'medium', 'low', 'minimal'].includes(stored) ? stored : 'high';
     }
 
     getCurrentPerformanceLevel() {

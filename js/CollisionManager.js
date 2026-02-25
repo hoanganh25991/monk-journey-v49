@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../libs/three/three.module.js';
 import { distanceSq2D, normalize2D, tempVec2 } from './utils/FastMath.js';
 
 export class CollisionManager {
@@ -59,6 +59,11 @@ export class CollisionManager {
             // In normal mode, check all collisions
             // Check player-object collisions
             this.checkPlayerObjectCollisions();
+            
+            // Check enemy-structure collisions (every 3 frames for performance)
+            if (this.frameCount % 3 === 0) {
+                this.checkEnemyStructureCollisions();
+            }
             
             // Check enemy-enemy collisions (least critical, can be staggered)
             // Only check every 3 frames to improve performance
@@ -128,8 +133,12 @@ export class CollisionManager {
                 if (!object) return;
                 
                 try {
-                    // Get object bounding box
-                    const boundingBox = new THREE.Box3().setFromObject(object);
+                    // Cache bounding box if not already cached
+                    if (!structureData.boundingBox) {
+                        structureData.boundingBox = new THREE.Box3().setFromObject(object);
+                    }
+                    
+                    const boundingBox = structureData.boundingBox;
                     
                     // Create a sphere that encompasses the bounding box
                     const center = new THREE.Vector3();
@@ -143,10 +152,42 @@ export class CollisionManager {
                     const collisionRadiusSum = playerRadius + objectRadius;
                     const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
                     
-                    // Check if collision occurred
+                    // Check if collision occurred horizontally
                     if (distanceSq < collisionRadiusSumSq) {
-                        // Handle collision
-                        this.handlePlayerObjectCollision(object, center);
+                        // Check vertical relationship between player and structure
+                        const structureTop = boundingBox.max.y;
+                        const structureBottom = boundingBox.min.y;
+                        const playerBottom = playerPosition.y - this.player.getHeightOffset();
+                        const playerTop = playerPosition.y + this.player.getHeightOffset();
+                        
+                        // Calculate how far the player's feet are above the structure top
+                        const clearanceAbove = playerBottom - structureTop;
+                        
+                        // Also check if player is within the structure's horizontal bounds (with buffer)
+                        // This matches the logic in getPlayerGroundHeight
+                        const insetBuffer = 0.8;
+                        const minX = boundingBox.min.x + insetBuffer;
+                        const maxX = boundingBox.max.x - insetBuffer;
+                        const minZ = boundingBox.min.z + insetBuffer;
+                        const maxZ = boundingBox.max.z - insetBuffer;
+                        const isWithinStructureBounds = (
+                            playerPosition.x >= minX && playerPosition.x <= maxX &&
+                            playerPosition.z >= minZ && playerPosition.z <= maxZ
+                        );
+                        
+                        // Three cases:
+                        // 1. Player is clearly above structure AND within bounds - allow landing (no push)
+                        // 2. Player is above but outside bounds - push away (near edge)
+                        // 3. Player is at same level or below - push away (can't walk through walls)
+                        
+                        if (clearanceAbove > 0.5 && isWithinStructureBounds) {
+                            // Player is well above the structure AND centered - no horizontal collision
+                            // They will land on top via getPlayerGroundHeight
+                        } else {
+                            // Player is at structure level, near the edge, or trying to walk up
+                            // Push them away horizontally to prevent walking through or climbing
+                            this.handlePlayerObjectCollision(object, center);
+                        }
                     }
                 } catch (error) {
                     console.warn("Error checking collision with structure:", error);
@@ -322,24 +363,23 @@ export class CollisionManager {
         // Get enemy position for effects
         const enemyPosition = enemy.getPosition();
         
-        // Show damage number (RPG style) — critical on kill, combo finisher, or ~8% random
-        const isKill = enemy.state.isDead || enemy.getHealth() <= 0;
-        const isComboFinisher = !!skill.isComboFinisher;
-        const isCritical = isKill || isComboFinisher || (Math.random() < 0.08);
-        if (this.player.game.effectsManager) {
-            this.player.game.effectsManager.createDamageNumber(actualDamage, enemyPosition, { isKill, isCritical });
-        }
-        if (this.player.game.hudManager) {
-            this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
-        }
-        
-        // Check if enemy is defeated
-        if (enemy.getHealth() <= 0) {
-            // Award experience to player
-            this.player.addExperience(enemy.getExperienceValue());
+        // Only show effects if damage was actually dealt (enemy not already dead)
+        if (actualDamage > 0) {
+            // Show damage number (RPG style) — critical on kill, combo finisher, or ~8% random
+            const isKill = enemy.state.isDead || enemy.getHealth() <= 0;
+            const isComboFinisher = !!skill.isComboFinisher;
+            const isCritical = isKill || isComboFinisher || (Math.random() < 0.08);
+            if (this.player.game.effectsManager) {
+                this.player.game.effectsManager.createDamageNumberSprite(actualDamage, enemyPosition, { isKill, isCritical });
+            }
+            if (this.player.game.hudManager) {
+                this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
+            }
             
-            // Check for quest completion
-            this.player.game.questManager.updateEnemyKill(enemy);
+            // Check for quest completion (only if enemy just died)
+            if (enemy.state.isDead && this.player.game.questManager) {
+                this.player.game.questManager.updateEnemyKill(enemy);
+            }
         }
         
         // Call the skill's hit effect method
@@ -383,6 +423,63 @@ export class CollisionManager {
         if (this.skillHitRegistry.size > 1000) {
             console.debug(`Hit registry too large (${this.skillHitRegistry.size}), clearing all entries`);
             this.skillHitRegistry.clear();
+        }
+    }
+    
+    checkEnemyStructureCollisions() {
+        // Enemies should be blocked by structures and walk around them
+        if (!this.world || !this.world.structureManager || !this.world.structureManager.structures) {
+            return;
+        }
+        
+        const enemiesArray = this.enemyManager.getEnemiesArray();
+        
+        for (let i = 0; i < enemiesArray.length; i++) {
+            const enemy = enemiesArray[i];
+            const enemyPosition = enemy.getPosition();
+            const enemyRadius = enemy.getCollisionRadius();
+            
+            // Check collision with each structure
+            this.world.structureManager.structures.forEach(structureData => {
+                const object = structureData.object;
+                if (!object) return;
+                
+                try {
+                    // Use cached bounding box
+                    if (!structureData.boundingBox) {
+                        structureData.boundingBox = new THREE.Box3().setFromObject(object);
+                    }
+                    
+                    const boundingBox = structureData.boundingBox;
+                    const center = new THREE.Vector3();
+                    boundingBox.getCenter(center);
+                    const size = new THREE.Vector3();
+                    boundingBox.getSize(size);
+                    const objectRadius = Math.max(size.x, size.z) / 2;
+                    
+                    // Calculate horizontal distance
+                    const distanceSq = distanceSq2D(enemyPosition.x, enemyPosition.z, center.x, center.z);
+                    const collisionRadiusSum = enemyRadius + objectRadius;
+                    const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
+                    
+                    // If enemy is colliding with structure horizontally, push them away
+                    if (distanceSq < collisionRadiusSumSq) {
+                        // Push enemy away from structure
+                        const dx = enemyPosition.x - center.x;
+                        const dz = enemyPosition.z - center.z;
+                        normalize2D(tempVec2, dx, dz);
+                        
+                        const pushDistance = 0.1;
+                        enemy.setPosition(
+                            enemyPosition.x + tempVec2.x * pushDistance,
+                            enemyPosition.y,
+                            enemyPosition.z + tempVec2.z * pushDistance
+                        );
+                    }
+                } catch (error) {
+                    // Skip this structure if there's an error
+                }
+            });
         }
     }
     

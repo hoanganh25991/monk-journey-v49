@@ -4,7 +4,7 @@
  * Prevents NaN values and provides safe fallbacks
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 
 /**
  * Validates a numeric parameter and provides a safe fallback

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { SimplexNoise } from 'three/addons/math/SimplexNoise.js';
 

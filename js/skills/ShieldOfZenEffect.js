@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
@@ -61,6 +61,7 @@ export class ShieldOfZenEffect extends SkillEffect {
         this.damageReduction = 0.3; // 30% damage reduction
         this.damageReflection = 0.1; // 10% damage reflection
         this.followPlayer = true; // Flag to make the effect follow the player
+        this.pendingDefenseBoost = false; // Track if we need to retry applying the boost
     }
 
     /**
@@ -98,9 +99,29 @@ export class ShieldOfZenEffect extends SkillEffect {
      * @private
      */
     _applyDefenseBoost() {
-        // Check if we have access to the game and player
-        if (!this.skill || !this.skill.game || !this.skill.game.player || !this.skill.game.player.statusEffects) {
-            console.warn('Cannot apply defense boost: missing required references');
+        // Check if we have access to the skill
+        if (!this.skill) {
+            console.warn('ShieldOfZen: Cannot apply defense boost - skill reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the game
+        if (!this.skill.game) {
+            console.warn('ShieldOfZen: Cannot apply defense boost - game reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the player
+        if (!this.skill.game.player) {
+            console.warn('ShieldOfZen: Cannot apply defense boost - player reference is missing');
+            return;
+        }
+        
+        // Check if we have access to the player's status effects
+        if (!this.skill.game.player.statusEffects) {
+            console.warn('ShieldOfZen: Cannot apply defense boost - player.statusEffects is not initialized yet');
+            // Store that we need to apply this effect later
+            this.pendingDefenseBoost = true;
             return;
         }
         
@@ -111,6 +132,7 @@ export class ShieldOfZenEffect extends SkillEffect {
             this.damageReduction * 100 // Convert from decimal to percentage
         );
         
+        this.pendingDefenseBoost = false;
         console.debug(`Applied defense boost: ${this.damageReduction * 100}% for ${this.skill.duration} seconds`);
     }
 
@@ -197,6 +219,11 @@ export class ShieldOfZenEffect extends SkillEffect {
         if (!this.isActive || !this.effect) return;
         
         this.elapsedTime += delta;
+        
+        // Retry applying defense boost if it was pending
+        if (this.pendingDefenseBoost) {
+            this._applyDefenseBoost();
+        }
         
         // Check if effect has expired
         if (this.elapsedTime >= this.skill.duration) {

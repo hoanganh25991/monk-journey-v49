@@ -177,9 +177,11 @@ export class HUDManager {
     /**
      * Show a notification message
      * @param {string} message - Message to display
+     * @param {string|number} [typeOrDuration] - Optional: type ('equip', 'consume-health', 'consume-mana', ...) or duration in ms
+     * @param {{ item?: { name: string, icon?: string } }} [extra] - Optional: for 'equip' type, pass { item } to show item icon
      */
-    showNotification(message) {
-        this.components.notificationsUI.showNotification(message);
+    showNotification(message, typeOrDuration, extra) {
+        this.components.notificationsUI.showNotification(message, typeOrDuration, extra);
     }
     
     /**
@@ -366,7 +368,7 @@ export class HUDManager {
      */
     createDamageNumber(amount, position, options = {}) {
         if (this.game && this.game.effectsManager) {
-            return this.game.effectsManager.createDamageNumber(amount, position, options);
+            return this.game.effectsManager.createDamageNumberSprite(amount, position, options);
         }
         return null;
     }

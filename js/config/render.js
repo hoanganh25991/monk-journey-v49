@@ -19,18 +19,18 @@ export const FOG_CONFIG = {
     // Base fog settings
     enabled: true,
     type: 'exp2', // 'exp2' for exponential squared fog (more realistic), 'exp' for exponential, 'linear' for linear
-    color: 0x87CEEB, // Lighter blue-gray color for a brighter atmosphere 0x87CEEB 0xFFD39B 0xE8C49A 0xF8D98D 0xF6C75B #FFCC00B3 #FFCC00 #FFDD00
-    density: 0.00525, // Midpoint between original (0.0075) and reduced (0.003)
+    color: 0x6B7B8C, // Darker blue-gray for atmospheric mood (was 0x87CEEB)
+    density: 0.008, // Increased for more visible fog effect
     near: 10, // For linear fog only - distance where fog begins
-    far: 65, // For linear fog only - midpoint between original (50) and increased (80)
+    far: 55, // For linear fog only - reduced for closer fog
     
     // Fog transition settings
     transitionSpeed: 0.05, // How quickly fog color transitions between zones
     
     // Distance-based fog settings
-    distanceFalloff: 1.1, // Midpoint between original (1.5) and reduced (0.7)
-    maxVisibleDistance: 16 * 4, // Midpoint between original (16*2) and increased (16*6)
-    darkeningFactor: 0.78, // Midpoint between original (0.7) and brighter (0.85)
+    distanceFalloff: 1.3, // Increased for more dramatic distance fade
+    maxVisibleDistance: 16 * 3.5, // Reduced for closer fog
+    darkeningFactor: 0.65, // Darker for more atmospheric mood
     
     // PERFORMANCE FIX: Add frustum culling distance
     frustumCullingDistance: 16 * 4, // Objects beyond this distance are not rendered at all
@@ -61,8 +61,8 @@ export const RENDER_CONFIG = {
             shadowMapEnabled: true,
             shadowMapSize: 4096,
             shadowMapType: 'PCFSoftShadowMap',
-            shadowRadius: 0.5,      // Soft edge, no blocky "squares"
-            shadowNormalBias: 0.006,
+            shadowRadius: 0.2,      // Reduced for sharper shadows (was 0.5)
+            shadowNormalBias: 0.003, // Reduced for crisper edges (was 0.006)
             outputColorSpace: 'SRGBColorSpace'
         },
         materials: {
@@ -79,7 +79,7 @@ export const RENDER_CONFIG = {
         init: {
             antialias: false,
             powerPreference: 'high-performance',
-            precision: 'lowp',
+            precision: 'mediump',
             stencil: false,
             logarithmicDepthBuffer: false,
             depth: true,

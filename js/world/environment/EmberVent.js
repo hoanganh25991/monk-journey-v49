@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * EmberVent - Creates volcanic vents that emit glowing embers and particles

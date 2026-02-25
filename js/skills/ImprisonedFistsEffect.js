@@ -6,7 +6,7 @@
  * The skill applies lock effect to enemies hit during travel
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
 
 export class ImprisonedFistsEffect extends SkillEffect {

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../libs/three/three.module.js';
 import { ALL_SOUNDS, ALL_MUSIC } from './config/sounds.js';
 import { STORAGE_KEYS } from './config/storage-keys.js';
 import storageService from './save-manager/StorageService.js';

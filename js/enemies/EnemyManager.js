@@ -1,6 +1,7 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { distanceSq2D } from '../utils/FastMath.js';
 import { Enemy } from './Enemy.js';
+import { EnemyProjectileManager } from './EnemyProjectileManager.js';
 import { 
     ZONE_ENEMIES, 
     ZONE_BOSSES, 
@@ -11,7 +12,8 @@ import {
     REGULAR_DROP_TABLE, 
     BOSS_DROP_TABLE,
     COMBAT_BALANCE, 
-    DIFFICULTY_SCALING 
+    DIFFICULTY_SCALING,
+    ENEMY_CONFIG 
 } from '../config/game-balance.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 
@@ -70,6 +72,12 @@ export class EnemyManager {
         this.spawnRadius = 90; // 3x increased spawn radius (was 30)
         this.spawnTimer = 0;
         this.spawnInterval = 5; // Spawn enemy every 5 seconds
+        
+        // Auto-drop configuration for distant enemies (from game-balance.js)
+        this.autoDropDistance = ENEMY_CONFIG.AUTO_DROP.maxDistance;
+        this.autoDropDistanceBoss = ENEMY_CONFIG.AUTO_DROP.bossMaxDistance;
+        this.autoDropCheckInterval = ENEMY_CONFIG.AUTO_DROP.checkInterval; // Time in seconds between checks
+        this.lastAutoDropCheck = 0; // Track last cleanup time
         this.game = game; // Game reference passed in constructor
         this.nextEnemyId = 1; // For generating unique enemy IDs
         
@@ -126,6 +134,9 @@ export class EnemyManager {
         // Batch Processing
         this.enemiesToRemove = []; // Batch collection for removal
         this.batchProcessingEnabled = true;
+
+        // Ranged enemy projectiles (arrows, orbs, etc.)
+        this.projectileManager = new EnemyProjectileManager(scene);
     }
     
     /**
@@ -249,6 +260,9 @@ export class EnemyManager {
                 }
             }
         }
+
+        // Update ranged enemy projectiles (arrows, orbs)
+        this.projectileManager.update(delta);
         
         // Process batch removal of dead enemies
         if (this.batchProcessingEnabled) {
@@ -265,9 +279,12 @@ export class EnemyManager {
             this.game.audioManager.playMusic('mainTheme');
         }
         
-        // Periodically clean up distant enemies (approximately every 10 seconds)
-        // This ensures enemies are cleaned up even if the player moves slowly
-        if (Math.random() < 0.01) { // ~1% chance per frame, assuming 60fps = ~once per 10 seconds
+        // Scheduled cleanup of distant enemies (similar to terrain chunk cleanup)
+        // Check if enough time has passed since last cleanup
+        const currentTime = Date.now();
+        if (currentTime - this.lastAutoDropCheck >= this.autoDropCheckInterval * 1000) {
+            this.lastAutoDropCheck = currentTime;
+            
             // In multiplayer mode as a non-host, use the multiplayer cleanup
             if (this.isMultiplayer && !this.isHost) {
                 this.cleanupStaleEnemies();
@@ -309,6 +326,7 @@ export class EnemyManager {
         const enemy = new Enemy(this.scene, this.player, scaledEnemyType);
         enemy.world = this.game.world;
         enemy.game = this.game; // For LOD and other game refs
+        enemy.projectileManager = this.projectileManager; // For ranged attacks
         await enemy.init();
 
         // Get terrain height and calculate proper Y position
@@ -584,6 +602,7 @@ export class EnemyManager {
             enemy.remove();
         }
         this.enemies.clear();
+        this.projectileManager.clear();
         
         // Clean up all pooled enemies
         for (const [type, pool] of this.enemyPools.entries()) {
@@ -1230,9 +1249,9 @@ export class EnemyManager {
     cleanupDistantEnemies() {
         const playerPos = this.player.getPosition();
         
-        // Increased distances to keep enemies around longer (3x increased)
-        const maxDistance = 240; // Maximum distance to keep enemies (in world units) - 3x increased
-        const bossMaxDistance = 360; // Maximum distance to keep bosses (larger than regular enemies) - 3x increased
+        // Use configured auto-drop distances
+        const maxDistance = this.autoDropDistance; // Maximum distance to keep enemies (in world units)
+        const bossMaxDistance = this.autoDropDistanceBoss; // Maximum distance to keep bosses (larger than regular enemies)
         
         // Check if we're in a multiplier zone (higher enemy density)
         let inMultiplierZone = false;
@@ -1292,7 +1311,7 @@ export class EnemyManager {
         
         // Log cleanup information if enemies were removed
         if (removedCount > 0) {
-            console.debug(`Cleaned up ${removedCount} distant enemies. Remaining: ${this.enemies.size}`);
+            console.log(`[AUTO-DROP] Removed ${removedCount} enemies that were too far from player (>${maxDistance} units). Remaining: ${this.enemies.size}`);
             
             // Force garbage collection hint if significant cleanup occurred
             if (removedCount > 5 && this.game && this.game.world && this.game.world.performanceManager) {

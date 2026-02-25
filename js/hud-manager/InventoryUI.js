@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { UIComponent } from '../UIComponent.js';
 import { ModelPreview } from '../menu-system/ModelPreview.js';
 import { ItemPreview } from '../menu-system/ItemPreview.js';
@@ -855,12 +855,27 @@ export class InventoryUI extends UIComponent {
             }
         }
         
-        // Show notification with effects details or generic message
+        // Show notification: red for health, blue for mana (left-side float); one or two when both
         if (effectsApplied) {
-            const effectsText = effectsDescription.length > 0 ? `: ${effectsDescription.join(', ')}` : '';
-            this.game.hudManager.showNotification(`Consumed ${item.name}${effectsText}`);
+            const hasHealth = effectsDescription.some(d => /Health/i.test(d));
+            const hasMana = effectsDescription.some(d => /Mana|Spirit/i.test(d));
+            if (hasHealth && hasMana) {
+                const healthPart = effectsDescription.find(d => /Health/i.test(d));
+                const manaPart = effectsDescription.find(d => /Mana|Spirit/i.test(d));
+                if (healthPart) this.game.hudManager.showNotification(`Consume ${healthPart}`, 'consume-health');
+                if (manaPart) this.game.hudManager.showNotification(`Consume ${manaPart}`, 'consume-mana');
+            } else if (hasHealth) {
+                const healthPart = effectsDescription.find(d => /Health/i.test(d));
+                this.game.hudManager.showNotification(`Consume ${healthPart}`, 'consume-health');
+            } else if (hasMana) {
+                const manaPart = effectsDescription.find(d => /Mana|Spirit/i.test(d));
+                this.game.hudManager.showNotification(`Consume ${manaPart}`, 'consume-mana');
+            } else {
+                const effectsText = effectsDescription.join(', ');
+                this.game.hudManager.showNotification(`Consume ${effectsText}`);
+            }
         } else {
-            this.game.hudManager.showNotification(`Consumed ${item.name}`);
+            this.game.hudManager.showNotification(`Consume ${item.name}`);
         }
         
         // Common actions for all consumables that were successfully used
@@ -915,7 +930,7 @@ export class InventoryUI extends UIComponent {
                 }
             }
             
-            this.game.hudManager.showNotification(notificationText);
+            this.game.hudManager.showNotification(notificationText, 'equip', { item });
             
             // Update inventory and equipment display
             this.updateInventoryItems();

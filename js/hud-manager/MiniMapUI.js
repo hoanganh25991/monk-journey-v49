@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { STRUCTURE_OBJECTS, STRUCTURE_PROPERTIES } from '../config/structure.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ENEMY_CATEGORIES } from '../config/enemy.js';

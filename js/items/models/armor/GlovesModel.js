@@ -1,5 +1,5 @@
 import { ItemModel } from '../ItemModel.js';
-import * as THREE from 'three';
+import * as THREE from '../../../../libs/three/three.module.js';
 
 /**
  * Model class for gloves items

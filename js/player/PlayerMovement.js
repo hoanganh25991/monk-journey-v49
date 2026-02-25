@@ -3,7 +3,10 @@
  * Handles player movement, position, and camera updates
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
+
+/** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
+const MAX_JUMP_HEIGHT = 50;
 
 export class PlayerMovement {
     /**
@@ -35,31 +38,55 @@ export class PlayerMovement {
         this.maxJumps = 3;
         this.jumpForces = [30, 21, 15]; // 0.75 of previous - lower jump height
         this.gravity = 32; // Heavier gravity = faster fall back
-        this.holdJumpBoost = 0; // Disabled: was allowing near-infinite hover at max height when holding jump
         this.groundedTolerance = 0.2;
         this.isHoldingJump = false;
+        // Hold jump at max: when used all 3 jumps and holding, cancel gravity to hover (no upward boost)
+        this.holdJumpHover = true;
         
         // Game reference
         this.game = game;
     }
     
     /**
-     * Trigger a jump. Up to 3 jumps with diminishing force (max total ~3x first jump).
+     * Whether the player is currently in the air (above ground).
+     * @returns {boolean}
+     */
+    _isInAir() {
+        if (!this.game?.world) return false;
+        // Use getPlayerGroundHeight which includes structure tops
+        const groundHeight = this.game.world.getPlayerGroundHeight 
+            ? this.game.world.getPlayerGroundHeight(this.position.x, this.position.z)
+            : this.game.world.getTerrainHeight(this.position.x, this.position.z);
+        if (groundHeight == null || !isFinite(groundHeight)) return false;
+        const groundY = groundHeight + this.heightOffset;
+        return this.position.y > groundY + this.groundedTolerance;
+    }
+
+    /**
+     * Trigger a jump. Up to 3 jumps with diminishing force.
+     * When falling after using all 3 jumps, tapping jump again resets and grants 3 more jumps.
      */
     jump() {
-        // Check if we've reached max jumps
+        // Used all 3 jumps: allow another set of 3 only while in air (falling)
         if (this.jumpCount >= this.maxJumps) {
-            return;
+            if (this._isInAir()) {
+                this.jumpCount = 0;
+            } else {
+                return;
+            }
         }
-        
-        // Apply jump force - use SET instead of += for first jump to ensure it always works
+
+        // Apply jump force with cap to prevent infinite stacking
         const jumpForce = this.jumpForces[this.jumpCount];
         if (this.jumpCount === 0) {
-            // First jump: set velocity directly to ensure it always works
+            // First jump: set velocity directly
             this.velocityY = jumpForce;
         } else {
-            // Subsequent jumps: add to existing velocity
+            // Subsequent jumps: add but cap total velocity to prevent excessive stacking
             this.velocityY += jumpForce;
+            // Cap velocity to prevent flying too high from rapid jumps
+            const maxVelocity = this.jumpForces[0] * 1.5; // Max 1.5x first jump velocity
+            this.velocityY = Math.min(this.velocityY, maxVelocity);
         }
         this.jumpCount++;
     }
@@ -136,30 +163,62 @@ export class PlayerMovement {
         }
         const safeDelta = Math.min(Math.max(delta || 0.016, 0.001), 0.1);
         try {
-            const terrainHeight = this.game.world.getTerrainHeight(this.position.x, this.position.z);
-            if (terrainHeight === null || terrainHeight === undefined || !isFinite(terrainHeight)) {
+            // Use getPlayerGroundHeight which includes structure tops
+            const groundHeight = this.game.world.getPlayerGroundHeight 
+                ? this.game.world.getPlayerGroundHeight(this.position.x, this.position.z)
+                : this.game.world.getTerrainHeight(this.position.x, this.position.z);
+            
+            if (groundHeight === null || groundHeight === undefined || !isFinite(groundHeight)) {
                 return;
             }
             
-            const groundY = terrainHeight + this.heightOffset;
-            
+            const groundY = groundHeight + this.heightOffset;
+            const maxY = groundY + MAX_JUMP_HEIGHT;
+
             // Check if player is in the air
             const isInAir = this.position.y > groundY + this.groundedTolerance || this.velocityY > 0;
-            
+
             // Apply gravity and velocity when in air
             if (isInAir) {
-                // Hold jump boost disabled to prevent floating at max height
-                if (this.holdJumpBoost > 0 && this.isHoldingJump && this.velocityY > 0) {
-                    this.velocityY += this.holdJumpBoost * safeDelta;
+                // Natural flying: holding Space provides upward lift that diminishes logarithmically with height
+                if (this.holdJumpHover && this.isHoldingJump && this.jumpCount >= this.maxJumps) {
+                    // Calculate how close we are to max height (0 = at ground, 1 = at max)
+                    const heightAboveGround = this.position.y - groundY;
+                    const heightRatio = Math.max(0, Math.min(1, heightAboveGround / MAX_JUMP_HEIGHT));
+                    
+                    // Logarithmic lift: diminishes exponentially as you approach max height
+                    // At 0% height: full lift (1.3x gravity) - rises quickly
+                    // At 50% height: ~12.5% lift - rises slowly
+                    // At 90% height: ~0.1% lift - barely rises
+                    // At 100% height: ~0% lift - can't go higher
+                    const liftStrength = Math.pow(1 - heightRatio, 3);
+                    const liftForce = this.gravity * 1.3 * liftStrength;
+                    
+                    // Apply lift and gravity: net force determines if rising or falling
+                    const netForce = liftForce - this.gravity;
+                    this.velocityY += netForce * safeDelta;
+                    
+                    // Immediate velocity damping when near/at max to prevent overshoot
+                    if (heightRatio > 0.9) {
+                        const dampingFactor = 0.95; // Reduce velocity by 5% per frame near max
+                        this.velocityY *= dampingFactor;
+                    }
+                } else {
+                    // Not holding Space or haven't used 3 jumps: gravity pulls down immediately
+                    this.velocityY -= this.gravity * safeDelta;
                 }
-                
-                // Apply gravity
-                this.velocityY -= this.gravity * safeDelta;
-                
+
                 // Update position
                 this.position.y += this.velocityY * safeDelta;
+
+                // Soft cap: if somehow above max, gently push back
+                const heightAboveGround = this.position.y - groundY;
+                if (heightAboveGround > MAX_JUMP_HEIGHT) {
+                    const overshoot = heightAboveGround - MAX_JUMP_HEIGHT;
+                    this.velocityY -= overshoot * 5 * safeDelta; // Gentle push back
+                }
             }
-            
+
             // Land when we hit or pass ground
             if (this.position.y <= groundY + this.groundedTolerance) {
                 this.position.y = groundY;
@@ -225,23 +284,26 @@ export class PlayerMovement {
     }
     
     updateTerrainHeight() {
-        // Skip terrain snap when jumping (velocityY handles Y)
-        if (this.velocityY !== 0) {
+        // Skip terrain snap when jumping or in the air (velocityY and jump physics handle Y)
+        if (this.velocityY !== 0 || this._isInAir()) {
             return;
         }
         
         // Ensure player is always at the correct terrain height when grounded
         if (this.game && this.game.world) {
             try {
-                const terrainHeight = this.game.world.getTerrainHeight(this.position.x, this.position.z);
+                // Use getPlayerGroundHeight which includes structure tops
+                const groundHeight = this.game.world.getPlayerGroundHeight 
+                    ? this.game.world.getPlayerGroundHeight(this.position.x, this.position.z)
+                    : this.game.world.getTerrainHeight(this.position.x, this.position.z);
                 
-                // Check if terrain height is valid
-                if (terrainHeight === null || terrainHeight === undefined || !isFinite(terrainHeight)) {
-                    return; // Skip this frame if terrain height is not available
+                // Check if ground height is valid
+                if (groundHeight === null || groundHeight === undefined || !isFinite(groundHeight)) {
+                    return; // Skip this frame if ground height is not available
                 }
                 
-                // Always maintain a fixed height above terrain to prevent vibration
-                const targetHeight = terrainHeight + this.heightOffset;
+                // Always maintain a fixed height above ground to prevent vibration
+                const targetHeight = groundHeight + this.heightOffset;
             
             // Check if the world's initial terrain has been created
             if (this.game.world.initialTerrainCreated) {

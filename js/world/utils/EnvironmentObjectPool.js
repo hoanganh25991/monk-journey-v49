@@ -3,7 +3,7 @@ import { Tree } from '../environment/Tree.js';
 import { Rock } from '../environment/Rock.js';
 import { Bush } from '../environment/Bush.js';
 import { Flower } from '../environment/Flower.js';
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * Specialized object pool for environment objects

@@ -1038,13 +1038,13 @@
                                 </div>
                                 <div class="setting-item">
                                     <label class="settings-toggle-label">
-                                        <input type="checkbox" id="auto-consume-items">
+                                        <input type="checkbox" id="auto-consume-items" checked>
                                         <span>Auto consume when picked up</span>
                                     </label>
                                 </div>
                                 <div class="setting-item">
                                     <label class="settings-toggle-label">
-                                        <input type="checkbox" id="auto-equip-items">
+                                        <input type="checkbox" id="auto-equip-items" checked>
                                         <span>Auto equip stronger items</span>
                                     </label>
                                 </div>
@@ -1157,13 +1157,13 @@
     <!-- Initial loading progress -->
     <script src="pwa/initial-loading-progress.js"></script>
 
-    <!-- Import Three.js from CDN -->
+    <!-- Import Three.js from local files (r154, patched) -->
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.176.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.176.0/examples/jsm/"
+                "three": "./libs/three/three.module.js",
+                "three/addons/": "./libs/three/examples/jsm/"
             }
         }
     </script>

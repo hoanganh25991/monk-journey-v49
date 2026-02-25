@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * LavaRock - Creates volcanic rocks with glowing cracks and emissive properties

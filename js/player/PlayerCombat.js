@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 
 /**
  * @typedef {Object} PunchSystem
@@ -183,12 +183,16 @@ export class PlayerCombat {
             this.die();
         }
         
-        // Visual effect
+        // Visual effect: cloned world position so effect stays in world space (does not fly with player)
+        const playerWorldPosition = this.playerModel.getPosition();
         if (this.game?.hudManager) {
-            const playerPosition = this.playerModel.getModelGroup().position;
-            this.game.hudManager.createBleedingEffect(reducedDamage, playerPosition, true);
+            this.game.hudManager.createBleedingEffect(reducedDamage, playerWorldPosition, true);
         }
-        
+        // Three.js floating damage number: stays at hit location, floats up and fades (no DOM, no following player)
+        if (this.game?.effectsManager?.createDamageNumberSprite) {
+            this.game.effectsManager.createDamageNumberSprite(reducedDamage, playerWorldPosition, { isPlayerDamage: true });
+        }
+
         return reducedDamage;
     }
     

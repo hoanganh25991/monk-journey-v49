@@ -6,7 +6,7 @@
 import { Game } from './game/Game.js';
 import { DEFAULT_CHARACTER_MODEL } from './config/player-models.js';
 import { STORAGE_KEYS } from './config/storage-keys.js';
-import * as THREE from 'three';
+import * as THREE from '../libs/three/three.module.js';
 
 // Import and setup geometry factory for safe THREE.js geometry creation
 import GeometryFactory from './utils/GeometryFactory.js';

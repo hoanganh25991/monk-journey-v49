@@ -17,7 +17,7 @@
  * the model should always appear the same. See performance-profile PLAYER_LOD_POLICY.
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';

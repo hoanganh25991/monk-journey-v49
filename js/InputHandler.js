@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../libs/three/three.module.js';
 import { 
     MOVEMENT_KEYS, 
     ACTION_KEYS, 
@@ -37,11 +37,15 @@ export class InputHandler {
         this.initKeyboardEvents();
         
         // Space/jump: also listen in capture phase so we get it before canvas or other elements
+        // Ignore key repeat so holding Space doesn't trigger multiple jumps (no flying)
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.key === ' ') {
+                if (e.repeat) {
+                    e.preventDefault();
+                    return;
+                }
                 if (this.game) {
                     this.game.jumpRequested = true;
-                    // Mark that we're holding jump for sustained lift
                     if (this.game.player?.movement) {
                         this.game.player.movement.setHoldingJump(true);
                     }
@@ -70,10 +74,17 @@ export class InputHandler {
             this.keys[event.code] = true;
             
             // Handle Space for jump - set flag so game loop processes it (avoids focus/capture issues)
+            // Ignore key repeat so holding Space doesn't trigger multiple jumps (no flying)
             if (event.code === 'Space' || event.key === ' ') {
                 event.preventDefault();
                 event.stopPropagation();
-                if (this.game) this.game.jumpRequested = true;
+                if (!event.repeat && this.game) {
+                    this.game.jumpRequested = true;
+                    // Set holding state for hover at max height
+                    if (this.game.player?.movement) {
+                        this.game.player.movement.setHoldingJump(true);
+                    }
+                }
                 return;
             }
             
@@ -188,7 +199,14 @@ export class InputHandler {
         // Key up event
         window.addEventListener('keyup', (event) => {
             this.keys[event.code] = false;
-            
+
+            // Handle Space release for jump hold state
+            if (event.code === 'Space' || event.key === ' ') {
+                if (this.game?.player?.movement) {
+                    this.game.player.movement.setHoldingJump(false);
+                }
+            }
+
             // Handle skill key release
             if (this.skillKeysHeld[event.code] !== undefined) {
                 this.skillKeysHeld[event.code] = false;

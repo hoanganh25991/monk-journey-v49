@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS } from '../../config/terrain.js';
 import { getPerformanceProfile } from '../../config/performance-profile.js';
@@ -9,11 +9,11 @@ import { getPerformanceProfile } from '../../config/performance-profile.js';
  * Combines all terrain functionality into a single, efficient class
  */
 export class TerrainManager {
-    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
+    constructor(scene, worldManager, game = null, qualityLevel = 'high') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
-        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
         const profile = getPerformanceProfile(this.qualityLevel);
         
         // Terrain configuration (quality-aware for low-end tablets)

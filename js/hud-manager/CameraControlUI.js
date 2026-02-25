@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 
 /**
  * Camera Control UI component

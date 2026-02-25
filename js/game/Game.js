@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { WorldManager } from '../world/WorldManager.js';
 import { Player } from '../player/Player.js';
@@ -24,6 +24,8 @@ import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import storageService from '../save-manager/StorageService.js';
+import deviceCapabilities from '../utils/DeviceCapabilities.js';
+import shadowDebugger from '../debug/ShadowDebugger.js';
 
 /**
  * Main Game class that serves as a facade to the underlying game systems
@@ -101,7 +103,7 @@ export class Game {
             // Load performance profile (support 4 levels: high, medium, low, minimal)
             const materialQuality = await storageService.loadData(STORAGE_KEYS.QUALITY_LEVEL);
             const validQualityLevels = ['high', 'medium', 'low', 'minimal'];
-            this.materialQuality = validQualityLevels.includes(materialQuality) ? materialQuality : 'medium';
+            this.materialQuality = validQualityLevels.includes(materialQuality) ? materialQuality : 'high';
             console.debug(`Game initialized with material quality: ${this.materialQuality}`);
         } catch (error) {
             console.error('Error loading initial settings:', error);
@@ -205,15 +207,25 @@ export class Game {
             await this.loadInitialSettings();
 
             
-            // Initialize renderer from profile only (no mobile/device override — high profile = shadows on all devices)
+            // Initialize renderer with device capability detection
             const profileQuality = this.materialQuality || 'medium';
             this.renderer = this.createRenderer(profileQuality);
+            
+            // Detect device capabilities after renderer creation
+            this.deviceCapabilities = deviceCapabilities.detect(this.renderer);
+            deviceCapabilities.logCapabilities();
+            
+            // Show helpful message about shadow settings
+            this.logShadowInfo(profileQuality);
+            
+            // Set up shadow debugger (toggle with Ctrl+Shift+S)
+            this.setupShadowDebugger();
             
             this.updateLoadingProgress(10, 'Creating game world...', 'Setting up scene');
             
             // Initialize scene
             this.scene = new THREE.Scene();
-            this.scene.background = new THREE.Color(0x87ceeb); // Light sky blue color
+            this.scene.background = new THREE.Color(0x6B7B8C); // Darker blue-gray for atmospheric mood
             // Fog will be managed by FogManager
             
             // Initialize item drop manager
@@ -244,7 +256,7 @@ export class Game {
             
             // Initialize world with loading state (pass quality for performance profile)
             this.isWorldLoading = true;
-            const worldQuality = this.materialQuality || profileQuality || 'medium';
+            const worldQuality = this.materialQuality || profileQuality || 'high';
             this.world = new WorldManager(this.scene, this.loadingManager, this, worldQuality);
             
             // Show a more detailed loading message for terrain generation
@@ -346,9 +358,9 @@ export class Game {
                 console.debug(`Applying material quality from settings: ${this.materialQuality}`);
                 this.applyInitialMaterialQuality(this.materialQuality);
             } else {
-                // Fallback to medium quality if no setting is found
-                console.debug('No material quality setting found, using medium as default');
-                this.applyInitialMaterialQuality('medium');
+                // Fallback to high quality if no setting is found
+                console.debug('No material quality setting found, using high as default');
+                this.applyInitialMaterialQuality('high');
             }
             
             // Set up event listeners
@@ -412,6 +424,45 @@ export class Game {
             window.addEventListener('pagehide', () => this.pause(true));
             window.addEventListener('blur', () => this.pause(true));
         }
+    }
+    
+    /**
+     * Set up shadow debugger with keyboard shortcut
+     */
+    setupShadowDebugger() {
+        document.addEventListener('keydown', (event) => {
+            // Toggle shadow debugger with Ctrl+Shift+S
+            if (event.ctrlKey && event.shiftKey && event.key === 'S') {
+                event.preventDefault();
+                shadowDebugger.toggle(this.renderer, this.materialQuality || 'medium');
+            }
+        });
+    }
+    
+    /**
+     * Log shadow configuration information
+     * @param {string} qualityLevel - The quality level
+     */
+    logShadowInfo(qualityLevel) {
+        if (!this.deviceCapabilities) return;
+        
+        const caps = this.deviceCapabilities;
+        const shadowSize = caps.optimalShadowMapSize[qualityLevel];
+        const shadowsEnabled = deviceCapabilities.shouldEnableShadows(qualityLevel);
+        const shadowType = deviceCapabilities.getRecommendedShadowMapType(qualityLevel);
+        
+        console.group('🌟 Shadow Configuration');
+        console.log(`Device: ${caps.isMobile ? '📱 Mobile' : caps.isTablet ? '📱 Tablet' : '🖥️ Desktop'}`);
+        console.log(`GPU Tier: ${caps.gpuTier.toUpperCase()}`);
+        console.log(`Max Texture Size: ${caps.maxTextureSize}px`);
+        console.log(`Quality Level: ${qualityLevel.toUpperCase()}`);
+        console.log(`Shadows: ${shadowsEnabled ? '✅ ENABLED' : '❌ DISABLED'}`);
+        if (shadowsEnabled) {
+            console.log(`Shadow Map Size: ${shadowSize}x${shadowSize}px`);
+            console.log(`Shadow Type: ${shadowType}`);
+        }
+        console.log(`💡 Press Ctrl+Shift+S to toggle shadow debugger`);
+        console.groupEnd();
     }
 
     /**
@@ -914,8 +965,8 @@ export class Game {
      */
     createRenderer(qualityLevel) {
         if (!RENDER_CONFIG[qualityLevel]) {
-            console.error(`Unknown quality level: ${qualityLevel}, falling back to medium`);
-            qualityLevel = 'medium';
+            console.error(`Unknown quality level: ${qualityLevel}, falling back to high`);
+            qualityLevel = 'high';
         }
         
         const config = RENDER_CONFIG[qualityLevel].init;
@@ -1022,8 +1073,10 @@ export class Game {
     }
     
     /**
-     * Apply renderer settings based on quality level (profile only — never overridden by device/mobile).
-     * High/medium = shadows on; low/minimal = shadows off. Same on desktop and mobile.
+     * Apply renderer settings based on quality level with device capability detection.
+     * Automatically adjusts shadow map sizes and types based on device capabilities.
+     * Desktop: Uses full quality settings (e.g., 4096 for high)
+     * Mobile: Automatically scales down to device-safe limits
      * @param {THREE.WebGLRenderer} renderer - The Three.js renderer
      * @param {string} qualityLevel - The quality level to apply ('high'|'medium'|'low'|'minimal')
      */
@@ -1035,18 +1088,59 @@ export class Game {
         
         const settings = RENDER_CONFIG[qualityLevel].settings;
         
-        // Apply settings from profile only (shadows follow profile: high/medium = on)
+        // Apply pixel ratio
         renderer.setPixelRatio(settings.pixelRatio);
-        renderer.shadowMap.enabled = settings.shadowMapEnabled;
+        
+        // Determine if shadows should be enabled based on device capabilities
+        const shadowsEnabled = this.deviceCapabilities 
+            ? deviceCapabilities.shouldEnableShadows(qualityLevel)
+            : settings.shadowMapEnabled;
+        
+        renderer.shadowMap.enabled = shadowsEnabled;
         
         // Apply shadow map size if shadows are enabled
-        if (settings.shadowMapEnabled && settings.shadowMapSize > 0) {
-            renderer.shadowMap.mapSize = new THREE.Vector2(settings.shadowMapSize, settings.shadowMapSize);
-            console.debug(`Shadow map size set to: ${settings.shadowMapSize}x${settings.shadowMapSize}`);
+        if (shadowsEnabled && settings.shadowMapSize > 0) {
+            // Get optimal shadow map size for this device
+            let shadowMapSize = settings.shadowMapSize;
+            
+            if (this.deviceCapabilities && this.deviceCapabilities.optimalShadowMapSize) {
+                const optimalSize = this.deviceCapabilities.optimalShadowMapSize[qualityLevel];
+                
+                // Use the smaller of the requested size and the optimal size for this device
+                shadowMapSize = Math.min(settings.shadowMapSize, optimalSize);
+                
+                console.debug(`Shadow map size adjusted from ${settings.shadowMapSize} to ${shadowMapSize} based on device capabilities`);
+            }
+            
+            renderer.shadowMap.mapSize = new THREE.Vector2(shadowMapSize, shadowMapSize);
+            console.debug(`Shadow map size set to: ${shadowMapSize}x${shadowMapSize}`);
+        } else if (!shadowsEnabled) {
+            console.debug(`Shadows disabled for ${qualityLevel} quality on this device`);
         }
         
-        // Apply shadow map type
-        switch (settings.shadowMapType) {
+        // Apply shadow map type based on device capabilities
+        let shadowMapType = settings.shadowMapType;
+        
+        if (this.deviceCapabilities) {
+            const recommendedType = deviceCapabilities.getRecommendedShadowMapType(qualityLevel);
+            
+            // Use recommended type if it's more conservative than the requested type
+            const typeHierarchy = {
+                'BasicShadowMap': 0,
+                'PCFShadowMap': 1,
+                'PCFSoftShadowMap': 2
+            };
+            
+            const requestedLevel = typeHierarchy[shadowMapType] || 1;
+            const recommendedLevel = typeHierarchy[recommendedType] || 1;
+            
+            if (recommendedLevel < requestedLevel) {
+                shadowMapType = recommendedType;
+                console.debug(`Shadow map type adjusted from ${settings.shadowMapType} to ${shadowMapType} for better mobile performance`);
+            }
+        }
+        
+        switch (shadowMapType) {
             case 'PCFSoftShadowMap':
                 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
                 break;
@@ -1098,7 +1192,7 @@ export class Game {
             renderer.sortObjects = false; // Disable object sorting for performance
         }
         
-        console.debug(`Applied ${qualityLevel} renderer settings`);
+        console.debug(`Applied ${qualityLevel} renderer settings (shadows: ${shadowsEnabled ? 'enabled' : 'disabled'})`);
     }
     
     /**
@@ -1144,6 +1238,11 @@ export class Game {
         // Update performance manager (cache quality for getCurrentQualityLevel)
         if (this.performanceManager) {
             this.performanceManager.currentQualityLevel = quality;
+        }
+        
+        // Update shadow debugger if visible
+        if (shadowDebugger.isVisible) {
+            shadowDebugger.update(this.renderer, quality);
         }
         
         console.debug(`Material quality updated to: ${quality}`);

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';

@@ -3,7 +3,7 @@
  * Creates a preview of a 3D model for the settings menu
  */
 
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';

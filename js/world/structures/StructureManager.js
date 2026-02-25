@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 import { STRUCTURE_OBJECTS } from '../../config/structure.js';
 import { StructureFactory } from './StructureFactory.js';
 import { Building } from './Building.js';
@@ -15,11 +15,11 @@ import { getPerformanceProfile } from '../../config/performance-profile.js';
  * Simplified to focus only on loading existing structures from map data
  */
 export class StructureManager {
-    constructor(scene, worldManager, game = null, qualityLevel = 'medium') {
+    constructor(scene, worldManager, game = null, qualityLevel = 'high') {
         this.scene = scene;
         this.worldManager = worldManager;
         this.game = game;
-        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'medium';
+        this.qualityLevel = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
         this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Initialize structure factory

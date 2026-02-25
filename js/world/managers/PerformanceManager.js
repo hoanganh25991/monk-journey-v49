@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../../libs/three/three.module.js';
 
 /**
  * Performance Manager class that handles performance monitoring and optimization
@@ -196,6 +196,21 @@ export class PerformanceManager {
      */
     getDensityLevel() {
         return this.environmentDensity;
+    }
+    
+    /**
+     * Get particle multiplier based on performance level
+     * Used to scale particle counts for effects like bleeding
+     * @returns {number} - Multiplier between 0.3 and 1.0
+     */
+    getParticleMultiplier() {
+        // Return multiplier based on current density level
+        if (this.lowPerformanceMode) {
+            // Low performance: reduce particles significantly
+            return this.environmentDensity < 0.5 ? 0.3 : 0.5;
+        }
+        // Normal/high performance: use full or slightly reduced particles
+        return this.environmentDensity >= 1.5 ? 1.0 : 0.8;
     }
     
     /**

@@ -1,7 +1,7 @@
-import * as THREE from 'three';
+import * as THREE from '../libs/three/three.module.js';
 import { BleedingEffect } from './skills/BleedingEffect.js';
 import { SkillEffectFactory } from './skills/SkillEffectFactory.js';
-import { DamageNumberEffect } from './effects/DamageNumberEffect.js';
+import { DamageNumberSpriteEffect } from './effects/DamageNumberSpriteEffect.js';
 
 /**
  * EffectsManager
@@ -15,9 +15,10 @@ export class EffectsManager {
     constructor(game) {
         this.game = game;
         this.effects = [];
-        this.damageNumbers = [];
+        /** Three.js sprite damage numbers (world space, float up, fade) — used for all damage */
+        this.spriteDamageNumbers = [];
         /** Max concurrent damage numbers; oldest are dropped when over limit */
-        this.maxDamageNumbers = 18;
+        this.maxSpriteDamageNumbers = 30; // Increased with caching optimization
     }
     
     /**
@@ -69,12 +70,38 @@ export class EffectsManager {
             }
         }
         
-        // Update damage numbers (float-up then remove)
-        for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
-            if (!this.damageNumbers[i].update(delta)) {
-                this.damageNumbers.splice(i, 1);
+        // Update Three.js sprite damage numbers (world space, float up, fade)
+        for (let i = this.spriteDamageNumbers.length - 1; i >= 0; i--) {
+            if (!this.spriteDamageNumbers[i].update(delta)) {
+                this.spriteDamageNumbers.splice(i, 1);
             }
         }
+    }
+
+    /**
+     * Create a floating damage number in Three.js world space (float up, fade out).
+     * Use for all damage - 3D text that stays where the hit occurred and does not fly with the player.
+     * @param {number} amount - Damage amount to display
+     * @param {THREE.Vector3|Object} position - World position {x, y, z} (will be cloned)
+     * @param {Object} options - { isPlayerDamage, isCritical, isKill }
+     * @returns {Promise<DamageNumberSpriteEffect|null>}
+     */
+    async createDamageNumberSprite(amount, position, options = {}) {
+        if (!this.game?.scene || amount == null) return null;
+        while (this.spriteDamageNumbers.length >= this.maxSpriteDamageNumbers) {
+            const oldest = this.spriteDamageNumbers.shift();
+            if (oldest) oldest.dispose();
+        }
+        const pos = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(position.x, position.y, position.z);
+        // Start damage numbers at the top of the model (increased from 0.5 to 2.5)
+        pos.y += 1.5;
+        const effect = new DamageNumberSpriteEffect(this.game, amount, pos, options);
+        const created = await effect.create();
+        if (created) {
+            this.spriteDamageNumbers.push(effect);
+            return effect;
+        }
+        return null;
     }
     
     /**
@@ -85,15 +112,17 @@ export class EffectsManager {
      * @returns {BleedingEffect|null} - The created bleeding effect or null if creation failed
      */
     createBleedingEffect(amount, position, isPlayerDamage = false) {
-        // Create a new bleeding effect
+        // Use cloned position so effect stays at hit location in world space (does not follow player/enemy)
+        const worldPos = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(position.x, position.y, position.z);
         const bleedingEffect = new BleedingEffect({
             amount: amount,
-            duration: 1.5, // 1.5 seconds duration
-            isPlayerDamage: isPlayerDamage
+            duration: 0.8, // Reduced from 1.5 to 0.8 seconds for better performance
+            isPlayerDamage: isPlayerDamage,
+            game: this.game
         });
         
-        // Create the effect at the specified position
-        const effectGroup = bleedingEffect.create(position, new THREE.Vector3(0, 1, 0));
+        // Create the effect at the specified world position (cloned above)
+        const effectGroup = bleedingEffect.create(worldPos, new THREE.Vector3(0, 1, 0));
         
         // Add the effect to the scene
         if (this.game && this.game.scene) {
@@ -110,26 +139,15 @@ export class EffectsManager {
     
     /**
      * Create a floating damage number above a world position (RPG/Diablo style).
+     * Now redirects to 3D text system for consistency.
      * @param {number} amount - Damage amount to display
      * @param {THREE.Vector3|Object} position - World position {x, y, z}
      * @param {Object} options - { isPlayerDamage, isCritical, isKill }
-     * @returns {DamageNumberEffect|null}
+     * @returns {Promise<DamageNumberSpriteEffect|null>}
      */
     createDamageNumber(amount, position, options = {}) {
-        if (!this.game || amount == null) return null;
-        // Cap active count: drop oldest when at limit so new hits (e.g. kills) still show
-        while (this.damageNumbers.length >= this.maxDamageNumbers) {
-            const oldest = this.damageNumbers.shift();
-            if (oldest) oldest.dispose();
-        }
-        const pos = position instanceof THREE.Vector3 ? position : new THREE.Vector3(position.x, position.y, position.z);
-        pos.y += 0.8; // Slightly above impact
-        const effect = new DamageNumberEffect(this.game, amount, pos, options);
-        if (effect.create()) {
-            this.damageNumbers.push(effect);
-            return effect;
-        }
-        return null;
+        // Redirect to 3D text system
+        return this.createDamageNumberSprite(amount, position, options);
     }
     
     /**
@@ -546,14 +564,26 @@ export class EffectsManager {
         }
         this.effects = [];
         // Clean up floating damage numbers (remove DOM elements)
-        for (const dn of this.damageNumbers) {
+        if (this.damageNumbers) {
+            for (const dn of this.damageNumbers) {
+                dn.dispose();
+            }
+            this.damageNumbers = [];
+        }
+        // Clean up Three.js sprite damage numbers
+        for (const dn of this.spriteDamageNumbers) {
             dn.dispose();
         }
-        this.damageNumbers = [];
-        
+        this.spriteDamageNumbers = [];
+
         // Clean up shared resources
         if (typeof BleedingEffect.cleanupSharedResources === 'function') {
             BleedingEffect.cleanupSharedResources();
+        }
+        
+        // Clear damage number geometry/material cache
+        if (typeof DamageNumberSpriteEffect.clearCache === 'function') {
+            DamageNumberSpriteEffect.clearCache();
         }
         
         // Force a garbage collection hint

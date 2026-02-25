@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -15,7 +15,7 @@ export class BleedingEffect extends SkillEffect {
         // Create a temporary skill object to pass to the parent constructor
         const tempSkill = {
             color: 0xff0000, // Default red color for blood
-            duration: config.duration || 1.0, // Default duration of 1.5 seconds
+            duration: config.duration || 0.8, // Reduced default duration from 1.0 to 0.8 seconds
             position: new THREE.Vector3(),
             damage: config.amount || 0,
             game: config.game // Pass game reference if provided
@@ -40,15 +40,15 @@ export class BleedingEffect extends SkillEffect {
     calculateParticleCount(amount) {
         // Get performance manager if available to adjust particle count based on quality
         let performanceMultiplier = 1.0;
-        if (this.skill.game && this.skill.game.performanceManager) {
+        if (this.skill && this.skill.game && this.skill.game.performanceManager) {
             performanceMultiplier = this.skill.game.performanceManager.getParticleMultiplier();
         }
         
         const minParticles = 2;
-        const maxParticles = 10; // Reduced from 15 to 10 for better performance
+        const maxParticles = 6; // Further reduced from 10 to 6 for better performance
         
         // Calculate base particle count and apply performance multiplier
-        const baseCount = Math.min(maxParticles, minParticles + Math.floor(amount / 15)); // Reduced particle density
+        const baseCount = Math.min(maxParticles, minParticles + Math.floor(amount / 20)); // Reduced particle density further
         return Math.max(minParticles, Math.floor(baseCount * performanceMultiplier));
     }
     
@@ -129,14 +129,14 @@ export class BleedingEffect extends SkillEffect {
      */
     createParticle(index) {
         // Randomize particle size based on damage
-        const minSize = 0.03 * 5;
-        const maxSize = 0.06 * 5 + (this.amount / 3000); // Reduced max size for better performance
+        const minSize = 0.12; // Reduced from 0.15
+        const maxSize = 0.25 + (this.amount / 4000); // Reduced max size
         const size = minSize + Math.random() * (maxSize - minSize);
         
         // Create or reuse geometry
         if (!BleedingEffect.particleGeometry) {
-            // Use lower polygon count (6,6 instead of 8,8)
-            BleedingEffect.particleGeometry = new THREE.SphereGeometry(1, 6, 6);
+            // Use 6 segments for better sphere appearance (not hexagon)
+            BleedingEffect.particleGeometry = new THREE.SphereGeometry(1, 6, 5);
         }
         
         // Randomize particle color slightly
@@ -158,7 +158,7 @@ export class BleedingEffect extends SkillEffect {
         particle.scale.set(size, size, size); // Scale instead of creating new geometry
         
         // Randomize initial position with reduced spread
-        const spread = 0.2 + (this.amount / 800); // Reduced spread for more focused effect
+        const spread = 0.15 + (this.amount / 1000); // Further reduced spread
         particle.position.set(
             (Math.random() * spread * 2) - spread,
             (Math.random() * spread * 2) - spread,
@@ -168,13 +168,13 @@ export class BleedingEffect extends SkillEffect {
         // Store initial values and movement data for animation
         particle.userData = {
             velocity: new THREE.Vector3(
-                (Math.random() - 0.5) * 1.5, // Reduced velocity range
-                Math.random() * 1.5,         // Reduced upward velocity
-                (Math.random() - 0.5) * 1.5  // Reduced velocity range
-            ).normalize().multiplyScalar(0.4 + Math.random() * 1.2), // Reduced overall velocity
-            gravity: 0.15 + Math.random() * 0.2, // Reduced gravity for slower fall
+                (Math.random() - 0.5) * 1.2, // Further reduced velocity
+                Math.random() * 1.2,         // Further reduced upward velocity
+                (Math.random() - 0.5) * 1.2  // Further reduced velocity
+            ).normalize().multiplyScalar(0.3 + Math.random() * 0.8), // Further reduced overall velocity
+            gravity: 0.2 + Math.random() * 0.15, // Adjusted gravity
             lifetime: 0,
-            maxLifetime: 0.4 + Math.random() * 0.6 // Shorter lifetime for better performance
+            maxLifetime: 0.3 + Math.random() * 0.4 // Even shorter lifetime (0.3-0.7s instead of 0.4-1.0s)
         };
         
         return particle;
@@ -186,11 +186,12 @@ export class BleedingEffect extends SkillEffect {
      * @private
      */
     createFlashEffect() {
-        const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+        const geometry = new THREE.SphereGeometry(0.5, 8, 6); // Reduced from 16,16 to 8,6
         const material = new THREE.MeshBasicMaterial({
             color: 0xffffff,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.3,
+            depthWrite: false // Better performance
         });
         
         const flash = new THREE.Mesh(geometry, material);
@@ -199,7 +200,7 @@ export class BleedingEffect extends SkillEffect {
         flash.userData = {
             initialScale: 1,
             lifetime: 0,
-            maxLifetime: 0.5
+            maxLifetime: 0.4 // Reduced from 0.5 to 0.4
         };
         
         return flash;
@@ -220,14 +221,9 @@ export class BleedingEffect extends SkillEffect {
             return;
         }
         
-        // Limit update frequency for better performance
-        // Only update every other frame for low damage effects
-        if (this.amount < 20 && this.elapsedTime % 0.033 < 0.016) {
-            return;
-        }
-        
-        // Update particles
-        for (let i = 0; i < this.particles.length; i++) {
+        // Update particles with optimized loop
+        const particleCount = this.particles.length;
+        for (let i = 0; i < particleCount; i++) {
             const particle = this.particles[i];
             const data = particle.userData;
             
@@ -237,47 +233,44 @@ export class BleedingEffect extends SkillEffect {
             // Check if particle has exceeded its lifetime
             if (data.lifetime >= data.maxLifetime) {
                 // Make particle invisible instead of updating it further
-                if (particle.material) {
-                    particle.material.opacity = 0;
-                }
+                particle.visible = false;
                 continue;
             }
             
             // Apply velocity and gravity with optimized calculations
+            const gravityEffect = data.gravity * data.lifetime * delta * 6;
             particle.position.x += data.velocity.x * delta;
-            particle.position.y += data.velocity.y * delta - (data.gravity * data.lifetime * delta * 8); // Reduced gravity multiplier
+            particle.position.y += data.velocity.y * delta - gravityEffect;
             particle.position.z += data.velocity.z * delta;
             
-            // Fade out based on lifetime - only update opacity every few frames
-            if (i % 2 === 0 || data.lifetime > data.maxLifetime * 0.7) {
-                const lifeRatio = data.lifetime / data.maxLifetime;
-                if (particle.material) {
-                    particle.material.opacity = Math.max(0, 0.8 * (1 - lifeRatio));
-                }
+            // Fade out based on lifetime - simplified calculation
+            const lifeRatio = data.lifetime / data.maxLifetime;
+            if (particle.material) {
+                particle.material.opacity = 0.8 * (1 - lifeRatio);
             }
         }
         
-        // Update flash effect if it exists (first child of the effect group)
-        const flash = this.effect.children.find(child => child.userData && child.userData.hasOwnProperty('initialScale'));
-        if (flash) {
-            const data = flash.userData;
-            data.lifetime += delta;
-            
-            // Check if flash has exceeded its lifetime
-            if (data.lifetime >= data.maxLifetime) {
-                if (flash.material) {
-                    flash.material.opacity = 0;
+        // Update flash effect if it exists (only for high damage)
+        if (this.amount > 100) {
+            const flash = this.effect.children.find(child => child.userData && child.userData.hasOwnProperty('initialScale'));
+            if (flash) {
+                const data = flash.userData;
+                data.lifetime += delta;
+                
+                // Check if flash has exceeded its lifetime
+                if (data.lifetime >= data.maxLifetime) {
+                    flash.visible = false;
+                    return;
                 }
-                return;
-            }
-            
-            // Scale up and fade out - simplified calculations
-            const lifeRatio = data.lifetime / data.maxLifetime;
-            const scale = data.initialScale + (lifeRatio * 2.5); // Reduced scale factor
-            flash.scale.set(scale, scale, scale);
-            
-            if (flash.material) {
-                flash.material.opacity = Math.max(0, 0.3 * (1 - lifeRatio));
+                
+                // Scale up and fade out - simplified calculations
+                const lifeRatio = data.lifetime / data.maxLifetime;
+                const scale = data.initialScale + (lifeRatio * 2);
+                flash.scale.set(scale, scale, scale);
+                
+                if (flash.material) {
+                    flash.material.opacity = 0.3 * (1 - lifeRatio);
+                }
             }
         }
     }

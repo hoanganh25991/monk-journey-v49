@@ -111,6 +111,18 @@ export const PLAYER_PROGRESSION = {
 
 // Enemy configuration
 export const ENEMY_CONFIG = {
+    // Auto-drop configuration for enemies that are too far from player
+    AUTO_DROP: {
+        // Distance at which regular enemies are automatically removed (in world units)
+        maxDistance: 120,
+        // Distance at which boss enemies are automatically removed (in world units)
+        bossMaxDistance: 180,
+        // How often to check for distant enemies (in seconds) - similar to terrain cleanup
+        checkInterval: 2.0,
+        // Whether to reduce distance in multiplier zones (enemies stay longer in high-density areas)
+        useMultiplierZoneAdjustment: true
+    },
+    
     // Health regeneration rates for different enemy types (per second)
     HEALTH_REGENERATION_RATES: {
         // Default regeneration rate (used if type not specified)
@@ -212,7 +224,9 @@ export const ENEMY_CONFIG = {
             experienceValue: 30,
             color: 0xddccbb,
             behavior: 'ranged',
-            zone: 'ruins'
+            zone: 'ruins',
+            projectileType: 'arrow',
+            projectileFlightStyle: 'direct'
         },
         {
             type: 'zombie',
@@ -277,7 +291,9 @@ export const ENEMY_CONFIG = {
             experienceValue: 50,
             color: 0x330033,
             behavior: 'caster',
-            zone: 'ruins'
+            zone: 'ruins',
+            projectileType: 'orb',
+            projectileFlightStyle: 'curve'
         },
         {
             type: 'shadow_beast',
