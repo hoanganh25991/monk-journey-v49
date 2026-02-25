@@ -154,6 +154,8 @@ export class InfernalGolemModel extends EnemyModel {
         }
         
         const time = Date.now() * 0.001;
+        this._animFrame = (this._animFrame || 0) + 1;
+        const updateEmissive = (this._animFrame % 2) === 0;
         
         const body = this.modelGroup.children[0];
         const head = this.modelGroup.children[1];
@@ -174,22 +176,16 @@ export class InfernalGolemModel extends EnemyModel {
             body.userData.initialized = true;
         }
         
-        const crackPulse = 0.8 + Math.sin(time * 2) * 0.4;
-        if (verticalCrack.material) {
-            verticalCrack.material.emissiveIntensity = crackPulse;
-        }
-        if (horizontalCrack.material) {
-            horizontalCrack.material.emissiveIntensity = crackPulse;
-        }
-        
-        if (this.modelGroup.children.length > 10) {
-            const leftEye = this.modelGroup.children[10];
-            const rightEye = this.modelGroup.children[11];
-            if (leftEye && leftEye.material) {
-                leftEye.material.emissiveIntensity = 0.8 + Math.sin(time * 3) * 0.4;
-            }
-            if (rightEye && rightEye.material) {
-                rightEye.material.emissiveIntensity = 0.8 + Math.sin(time * 3) * 0.4;
+        if (updateEmissive) {
+            const crackPulse = 0.8 + Math.sin(time * 2) * 0.4;
+            if (verticalCrack.material) verticalCrack.material.emissiveIntensity = crackPulse;
+            if (horizontalCrack.material) horizontalCrack.material.emissiveIntensity = crackPulse;
+            if (this.modelGroup.children.length > 10) {
+                const leftEye = this.modelGroup.children[10];
+                const rightEye = this.modelGroup.children[11];
+                const eyePulse = 0.8 + Math.sin(time * 3) * 0.4;
+                if (leftEye?.material) leftEye.material.emissiveIntensity = eyePulse;
+                if (rightEye?.material) rightEye.material.emissiveIntensity = eyePulse;
             }
         }
         
@@ -212,14 +208,11 @@ export class InfernalGolemModel extends EnemyModel {
             }
             
             leftArm.rotation.x = Math.sin(time * attackSpeed * 0.5) * 0.2;
-            
-            if (verticalCrack.material) {
-                verticalCrack.material.emissiveIntensity = 1.2 + Math.sin(time * attackSpeed * 2) * 0.5;
+            if (updateEmissive) {
+                const atkPulse = 1.2 + Math.sin(time * attackSpeed * 2) * 0.5;
+                if (verticalCrack.material) verticalCrack.material.emissiveIntensity = atkPulse;
+                if (horizontalCrack.material) horizontalCrack.material.emissiveIntensity = atkPulse;
             }
-            if (horizontalCrack.material) {
-                horizontalCrack.material.emissiveIntensity = 1.2 + Math.sin(time * attackSpeed * 2) * 0.5;
-            }
-            
         } else if (this.enemy.state.isMoving) {
             const walkSpeed = 3;
             const walkAmp = 0.2;
