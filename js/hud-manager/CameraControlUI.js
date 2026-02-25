@@ -67,9 +67,12 @@ export class CameraControlUI extends UIComponent {
             verticalLookOffset: this.cameraLookOffsets[this.currentCameraMode]
         };
         
-        // Store the initial camera position and rotation
+        // Store the initial camera position and rotation (for reset to game start)
         this.initialCameraPosition = null;
         this.initialCameraRotation = null;
+        this.initialRotationX = null; // Store initial X rotation for reset
+        this.initialRotationY = null; // Store initial Y rotation for reset
+        this.initialCameraDistance = null; // Store initial camera distance for reset
         
         // Visual indicator elements
         this.baseElement = null;
@@ -114,6 +117,12 @@ export class CameraControlUI extends UIComponent {
         
         // Load camera distance from settings if available
         await this.loadCameraSettings();
+        
+        // Update UI to show 360 view is always active
+        this.updateViewControlModeUI();
+        
+        // Listen for game start event to capture initial camera state
+        this.setupGameStartListener();
         
         return true;
     }
@@ -344,18 +353,61 @@ export class CameraControlUI extends UIComponent {
                         const defaultRotationX = -0.5; // Negative value for downward angle (looking down at player)
                         const defaultRotationY = Math.PI; // Behind the player
                         
-                        // Store these as the initial rotation values
+                        // Store these as the current rotation values
                         this.cameraState.rotationX = defaultRotationX;
                         this.cameraState.rotationY = defaultRotationY;
                         
                         // Update the camera position
                         this.updateCameraOrbit(defaultRotationX, defaultRotationY);
+                        
+                        // Initial state will be captured when game starts (via event listener)
                     }
                 }
             }
         } catch (error) {
             console.error("Error loading camera settings:", error);
         }
+    }
+    
+    /**
+     * Set up listener for game start event to capture initial camera state
+     */
+    setupGameStartListener() {
+        if (!this.game || !this.game.events) {
+            console.warn('Game events not available for camera state capture');
+            return;
+        }
+        
+        // Listen for game state change to 'running' (game start)
+        this.game.events.addEventListener('gameStateChanged', (state) => {
+            if (state === 'running' && this.initialRotationX === null && this.initialRotationY === null) {
+                // Capture initial state after a short delay to ensure camera is positioned
+                this.captureInitialCameraState();
+            }
+        });
+    }
+    
+    /**
+     * Capture the initial camera state for reset functionality
+     * This should be called AFTER the camera has been positioned for the first time
+     */
+    captureInitialCameraState() {
+        // Use a small delay to ensure the camera has been fully updated
+        setTimeout(() => {
+            if (this.initialRotationX === null && this.initialRotationY === null) {
+                this.initialRotationX = this.cameraState.rotationX;
+                this.initialRotationY = this.cameraState.rotationY;
+                this.initialCameraDistance = this.cameraDistance;
+                
+                console.debug("Captured initial camera state for reset:", {
+                    rotationX: this.initialRotationX,
+                    rotationY: this.initialRotationY,
+                    distance: this.initialCameraDistance,
+                    verticalDegrees: THREE.MathUtils.radToDeg(this.initialRotationX),
+                    horizontalDegrees: THREE.MathUtils.radToDeg(this.initialRotationY)
+                });
+            }
+        }, 500); // Longer delay to ensure first frame has been rendered
     }
     
     /**
@@ -1483,11 +1535,11 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Reset camera to default position behind the player
+     * Reset camera to initial game start position (not current rotation)
      */
     resetCameraToDefault() {
         try {
-            console.debug("Resetting camera to default position");
+            console.debug("Resetting camera to initial game start position");
             
             if (!this.validateGameComponents()) {
                 console.error("Cannot reset camera - game components not valid");
@@ -1500,25 +1552,32 @@ export class CameraControlUI extends UIComponent {
                 return;
             }
             
-            // Set default rotation values
-            const defaultRotationX = -0.5; // Negative value for downward angle (looking down at player)
-            const defaultRotationY = Math.PI; // Behind the player
+            // Use stored initial rotation values, or fallback to defaults
+            const defaultRotationX = this.initialRotationX !== null ? this.initialRotationX : -0.5;
+            const defaultRotationY = this.initialRotationY !== null ? this.initialRotationY : Math.PI;
+            
+            // Reset camera distance to initial value
+            if (this.initialCameraDistance !== null) {
+                this.cameraDistance = this.initialCameraDistance;
+                console.debug("Resetting camera distance to initial:", this.initialCameraDistance);
+            }
+            
+            console.debug("Resetting to initial rotation:", {
+                rotationX: defaultRotationX,
+                rotationY: defaultRotationY,
+                distance: this.cameraDistance,
+                verticalDegrees: THREE.MathUtils.radToDeg(defaultRotationX),
+                horizontalDegrees: THREE.MathUtils.radToDeg(defaultRotationY)
+            });
             
             // Store these as the current rotation values
             this.cameraState.rotationX = defaultRotationX;
             this.cameraState.rotationY = defaultRotationY;
             
-            // Set camera to default mode if we're having issues
-            this.currentCameraMode = this.cameraModes.THIRD_PERSON;
-            this.cameraDistance = this.cameraDistances[this.currentCameraMode];
-            
-            // Update the camera mode button UI
-            this.updateCameraModeButtonUI();
-            
             // Update the camera position with a safe call
             try {
                 this.updateCameraOrbit(defaultRotationX, defaultRotationY);
-                console.debug("Camera reset to default position");
+                console.debug("Camera reset to initial game start position");
             } catch (error) {
                 console.error("Error during camera reset:", error);
                 
