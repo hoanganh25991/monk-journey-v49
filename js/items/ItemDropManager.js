@@ -106,10 +106,11 @@ export class ItemDropManager {
 
         if (this.game?.player) {
             this.game.player.addToInventory(item);
-            const autoConsume = storageService.loadDataSync(STORAGE_KEYS.AUTO_CONSUME_ITEMS);
+            const autoConsumeRaw = storageService.loadDataSync(STORAGE_KEYS.AUTO_CONSUME_ITEMS);
+            const autoConsume = autoConsumeRaw !== false && autoConsumeRaw !== 'false'; // default true
             const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
             let didConsume = false;
-            if ((autoConsume === true || autoConsume === 'true') && isItemConsumable(item) && hud?.components?.inventoryUI?.useConsumableItem) {
+            if (autoConsume && isItemConsumable(item) && hud?.components?.inventoryUI?.useConsumableItem) {
                 hud.components.inventoryUI.useConsumableItem(item);
                 didConsume = true;
             }

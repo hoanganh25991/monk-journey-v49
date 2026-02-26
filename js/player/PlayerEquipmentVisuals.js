@@ -101,9 +101,9 @@ export class PlayerEquipmentVisuals {
             this.createWeaponVisual(equipment.weapon);
         }
         
-        if (equipment.armor) {
-            this.createArmorVisual(equipment.armor);
-        }
+        // if (equipment.armor) {
+        //     this.createArmorVisual(equipment.armor);
+        // }
         
         if (equipment.helmet) {
             this.createHelmetVisual(equipment.helmet);
@@ -593,10 +593,10 @@ export class PlayerEquipmentVisuals {
             roughness: 0.6,
             metalness: 0.4,
             transparent: true,
-            opacity: 0.5
+            opacity: 0.2
         });
         const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial);
-        overlay.position.set(0, 0, 0.08);
+        overlay.position.set(0, -0.2, 0.08);
         overlay.castShadow = true;
         overlay.userData.isArmorOverlay = true;
         this.attachmentPoints.chest.add(overlay);
