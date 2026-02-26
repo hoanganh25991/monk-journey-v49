@@ -50,10 +50,11 @@ export class PlayerInventory {
         
         if (existingItem) {
             // Increase amount
-            existingItem.amount += item.amount;
+            const addQty = item.amount ?? 1;
+            existingItem.amount = (existingItem.amount ?? 1) + addQty;
         } else {
-            // Add new item
-            this.inventory.push({ ...item });
+            // Add new item (default amount to 1)
+            this.inventory.push({ ...item, amount: item.amount ?? 1 });
         }
     }
     
@@ -62,17 +63,18 @@ export class PlayerInventory {
         const itemIndex = this.inventory.findIndex(i => i.name === itemName);
         
         if (itemIndex >= 0) {
-            // Decrease amount
-            this.inventory[itemIndex].amount -= amount;
-            
+            const entry = this.inventory[itemIndex];
+            const current = entry.amount ?? 1; // treat missing amount as 1 (e.g. consumables)
+            entry.amount = current - amount;
+
             // Remove item if amount is 0 or less
-            if (this.inventory[itemIndex].amount <= 0) {
+            if (entry.amount <= 0) {
                 this.inventory.splice(itemIndex, 1);
             }
 
             return true;
         }
-        
+
         return false;
     }
     

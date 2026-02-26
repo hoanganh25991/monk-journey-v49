@@ -57,9 +57,8 @@ export class PlayerSkills {
         // Game reference
         this.game = game;
         
-        // Custom skills flag (default to true)
-        const customSkillsValue = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS);
-        this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === 'true';
+        // All skills (including custom) are always enabled
+        this.customSkillsEnabled = true;
     }
     
     // setGame method removed - game is now passed in constructor
@@ -85,12 +84,7 @@ export class PlayerSkills {
      * @returns {void}
      */
     updateCustomSkillsVisibility() {
-        // Update the flag (default to true)
-        const customSkillsValue = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS);
-        this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === 'true';
-        console.debug(`Custom skills ${this.customSkillsEnabled ? 'enabled' : 'disabled'}`);
-        
-        // Reload skills to apply the filter
+        // All skills always enabled; reload to refresh UI
         this.initializeSkills();
         
         // Notify UI components to update

@@ -277,8 +277,8 @@ export class SaveManager extends ISaveSystem {
             }
             
             // Refresh equipment visuals (load sets equipment directly, bypassing equipItem)
-            if (this.game.player.model?.equipmentVisuals) {
-                this.game.player.model.equipmentVisuals.updateEquipmentVisuals(this.game.player.inventory.equipment);
+            if (this.game.player.model?.updateEquipmentVisuals) {
+                this.game.player.model.updateEquipmentVisuals(this.game.player.inventory.equipment);
             }
             
             // Load quest data

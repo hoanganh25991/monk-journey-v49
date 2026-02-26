@@ -169,6 +169,7 @@ export class InventoryUI extends UIComponent {
             const equipButton = this.itemPopup.querySelector('.item-popup-equip');
             equipButton.addEventListener('click', () => {
                 if (this.currentItem && this.currentItem.type) {
+                    // Consumables: Equip = use/consume (auto-equip to quick-use). Gear: equip to slot.
                     this.useItem(this.currentItem);
                     this.hideItemPopup();
                 }
@@ -524,11 +525,12 @@ export class InventoryUI extends UIComponent {
         // Set description
         descElement.textContent = item.description || `A ${item.name.toLowerCase()}.`;
         
-        // Show/hide buttons based on item type
-        if (item.name.includes('Potion') || !item.type) {
+        // Show Use/Consume for consumables; show Equip only for gear (weapon, armor, accessory)
+        const isConsumable = item.type === 'consumable' || item.consumable === true;
+        if (isConsumable || item.name.includes('Potion') || !item.type) {
             useButton.style.display = 'block';
             equipButton.style.display = 'none';
-        } else if (item.type) {
+        } else {
             useButton.style.display = 'none';
             equipButton.style.display = 'block';
         }
@@ -994,11 +996,24 @@ export class InventoryUI extends UIComponent {
                 slotMap[slotType] = slot;
             }
         });
+        // Map inventory equipment keys to DOM data-slot names (head vs helmet, etc.)
+        const equipmentToDomSlot = {
+            helmet: 'head',
+            shoulder: 'shoulders',
+            armor: 'chest',
+            gloves: 'hands',
+            boots: 'feet',
+            weapon: 'weapon',
+            belt: 'legs',  // or add data-slot="belt" if you add a belt slot
+            accessory1: 'accessory',
+            accessory2: 'accessory',
+            talisman: 'accessory'
+        };
         
         // Update each equipment slot
         Object.entries(equipment).forEach(([slot, item]) => {
-            // Find the slot element using the map
-            const slotElement = slotMap[slot];
+            const domSlot = equipmentToDomSlot[slot] ?? slot;
+            const slotElement = slotMap[domSlot];
             
             if (slotElement) {
                 // Clear previous content

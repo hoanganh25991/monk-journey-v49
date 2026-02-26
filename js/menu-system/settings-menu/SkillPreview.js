@@ -8,7 +8,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { Skill } from '../../skills/Skill.js';
 import { SKILLS } from '../../config/skills.js';
 import { CAMERA_CONFIG } from '../../config/skill-preview.js';
-import { STORAGE_KEYS } from '../../config/storage-keys.js';
 
 export class SkillPreview {
     /**
@@ -32,9 +31,6 @@ export class SkillPreview {
         this.clock = new THREE.Clock();
         this.animationId = null;
         this.visible = true;
-        
-        // Custom skills flag
-        this.customSkillsEnabled = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS) === 'true';
         
         // Camera initial settings (for reset functionality)
         this.initialCameraPosition = null;
@@ -116,16 +112,8 @@ export class SkillPreview {
      * @returns {Array} - Filtered array of skill configurations
      */
     getFilteredSkills() {
-        // Update the flag
-        this.customSkillsEnabled = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS) === 'true';
-        
-        if (this.customSkillsEnabled) {
-            // Include all skills
-            return SKILLS;
-        } else {
-            // Filter out custom skills
-            return SKILLS.filter(skill => !skill.isCustomSkill);
-        }
+        // All skills always enabled
+        return SKILLS;
     }
     
     /**

@@ -30,7 +30,6 @@ export class GameplayTab extends SettingsTab {
         
         // Game settings elements
         this.difficultySelect = document.getElementById('difficulty-select');
-        this.customSkillsCheckbox = document.getElementById('custom-skills-checkbox');
         
         // UI settings
         this.showMinimapCheckbox = document.getElementById('show-minimap-checkbox');
@@ -83,8 +82,6 @@ export class GameplayTab extends SettingsTab {
         // Update UI based on the key that changed
         if (key === STORAGE_KEYS.DIFFICULTY && this.difficultySelect) {
             this.difficultySelect.value = newValue || 'basic';
-        } else if (key === STORAGE_KEYS.CUSTOM_SKILLS && this.customSkillsCheckbox) {
-            this.customSkillsCheckbox.checked = newValue === true || newValue === 'true';
         } else if (key === STORAGE_KEYS.TARGET_FPS && this.fpsSlider && this.fpsValue) {
             const parsedFPS = parseInt(newValue) || 120;
             this.fpsSlider.value = parsedFPS;
@@ -203,22 +200,6 @@ export class GameplayTab extends SettingsTab {
                         const difficultyName = DIFFICULTY_SCALING.difficultyLevels[selectedDifficulty].name;
                         this.game.hudManager.showNotification(`Difficulty changed to ${difficultyName}`);
                     }
-                }
-            });
-        }
-        
-        if (this.customSkillsCheckbox) {
-            // Set current custom skills state synchronously (default is true)
-            const customSkillsEnabled = this.loadSettingSync(STORAGE_KEYS.CUSTOM_SKILLS, true);
-            this.customSkillsCheckbox.checked = customSkillsEnabled === true || customSkillsEnabled === 'true';
-            
-            // Add change event listener
-            this.customSkillsCheckbox.addEventListener('change', () => {
-                this.saveSetting(STORAGE_KEYS.CUSTOM_SKILLS, this.customSkillsCheckbox.checked.toString());
-                
-                // Apply custom skills settings immediately if game is available
-                if (this.game && this.game.player && this.game.player.skills) {
-                    this.game.player.skills.updateCustomSkillsVisibility();
                 }
             });
         }
@@ -434,10 +415,6 @@ export class GameplayTab extends SettingsTab {
             }
         }
         
-        if (this.customSkillsCheckbox) {
-            savePromises.push(this.saveSetting(STORAGE_KEYS.CUSTOM_SKILLS, this.customSkillsCheckbox.checked.toString()));
-        }
-        
         if (this.fpsSlider) {
             savePromises.push(this.saveSetting(STORAGE_KEYS.TARGET_FPS, parseInt(this.fpsSlider.value).toString()));
         }
@@ -463,10 +440,6 @@ export class GameplayTab extends SettingsTab {
         if (this.difficultySelect) {
             this.difficultySelect.value = 'basic';
             console.debug('Reset difficulty to basic');
-        }
-        
-        if (this.customSkillsCheckbox) {
-            this.customSkillsCheckbox.checked = false;
         }
         
         if (this.fpsSlider && this.fpsValue) {

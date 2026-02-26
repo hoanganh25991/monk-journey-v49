@@ -113,8 +113,8 @@ export class Player {
         this.inventory.addToInventory(defaultStaff);
         this.inventory.equipItem(defaultStaff);
         
-        if (this.model?.equipmentVisuals) {
-            this.model.equipmentVisuals.updateEquipmentVisuals(this.inventory.equipment);
+        if (this.model?.updateEquipmentVisuals) {
+            this.model.updateEquipmentVisuals(this.inventory.equipment);
         }
         
         console.debug('Player given default Wooden Staff');
@@ -484,6 +484,23 @@ export class Player {
         }
         
         return this.statusEffects.applyEffect(effectType, duration, intensity);
+    }
+    
+    /**
+     * Add a temporary flat boost to a stat (used by consumables).
+     * Delegates to stats.addTemporaryBoost; converts flat amount to ratio for stats that use multiplicative boosts.
+     * @param {string} statName - Stat to boost: 'maxHealth', 'attack', 'defense', 'speed', 'wisdom', etc.
+     * @param {number} amount - Flat amount to add (e.g. 50 for +50 max health)
+     * @param {number} duration - Duration in seconds
+     */
+    addTemporaryStatBoost(statName, amount, duration) {
+        if (!this.stats || typeof this.stats.addTemporaryBoost !== 'function') return;
+        const map = { attack: 'attackPower', defense: 'defense', speed: 'movementSpeed', wisdom: 'intelligence' };
+        const stat = map[statName] ?? statName;
+        if (this.stats[stat] === undefined) return;
+        const current = stat === 'maxHealth' ? this.stats.getMaxHealth() : (this.stats[stat] ?? 0);
+        const ratio = (current > 0 && amount > 0) ? amount / current : 0;
+        if (ratio > 0) this.stats.addTemporaryBoost(stat, ratio, duration);
     }
     
     /**

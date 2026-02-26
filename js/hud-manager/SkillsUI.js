@@ -1,6 +1,7 @@
 import { UIComponent } from '../UIComponent.js';
 import { getSkillIcon } from '../config/skill-icons.js';
 import { CAST_INTERVAL } from '../config/input.js';
+import { SkillEffectFactory } from '../skills/SkillEffectFactory.js';
 
 /**
  * Skills UI component
@@ -28,7 +29,12 @@ export class SkillsUI extends UIComponent {
     init() {
         // Get skills from player
         const skills = this.game.player.getSkills();
-        
+
+        // Preload effect modules for the selected HUD skills so they are ready when used
+        SkillEffectFactory.preloadEffectsForSkills(skills).catch(err =>
+            console.warn('SkillsUI: failed to preload skill effects', err)
+        );
+
         // Create skill buttons HTML
         let skillsHTML = '';
         

@@ -98,6 +98,42 @@ export class SkillEffectFactory {
     }
 
     /**
+     * Preload effect module for a single skill (variant if present, else base). Only loads into cache; does not create instances.
+     * @param {Skill} skill
+     * @returns {Promise<void>}
+     */
+    static async _preloadEffectForSkill(skill) {
+        const skillName = skill.name;
+        if (!skillName) return;
+
+        if (skill.variant) {
+            const key = `${skillName}|${skill.variant}`;
+            const entry = VARIANT_EFFECT_REGISTRY[key];
+            if (entry) {
+                await this._loadEffectClass(`./${entry.path}`, entry.exportName);
+                return;
+            }
+        }
+
+        const baseEntry = BASE_EFFECT_REGISTRY[skillName];
+        if (baseEntry) {
+            await this._loadEffectClass(`./${baseEntry.path}`, baseEntry.exportName);
+        }
+    }
+
+    /**
+     * Preload effect modules for all skills in the given array (e.g. the set selected for the HUD).
+     * Ensures those effects are imported and cached before the player uses them.
+     * @param {Array<Skill>} skills - Array of Skill instances (e.g. from player.getSkills())
+     * @returns {Promise<void>}
+     */
+    static async preloadEffectsForSkills(skills) {
+        if (!skills || skills.length === 0) return;
+        await Promise.all(skills.map(skill => this._preloadEffectForSkill(skill)));
+        console.debug('SkillEffectFactory: preloaded effect modules for', skills.length, 'HUD skills');
+    }
+
+    /**
      * Create a skill effect (async). Loads effect modules on first use, caches for subsequent calls.
      * @param {Skill} skill
      * @returns {Promise<SkillEffect>}

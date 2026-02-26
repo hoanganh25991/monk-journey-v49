@@ -20,6 +20,11 @@ export class AudioManager {
         this.sounds = {};
         this.music = {};
         
+        // Pooled sounds: multiple instances can play at once; pool is capped, oldest removed
+        this.soundPools = {};
+        this.soundBuffers = {};
+        this.soundPoolMax = { waveStrike: 30 };
+        
         // Audio file availability tracking
         this.audioFilesAvailable = false;
         
@@ -150,7 +155,7 @@ export class AudioManager {
                 const loop = false;
                 
                 // Create the simulated sound
-                this.sounds[sound.id] = this.createSimulatedSound(
+                const audio = this.createSimulatedSound(
                     sound.id, 
                     frequency, 
                     volume, 
@@ -158,6 +163,11 @@ export class AudioManager {
                     loop, 
                     simParams
                 );
+                this.sounds[sound.id] = audio;
+                if (this.soundPoolMax[sound.id]) {
+                    if (!this.soundPools[sound.id]) this.soundPools[sound.id] = [];
+                    this.soundPools[sound.id].push({ audio, startTime: 0 });
+                }
                 console.debug(`Created simulated sound: ${sound.id} - freq: ${frequency}Hz, vol: ${volume}, dur: ${duration}s`);
             }
         });
@@ -204,6 +214,11 @@ export class AudioManager {
             // Load the actual file
             audioLoader.load(`assets/audio/${filename}`, buffer => {
                 sound.setBuffer(buffer);
+                if (this.soundPoolMax[name]) {
+                    this.soundBuffers[name] = buffer;
+                    if (!this.soundPools[name]) this.soundPools[name] = [];
+                    this.soundPools[name].push({ audio: sound, startTime: 0 });
+                }
                 console.debug(`Loaded audio: ${name}`);
             }, 
             // Progress callback
@@ -435,6 +450,10 @@ export class AudioManager {
             return;
         }
         
+        if (this.soundPoolMax[name]) {
+            return this.playPooledSound(name);
+        }
+        
         const sound = this.sounds[name];
         if (sound) {
             try {
@@ -453,6 +472,84 @@ export class AudioManager {
             }
         } else {
             console.warn(`Sound not found: ${name}. Available sounds:`, Object.keys(this.sounds));
+            return false;
+        }
+    }
+    
+    /**
+     * Play a pooled sound (e.g. Wave Strike): do not stop existing; use an idle instance
+     * or reuse the oldest. Pool is capped at soundPoolMax; really old finished entries are removed.
+     * @param {string} name - Sound id (e.g. 'waveStrike')
+     * @returns {boolean}
+     */
+    playPooledSound(name) {
+        const pool = this.soundPools[name];
+        const maxSize = this.soundPoolMax[name] || 30;
+        if (!pool || !pool.length) return false;
+        
+        const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() / 1000 : Date.now() / 1000;
+        const idleThreshold = 2; // consider "really old" when finished for this many seconds
+        
+        // Remove really old finished entries and trim pool to max size
+        for (let i = pool.length - 1; i >= 0; i--) {
+            const e = pool[i];
+            if (!e.audio.isPlaying && (now - e.startTime) > idleThreshold) {
+                pool.splice(i, 1);
+            }
+        }
+        while (pool.length > maxSize) {
+            let oldestIdx = -1;
+            let oldestTime = Infinity;
+            for (let i = 0; i < pool.length; i++) {
+                if (!pool[i].audio.isPlaying && pool[i].startTime < oldestTime) {
+                    oldestTime = pool[i].startTime;
+                    oldestIdx = i;
+                }
+            }
+            if (oldestIdx >= 0) pool.splice(oldestIdx, 1);
+            else break;
+        }
+        
+        // Use an idle instance
+        let entry = pool.find(e => !e.audio.isPlaying);
+        if (entry) {
+            try {
+                entry.startTime = now;
+                entry.audio.play();
+                return true;
+            } catch (err) {
+                console.warn(`Could not play pooled sound ${name}:`, err);
+                return false;
+            }
+        }
+        
+        // Grow pool if under cap and we have a buffer to clone
+        if (pool.length < maxSize && this.soundBuffers[name]) {
+            try {
+                const config = ALL_SOUNDS[name];
+                const baseVolume = (config && config.volume != null) ? config.volume : 1;
+                const audio = new THREE.Audio(this.listener);
+                audio.setBuffer(this.soundBuffers[name]);
+                audio.setVolume(this.sfxVolume * baseVolume);
+                audio.setLoop(false);
+                const newEntry = { audio, startTime: now };
+                pool.push(newEntry);
+                audio.play();
+                return true;
+            } catch (err) {
+                console.warn(`Could not create new pooled instance for ${name}:`, err);
+            }
+        }
+        
+        // Reuse oldest playing instance
+        const oldest = pool.reduce((best, e) => e.startTime < best.startTime ? e : best, pool[0]);
+        try {
+            oldest.audio.stop();
+            oldest.startTime = now;
+            oldest.audio.play();
+            return true;
+        } catch (err) {
+            console.warn(`Could not reuse pooled sound ${name}:`, err);
             return false;
         }
     }
@@ -511,15 +608,19 @@ export class AudioManager {
             }
         }
         
-        // Pause all sound effects
+        // Pause all sound effects (including pooled)
         if (this.audioEnabled) {
             try {
-                // Iterate through all sound effects and pause them if they're playing
                 for (const soundName in this.sounds) {
                     const sound = this.sounds[soundName];
                     if (sound && sound.isPlaying) {
                         sound.pause();
                     }
+                }
+                for (const name in this.soundPools) {
+                    this.soundPools[name].forEach(e => {
+                        if (e.audio && e.audio.isPlaying) e.audio.pause();
+                    });
                 }
                 soundEffectsPaused = true;
                 console.debug('All sound effects paused');
@@ -553,13 +654,16 @@ export class AudioManager {
         // Resume all sound effects
         if (this.audioEnabled && !this.isMuted) {
             try {
-                // Iterate through all sound effects and resume them if they were playing
                 for (const soundName in this.sounds) {
                     const sound = this.sounds[soundName];
-                    // Only resume sounds that were playing and are now paused
                     if (sound && sound.isPaused) {
                         sound.play();
                     }
+                }
+                for (const name in this.soundPools) {
+                    this.soundPools[name].forEach(e => {
+                        if (e.audio && e.audio.isPaused) e.audio.play();
+                    });
                 }
                 soundEffectsResumed = true;
                 console.debug('All sound effects resumed');
@@ -578,7 +682,7 @@ export class AudioManager {
             // Stop all sounds
             this.stopMusic();
             
-            // Stop all sound effects
+            // Stop all sound effects (including pooled)
             Object.values(this.sounds).forEach(sound => {
                 if (sound && sound.isPlaying) {
                     try {
@@ -588,6 +692,13 @@ export class AudioManager {
                     }
                 }
             });
+            for (const name in this.soundPools) {
+                this.soundPools[name].forEach(e => {
+                    if (e.audio && e.audio.isPlaying) {
+                        try { e.audio.stop(); } catch (err) { console.warn('Could not stop pooled sound:', err); }
+                    }
+                });
+            }
         } else {
             // Resume music if it was playing
             if (this.currentMusic) {
@@ -620,6 +731,14 @@ export class AudioManager {
                 sound.setVolume(this.sfxVolume);
             }
         });
+        // Update pooled sound volumes (use config base volume)
+        for (const name in this.soundPools) {
+            const config = ALL_SOUNDS[name];
+            const baseVol = (config && config.volume != null) ? config.volume : 1;
+            this.soundPools[name].forEach(e => {
+                if (e.audio) e.audio.setVolume(this.sfxVolume * baseVol);
+            });
+        }
         
         return this.sfxVolume;
     }

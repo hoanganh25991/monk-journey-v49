@@ -26,7 +26,7 @@ export class SkillTreeUI extends UIComponent {
     this.skillPoints = 10_000_000; // Will be loaded from player data
     this.selectionMode = 'variants'; // 'variants' or 'buffs'
 
-    // Custom skills flag - will be initialized in init()
+    // All skills (including custom) are always enabled
 
     // Get the skill trees and apply buffs to variants
     this.skillTrees = JSON.parse(JSON.stringify(SKILL_TREES)); // Create a deep copy
@@ -55,33 +55,15 @@ export class SkillTreeUI extends UIComponent {
    * @returns {Object} - Filtered object of skill configurations
    */
   filterCustomSkills(skills) {
-    if (this.customSkillsEnabled) {
-      // Include all skills
-      return skills;
-    } else {
-      // Filter out custom skills
-      const filteredSkills = {};
-      Object.entries(skills).forEach(([skillName, skillData]) => {
-        // Check if the skill is in SKILLS array and has isCustomSkill property
-        const skillConfig = SKILLS.find(skill => skill.name === skillName);
-        if (!skillConfig || !skillConfig.isCustomSkill) {
-          filteredSkills[skillName] = skillData;
-        }
-      });
-      return filteredSkills;
-    }
+    // All skills always enabled
+    return skills;
   }
   
   /**
    * Refresh the skill tree when custom skills setting changes
    */
   async refreshSkillTree() {
-    // Update the flag (default to true)
-    const customSkillsValue = await storageService.loadData(STORAGE_KEYS.CUSTOM_SKILLS);
-    this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === true;
-    console.debug(`Custom skills ${this.customSkillsEnabled ? 'enabled' : 'disabled'} in SkillTreeUI`);
-    
-    // Re-render the skill tree
+    // Re-render the skill tree (all skills always enabled)
     this.renderSkillTree();
   }
 
@@ -92,10 +74,6 @@ export class SkillTreeUI extends UIComponent {
   async init() {
     // Initialize storage service
     await storageService.init();
-    
-    // Load custom skills flag (default to true)
-    const customSkillsValue = await storageService.loadData(STORAGE_KEYS.CUSTOM_SKILLS);
-    this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === true;
     
     // Check if the container exists in the DOM
     if (!this.container) {
@@ -323,13 +301,8 @@ export class SkillTreeUI extends UIComponent {
       });
     }
 
-    // Also initialize for skills from SKILLS array that might not be in skillTrees
-    // Filter out custom skills if disabled
-    const filteredSkills = this.customSkillsEnabled 
-      ? SKILLS 
-      : SKILLS.filter(skill => !skill.isCustomSkill);
-      
-    filteredSkills.forEach((skill) => {
+    // Also initialize for skills from SKILLS array that might not be in skillTrees (all skills enabled)
+    SKILLS.forEach((skill) => {
       if (!this.playerSkills[skill.name]) {
         this.playerSkills[skill.name] = {
           activeVariant: null,

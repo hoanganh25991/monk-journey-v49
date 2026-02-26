@@ -587,7 +587,7 @@ export class PlayerEquipmentVisuals {
      */
     createArmorChestOverlay(armor) {
         const color = this.getWeaponColor(armor);
-        const overlayGeometry = new THREE.BoxGeometry(0.5, 0.4, 0.15);
+        const overlayGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.5);
         const overlayMaterial = new THREE.MeshStandardMaterial({
             color: color,
             roughness: 0.6,
