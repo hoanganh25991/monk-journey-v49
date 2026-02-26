@@ -214,6 +214,8 @@ export class Game {
             // Detect device capabilities after renderer creation
             this.deviceCapabilities = deviceCapabilities.detect(this.renderer);
             deviceCapabilities.logCapabilities();
+            // Re-apply renderer settings so powerful mobile gets higher pixel ratio (sharp player/scene)
+            this.applyRendererSettings(this.renderer, profileQuality);
             
             // Show helpful message about shadow settings
             this.logShadowInfo(profileQuality);
@@ -571,8 +573,20 @@ export class Game {
             // Update renderer size
             this.renderer.setSize(width, height, true);
             
-            // Update pixel ratio for high-DPI displays
-            const pixelRatio = window.devicePixelRatio || 1;
+            // Use same pixel ratio as current quality profile (so "high" on mobile stays sharp)
+            const qualityLevel = this.materialQuality || 'high';
+            const settings = RENDER_CONFIG[qualityLevel]?.settings;
+            const dpr = window.devicePixelRatio || 1;
+            let pixelRatio = settings?.pixelRatio ?? dpr;
+            if (qualityLevel === 'high') {
+                pixelRatio = Math.min(dpr, 2);
+            } else if (qualityLevel === 'medium') {
+                pixelRatio = Math.min(dpr, 0.85);
+            } else if (this.deviceCapabilities && (this.deviceCapabilities.isMobile || this.deviceCapabilities.isTablet) &&
+                (this.deviceCapabilities.gpuTier === 'high' || this.deviceCapabilities.gpuTier === 'medium')) {
+                if (qualityLevel === 'low') pixelRatio = Math.min(dpr, 1.25);
+                else if (qualityLevel === 'minimal') pixelRatio = Math.min(dpr, 0.75);
+            }
             this.renderer.setPixelRatio(pixelRatio);
         }
     }
@@ -1087,9 +1101,31 @@ export class Game {
         }
         
         const settings = RENDER_CONFIG[qualityLevel].settings;
+        const dpr = window.devicePixelRatio || 1;
         
-        // Apply pixel ratio
-        renderer.setPixelRatio(settings.pixelRatio);
+        // Apply pixel ratio - always compute from current device so "high" on mobile is sharp (not baked at load time)
+        let pixelRatio;
+        if (qualityLevel === 'high') {
+            pixelRatio = Math.min(dpr, 2);
+        } else if (qualityLevel === 'medium') {
+            pixelRatio = Math.min(dpr, 0.85);
+        } else {
+            pixelRatio = settings.pixelRatio;
+            if (this.deviceCapabilities) {
+                const caps = this.deviceCapabilities;
+                const isMobileOrTablet = caps.isMobile || caps.isTablet;
+                const isPowerful = caps.gpuTier === 'high' || caps.gpuTier === 'medium';
+                if (isMobileOrTablet && isPowerful) {
+                    if (qualityLevel === 'low') {
+                        pixelRatio = Math.min(dpr, 1.25);
+                    } else if (qualityLevel === 'minimal') {
+                        pixelRatio = Math.min(dpr, 0.75);
+                    }
+                    console.debug(`Powerful mobile: using pixel ratio ${pixelRatio.toFixed(2)} for ${qualityLevel} (devicePixelRatio=${dpr})`);
+                }
+            }
+        }
+        renderer.setPixelRatio(pixelRatio);
         
         // Determine if shadows should be enabled based on device capabilities
         const shadowsEnabled = this.deviceCapabilities 
@@ -1419,10 +1455,10 @@ export class Game {
             
             // Check if we need to create a downscaled version of the texture
             if (!originalTexture.userData || !originalTexture.userData.isDownscaled) {
-                // Get the texture quality level from config (use higher for player model)
-                const textureQuality = isPlayerModel ? 0.5 : RENDER_CONFIG.low.materials.textureQuality;
+                // Player model always keeps full-resolution texture for a crisp, non-pixelated look
+                const textureQuality = isPlayerModel ? 1 : RENDER_CONFIG.low.materials.textureQuality;
                 
-                // Only downscale if quality is below threshold
+                // Only downscale if quality is below threshold (never for player)
                 if (textureQuality < 0.5) {
                     // Create a downscaled texture for low quality
                     const downscaledTexture = this.createDownscaledTexture(originalTexture, textureQuality);
