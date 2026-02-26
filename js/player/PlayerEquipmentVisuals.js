@@ -121,9 +121,9 @@ export class PlayerEquipmentVisuals {
             this.createBeltVisual(equipment.belt);
         }
 
-        if (equipment.shoulder) {
-            this.createShoulderVisual(equipment.shoulder);
-        }
+        // if (equipment.shoulder) {
+        //     this.createShoulderVisual(equipment.shoulder);
+        // }
         
         if (equipment.accessory1 || equipment.accessory2) {
             this.createAccessoryEffects(equipment.accessory1, equipment.accessory2);
