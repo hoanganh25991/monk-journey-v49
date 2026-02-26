@@ -101,30 +101,54 @@ export class ItemModelFactory {
     }
     
     /**
-     * Apply rarity effects to an item model
+     * Apply rarity + level-based effects. Higher level = more vivid, cooler, stronger feel.
      * @param {ItemModel} model - The item model
-     * @param {string} rarity - The item rarity
+     * @param {string|{ rarity: string, level?: number }} rarityOrItem - Rarity string or item with .rarity and .level
      */
-    static applyRarityEffects(model, rarity) {
-        // Define colors and glow intensities for different rarities
-        const rarityEffects = {
-            common: { color: 0xCCCCCC, glow: false },
-            uncommon: { color: 0x00FF00, glow: 0.2 },
-            rare: { color: 0x0070DD, glow: 0.3 },
-            epic: { color: 0xA335EE, glow: 0.4 },
-            legendary: { color: 0xFF8000, glow: 0.5 },
-            mythic: { color: 0xFF0000, glow: 0.6 }
+    static applyRarityEffects(model, rarityOrItem) {
+        const rarity = typeof rarityOrItem === 'string' ? rarityOrItem : (rarityOrItem?.rarity || 'common');
+        const level = (rarityOrItem && typeof rarityOrItem === 'object' && rarityOrItem.level != null) ? rarityOrItem.level : 1;
+        const { color, glow } = ItemModelFactory.getRarityLevelColor(rarity, level);
+        model.applyColor(color);
+        if (glow > 0) model.addGlowEffect(color, glow);
+    }
+
+    /**
+     * Get drop/ring color and glow from rarity + level. Level scales vividness (muted early → vivid/cool later).
+     * @param {string} rarity - Item rarity
+     * @param {number} level - Item level
+     * @returns {{ color: number, glow: number }}
+     */
+    static getRarityLevelColor(rarity, level = 1) {
+        // Muted (low-level) base colors
+        const muted = {
+            common: 0x9a9a9a,
+            uncommon: 0x4a7c4a,
+            rare: 0x3a5090,
+            epic: 0x5a3a7a,
+            legendary: 0x8a5a2a,
+            mythic: 0x7a2a2a
         };
-        
-        // Get effects for this rarity
-        const effects = rarityEffects[rarity] || rarityEffects.common;
-        
-        // Apply subtle color tint
-        model.applyColor(effects.color);
-        
-        // Apply glow effect for higher rarities
-        if (effects.glow) {
-            model.addGlowEffect(effects.color, effects.glow);
-        }
+        // Vivid, cooler high-level colors (stronger feel)
+        const vivid = {
+            common: 0xd4d8e0,
+            uncommon: 0x00e676,
+            rare: 0x00b8d4,
+            epic: 0xb388ff,
+            legendary: 0xffab40,
+            mythic: 0xff1744
+        };
+        const glowMax = { common: 0, uncommon: 0.25, rare: 0.4, epic: 0.5, legendary: 0.6, mythic: 0.7 };
+        const base = muted[rarity] ?? muted.common;
+        const top = vivid[rarity] ?? vivid.common;
+        const glowCap = glowMax[rarity] ?? 0;
+        // 0 at level 1, 1 by level 50; smooth curve
+        const t = Math.min(1, (level - 1) / 45);
+        const vividness = t * t;
+        const r = Math.round((base >> 16 & 0xff) * (1 - vividness) + (top >> 16 & 0xff) * vividness);
+        const g = Math.round((base >> 8 & 0xff) * (1 - vividness) + (top >> 8 & 0xff) * vividness);
+        const b = Math.round((base & 0xff) * (1 - vividness) + (top & 0xff) * vividness);
+        const color = (r << 16) | (g << 8) | b;
+        return { color, glow: glowCap * vividness };
     }
 }

@@ -44,6 +44,9 @@ export class PlayerMovement {
         // Hold jump at max: when used all 3 jumps and holding, cancel gravity to hover (no upward boost)
         this.holdJumpHover = true;
         
+        // When false (e.g. freeze from frost_titan), position must not be changed by movement or moveTo
+        this.canMove = true;
+        
         // Game reference
         this.game = game;
     }
@@ -103,6 +106,8 @@ export class PlayerMovement {
     // setGame method removed - game is now passed in constructor
     
     updateMovement(delta) {
+        // Do not apply any position change while frozen (e.g. frost_titan freeze)
+        if (this.canMove === false) return;
         if (this.playerState.isMoving()) {
             // Calculate direction to target
             const dx = this.targetPosition.x - this.position.x;
@@ -232,6 +237,7 @@ export class PlayerMovement {
     }
     
     handleKeyboardMovement(delta) {
+        if (this.canMove === false) return;
         // Get movement direction from input handler
         // This now returns a direction that's already transformed based on camera rotation
         const direction = this.game.inputHandler.getMovementDirection();
@@ -367,6 +373,7 @@ export class PlayerMovement {
     }
     
     moveTo(target) {
+        if (this.canMove === false) return;
         // Set target position
         this.targetPosition.copy(target);
         

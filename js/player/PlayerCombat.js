@@ -204,6 +204,11 @@ export class PlayerCombat {
         this.playerState.setDead(true);
         this.playerState.setMoving(false);
         
+        // Clear all status effects (freeze, slow, etc.) so respawn is never stuck
+        if (this.game?.player?.statusEffects) {
+            this.game.player.statusEffects.clearAllEffects();
+        }
+        
         // Visual and sound effects
         this.playerModel.getModelGroup().rotation.x = Math.PI / 2;
         if (this.game?.audioManager) {
@@ -227,7 +232,16 @@ export class PlayerCombat {
         // Reset state
         this.playerState.setDead(false);
         
-        // Reset position and rotation
+        // Clear any lingering status effects (freeze/slow) so player can move after respawn
+        if (this.game?.player?.statusEffects) {
+            this.game.player.statusEffects.clearAllEffects();
+        }
+        
+        // Reset movement position and target to spawn so we're not stuck at death location
+        if (this.game?.player?.movement) {
+            this.game.player.movement.setPosition(0, 0, 0);
+            this.game.player.movement.targetPosition.set(0, 0, 0);
+        }
         this.playerModel.setPosition(new THREE.Vector3(0, 0, 0));
         this.playerModel.getModelGroup().rotation.x = 0;
         

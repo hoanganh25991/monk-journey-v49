@@ -160,9 +160,10 @@ export class PlayerStatusEffects {
                         this.game.hudManager.showStatusEffect('freeze');
                     }
                     
-                    // Add visual effect to player model if available
+                    // Add visual effect at current position (clone so freeze effect never holds player ref)
                     if (this.game?.effectsManager) {
-                        this.game.effectsManager.createFreezeEffect(this.playerMovement.getPosition());
+                        const pos = this.playerMovement.getPosition();
+                        this.game.effectsManager.createFreezeEffect(pos.clone ? pos.clone() : { x: pos.x, y: pos.y, z: pos.z });
                     }
                     
                     console.debug(`Applied freeze effect for ${intensity} seconds`);

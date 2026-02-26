@@ -20,7 +20,7 @@ export class RobeModel extends ItemModel {
             metalness: 0.1
         });
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 2.04;
+        body.position.y = 1.84;
         body.castShadow = true;
         
         this.modelGroup.add(body);

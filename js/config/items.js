@@ -3,10 +3,8 @@
  * Contains templates for generating different types of items
  */
 
-import { ItemTypes } from './item-types.js';
-
 /**
- * @type {Array<import('./item-types.js').ItemTemplate>}
+ * @type {Array<{ id: string, name: string, type: string, subType?: string, description: string, icon: string, baseStats: Object }>}
  */
 export const ITEM_TEMPLATES = [
     // ==================== WEAPONS ====================

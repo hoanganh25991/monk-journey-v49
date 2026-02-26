@@ -57,7 +57,7 @@ export class PlayerEquipmentVisuals {
         modelGroup.add(this.attachmentPoints.back);
         
         this.attachmentPoints.chest = new THREE.Group();
-        this.attachmentPoints.chest.position.set(0, 1.0, 0);
+        this.attachmentPoints.chest.position.set(0, 0.8, 0);
         modelGroup.add(this.attachmentPoints.chest);
         
         this.attachmentPoints.head = new THREE.Group();
@@ -65,15 +65,15 @@ export class PlayerEquipmentVisuals {
         modelGroup.add(this.attachmentPoints.head);
 
         this.attachmentPoints.leftShoulder = new THREE.Group();
-        this.attachmentPoints.leftShoulder.position.set(-0.4, 1.5, 0.05);
+        this.attachmentPoints.leftShoulder.position.set(-0.4, 1.05, 0.05);
         modelGroup.add(this.attachmentPoints.leftShoulder);
 
         this.attachmentPoints.rightShoulder = new THREE.Group();
-        this.attachmentPoints.rightShoulder.position.set(0.4, 1.5, 0.05);
+        this.attachmentPoints.rightShoulder.position.set(0.4, 1.05, 0.05);
         modelGroup.add(this.attachmentPoints.rightShoulder);
 
         this.attachmentPoints.shoulderCenter = new THREE.Group();
-        this.attachmentPoints.shoulderCenter.position.set(0, 1.5, 0.05);
+        this.attachmentPoints.shoulderCenter.position.set(0, 1.05, 0.05);
         modelGroup.add(this.attachmentPoints.shoulderCenter);
 
         this.attachmentPoints.waist = new THREE.Group();
@@ -146,11 +146,19 @@ export class PlayerEquipmentVisuals {
             const itemModel = ItemModelFactory.createModel(item, weaponGroup);
             this.weaponMesh = weaponGroup;
             this.itemModelInstances.push(itemModel);
-            
+
             ItemModelFactory.applyRarityEffects(itemModel, weapon.rarity || 'common');
-            
+
             if (weapon.visual && weapon.visual.effects) {
                 this.addWeaponEffects(this.weaponMesh, weapon);
+            }
+            if (weapon.subType === 'staff') {
+                const strength = this.getWeaponStrength(weapon);
+                const color = this.getWeaponColor(weapon);
+                this.addStaffDripEffect(this.weaponMesh, weapon, color, strength);
+                if (strength > 0.25) {
+                    this.addStaffStrengthParticles(this.weaponMesh, weapon, color, strength);
+                }
             }
         } catch (err) {
             console.warn('PlayerEquipmentVisuals: ItemModelFactory failed, using fallback:', err);
@@ -243,36 +251,34 @@ export class PlayerEquipmentVisuals {
      */
     createStaffWeaponVisual(weapon) {
         const group = new THREE.Group();
-        
         const color = this.getWeaponColor(weapon);
-        
+        const strength = this.getWeaponStrength(weapon);
+
         const staffGeometry = new THREE.CylinderGeometry(0.04, 0.04, 1.5, 8);
         const staffMaterial = new THREE.MeshStandardMaterial({
             color: 0x8B4513,
             roughness: 0.8,
             metalness: 0.2
         });
-        
         const staff = new THREE.Mesh(staffGeometry, staffMaterial);
         staff.position.set(0, -0.5, 0);
         staff.castShadow = true;
         group.add(staff);
-        
+
         const orbGeometry = new THREE.SphereGeometry(0.15, 16, 16);
         const orbMaterial = new THREE.MeshStandardMaterial({
             color: color,
             roughness: 0.3,
             metalness: 0.7,
             emissive: color,
-            emissiveIntensity: 0.5
+            emissiveIntensity: 0.4 + strength * 0.4
         });
-        
         const orb = new THREE.Mesh(orbGeometry, orbMaterial);
         orb.position.set(0, 0.3, 0);
         orb.castShadow = true;
         orb.userData.isOrb = true;
         group.add(orb);
-        
+
         if (weapon.rarity === 'legendary' || weapon.rarity === 'mythic') {
             const ringGeometry = new THREE.TorusGeometry(0.2, 0.02, 8, 16);
             const ringMaterial = new THREE.MeshStandardMaterial({
@@ -280,7 +286,6 @@ export class PlayerEquipmentVisuals {
                 emissive: color,
                 emissiveIntensity: 0.8
             });
-            
             for (let i = 0; i < 2; i++) {
                 const ring = new THREE.Mesh(ringGeometry, ringMaterial);
                 ring.position.set(0, 0.3, 0);
@@ -289,7 +294,11 @@ export class PlayerEquipmentVisuals {
                 group.add(ring);
             }
         }
-        
+
+        this.addStaffDripEffect(group, weapon, color, strength);
+        if (strength > 0.25) {
+            this.addStaffStrengthParticles(group, weapon, color, strength);
+        }
         return group;
     }
     
@@ -388,7 +397,18 @@ export class PlayerEquipmentVisuals {
     }
     
     /**
-     * Get weapon color based on rarity and element
+     * Get strength 0–1 for item (level + rarity) for visuals that scale over time
+     */
+    getWeaponStrength(weapon) {
+        if (!weapon) return 0;
+        const level = weapon.level || 1;
+        const rarityBoost = { common: 0, uncommon: 0.15, rare: 0.3, epic: 0.5, legendary: 0.75, mythic: 1 }[weapon.rarity] ?? 0;
+        const levelNorm = Math.min(1, level / 40);
+        return Math.min(1, 0.2 + levelNorm * 0.4 + rarityBoost * 0.4);
+    }
+
+    /**
+     * Get weapon color based on rarity, element, and strength (stronger = richer color)
      */
     getWeaponColor(weapon) {
         const rarityColors = {
@@ -399,8 +419,19 @@ export class PlayerEquipmentVisuals {
             legendary: 0xFF8000,
             mythic: 0xFF0000
         };
-        
-        return rarityColors[weapon.rarity] || 0xCCCCCC;
+        let base = rarityColors[weapon.rarity] || 0xCCCCCC;
+        const strength = this.getWeaponStrength(weapon);
+        if (strength > 0.3) {
+            const r = ((base >> 16) & 0xff) / 255;
+            const g = ((base >> 8) & 0xff) / 255;
+            const b = (base & 0xff) / 255;
+            const boost = 0.15 * strength;
+            const rr = Math.min(1, r + boost);
+            const gg = Math.min(1, g + boost);
+            const bb = Math.min(1, b + boost);
+            base = (Math.floor(rr * 255) << 16) | (Math.floor(gg * 255) << 8) | Math.floor(bb * 255);
+        }
+        return base;
     }
     
     /**
@@ -413,13 +444,64 @@ export class PlayerEquipmentVisuals {
             if (effect.type === 'glow') {
                 this.addGlowEffect(weaponMesh, effect);
             } else if (effect.type === 'particles') {
-                this.addParticleEffect(weaponMesh, effect);
+                this.addParticleEffect(weaponMesh, effect, weapon);
             } else if (effect.type === 'trail') {
                 this.addTrailEffect(weaponMesh, effect);
             }
         });
     }
-    
+
+    /**
+     * Drip/drop particles falling from staff with color – strength-based intensity
+     */
+    addStaffDripEffect(weaponGroup, weapon, color, strength) {
+        const count = Math.max(2, Math.floor(4 * strength));
+        const dropGeometry = new THREE.SphereGeometry(0.03, 6, 6);
+        for (let i = 0; i < count; i++) {
+            const mat = new THREE.MeshBasicMaterial({
+                color,
+                transparent: true,
+                opacity: 0.35 + strength * 0.22
+            });
+            const drop = new THREE.Mesh(dropGeometry.clone(), mat);
+            drop.position.set((i - count / 2) * 0.12, 0.2 - i * 0.15, 0);
+            drop.userData.dripSpeed = 0.15 + Math.random() * 0.2;
+            drop.userData.baseY = drop.position.y;
+            drop.userData.phase = Math.random() * Math.PI * 2;
+            weaponGroup.add(drop);
+            this.elementalParticles.push(drop);
+        }
+    }
+
+    /**
+     * Orbiting/rising particles around staff – scale with strength (feel stronger over time)
+     */
+    addStaffStrengthParticles(weaponGroup, weapon, color, strength) {
+        const count = Math.max(4, Math.floor(8 + strength * 12));
+        const particleGeometry = new THREE.SphereGeometry(0.025 + strength * 0.02, 6, 6);
+        const particleMaterial = new THREE.MeshBasicMaterial({
+            color,
+            transparent: true,
+            opacity: 0.28 + strength * 0.28
+        });
+        for (let i = 0; i < count; i++) {
+            const particle = new THREE.Mesh(particleGeometry.clone(), particleMaterial);
+            const angle = (i / count) * Math.PI * 2;
+            const radius = 0.25 + (i % 3) * 0.08;
+            particle.position.set(
+                fastCos(angle) * radius,
+                0.2 + (i / count) * 0.4,
+                fastSin(angle) * radius
+            );
+            particle.userData.angle = angle;
+            particle.userData.radius = radius;
+            particle.userData.speed = 1.2 + strength * 0.8;
+            particle.userData.isStaffParticle = true;
+            weaponGroup.add(particle);
+            this.elementalParticles.push(particle);
+        }
+    }
+
     /**
      * Add glow effect to mesh
      */
@@ -428,7 +510,7 @@ export class PlayerEquipmentVisuals {
         const glowMaterial = new THREE.MeshBasicMaterial({
             color: effect.color || 0xFFFFFF,
             transparent: true,
-            opacity: 0.3
+            opacity: 0.2
         });
         
         const glow = new THREE.Mesh(glowGeometry, glowMaterial);
@@ -441,20 +523,21 @@ export class PlayerEquipmentVisuals {
     }
     
     /**
-     * Add particle effect to mesh
+     * Add particle effect to mesh; scale count/size by weapon strength when weapon provided
      */
-    addParticleEffect(mesh, effect) {
-        const particleCount = 15;
-        const particleGeometry = new THREE.SphereGeometry(0.02, 8, 8);
+    addParticleEffect(mesh, effect, weapon) {
+        const strength = weapon ? this.getWeaponStrength(weapon) : 0.5;
+        const particleCount = Math.max(10, Math.floor(15 * (0.6 + strength * 0.8)));
+        const size = 0.02 + strength * 0.015;
+        const particleGeometry = new THREE.SphereGeometry(size, 8, 8);
         const particleMaterial = new THREE.MeshBasicMaterial({
             color: this.getEffectColor(effect.effect),
             transparent: true,
-            opacity: 0.7
+            opacity: 0.35 + strength * 0.22
         });
-        
+
         for (let i = 0; i < particleCount; i++) {
-            const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-            
+            const particle = new THREE.Mesh(particleGeometry.clone(), particleMaterial);
             const angle = (i / particleCount) * Math.PI * 2;
             const radius = 0.3;
             particle.position.set(
@@ -462,11 +545,9 @@ export class PlayerEquipmentVisuals {
                 (i / particleCount) * 0.5,
                 Math.sin(angle) * radius
             );
-            
             particle.userData.angle = angle;
             particle.userData.radius = radius;
-            particle.userData.speed = 0.5 + Math.random() * 0.5;
-            
+            particle.userData.speed = 0.5 + Math.random() * 0.5 + strength * 0.3;
             mesh.add(particle);
             this.elementalParticles.push(particle);
         }
@@ -512,7 +593,7 @@ export class PlayerEquipmentVisuals {
             roughness: 0.6,
             metalness: 0.4,
             transparent: true,
-            opacity: 0.7
+            opacity: 0.5
         });
         const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial);
         overlay.position.set(0, 0, 0.08);
@@ -532,7 +613,7 @@ export class PlayerEquipmentVisuals {
         const auraMaterial = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.3,
+            opacity: 0.2,
             side: THREE.DoubleSide
         });
         
@@ -701,21 +782,21 @@ export class PlayerEquipmentVisuals {
         try {
             const itemModel = ItemModelFactory.createModel(item, shoulderGroup);
             this.itemModelInstances.push(itemModel);
-            ItemModelFactory.applyRarityEffects(itemModel, shoulder.rarity || 'common');
-            shoulderGroup.scale.multiplyScalar(3.5);
+            ItemModelFactory.applyRarityEffects(itemModel, shoulder);
+            shoulderGroup.scale.multiplyScalar(2.0);
             this.armorEffects.push(shoulderGroup);
         } catch (err) {
             console.warn('PlayerEquipmentVisuals: ShoulderModel failed, using fallback:', err);
             const color = this.getWeaponColor(shoulder);
-            const pauldronGeometry = new THREE.SphereGeometry(0.18, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+            const pauldronGeometry = new THREE.SphereGeometry(0.12, 12, 12, 0, Math.PI * 2, 0, Math.PI / 2);
             const pauldronMaterial = new THREE.MeshStandardMaterial({ color, roughness: 0.5, metalness: 0.5 });
             const leftP = new THREE.Mesh(pauldronGeometry, pauldronMaterial.clone());
-            leftP.position.set(-0.35, 0, 0);
+            leftP.position.set(-0.24, 0, 0);
             leftP.rotation.z = Math.PI / 6;
             leftP.castShadow = true;
             shoulderGroup.add(leftP);
             const rightP = new THREE.Mesh(pauldronGeometry, pauldronMaterial);
-            rightP.position.set(0.35, 0, 0);
+            rightP.position.set(0.24, 0, 0);
             rightP.rotation.z = -Math.PI / 6;
             rightP.castShadow = true;
             shoulderGroup.add(rightP);
@@ -748,7 +829,7 @@ export class PlayerEquipmentVisuals {
         const particleMaterial = new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            opacity: 0.6
+            opacity: 0.4
         });
         
         for (let i = 0; i < particleCount; i++) {
@@ -785,15 +866,25 @@ export class PlayerEquipmentVisuals {
         });
         
         this.elementalParticles.forEach(particle => {
-            if (particle.userData.angle !== undefined) {
-                const angle = particle.userData.angle + time * particle.userData.speed;
-                const radius = particle.userData.radius + fastSin(time * 2) * 0.1;
-                
+            const ud = particle.userData;
+            if (ud.dripSpeed !== undefined) {
+                particle.position.y -= delta * ud.dripSpeed;
+                if (particle.position.y < -0.6) {
+                    particle.position.y = 0.35 + (ud.phase % 0.2);
+                }
+            } else if (ud.isStaffParticle) {
+                ud.angle += delta * ud.speed;
+                const r = ud.radius + fastSin(time * 2) * 0.05;
+                particle.position.x = fastCos(ud.angle) * r;
+                particle.position.z = fastSin(ud.angle) * r;
+                particle.position.y = 0.2 + (particle.position.y - 0.2) * 0.99 + fastSin(time + ud.angle) * 0.06;
+            } else if (ud.angle !== undefined) {
+                const angle = ud.angle + time * ud.speed;
+                const radius = ud.radius + fastSin(time * 2) * 0.1;
                 particle.position.x = fastCos(angle) * radius;
                 particle.position.z = fastSin(angle) * radius;
-                
-                if (particle.userData.heightOffset !== undefined) {
-                    particle.position.y = 1.0 + particle.userData.heightOffset + fastSin(time * 3 + angle) * 0.1;
+                if (ud.heightOffset !== undefined) {
+                    particle.position.y = 1.0 + ud.heightOffset + fastSin(time * 3 + angle) * 0.1;
                 }
             }
         });
@@ -804,19 +895,19 @@ export class PlayerEquipmentVisuals {
                 glow.scale.set(pulse, pulse, pulse);
                 
                 if (glow.material) {
-                    glow.material.opacity = 0.2 + fastSin(time * 2) * 0.15;
+                    glow.material.opacity = 0.14 + fastSin(time * 2) * 0.1;
                 }
             }
         });
         
         this.armorEffects.forEach(effect => {
             if (effect.userData.isAura) {
-                effect.rotation.z = time * 0.5;
+                // Do not rotate armor aura (inner/cloth-like); only pulse scale and opacity
                 const auraScale = 1.0 + fastSin(time * 2) * 0.15;
                 effect.scale.set(auraScale, auraScale, 1);
                 
                 if (effect.material) {
-                    effect.material.opacity = 0.25 + fastSin(time * 3) * 0.1;
+                    effect.material.opacity = 0.18 + fastSin(time * 3) * 0.07;
                 }
             }
         });
@@ -827,11 +918,7 @@ export class PlayerEquipmentVisuals {
                     const orbPulse = 0.4 + fastSin(time * 4) * 0.2;
                     child.material.emissiveIntensity = orbPulse;
                 }
-                
-                if (child.userData.ringIndex !== undefined) {
-                    const ringSpeed = 2 + child.userData.ringIndex;
-                    child.rotation.x = Math.PI / 2 + time * ringSpeed;
-                }
+                // Do not rotate weapon rings (inner/cloth-like); keep static orientation
             });
         }
     }

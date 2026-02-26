@@ -1,490 +1,185 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { ItemModelFactory } from './models/ItemModelFactory.js';
-import { Item } from './Item.js';
 import storageService from '../save-manager/StorageService.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
+import { isItemConsumable, isItemEquippable } from '../config/item-types.js';
 
-/**
- * Manages item drops in the game world
- * Creates visual representations of dropped items and handles pickup
- */
+/** Manages item drops: visuals, pickup, and level-scaled growth (drops scale with level). */
 export class ItemDropManager {
-    /**
-     * Create a new ItemDropManager
-     * @param {THREE.Scene} scene - The Three.js scene
-     * @param {import("../../game/Game.js").Game} game - The game instance
-     */
     constructor(scene, game) {
         this.scene = scene;
         this.game = game;
-        this.droppedItems = new Map(); // Map of item ID to dropped item data
-        this.autoRemoveDelay = 10; // Delay in seconds before auto-removing items if not picked up
+        this.droppedItems = new Map();
+        this.autoRemoveDelay = 10;
         this.autoRemoveDistance = 16 * 16;
-        
-        // Optimization: Only check pickup distances every few frames
-        this.pickupCheckInterval = 0.3; // Check every 100ms instead of every frame
+        this.pickupCheckInterval = 0.3;
         this.timeSinceLastPickupCheck = 0;
-        
-        // Rotation optimization
-        this.rotationSpeed = 2.0; // Radians per second for smoother rotation
+        this.rotationSpeed = 2.0;
     }
 
-    /**
-     * Drop an item at a specific position
-     * @param {Item} item - The item to drop
-     * @param {THREE.Vector3} position - The position to drop the item
-     * @returns {string} The ID of the dropped item
-     */
     dropItem(item, position) {
-        // Create a group for the item
         const itemGroup = new THREE.Group();
         itemGroup.position.copy(position);
-        
-        // Add a small random offset to prevent items from stacking exactly
         itemGroup.position.x += (Math.random() - 0.5) * 0.5;
         itemGroup.position.z += (Math.random() - 0.5) * 0.5;
-        
-        // Ensure item is above ground and more visible
-        if (this.game && this.game.world) {
-            const terrainHeight = this.game.world.getTerrainHeight(position.x, position.z);
-            if (terrainHeight !== null) {
-                itemGroup.position.y = terrainHeight + 0.5; // Higher above ground for better visibility
-            } else {
-                // Fallback if terrain height is null
-                itemGroup.position.y = position.y + 0.5;
-            }
-        } else {
-            // Fallback if world is not available
-            itemGroup.position.y = position.y + 0.5;
-        }
-        
-        // Create the item model
+
+        const terrainY = (this.game?.world && this.game.world.getTerrainHeight(position.x, position.z)) ?? null;
+        itemGroup.position.y = (terrainY != null ? terrainY : position.y) + 0.5;
+
         const itemModel = ItemModelFactory.createModel(item, itemGroup);
         itemModel.createModel();
-        
-        // Create a flat ring around the item for better visibility
-        const ringGeometry = new THREE.RingGeometry(0.4, 0.6, 16); // Smaller ring, just slightly larger than item
-        const ringMaterial = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.6,
-            side: THREE.DoubleSide
-        });
-        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
-        
-        // Position the ring flat and parallel to the ground, always horizontal
-        ring.rotation.x = -Math.PI / 2; // Rotate to lay flat and parallel to ground
-        ring.position.copy(itemGroup.position); // Copy the item group's position
-        ring.position.y += 0.05; // Slightly above ground level
-        
-        // Add the ring directly to the scene (not to itemGroup) to keep it always horizontal
+
+        const { color } = ItemModelFactory.getRarityLevelColor(item.rarity || 'common', item.level ?? 1);
+        const ring = new THREE.Mesh(
+            new THREE.RingGeometry(0.4, 0.6, 16),
+            new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.7, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.copy(itemGroup.position);
+        ring.position.y += 0.05;
         this.scene.add(ring);
-        
-        // Scale the item to make it more visible (3x larger)
-        // itemGroup.scale.set(3, 3, 3);
-        
-        // Apply rarity effects safely
-        try {
-            ItemModelFactory.applyRarityEffects(itemModel, item.rarity);
-        } catch (error) {
-            console.warn(`Failed to apply rarity effects for item ${item.name}:`, error.message);
-        }
-        
-        // Ensure all materials in the item are properly initialized
-        this.validateItemMaterials(itemGroup);
-        
-        // Validate ring material separately
-        this.validateRingMaterial(ring);
-        
-        // Add to scene
+
+        ItemModelFactory.applyRarityEffects(itemModel, item);
+        this.ensureMaterialsSafe(itemGroup);
+
         this.scene.add(itemGroup);
-        
-        // Store reference to dropped item
-        this.droppedItems.set(item.id, {
-            item: item,
-            group: itemGroup,
-            model: itemModel,
-            ring: ring,
-            dropTime: Date.now()
-        });
-        
-        // Show notification
-        if (this.game && this.game.hudManager) {
-            this.game.hudManager.showNotification(`${item.name} dropped!`);
-        }
-        
-        // Notify game of item drop for more frequent material validation
-        if (this.game && typeof this.game.notifyItemDropped === 'function') {
-            this.game.notifyItemDropped();
-        }
-        
-        return item.id;
+        const dropId = `drop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        this.droppedItems.set(dropId, { item, group: itemGroup, model: itemModel, ring, dropTime: Date.now() });
+
+        if (this.game?.hudManager) this.game.hudManager.showNotification(`${item.name} dropped!`);
+        if (typeof this.game?.notifyItemDropped === 'function') this.game.notifyItemDropped();
+        return dropId;
     }
     
 
-    
-    /**
-     * Update all dropped items
-     * @param {number} delta - Time since last update in seconds
-     */
     update(delta) {
-        // Skip processing if player is not available
-        if (!this.game || !this.game.player) return;
-        
-        // Update pickup check timer
+        if (!this.game?.player) return;
         this.timeSinceLastPickupCheck += delta;
-        const shouldCheckPickup = this.timeSinceLastPickupCheck >= this.pickupCheckInterval;
-        
-        // Get player position once if we're checking pickup
-        let playerPosition = null;
-        if (shouldCheckPickup) {
-            playerPosition = this.game.player.getPosition();
-            this.timeSinceLastPickupCheck = 0; // Reset timer
-        }
-        
-        // Update each dropped item
-        for (const [id, itemData] of this.droppedItems.entries()) {
-            // Always update rotation for smooth animation
-            if (itemData.group) {
-                itemData.group.rotation.y += delta * this.rotationSpeed;
-                
-                // Update terrain height for dropped items to keep them above ground
-                // Only check terrain height occasionally to avoid performance issues
-                if (Math.random() < 0.01 && this.game && this.game.world) { // ~1% chance per frame
-                    const terrainHeight = this.game.world.getTerrainHeight(
-                        itemData.group.position.x, 
-                        itemData.group.position.z
-                    );
-                    if (terrainHeight !== null) {
-                        const desiredY = terrainHeight + 0.5; // Keep items 0.5 units above ground
-                        
-                        // Only update if the difference is significant to avoid jittering
-                        if (Math.abs(itemData.group.position.y - desiredY) > 0.1) {
-                            itemData.group.position.y = desiredY;
-                            
-                            // Update ring position to match item position
-                            if (itemData.ring) {
-                                itemData.ring.position.y = desiredY + 0.05; // Slightly above item
-                            }
-                        }
+        const shouldCheck = this.timeSinceLastPickupCheck >= this.pickupCheckInterval;
+        const playerPos = shouldCheck ? this.game.player.getPosition() : null;
+        if (shouldCheck) this.timeSinceLastPickupCheck = 0;
+
+        const autoRemoveSq = this.autoRemoveDistance ** 2;
+        const autoPickVal = storageService.loadDataSync(STORAGE_KEYS.AUTO_PICK_ITEMS);
+        const autoPick = autoPickVal !== false && autoPickVal !== 'false';
+
+        for (const [id, d] of this.droppedItems.entries()) {
+            if (d.group) {
+                d.group.rotation.y += delta * this.rotationSpeed;
+                if (Math.random() < 0.01 && this.game?.world) {
+                    const th = this.game.world.getTerrainHeight(d.group.position.x, d.group.position.z);
+                    if (th != null && Math.abs(d.group.position.y - (th + 0.5)) > 0.1) {
+                        d.group.position.y = th + 0.5;
+                        if (d.ring) d.ring.position.y = th + 0.55;
                     }
                 }
             }
-            
-            // Only check distances periodically to reduce computation
-            if (shouldCheckPickup && playerPosition) {
-                const itemPosition = itemData.group.position;
-                
-                // Use squared distance for performance
-                const dx = itemPosition.x - playerPosition.x;
-                const dz = itemPosition.z - playerPosition.z;
-                const distanceSq = dx * dx + dz * dz;
-                
-                // Remove items that are too far away
-                const autoRemoveDistanceSq = this.autoRemoveDistance * this.autoRemoveDistance;
-                if (distanceSq > autoRemoveDistanceSq) {
-                    this.removeDroppedItem(id, itemData);
-                    continue;
-                }
-                
-                // Auto-pickup if player is close enough and setting enabled (default on)
-                const autoPick = storageService.loadDataSync(STORAGE_KEYS.AUTO_PICK_ITEMS);
-                if (distanceSq < 2.25 && (autoPick !== false && autoPick !== 'false')) {
-                    this.pickupItem(id);
-                    continue; // Skip to next item since this one was picked up
-                }
+            if (shouldCheck && playerPos && d.group) {
+                const dx = d.group.position.x - playerPos.x, dz = d.group.position.z - playerPos.z;
+                const distSq = dx * dx + dz * dz;
+                if (distSq > autoRemoveSq) { this.removeDroppedItem(id, d); continue; }
+                if (distSq < 2.25 && autoPick) { this.pickupItem(id); continue; }
             }
-            
-            // Auto-remove item if it's been on the ground for too long
-            const currentTime = Date.now();
-            const itemDropTime = itemData.dropTime || 0;
-            const timeOnGround = (currentTime - itemDropTime) / 1000; // Convert to seconds
-            
-            if (timeOnGround >= this.autoRemoveDelay) {
-                this.removeDroppedItem(id, itemData, true); // true = show notification
-                continue;
+            if ((Date.now() - (d.dropTime || 0)) / 1000 >= this.autoRemoveDelay) {
+                this.removeDroppedItem(id, d, true);
             }
         }
     }
     
-    /**
-     * Helper method to remove a dropped item from the scene and cleanup resources
-     * @param {string} itemId - The ID of the item to remove
-     * @param {Object} itemData - The item data object
-     * @param {boolean} showNotification - Whether to show a disappear notification
-     */
     removeDroppedItem(itemId, itemData, showNotification = false) {
-        // Dispose of model resources if available
-        if (itemData.model && typeof itemData.model.dispose === 'function') {
-            itemData.model.dispose();
-        }
-        
-        // Dispose of ring resources if available
+        if (itemData.model?.dispose) itemData.model.dispose();
         if (itemData.ring) {
-            try {
-                if (itemData.ring.geometry) {
-                    itemData.ring.geometry.dispose();
-                }
-                if (itemData.ring.material) {
-                    itemData.ring.material.dispose();
-                }
-                // Remove ring from scene since it's added directly to scene
-                this.scene.remove(itemData.ring);
-            } catch (error) {
-                console.warn('Error disposing ring resources:', error.message);
-            }
+            itemData.ring.geometry?.dispose();
+            itemData.ring.material?.dispose();
+            this.scene.remove(itemData.ring);
         }
-        
-        // Remove item group from scene
-        if (itemData.group) {
-            this.scene.remove(itemData.group);
-        }
-        
-        // Remove from map
+        if (itemData.group) this.scene.remove(itemData.group);
         this.droppedItems.delete(itemId);
-        
-        // Show notification if requested and HUD is available
-        if (showNotification && this.game && this.game.hudManager) {
-            this.game.hudManager.showNotification(`${itemData.item.name} disappeared!`);
-        }
+        if (showNotification && this.game?.hudManager) this.game.hudManager.showNotification(`${itemData.item.name} disappeared!`);
     }
     
-    /**
-     * Pick up an item
-     * @param {string} itemId - The ID of the item to pick up
-     */
     pickupItem(itemId) {
-        // Get item data
         const itemData = this.droppedItems.get(itemId);
         if (!itemData) return;
-        
-        // Add to player inventory
-        if (this.game && this.game.player) {
-            this.game.player.addToInventory(itemData.item);
-            const item = itemData.item;
-            const hud = this.game.hudManager;
+        const item = itemData.item;
+        const hud = this.game?.hudManager;
+
+        if (this.game?.player) {
+            this.game.player.addToInventory(item);
             const autoConsume = storageService.loadDataSync(STORAGE_KEYS.AUTO_CONSUME_ITEMS);
             const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
-            const isConsumable = item.type === 'consumable' || item.consumable;
-            const isEquippable = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory' ||
-                (item.type === 'helmet' || item.type === 'boots' || item.type === 'gloves' || item.type === 'belt' || item.type === 'talisman' || (item.type === 'armor' && ['helmet', 'boots', 'gloves', 'belt', 'shoulders'].includes(item.subType)));
             let didConsume = false;
-            if (hud && (autoConsume === true || autoConsume === 'true') && isConsumable) {
-                const invUI = hud.components && hud.components.inventoryUI;
-                if (invUI && typeof invUI.useConsumableItem === 'function') {
-                    invUI.useConsumableItem(item);
-                    didConsume = true;
-                }
+            if ((autoConsume === true || autoConsume === 'true') && isItemConsumable(item) && hud?.components?.inventoryUI?.useConsumableItem) {
+                hud.components.inventoryUI.useConsumableItem(item);
+                didConsume = true;
             }
-            if (!didConsume && hud) {
-                if (isEquippable) {
+            if (hud && !didConsume) {
+                hud.showNotification(`Pick ${item.name}`);
+                if (isItemEquippable(item)) {
                     if (autoEquip === true || autoEquip === 'true') {
                         const result = this.tryAutoEquip(item);
-                        if (result === 'equipped') {
-                            // Show both: pick (center) + equip (left float)
-                            hud.showNotification(`Pick ${item.name}`);
-                            hud.showNotification(`Equip ${item.name}`, 'equip', { item });
-                        } else if (result === 'similar') {
-                            hud.showNotification(`Pick ${item.name}`);
-                            hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
-                        } else if (result === 'weaker') {
-                            hud.showNotification(`Pick ${item.name}`);
-                            hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
-                        }
-                    } else {
-                        // Auto-equip is OFF - show pick (center) + skip (left float)
-                        hud.showNotification(`Pick ${item.name}`);
-                        hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
-                    }
-                } else {
-                    // Non-equippable items - show pickup in center screen
-                    hud.showNotification(`Pick ${item.name}`);
+                        if (result === 'equipped') hud.showNotification(`Equip ${item.name}`, 'equip', { item });
+                        else if (result === 'similar') hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
+                        else if (result === 'weaker') hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
+                    } else hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
                 }
             }
         }
-        
-        // Dispose of model resources if available
-        if (itemData.model && typeof itemData.model.dispose === 'function') {
-            itemData.model.dispose();
-        }
-        
-        // Dispose of ring resources if available
+
+        if (itemData.model?.dispose) itemData.model.dispose();
         if (itemData.ring) {
-            try {
-                if (itemData.ring.geometry) {
-                    itemData.ring.geometry.dispose();
-                }
-                if (itemData.ring.material) {
-                    itemData.ring.material.dispose();
-                }
-                // Remove ring from scene since it's added directly to scene
-                this.scene.remove(itemData.ring);
-            } catch (error) {
-                console.warn('Error disposing ring resources during pickup:', error.message);
-            }
+            itemData.ring.geometry?.dispose();
+            itemData.ring.material?.dispose();
+            this.scene.remove(itemData.ring);
         }
-        
-        // Remove item group from scene
-        if (itemData.group) {
-            this.scene.remove(itemData.group);
-        }
-        
-        // Remove from map
+        if (itemData.group) this.scene.remove(itemData.group);
         this.droppedItems.delete(itemId);
     }
     
-    /**
-     * Try to auto-equip if item is stronger than current. Returns 'equipped' | 'similar' | 'weaker'.
-     * @param {Object} item - The picked-up item
-     * @returns {string}
-     */
     tryAutoEquip(item) {
-        if (!this.game || !this.game.player) return 'weaker';
+        if (!this.game?.player || !isItemEquippable(item)) return 'weaker';
         const inv = this.game.player.inventory;
         let slot = item.type;
         if (item.type === 'accessory') {
             if (item.subType === 'talisman') slot = 'talisman';
-            else if (!inv.equipment.accessory1) slot = 'accessory1';
-            else if (!inv.equipment.accessory2) slot = 'accessory2';
-            else slot = 'accessory1';
+            else slot = (!inv.equipment.accessory1 || !inv.equipment.accessory2) ? (inv.equipment.accessory1 ? 'accessory2' : 'accessory1') : 'accessory1';
         }
         if (item.type === 'armor' && item.subType) {
-            const armorSlotMap = { helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt', shoulders: 'shoulder', robe: 'armor' };
-            slot = armorSlotMap[item.subType] || slot;
+            const map = { helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt', shoulders: 'shoulder', robe: 'armor' };
+            slot = map[item.subType] || slot;
         }
-        if (!inv.equipment.hasOwnProperty(slot)) return 'weaker';
+        if (!Object.prototype.hasOwnProperty.call(inv.equipment, slot)) return 'weaker';
         const current = inv.equipment[slot];
-        const getMainStat = (i) => {
+        const stat = (i) => {
             if (!i) return 0;
-            const base = i.baseStats || {};
-            const sec = (i.secondaryStats || []).reduce((s, x) => s + (x.value || 0), 0);
-            if (slot === 'weapon') return (base.damage || 0) + sec;
-            if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (base.defense || 0) + sec;
-            return (base.damage || 0) + (base.defense || 0) + (base.manaBonus || 0) + (base.healthBonus || 0) + sec;
+            const b = i.baseStats || {};
+            const s = (i.secondaryStats || []).reduce((sum, x) => sum + (x.value || 0), 0);
+            if (slot === 'weapon') return (b.damage || 0) + s;
+            if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (b.defense || 0) + s;
+            return (b.damage || 0) + (b.defense || 0) + (b.manaBonus || 0) + (b.healthBonus || 0) + s;
         };
-        const newStat = getMainStat(item);
-        const curStat = getMainStat(current);
-        if (!current) {
-            inv.equipItem(item);
-            return 'equipped';
-        }
-        if (newStat > curStat) {
-            inv.equipItem(item);
-            return 'equipped';
-        }
-        const ratio = curStat > 0 ? Math.abs(newStat - curStat) / curStat : 0;
-        if (ratio <= 0.15) return 'similar';
+        const newS = stat(item), curS = stat(current);
+        if (!current || newS > curS) { inv.equipItem(item); return 'equipped'; }
+        if (curS > 0 && Math.abs(newS - curS) / curS <= 0.15) return 'similar';
         return 'weaker';
     }
-    
-    /**
-     * Validate and fix materials in an item group to prevent WebGL errors
-     * @param {THREE.Group} itemGroup - The item group to validate
-     */
-    validateItemMaterials(itemGroup) {
+
+    ensureMaterialsSafe(itemGroup) {
         if (!itemGroup) return;
-        
         itemGroup.traverse((child) => {
-            if (child.isMesh && child.material) {
-                const materials = Array.isArray(child.material) ? child.material : [child.material];
-                
-                materials.forEach((material, index) => {
-                    if (!material) return;
-                    
-                    try {
-                        // Ensure material properties are compatible with material type
-                        if (material.type === 'MeshBasicMaterial') {
-                            // Remove properties that MeshBasicMaterial doesn't support
-                            if (material.roughness !== undefined) delete material.roughness;
-                            if (material.metalness !== undefined) delete material.metalness;
-                            if (material.emissiveIntensity !== undefined) delete material.emissiveIntensity;
-                        } else if (material.type === 'MeshLambertMaterial') {
-                            // Remove properties that MeshLambertMaterial doesn't support
-                            if (material.roughness !== undefined) delete material.roughness;
-                            if (material.metalness !== undefined) delete material.metalness;
-                            if (material.emissiveIntensity !== undefined) delete material.emissiveIntensity;
-                        }
-                        
-                        // Mark material for update to ensure proper compilation
-                        material.needsUpdate = true;
-                        
-                        // Set a unique name for debugging
-                        if (!material.name) {
-                            material.name = `ItemMaterial_${child.name || 'unnamed'}_${index}`;
-                        }
-                        
-                    } catch (error) {
-                        console.warn(`Material validation error for ${child.name || 'unnamed'}:`, error.message);
-                        
-                        // Replace with a safe fallback material
-                        const fallbackMaterial = new THREE.MeshBasicMaterial({
-                            color: 0x808080,
-                            transparent: material.transparent || false,
-                            opacity: material.opacity || 1
-                        });
-                        
-                        if (Array.isArray(child.material)) {
-                            child.material[index] = fallbackMaterial;
-                        } else {
-                            child.material = fallbackMaterial;
-                        }
-                    }
-                });
-            }
+            if (!child.isMesh || !child.material) return;
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach((m, i) => {
+                if (!m) return;
+                if (m.type === 'MeshBasicMaterial' || m.type === 'MeshLambertMaterial') {
+                    delete m.roughness; delete m.metalness; delete m.emissiveIntensity;
+                }
+                m.needsUpdate = true;
+            });
         });
     }
-    
-    /**
-     * Validate ring material to prevent WebGL errors
-     * @param {THREE.Mesh} ring - The ring mesh to validate
-     */
-    validateRingMaterial(ring) {
-        if (!ring || !ring.material) return;
-        
-        try {
-            // Ensure the ring material is properly configured
-            const material = ring.material;
-            
-            // MeshBasicMaterial should be safe, but let's ensure proper properties
-            if (material.type === 'MeshBasicMaterial') {
-                // Ensure transparency is properly set
-                if (material.transparent && (material.opacity === undefined || material.opacity === null)) {
-                    material.opacity = 0.6;
-                }
-                
-                // Mark for update to ensure proper compilation
-                material.needsUpdate = true;
-                
-                // Set a unique name for debugging
-                if (!material.name) {
-                    material.name = 'ItemDropRingMaterial';
-                }
-            }
-        } catch (error) {
-            console.warn('Ring material validation error:', error.message);
-            
-            // Replace with a safe fallback material
-            try {
-                const fallbackMaterial = new THREE.MeshBasicMaterial({
-                    color: 0xffffff,
-                    transparent: true,
-                    opacity: 0.6,
-                    side: THREE.DoubleSide
-                });
-                ring.material = fallbackMaterial;
-            } catch (fallbackError) {
-                console.error('Failed to create fallback ring material:', fallbackError.message);
-            }
-        }
-    }
-    
-    /**
-     * Remove all dropped items
-     */
+
     clear() {
-        // Remove all items from scene using helper method
-        for (const [id, itemData] of this.droppedItems.entries()) {
-            this.removeDroppedItem(id, itemData);
-        }
+        for (const [id, data] of this.droppedItems.entries()) this.removeDroppedItem(id, data);
     }
 }

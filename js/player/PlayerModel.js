@@ -23,6 +23,7 @@ import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../config/player-mode
 import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
 import { PlayerEquipmentVisuals } from './PlayerEquipmentVisuals.js';
+import { PlayerCoachVisuals } from './PlayerCoachVisuals.js';
 
 /**
  * @typedef {Object} ModelAdjustment
@@ -92,7 +93,9 @@ export class PlayerModel {
         
         // Create equipment visuals handler
         this.equipmentVisuals = new PlayerEquipmentVisuals(scene, this, game);
-        
+        // Coach (aura) rendered on top of the model – beautiful colors, elemental particles
+        this.coachVisuals = new PlayerCoachVisuals(scene, this, game);
+
         // Try to load model ID from localStorage, or use default
         this.currentModelId = localStorage.getItem('monk_journey_character_model') || DEFAULT_CHARACTER_MODEL;
         this.currentModel = this.getModelConfig(this.currentModelId);
@@ -201,6 +204,10 @@ export class PlayerModel {
                     this.equipmentVisuals.updateEquipmentVisuals(equipment);
                 }
             }
+            if (this.coachVisuals) {
+                const equipment = this.game?.player?.inventory?.equipment;
+                this.coachVisuals.updateFromWeapon(equipment?.weapon);
+            }
 
             // Log to confirm player model was added
             console.debug(`Model from ${this.modelPath} loaded and added to scene:`, this.modelGroup);
@@ -222,6 +229,11 @@ export class PlayerModel {
     updateAnimations(delta, playerState) {
         if (this.equipmentVisuals) {
             this.equipmentVisuals.update(delta);
+        }
+        if (this.coachVisuals) {
+            const equipment = this.game?.player?.inventory?.equipment;
+            this.coachVisuals.updateFromWeapon(equipment?.weapon);
+            this.coachVisuals.update(delta);
         }
         
         // If we have a loaded GLB model with animations
@@ -624,6 +636,9 @@ export class PlayerModel {
     updateEquipmentVisuals(equipment) {
         if (this.equipmentVisuals) {
             this.equipmentVisuals.updateEquipmentVisuals(equipment);
+        }
+        if (this.coachVisuals) {
+            this.coachVisuals.updateFromWeapon(equipment?.weapon);
         }
     }
 }
