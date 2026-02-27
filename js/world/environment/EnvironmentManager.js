@@ -314,7 +314,7 @@ export class EnvironmentManager {
         // Remove all environment objects from the scene
         this.environmentObjects.forEach(info => {
             if (info.object && info.object.parent) {
-                this.scene.remove(info.object);
+                info.object.parent.remove(info.object);
             }
             
             // Dispose of geometries and materials to free memory
@@ -370,9 +370,9 @@ export class EnvironmentManager {
         if (this.environmentObjectsByChunk[chunkKey]) {
             this.environmentObjectsByChunk[chunkKey].forEach(item => {
                 if (item.object) {
-                    // Remove from scene if it's in the scene
+                    // Remove from actual parent (worldGroup or scene) for origin rebasing
                     if (item.object.parent) {
-                        this.scene.remove(item.object);
+                        item.object.parent.remove(item.object);
                     }
                     
                     // Remove from global tracking array
@@ -789,9 +789,9 @@ export class EnvironmentManager {
         objectsToRemove.reverse().forEach(index => {
             const objectInfo = this.environmentObjects[index];
             
-            // Remove from scene
+            // Remove from actual parent (worldGroup or scene)
             if (objectInfo.object && objectInfo.object.parent) {
-                this.scene.remove(objectInfo.object);
+                objectInfo.object.parent.remove(objectInfo.object);
             }
             
             // Dispose of resources
@@ -850,10 +850,10 @@ export class EnvironmentManager {
      * Clear all environment objects
      */
     clear() {
-        // Remove all environment objects from the scene
+        // Remove all environment objects from their parent (worldGroup or scene)
         this.environmentObjects.forEach(item => {
             if (item.object && item.object.parent) {
-                this.scene.remove(item.object);
+                item.object.parent.remove(item.object);
             }
         });
         

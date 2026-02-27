@@ -109,93 +109,106 @@ export class EnvironmentFactory {
     }
     
     /**
+     * Get world group for origin rebasing (player at 0,0,0; world moves).
+     * Environment objects must be in worldGroup so they move with the terrain.
+     */
+    getWorldGroup() {
+        return this.worldManager?.game?.getWorldGroup?.() || null;
+    }
+    
+    /** Target to add environment objects to (worldGroup when available, else scene). */
+    getAddTarget() {
+        return this.getWorldGroup() || this.scene;
+    }
+    
+    /**
      * Register all environment object creators
      */
     registerEnvironmentObjects() {
         // Register environment objects with dedicated classes
         this.register(ENVIRONMENT_OBJECTS.WATER, (position, size) => {
-            const waterFeature = new WaterFeature(this.scene, this.worldManager, position, size);
+            const waterFeature = new WaterFeature(this.getAddTarget(), this.worldManager, position, size);
             return waterFeature.object;
         });
         this.register(ENVIRONMENT_OBJECTS.LAVA, (position, size) => {
-            const lavaFeature = new LavaFeature(this.scene, this.worldManager, position, size);
+            const lavaFeature = new LavaFeature(this.getAddTarget(), this.worldManager, position, size);
             return lavaFeature.object;
         });
         this.register(ENVIRONMENT_OBJECTS.CRYSTAL_FORMATION, (position, size) => {
-            const crystalFormation = new CrystalFormation(this.scene, this.worldManager, position, size);
+            const crystalFormation = new CrystalFormation(this.getAddTarget(), this.worldManager, position, size);
             return crystalFormation.object;
         });
         this.register(ENVIRONMENT_OBJECTS.RARE_PLANT, (position, size) => {
-            const rarePlant = new RarePlant(this.scene, this.worldManager, position, size);
+            const rarePlant = new RarePlant(this.getAddTarget(), this.worldManager, position, size);
             return rarePlant.object;
         });
         this.register(ENVIRONMENT_OBJECTS.MAGICAL_STONE, (position, size) => {
-            const magicalStone = new MagicalStone(this.scene, this.worldManager, position, size);
+            const magicalStone = new MagicalStone(this.getAddTarget(), this.worldManager, position, size);
             return magicalStone.object;
         });
         this.register(ENVIRONMENT_OBJECTS.ANCIENT_ARTIFACT, (position, size) => {
-            const ancientArtifact = new AncientArtifact(this.scene, this.worldManager, position, size);
+            const ancientArtifact = new AncientArtifact(this.getAddTarget(), this.worldManager, position, size);
             return ancientArtifact.object;
         });
         this.register(ENVIRONMENT_OBJECTS.MOSS, (position, size) => {
-            const moss = new Moss(this.scene, this.worldManager, position, size);
+            const moss = new Moss(this.getAddTarget(), this.worldManager, position, size);
             return moss.object;
         });
         this.register(ENVIRONMENT_OBJECTS.OASIS, (position, size) => {
-            const oasis = new Oasis(this.scene, this.worldManager, position, size);
+            const oasis = new Oasis(this.getAddTarget(), this.worldManager, position, size);
             return oasis.object;
         });
         this.register(ENVIRONMENT_OBJECTS.OBSIDIAN_FORMATION, (position, size) => {
-            const obsidianFormation = new ObsidianFormation(this.scene, this.worldManager, position, size);
+            const obsidianFormation = new ObsidianFormation(this.getAddTarget(), this.worldManager, position, size);
             return obsidianFormation.object;
         });
         this.register(ENVIRONMENT_OBJECTS.DESERT_SHRINE, (position, size) => {
-            const desertShrine = new DesertShrine(this.scene, this.worldManager, position, size);
+            const desertShrine = new DesertShrine(this.getAddTarget(), this.worldManager, position, size);
             return desertShrine.object;
         });
         this.register(ENVIRONMENT_OBJECTS.TREE_CLUSTER, (data) => {
-            const treeCluster = new TreeCluster(this.scene, this.worldManager, data);
+            const treeCluster = new TreeCluster(this.getAddTarget(), this.worldManager, data);
             return treeCluster.group;
         });
         this.register(ENVIRONMENT_OBJECTS.SMALL_PEAK, (position, size) => {
-            const smallPeak = new SmallPeak(this.scene, this.worldManager, position, size);
+            const smallPeak = new SmallPeak(this.getAddTarget(), this.worldManager, position, size);
             return smallPeak.object;
         });
         this.register(ENVIRONMENT_OBJECTS.SNOW_PATCH, (position, size) => {
-            const snowPatch = new SnowPatch(this.scene, this.worldManager, position, size);
+            const snowPatch = new SnowPatch(this.getAddTarget(), this.worldManager, position, size);
             return snowPatch.object;
         });
         
         // Register village and urban environment objects
         this.register(ENVIRONMENT_OBJECTS.MARKET, (position, size, data) => {
-            const market = new Market(this.scene, this.worldManager);
+            const market = new Market(this.getAddTarget(), this.worldManager);
             return market.createMesh({ position, size, ...data });
         });
         this.register(ENVIRONMENT_OBJECTS.SQUARE, (position, size, data) => {
-            const square = new Square(this.scene, this.worldManager);
+            const square = new Square(this.getAddTarget(), this.worldManager);
             return square.createMesh({ position, size, ...data });
         });
         this.register(ENVIRONMENT_OBJECTS.PLAZA, (position, size, data) => {
-            const plaza = new Plaza(this.scene, this.worldManager);
+            const plaza = new Plaza(this.getAddTarget(), this.worldManager);
             return plaza.createMesh({ position, size, ...data });
         });
         this.register(ENVIRONMENT_OBJECTS.STAIRS, (position, size, data) => {
-            const stairs = new Stairs(this.scene, this.worldManager);
+            const stairs = new Stairs(this.getAddTarget(), this.worldManager);
             return stairs.createMesh({ position, size, ...data });
         });
         
         this.register(ENVIRONMENT_OBJECTS.WELL, (position, size, data) => {
-            const well = new Well(this.scene, this.worldManager);
+            const well = new Well(this.getAddTarget(), this.worldManager);
             return well.createMesh({ position, size, ...data });
         });
         
         this.register(ENVIRONMENT_OBJECTS.STATUE, (position, size, data) => {
-            const statue = new Statue(this.scene, this.worldManager);
+            const statue = new Statue(this.getAddTarget(), this.worldManager);
             return statue.createMesh({ position, size, ...data });
         });
         
         this.register(ENVIRONMENT_OBJECTS.FOUNTAIN, (position, size, data) => {
-            const fountain = new Fountain(this.scene, this.worldManager);
+            const fountain = new Fountain(this.getAddTarget(), this.worldManager);
             return fountain.createMesh({ position, size, ...data });
         });
         
@@ -208,7 +221,7 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 treeGroup.scale.set(size, size, size);
             }
-            this.scene.add(treeGroup);
+            this.getAddTarget().add(treeGroup);
             return treeGroup;
         });
         
@@ -219,7 +232,7 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 rockGroup.scale.set(size, size, size);
             }
-            this.scene.add(rockGroup);
+            this.getAddTarget().add(rockGroup);
             return rockGroup;
         });
         
@@ -230,7 +243,7 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 bushGroup.scale.set(size, size, size);
             }
-            this.scene.add(bushGroup);
+            this.getAddTarget().add(bushGroup);
             return bushGroup;
         });
         
@@ -241,7 +254,7 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 flowerGroup.scale.set(size, size, size);
             }
-            this.scene.add(flowerGroup);
+            this.getAddTarget().add(flowerGroup);
             return flowerGroup;
         });
         
@@ -261,7 +274,7 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 grassGroup.scale.set(size, size, size);
             }
-            this.scene.add(grassGroup);
+            this.getAddTarget().add(grassGroup);
             return grassGroup;
         });
         
@@ -272,12 +285,12 @@ export class EnvironmentFactory {
             if (size !== 1) {
                 treeGroup.scale.set(size, size, size);
             }
-            this.scene.add(treeGroup);
+            this.getAddTarget().add(treeGroup);
             return treeGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.WATERFALL, (position, size) => {
-            const waterfall = new Waterfall(this.scene, this.worldManager);
+            const waterfall = new Waterfall(this.getAddTarget(), this.worldManager);
             const waterfallGroup = waterfall.createMesh(position);
             if (size !== 1) {
                 waterfallGroup.scale.set(size, size, size);
@@ -287,269 +300,269 @@ export class EnvironmentFactory {
         
         // Register our new dedicated objects
         this.register(ENVIRONMENT_OBJECTS.SMALL_MUSHROOM, (position, size, data = {}) => {
-            const smallMushroom = new SmallMushroom(this.scene, this.worldManager);
+            const smallMushroom = new SmallMushroom(this.getAddTarget(), this.worldManager);
             const mushroomGroup = smallMushroom.createMesh(position, size, data);
             return mushroomGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.FOREST_FLOWER, (position, size, data = {}) => {
-            const forestFlower = new ForestFlower(this.scene, this.worldManager);
+            const forestFlower = new ForestFlower(this.getAddTarget(), this.worldManager);
             const flowerGroup = forestFlower.createMesh(position, size, data);
             return flowerGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.FOREST_DEBRIS, (position, size, data = {}) => {
-            const forestDebris = new ForestDebris(this.scene, this.worldManager);
+            const forestDebris = new ForestDebris(this.getAddTarget(), this.worldManager);
             const debrisGroup = forestDebris.createMesh(position, size, data);
             return debrisGroup;
         });
         
         // Register new forest environment objects
         this.register(ENVIRONMENT_OBJECTS.FERN, (position, size, data = {}) => {
-            const fern = new Fern(this.scene, this.worldManager);
+            const fern = new Fern(this.getAddTarget(), this.worldManager);
             const fernGroup = fern.createMesh(position, size, data);
             return fernGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.BERRY_BUSH, (position, size, data = {}) => {
-            const berryBush = new BerryBush(this.scene, this.worldManager);
+            const berryBush = new BerryBush(this.getAddTarget(), this.worldManager);
             const bushGroup = berryBush.createMesh(position, size, data);
             return bushGroup;
         });
         
         // Register newly added environment objects
         this.register(ENVIRONMENT_OBJECTS.OVERGROWN_RUIN, (position, size, data = {}) => {
-            const overgrownRuin = new OvergrownRuin(this.scene, this.worldManager);
+            const overgrownRuin = new OvergrownRuin(this.getAddTarget(), this.worldManager);
             const ruinGroup = overgrownRuin.createMesh(position, size, data);
             return ruinGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.STATUE_FRAGMENT, (position, size, data = {}) => {
-            const statueFragment = new StatueFragment(this.scene, this.worldManager);
+            const statueFragment = new StatueFragment(this.getAddTarget(), this.worldManager);
             const fragmentGroup = statueFragment.createMesh(position, size, data);
             return fragmentGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.BROKEN_COLUMN, (position, size, data = {}) => {
-            const brokenColumn = new BrokenColumn(this.scene, this.worldManager);
+            const brokenColumn = new BrokenColumn(this.getAddTarget(), this.worldManager);
             const columnGroup = brokenColumn.createMesh(position, size, data);
             return columnGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.RUNE_STONE, (position, size, data = {}) => {
-            const runeStone = new RuneStone(this.scene, this.worldManager);
+            const runeStone = new RuneStone(this.getAddTarget(), this.worldManager);
             const stoneGroup = runeStone.createMesh(position, size, data);
             return stoneGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.ANCIENT_STONE, (position, size, data = {}) => {
-            const ancientStone = new AncientStone(this.scene, this.worldManager);
+            const ancientStone = new AncientStone(this.getAddTarget(), this.worldManager);
             const stoneGroup = ancientStone.createMesh(position, size, data);
             return stoneGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.GLOWING_MUSHROOM, (position, size, data = {}) => {
-            const glowingMushroom = new GlowingMushroom(this.scene, this.worldManager);
+            const glowingMushroom = new GlowingMushroom(this.getAddTarget(), this.worldManager);
             const mushroomGroup = glowingMushroom.createMesh(position, size, data);
             return mushroomGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.SWAMP_TREE, (position, size, data = {}) => {
-            const swampTree = new SwampTree(this.scene, this.worldManager);
+            const swampTree = new SwampTree(this.getAddTarget(), this.worldManager);
             const treeGroup = swampTree.createMesh(position, size, data);
             return treeGroup;
         });
         
         // Register the mysterious portal
         this.register(ENVIRONMENT_OBJECTS.MYSTERIOUS_PORTAL, (position, size, data = {}) => {
-            const mysteriousPortal = new MysteriousPortal(this.scene, this.worldManager);
+            const mysteriousPortal = new MysteriousPortal(this.getAddTarget(), this.worldManager);
             const portalGroup = mysteriousPortal.createMesh(position, size, data);
             return portalGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.LILY_PAD, (position, size, data = {}) => {
-            const lilyPad = new LilyPad(this.scene, this.worldManager);
+            const lilyPad = new LilyPad(this.getAddTarget(), this.worldManager);
             const padGroup = lilyPad.createMesh(position, size, data);
             return padGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.SWAMP_DEBRIS, (position, size, data = {}) => {
-            const swampDebris = new SwampDebris(this.scene, this.worldManager);
+            const swampDebris = new SwampDebris(this.getAddTarget(), this.worldManager);
             const debrisGroup = swampDebris.createMesh(position, size, data);
             return debrisGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.SWAMP_PLANT, (position, size, data = {}) => {
-            const swampPlant = new SwampPlant(this.scene, this.worldManager);
+            const swampPlant = new SwampPlant(this.getAddTarget(), this.worldManager);
             const plantGroup = swampPlant.createMesh(position, size, data);
             return plantGroup;
         });
         
         // Register small plant with dedicated class
         this.register(ENVIRONMENT_OBJECTS.SMALL_PLANT, (position, size, data = {}) => {
-            const smallPlant = new SmallPlant(this.scene, this.worldManager);
+            const smallPlant = new SmallPlant(this.getAddTarget(), this.worldManager);
             const plantGroup = smallPlant.createMesh(position, size, data);
             return plantGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.FALLEN_LOG, (position, size, data = {}) => {
-            const fallenLog = new FallenLog(this.scene, this.worldManager);
+            const fallenLog = new FallenLog(this.getAddTarget(), this.worldManager);
             const logGroup = fallenLog.createMesh(position, size, data);
             return logGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.MUSHROOM, (position, size, data = {}) => {
-            const mushroom = new Mushroom(this.scene, this.worldManager);
+            const mushroom = new Mushroom(this.getAddTarget(), this.worldManager);
             const mushroomGroup = mushroom.createMesh(position, size, data);
             return mushroomGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.ROCK_FORMATION, (position, size, data = {}) => {
-            const rockFormation = new RockFormation(this.scene, this.worldManager);
+            const rockFormation = new RockFormation(this.getAddTarget(), this.worldManager);
             const rockFormationGroup = rockFormation.createMesh(position, size, data);
             return rockFormationGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.SHRINE, (position, size, data = {}) => {
-            const shrine = new Shrine(this.scene, this.worldManager);
+            const shrine = new Shrine(this.getAddTarget(), this.worldManager);
             const shrineGroup = shrine.createMesh(position, size, data);
             return shrineGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.STUMP, (position, size, data = {}) => {
-            const stump = new Stump(this.scene, this.worldManager);
+            const stump = new Stump(this.getAddTarget(), this.worldManager);
             const stumpGroup = stump.createMesh(position, size, data);
             return stumpGroup;
         });
         
         // Register missing environment objects
         this.register(ENVIRONMENT_OBJECTS.ASH_PILE, (position, size, data = {}) => {
-            const ashPile = new AshPile(this.scene, this.worldManager);
+            const ashPile = new AshPile(this.getAddTarget(), this.worldManager);
             const ashGroup = ashPile.createMesh(position, size, data);
             return ashGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.DESERT_PLANT, (position, size, data = {}) => {
-            const desertPlant = new DesertPlant(this.scene, this.worldManager);
+            const desertPlant = new DesertPlant(this.getAddTarget(), this.worldManager);
             const plantGroup = desertPlant.createMesh(position, size, data);
             return plantGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.LAVA_ROCK, (position, size, data = {}) => {
-            const lavaRock = new LavaRock(this.scene, this.worldManager);
+            const lavaRock = new LavaRock(this.getAddTarget(), this.worldManager);
             const rockGroup = lavaRock.createMesh(position, size, data);
             return rockGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.EMBER_VENT, (position, size, data = {}) => {
-            const emberVent = new EmberVent(this.scene, this.worldManager);
+            const emberVent = new EmberVent(this.getAddTarget(), this.worldManager);
             const ventGroup = emberVent.createMesh(position, size, data);
             return ventGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.OBSIDIAN, (position, size, data = {}) => {
-            const obsidian = new Obsidian(this.scene, this.worldManager);
+            const obsidian = new Obsidian(this.getAddTarget(), this.worldManager);
             const obsidianGroup = obsidian.createMesh(position, size, data);
             return obsidianGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.PINE_TREE, (position, size, data = {}) => {
-            const pineTree = new PineTree(this.scene, this.worldManager);
+            const pineTree = new PineTree(this.getAddTarget(), this.worldManager);
             const treeGroup = pineTree.createMesh(position, size, data);
             return treeGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.MOUNTAIN_ROCK, (position, size, data = {}) => {
-            const mountainRock = new MountainRock(this.scene, this.worldManager);
+            const mountainRock = new MountainRock(this.getAddTarget(), this.worldManager);
             const rockGroup = mountainRock.createMesh(position, size, data);
             return rockGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.ICE_SHARD, (position, size, data = {}) => {
-            const iceShard = new IceShard(this.scene, this.worldManager);
+            const iceShard = new IceShard(this.getAddTarget(), this.worldManager);
             const shardGroup = iceShard.createMesh(position, size, data);
             return shardGroup;
         });
         
         this.register(ENVIRONMENT_OBJECTS.ALPINE_FLOWER, (position, size, data = {}) => {
-            const alpineFlower = new AlpineFlower(this.scene, this.worldManager);
+            const alpineFlower = new AlpineFlower(this.getAddTarget(), this.worldManager);
             const flowerGroup = alpineFlower.createMesh(position, size, data);
             return flowerGroup;
         });
         
         // Register fairy circle environment object
         this.register(ENVIRONMENT_OBJECTS.FAIRY_CIRCLE, (position, size, data = {}) => {
-            const fairyCircle = new FairyCircle(this.scene, this.worldManager);
+            const fairyCircle = new FairyCircle(this.getAddTarget(), this.worldManager);
             const circleGroup = fairyCircle.createMesh(position, size, data);
             return circleGroup;
         });
         
         // Register glowing flowers environment object
         this.register(ENVIRONMENT_OBJECTS.GLOWING_FLOWERS, (position, size, data = {}) => {
-            const glowingFlowers = new GlowingFlowers(this.scene, this.worldManager);
+            const glowingFlowers = new GlowingFlowers(this.getAddTarget(), this.worldManager);
             const flowersGroup = glowingFlowers.createMesh(position, size, data);
             return flowersGroup;
         });
         
         // Register mushroom cluster environment object
         this.register(ENVIRONMENT_OBJECTS.MUSHROOM_CLUSTER, (position, size, data = {}) => {
-            const mushroomCluster = new MushroomCluster(this.scene, this.worldManager);
+            const mushroomCluster = new MushroomCluster(this.getAddTarget(), this.worldManager);
             const clusterGroup = mushroomCluster.createMesh(position, size, data);
             return clusterGroup;
         });
         
         // Register treehouse environment object
         this.register(ENVIRONMENT_OBJECTS.TREEHOUSE, (position, size, data = {}) => {
-            const treehouse = new Treehouse(this.scene, this.worldManager);
+            const treehouse = new Treehouse(this.getAddTarget(), this.worldManager);
             const treehouseGroup = treehouse.createMesh(position, size, data);
             return treehouseGroup;
         });
         
         // Register bog pit environment object
         this.register(ENVIRONMENT_OBJECTS.BOG_PIT, (position, size, data = {}) => {
-            const bogPit = new BogPit(this.scene, this.worldManager, position, size);
+            const bogPit = new BogPit(this.getAddTarget(), this.worldManager, position, size);
             return bogPit.object;
         });
         
         // Register forest shrine environment object
         this.register(ENVIRONMENT_OBJECTS.FOREST_SHRINE, (position, size, data = {}) => {
-            const forestShrine = new ForestShrine(this.scene, this.worldManager, position, size);
+            const forestShrine = new ForestShrine(this.getAddTarget(), this.worldManager, position, size);
             return forestShrine.object;
         });
         
         // Register ice formation environment object
         this.register(ENVIRONMENT_OBJECTS.ICE_FORMATION, (position, size, data = {}) => {
-            const iceFormation = new IceFormation(this.scene, this.worldManager, position, size);
+            const iceFormation = new IceFormation(this.getAddTarget(), this.worldManager, position, size);
             return iceFormation.object;
         });
         
         // Register crystal outcrop environment object
         this.register(ENVIRONMENT_OBJECTS.CRYSTAL_OUTCROP, (position, size, data = {}) => {
-            const crystalOutcrop = new CrystalOutcrop(this.scene, this.worldManager, position, size, data);
+            const crystalOutcrop = new CrystalOutcrop(this.getAddTarget(), this.worldManager, position, size, data);
             return crystalOutcrop.createMesh();
         });
         
         // Register mountain cave environment object
         this.register(ENVIRONMENT_OBJECTS.MOUNTAIN_CAVE, (position, size, data = {}) => {
-            const mountainCave = new MountainCave(this.scene, this.worldManager, position, size, data);
+            const mountainCave = new MountainCave(this.getAddTarget(), this.worldManager, position, size, data);
             return mountainCave.createMesh();
         });
         
         // Register giant mushroom environment object
         this.register(ENVIRONMENT_OBJECTS.GIANT_MUSHROOM, (position, size, data = {}) => {
-            const giantMushroom = new GiantMushroom(this.scene, this.worldManager, position, size, data);
+            const giantMushroom = new GiantMushroom(this.getAddTarget(), this.worldManager, position, size, data);
             return giantMushroom.createMesh();
         });
         
         // Register magic circle environment object
         this.register(ENVIRONMENT_OBJECTS.MAGIC_CIRCLE, (position, size, data = {}) => {
-            const magicCircle = new MagicCircle(this.scene, this.worldManager, position, size, data);
+            const magicCircle = new MagicCircle(this.getAddTarget(), this.worldManager, position, size, data);
             return magicCircle.createMesh();
         });
         
         // Register swamp light environment object
         this.register(ENVIRONMENT_OBJECTS.SWAMP_LIGHT, (position, size, data = {}) => {
-            const swampLight = new SwampLight(this.scene, this.worldManager, position, size, data);
+            const swampLight = new SwampLight(this.getAddTarget(), this.worldManager, position, size, data);
             return swampLight.object;
         });
         
@@ -575,7 +588,7 @@ export class EnvironmentFactory {
             crystal.rotation.z = Math.random() * Math.PI;
             
             // Add to scene
-            this.scene.add(crystal);
+            this.getAddTarget().add(crystal);
             
             return crystal;
         });
@@ -622,7 +635,7 @@ export class EnvironmentFactory {
             flowerGroup.position.copy(position);
             
             // Add to scene
-            this.scene.add(flowerGroup);
+            this.getAddTarget().add(flowerGroup);
             
             return flowerGroup;
         });
@@ -657,7 +670,7 @@ export class EnvironmentFactory {
             stoneCircleGroup.position.copy(position);
             
             // Add to scene
-            this.scene.add(stoneCircleGroup);
+            this.getAddTarget().add(stoneCircleGroup);
             
             return stoneCircleGroup;
         });
@@ -698,20 +711,20 @@ export class EnvironmentFactory {
             passGroup.position.copy(position);
             
             // Add to scene
-            this.scene.add(passGroup);
+            this.getAddTarget().add(passGroup);
             
             return passGroup;
         });
         
         // Register Ancient Altar
         this.register(ENVIRONMENT_OBJECTS.ANCIENT_ALTAR, (position, size) => {
-            const ancientAltar = new AncientAltar(this.scene, this.worldManager, position, size);
+            const ancientAltar = new AncientAltar(this.getAddTarget(), this.worldManager, position, size);
             return ancientAltar.object;
         });
         
         // Register Forgotten Statue
         this.register(ENVIRONMENT_OBJECTS.FORGOTTEN_STATUE, (position, size) => {
-            const forgottenStatue = new ForgottenStatue(this.scene, this.worldManager, position, size);
+            const forgottenStatue = new ForgottenStatue(this.getAddTarget(), this.worldManager, position, size);
             return forgottenStatue.object;
         });
     }
