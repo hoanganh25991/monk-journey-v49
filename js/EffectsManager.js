@@ -18,7 +18,7 @@ export class EffectsManager {
         /** Three.js sprite damage numbers (world space, float up, fade) — used for all damage */
         this.spriteDamageNumbers = [];
         /** Max concurrent damage numbers; oldest are dropped when over limit */
-        this.maxSpriteDamageNumbers = 30; // Increased with caching optimization
+        this.maxSpriteDamageNumbers = 90; // Allow more when hitting many enemies in batches
     }
     
     /**

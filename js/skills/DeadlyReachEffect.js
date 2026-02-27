@@ -77,13 +77,19 @@ export class DeadlyReachEffect extends SkillEffect {
         if (nearestEnemy) {
             this.targetEnemy = nearestEnemy;
             const enemyPosition = nearestEnemy.getPosition();
-            
-            // Full 3D direction from cast position to enemy - allows skill to go DOWN to enemy when they're below
+            // Aim at center/torso of enemy model (getPosition() returns feet/ground)
+            const enemyScale = nearestEnemy.scale != null ? nearestEnemy.scale : 1;
+            const centerYOffset = 0.6 * enemyScale; // Approximate half-height of enemy model
+            const targetPoint = new THREE.Vector3(
+                enemyPosition.x,
+                enemyPosition.y + centerYOffset,
+                enemyPosition.z
+            );
+            // Full 3D direction from cast position to enemy center - allows skill to go DOWN to enemy when they're below
             const directionToEnemy = new THREE.Vector3()
-                .subVectors(enemyPosition, position)
+                .subVectors(targetPoint, position)
                 .normalize();
-            
-            // Use full direction (including Y) so projectile travels down to enemy, not stuck at player height
+            // Use full direction (including Y) so projectile travels to enemy center, not at their feet
             this.direction.copy(directionToEnemy);
         }
     }

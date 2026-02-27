@@ -1,5 +1,4 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2 } from '../utils/FastMath.js';
 import { TextGeometry } from '../../libs/three/examples/jsm/geometries/TextGeometry.js';
 import { FontLoader } from '../../libs/three/examples/jsm/loaders/FontLoader.js';
 
@@ -34,7 +33,6 @@ const DAMAGE_NUMBER_CONFIG = {
     SCALE_KILL: 0.8, // 10x bigger - was 0.08
     
     // Performance parameters
-    BILLBOARD_UPDATE_INTERVAL: 0.1, // Update billboard rotation every 0.1s instead of every frame
     GEOMETRY_CACHE_SIZE: 20 // Cache up to 20 most common damage values
 };
 
@@ -84,10 +82,6 @@ export class DamageNumberSpriteEffect {
                     : this.isCritical
                         ? DAMAGE_NUMBER_CONFIG.SCALE_CRITICAL
                         : DAMAGE_NUMBER_CONFIG.SCALE_NORMAL;
-        
-        // Billboard optimization - don't update every frame
-        this.billboardTimer = 0;
-        this.lastCameraAngle = 0;
         
         // Track if we're using cached geometry
         this.usingCachedGeometry = false;
@@ -267,11 +261,11 @@ export class DamageNumberSpriteEffect {
                 : this.isCritical ? 'critical'
                 : 'normal';
             
-            // Get cached materials
-            const material = DamageNumberSpriteEffect.getCachedMaterial(materialType);
-            const outlineMaterial = DamageNumberSpriteEffect.getCachedOutlineMaterial();
+            // Get cached materials and clone so each effect has its own opacity (shared material would make all numbers fade together)
+            const material = DamageNumberSpriteEffect.getCachedMaterial(materialType).clone();
+            const outlineMaterial = DamageNumberSpriteEffect.getCachedOutlineMaterial().clone();
 
-            // Create main mesh (reuse geometry and material)
+            // Create main mesh (reuse geometry, own material clone)
             const mesh = new THREE.Mesh(geometry, material);
             mesh.castShadow = false; // Disable shadows for performance
             mesh.receiveShadow = false;
@@ -352,31 +346,8 @@ export class DamageNumberSpriteEffect {
             }
         }
         
-        // Float up fast (no deceleration — snappy)
+        // Float up fast (no deceleration — snappy); no rotation — keep orientation as created
         this.group.position.y += this.floatSpeed * delta;
-        
-        // Billboard optimization - only update rotation periodically
-        this.billboardTimer += delta;
-        if (this.billboardTimer >= DAMAGE_NUMBER_CONFIG.BILLBOARD_UPDATE_INTERVAL) {
-            this.billboardTimer = 0;
-            
-            // Make the 3D text face the camera (billboard on Y-axis only)
-            if (this.game?.camera && this.mesh) {
-                const cameraPos = this.game.camera.position;
-                const meshPos = this.group.position;
-                
-                // Calculate angle to camera on horizontal plane (XZ)
-                const dx = cameraPos.x - meshPos.x;
-                const dz = cameraPos.z - meshPos.z;
-                const angleY = fastAtan2(dx, dz);
-                
-                // Only update if angle changed significantly (> 0.1 radians)
-                if (Math.abs(angleY - this.lastCameraAngle) > 0.1) {
-                    this.mesh.rotation.y = angleY;
-                    this.lastCameraAngle = angleY;
-                }
-            }
-        }
         
         // Scale: quick pop then hold (no slow shrink — snappy)
         const t = this.elapsed / this.duration;
@@ -417,9 +388,10 @@ export class DamageNumberSpriteEffect {
             if (!this.usingCachedGeometry) {
                 if (mainMesh?.geometry) mainMesh.geometry.dispose();
                 if (outlineMesh?.geometry) outlineMesh.geometry.dispose();
-                if (mainMesh?.material) mainMesh.material.dispose();
-                if (outlineMesh?.material) outlineMesh.material.dispose();
             }
+            // Always dispose our material clones (they are per-effect, not from cache)
+            if (mainMesh?.material) mainMesh.material.dispose();
+            if (outlineMesh?.material) outlineMesh.material.dispose();
         }
         if (this.group?.parent) {
             this.group.parent.remove(this.group);
