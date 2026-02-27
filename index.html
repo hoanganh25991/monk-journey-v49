@@ -581,16 +581,18 @@
 
     <!-- Multiplayer Menu -->
     <div id="multiplayer-menu" class="game-menu main-background">
-        <!-- Initial Options Screen -->
+        <!-- One-touch: HOST or JOIN (touch devices / NFC) -->
         <div class="multiplayer-menu-content" id="multiplayer-initial-screen">
             <div class="modal-header">
-                <h2>Multiplayer</h2>
+                <h2>Play Together</h2>
                 <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
             </div>
-            <div class="multiplayer-options">
-                <button id="host-game-btn" class="menu-button">Host Game</button>
-                <button id="join-game-btn" class="menu-button">Join Game</button>
+            <p id="one-touch-hint" class="one-touch-hint">Touch the two devices together, or choose below.</p>
+            <div class="multiplayer-options one-touch-options">
+                <button id="one-touch-host-btn" class="menu-button one-touch-btn host-btn">HOST</button>
+                <button id="one-touch-join-btn" class="menu-button one-touch-btn join-btn">JOIN</button>
             </div>
+            <p id="nfc-status" class="nfc-status"></p>
         </div>
         
         <!-- Host Game Screen -->
@@ -634,6 +636,7 @@
                 </div>
             </div>
             <div id="join-connection-status" class="connection-status"></div>
+            <button id="join-use-code-qr-btn" class="settings-button secondary-button" style="display: none; margin: 0.5rem auto;">Use code or QR</button>
         </div>
         
         <!-- Player Waiting Screen has been removed and functionality merged into connection-info-screen -->

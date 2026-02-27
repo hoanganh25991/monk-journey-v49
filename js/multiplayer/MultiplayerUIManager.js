@@ -1,8 +1,10 @@
 /**
  * MultiplayerUIManager.js
  * Handles all UI-related functionality for multiplayer
- * Including host/join UI, QR code generation/scanning, and connection status
+ * Including one-touch HOST/JOIN, NFC, QR code generation/scanning, and connection status
  */
+
+import { isNfcSupported, startNfcScan, writeNfcInvite } from './NfcHelper.js';
 
 export class MultiplayerUIManager {
     /**
@@ -15,6 +17,8 @@ export class MultiplayerUIManager {
         this.availableCameras = [];
         this.selectedCameraId = null;
         this.connectionInfoListenersInitialized = false;
+        /** @type {{ stop: () => void } | null} */
+        this.nfcScanController = null;
     }
 
     /**
@@ -74,26 +78,20 @@ export class MultiplayerUIManager {
             });
         }
         
-        // Host game button
-        const hostGameBtn = document.getElementById('host-game-btn');
-        if (hostGameBtn) {
-            hostGameBtn.addEventListener('click', () => {
-                this.multiplayerManager.hostGame();
+        // One-touch HOST: start hosting, then show connection screen (NFC share optional there)
+        const oneTouchHostBtn = document.getElementById('one-touch-host-btn');
+        if (oneTouchHostBtn) {
+            oneTouchHostBtn.addEventListener('click', async () => {
+                await this.multiplayerManager.hostGame();
+                this.showConnectionInfoScreen();
+                this.maybeShowNfcShareOnConnectionScreen();
             });
         }
         
-        // Join game button
-        const joinGameBtn = document.getElementById('join-game-btn');
-        if (joinGameBtn) {
-            joinGameBtn.addEventListener('click', async () => {
-                // Show join UI first
-                await this.showJoinUI();
-                
-                // Then switch to QR scanner view and start it
-                document.getElementById('scan-qr-view').style.display = 'flex';
-                document.getElementById('manual-code-view').style.display = 'none';
-                await this.startQRScannerWithUI();
-            });
+        // One-touch JOIN: try NFC scan first; fallback to QR/manual
+        const oneTouchJoinBtn = document.getElementById('one-touch-join-btn');
+        if (oneTouchJoinBtn) {
+            oneTouchJoinBtn.addEventListener('click', () => this.startOneTouchJoin());
         }
         
         // Manual connect button
@@ -239,22 +237,27 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Show the multiplayer modal
+     * Show the multiplayer modal (one-touch HOST / JOIN screen)
      */
     showMultiplayerModal() {
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'flex';
             
-            // Show initial screen, hide others
+            // Show initial one-touch screen, hide others
             document.getElementById('multiplayer-initial-screen').style.display = 'flex';
             document.getElementById('join-game-screen').style.display = 'none';
-            // Player waiting screen has been removed and merged into connection-info-screen
             const playerWaitingScreen = document.getElementById('player-waiting-screen');
             if (playerWaitingScreen) {
                 playerWaitingScreen.style.display = 'none';
             }
             document.getElementById('connection-info-screen').style.display = 'none';
+            
+            // NFC status hint
+            const nfcStatus = document.getElementById('nfc-status');
+            if (nfcStatus) {
+                nfcStatus.textContent = isNfcSupported() ? 'NFC ready — touch devices to connect' : '';
+            }
             
             // Reset connection status
             const statusElements = document.querySelectorAll('.connection-status');
@@ -328,14 +331,126 @@ export class MultiplayerUIManager {
         if (modal) {
             modal.style.display = 'none';
             
-            // Stop QR scanner if active
+            this.stopNfcScan();
             this.stopQRScanner();
             
-            // Hide connection info screen if it exists
             const connectionInfoScreen = document.getElementById('connection-info-screen');
             if (connectionInfoScreen) {
                 connectionInfoScreen.style.display = 'none';
             }
+        }
+    }
+    
+    /**
+     * Stop NFC scan if active
+     */
+    stopNfcScan() {
+        if (this.nfcScanController) {
+            this.nfcScanController.stop();
+            this.nfcScanController = null;
+        }
+    }
+    
+    /**
+     * One-touch JOIN: try NFC scan first; on success join; else show QR/manual join UI
+     */
+    async startOneTouchJoin() {
+        if (isNfcSupported()) {
+            const statusEl = document.getElementById('join-connection-status');
+            const setStatus = (msg) => {
+                if (statusEl) statusEl.textContent = msg;
+            };
+            document.getElementById('multiplayer-initial-screen').style.display = 'none';
+            document.getElementById('join-game-screen').style.display = 'flex';
+            document.getElementById('scan-qr-view').style.display = 'none';
+            document.getElementById('manual-code-view').style.display = 'none';
+            const useCodeQrBtn = document.getElementById('join-use-code-qr-btn');
+            if (useCodeQrBtn) {
+                useCodeQrBtn.style.display = 'block';
+                useCodeQrBtn.onclick = () => {
+                    this.stopNfcScan();
+                    useCodeQrBtn.style.display = 'none';
+                    this.showJoinUI();
+                    document.getElementById('scan-qr-view').style.display = 'flex';
+                    document.getElementById('manual-code-view').style.display = 'none';
+                    this.startQRScannerWithUI();
+                };
+            }
+            setStatus('Hold your device to the HOST device…');
+            try {
+                this.nfcScanController = await startNfcScan((connectionId) => {
+                    this.stopNfcScan();
+                    if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
+                    setStatus('Connecting…');
+                    this.multiplayerManager.joinGame(connectionId);
+                });
+                setStatus('NFC on — touch the other device to join');
+            } catch (e) {
+                this.nfcScanController = null;
+                if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
+                setStatus('NFC failed — use code or QR');
+                await this.showJoinUI();
+                return;
+            }
+            const backBtn = document.getElementById('back-from-join-btn');
+            if (backBtn) {
+                backBtn.onclick = () => {
+                    this.stopNfcScan();
+                    if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
+                    document.getElementById('join-game-screen').style.display = 'none';
+                    this.showMultiplayerModal();
+                };
+            }
+            return;
+        }
+        await this.showJoinUI();
+        document.getElementById('scan-qr-view').style.display = 'flex';
+        document.getElementById('manual-code-view').style.display = 'none';
+        await this.startQRScannerWithUI();
+    }
+    
+    /**
+     * If host and NFC supported, show "Share via NFC" on connection screen
+     */
+    maybeShowNfcShareOnConnectionScreen() {
+        if (!isNfcSupported() || !this.multiplayerManager.connection?.isHost) return;
+        const hostControls = document.getElementById('host-controls');
+        if (!hostControls) return;
+        let nfcBtn = document.getElementById('nfc-share-invite-btn');
+        if (nfcBtn) return;
+        nfcBtn = document.createElement('button');
+        nfcBtn.id = 'nfc-share-invite-btn';
+        nfcBtn.className = 'settings-button';
+        nfcBtn.textContent = 'Share via NFC';
+        nfcBtn.title = 'Hold your device to the other device to send invite';
+        nfcBtn.addEventListener('click', () => this.sendInviteViaNfc());
+        hostControls.insertBefore(nfcBtn, hostControls.firstChild);
+    }
+    
+    /**
+     * Host: write connection ID to NFC so the other device can join when they touch
+     */
+    async sendInviteViaNfc() {
+        const roomId = this.multiplayerManager.connection?.roomId;
+        if (!roomId) return;
+        const btn = document.getElementById('nfc-share-invite-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Hold device to friend…';
+        }
+        try {
+            await writeNfcInvite(roomId);
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('Invite sent via NFC', 'info');
+            }
+        } catch (e) {
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('NFC send failed. Use code or QR.', 'error');
+            }
+        }
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Share via NFC';
         }
     }
     

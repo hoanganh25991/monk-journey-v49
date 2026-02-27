@@ -61,6 +61,28 @@
     flex: 1; /* Take up available space in the flex container */
 }
 
+/* One-touch: play together with HOST / JOIN */
+.one-touch-hint {
+    margin: 0 1rem 1rem;
+    opacity: 0.9;
+    font-size: 0.95rem;
+}
+.one-touch-options {
+    gap: 1.25rem;
+}
+.one-touch-btn {
+    min-width: 200px;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+.one-touch-btn.host-btn { background: rgba(0, 120, 215, 0.5); }
+.one-touch-btn.join-btn { background: rgba(0, 180, 100, 0.5); }
+.nfc-status {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
 /* Host game layout - optimized for landscape */
 .host-game-layout {
     display: flex;

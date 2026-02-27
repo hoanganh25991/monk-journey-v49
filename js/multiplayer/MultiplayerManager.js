@@ -322,6 +322,14 @@ export class MultiplayerManager {
      * @param {number} deltaTime - Time elapsed since the last frame
      */
     update(deltaTime) {
+        // Single-player: no connection, nothing to sync. Avoid touching connection at all.
+        if (!this.isActive()) {
+            if (this.remotePlayerManager) {
+                this.remotePlayerManager.update(deltaTime);
+            }
+            return;
+        }
+        
         // Log update status occasionally (every 3 seconds)
         const now = Date.now();
         if (!this._lastUpdateLog || now - this._lastUpdateLog > 3000) {
