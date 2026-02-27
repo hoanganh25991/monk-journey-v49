@@ -348,7 +348,7 @@ export class ThunderDragonEffect extends FlyingDragonEffect {
             const bolt = new THREE.Line(boltGeometry, boltMaterial);
             
             // Add to scene
-            this.skill.game.scene.add(bolt);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(bolt);
             bolts.push(bolt);
             
             // Delay each bolt
@@ -365,7 +365,7 @@ export class ThunderDragonEffect extends FlyingDragonEffect {
                 const flash = new THREE.Mesh(flashGeometry, flashMaterial);
                 flash.position.set(endX, endY, endZ);
                 
-                this.skill.game.scene.add(flash);
+                (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(flash);
                 
                 // Animate the flash
                 let flashScale = 1;
@@ -469,7 +469,7 @@ export class ThunderDragonEffect extends FlyingDragonEffect {
         }
         
         // Add to scene
-        this.skill.game.scene.add(starGroup);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(starGroup);
         
         // Animate the stars
         let elapsed = 0;

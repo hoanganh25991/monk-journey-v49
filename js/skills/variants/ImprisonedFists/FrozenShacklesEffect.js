@@ -166,7 +166,7 @@ export class FrozenShacklesEffect extends ImprisonedFistsEffect {
             
             // Add to scene
             if (this.skill.game && this.skill.game.scene) {
-                this.skill.game.scene.add(shard);
+                (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(shard);
                 
                 // Store for cleanup
                 this.iceShards.push(shard);
@@ -243,7 +243,7 @@ export class FrozenShacklesEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(particles);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
             
             // Remove after a short duration
             setTimeout(() => {

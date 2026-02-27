@@ -184,7 +184,7 @@ export class FieryChainsEffect extends ImprisonedFistsEffect {
             
             // Add to scene
             if (this.skill.game && this.skill.game.scene) {
-                this.skill.game.scene.add(ember);
+                (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ember);
                 
                 // Store for cleanup and animation
                 this.fireEmbers.push(ember);
@@ -279,7 +279,7 @@ export class FieryChainsEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(particles);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
             
             // Remove after a short duration
             setTimeout(() => {

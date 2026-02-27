@@ -346,8 +346,8 @@ export class PlayerModel {
      */
     setPosition(position) {
         if (this.modelGroup) {
-            this.modelGroup.position.copy(position);
-            // console.debug("PlayerModel: Position updated to:", this.modelGroup.position);
+            // World rebasing: player model stays at origin; game logic uses position for collisions etc.
+            this.modelGroup.position.set(0, 0, 0);
         }
     }
     

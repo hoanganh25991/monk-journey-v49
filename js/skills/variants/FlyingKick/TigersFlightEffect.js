@@ -402,7 +402,7 @@ export class TigersFlightEffect extends FlyingKickEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Create tiger claw marks
         const clawGroup = new THREE.Group();
@@ -439,7 +439,7 @@ export class TigersFlightEffect extends FlyingKickEffect {
         clawGroup.position.copy(position);
         
         // Add to scene
-        this.skill.game.scene.add(clawGroup);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(clawGroup);
         
         // Animate the impact effect
         const startTime = this.skill.game.time.getElapsedTime();

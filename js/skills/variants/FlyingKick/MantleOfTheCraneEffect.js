@@ -370,7 +370,7 @@ export class MantleOfTheCraneEffect extends FlyingKickEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Create a ring effect
         const ringGeometry = new THREE.RingGeometry(0.1, 2, 32);
@@ -388,7 +388,7 @@ export class MantleOfTheCraneEffect extends FlyingKickEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // Animate the impact effect
         const startTime = this.skill.game.time.getElapsedTime();

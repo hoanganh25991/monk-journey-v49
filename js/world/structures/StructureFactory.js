@@ -18,9 +18,10 @@ import { Cave } from './Cave.js';
  * Centralizes structure object creation and provides a registry for all types
  */
 export class StructureFactory {
-    constructor(scene, worldManager) {
+    constructor(scene, worldManager, game = null) {
         this.scene = scene;
         this.worldManager = worldManager;
+        this.game = game;
         this.registry = new Map();
         
         // Register all structure creators
@@ -64,7 +65,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -79,7 +80,7 @@ export class StructureFactory {
             towerGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(towerGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(towerGroup);
             
             return towerGroup;
         });
@@ -93,7 +94,7 @@ export class StructureFactory {
             ruinsGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(ruinsGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(ruinsGroup);
             
             return ruinsGroup;
         });
@@ -107,7 +108,7 @@ export class StructureFactory {
             sanctumGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(sanctumGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(sanctumGroup);
             
             // Add a boss spawn point
             if (this.worldManager && this.worldManager.interactiveManager) {
@@ -135,7 +136,7 @@ export class StructureFactory {
             mountainGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(mountainGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(mountainGroup);
             
             return mountainGroup;
         });
@@ -172,7 +173,7 @@ export class StructureFactory {
             bridgeGroup.position.set(x, avgHeight, z);
             
             // Add to scene
-            this.scene.add(bridgeGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(bridgeGroup);
             
             return bridgeGroup;
         });
@@ -187,7 +188,7 @@ export class StructureFactory {
             villageGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(villageGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(villageGroup);
             
             // Add interactive objects like NPCs and treasure chests
             if (this.worldManager && this.worldManager.interactiveManager) {
@@ -216,7 +217,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -231,7 +232,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -246,7 +247,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -261,7 +262,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -276,7 +277,7 @@ export class StructureFactory {
             buildingGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(buildingGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(buildingGroup);
             
             return buildingGroup;
         });
@@ -291,7 +292,7 @@ export class StructureFactory {
             caveGroup.position.set(x, this.getTerrainHeight(x, z), z);
             
             // Add to scene
-            this.scene.add(caveGroup);
+            (this.game?.getWorldGroup?.() || this.scene).add(caveGroup);
             
             return caveGroup;
         });

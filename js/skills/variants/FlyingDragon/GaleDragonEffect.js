@@ -385,7 +385,7 @@ export class GaleDragonEffect extends FlyingDragonEffect {
         burst.rotation.z = Math.random() * Math.PI;
         
         // Add to scene
-        this.skill.game.scene.add(burst);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(burst);
         
         // Animate the burst
         let scale = 1;

@@ -260,7 +260,7 @@ export class ThunderousGripEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(ring);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
             
             // Store for animation and cleanup
             this.shockwaves.push(ring);
@@ -365,7 +365,7 @@ export class ThunderousGripEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(particles);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
             
             // Remove after a short duration
             setTimeout(() => {

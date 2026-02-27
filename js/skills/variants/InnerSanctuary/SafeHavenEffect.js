@@ -407,7 +407,7 @@ export class SafeHavenEffect extends InnerSanctuaryEffect {
         };
         
         // Add to scene
-        this.skill.game.scene.add(bubble);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(bubble);
         
         // Animate and remove the bubble
         const animateBubble = () => {

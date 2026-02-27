@@ -32,7 +32,7 @@ export class RemotePlayer {
         
         // Create a group to hold the player model and name tag
         this.group = new THREE.Group();
-        this.game.scene.add(this.group);
+        (this.game.getWorldGroup?.() || this.game.scene).add(this.group);
     }
     
     /**
@@ -576,7 +576,7 @@ export class RemotePlayer {
                     
                     // Add the effect to the scene
                     if (skillEffect) {
-                        this.game.scene.add(skillEffect);
+                        (this.game.getWorldGroup?.() || this.game.scene).add(skillEffect);
                         
                         // Store the skill in the game's active skills if possible
                         if (this.game.player && this.game.player.skills) {

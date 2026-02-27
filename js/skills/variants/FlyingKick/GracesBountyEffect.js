@@ -97,7 +97,7 @@ export class GracesBountyEffect extends FlyingKickEffect {
         const trail = new THREE.Line(trailGeometry, trailMaterial);
         
         // Add to scene (not to player, as it should stay in place during spin)
-        this.skill.game.scene.add(trail);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(trail);
         
         // Store for animation
         this.spinTrail = {
@@ -431,7 +431,7 @@ export class GracesBountyEffect extends FlyingKickEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Create a spiral ring
         const ringGeometry = new THREE.RingGeometry(0.1, 1.5, 32);
@@ -449,7 +449,7 @@ export class GracesBountyEffect extends FlyingKickEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // Animate the impact effect
         const startTime = this.skill.game && this.skill.game.clock ? this.skill.game.clock.getElapsedTime() : 0;

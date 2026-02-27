@@ -131,9 +131,9 @@ export class PlayerMovement {
                 this.position.x = newX;
                 this.position.z = newZ;
 
-                // Update model position - use the full position vector to ensure proper update
+                // Keep model at origin (world rebasing moves the world, not the player)
                 if (this.modelGroup) {
-                    this.modelGroup.position.set(this.position.x, this.modelGroup.position.y, this.position.z);
+                    this.modelGroup.position.set(0, 0, 0);
                 }
 
                 // Update rotation to face movement direction
@@ -227,9 +227,9 @@ export class PlayerMovement {
                 this.jumpCount = 0;
             }
             
-            // Always sync model to movement position (critical for visible jump)
+            // Keep model at origin (world rebasing: ground moves to groundY - playerY, so player stays at 0,0,0)
             if (this.modelGroup) {
-                this.modelGroup.position.set(this.position.x, this.position.y, this.position.z);
+                this.modelGroup.position.set(0, 0, 0);
             }
         } catch (err) {
             console.error('❌ Jump physics error:', err);
@@ -258,9 +258,9 @@ export class PlayerMovement {
             this.position.x = newPosition.x;
             this.position.z = newPosition.z;
             
-            // Update model position - use the full position vector to ensure proper update
+            // Keep model at origin (world rebasing moves the world, not the player)
             if (this.modelGroup) {
-                this.modelGroup.position.set(this.position.x, this.modelGroup.position.y, this.position.z);
+                this.modelGroup.position.set(0, 0, 0);
             }
             
             // Update rotation to face movement direction
@@ -317,9 +317,9 @@ export class PlayerMovement {
                 this.position.y = targetHeight;
             }
             
-                // Update model position - use the full position vector to ensure proper update
+                // Keep model at origin (world rebasing)
                 if (this.modelGroup) {
-                    this.modelGroup.position.set(this.position.x, this.position.y, this.position.z);
+                    this.modelGroup.position.set(0, 0, 0);
                 }
             } catch (error) {
                 console.debug(`Error updating terrain height for player: ${error.message}`);
@@ -335,40 +335,14 @@ export class PlayerMovement {
             return;
         }
         
-        // Position camera in a more top-down view with greater height and distance
+        // Camera and player are at origin for rendering (world rebasing). Use fixed offset from (0,0,0) for clean precision on all devices.
         const cameraOffset = new THREE.Vector3(0, 15, 20);
+        const cameraPosition = new THREE.Vector3(cameraOffset.x, cameraOffset.y, cameraOffset.z);
+        const cameraTarget = new THREE.Vector3(0, 0, 0);
         
-        // Validate player position before using it
-        if (isNaN(this.position.x) || isNaN(this.position.y) || isNaN(this.position.z)) {
-            console.warn("Invalid player position detected:", this.position);
-            // Reset player position to a safe value
-            this.position.set(0, 2, 0);
-        }
-        
-        const cameraTarget = new THREE.Vector3(
-            this.position.x,
-            this.position.y, // Look directly at player's position for top-down view
-            this.position.z
-        );
-        
-        // Calculate camera position
-        const cameraPosition = new THREE.Vector3(
-            this.position.x + cameraOffset.x,
-            this.position.y + cameraOffset.y,
-            this.position.z + cameraOffset.z
-        );
-        
-        // Validate camera position before applying
         if (!isNaN(cameraPosition.x) && !isNaN(cameraPosition.y) && !isNaN(cameraPosition.z)) {
-            // Update camera position
             this.camera.position.copy(cameraPosition);
-            
-            // Validate camera target before looking at it
-            if (!isNaN(cameraTarget.x) && !isNaN(cameraTarget.y) && !isNaN(cameraTarget.z)) {
-                this.camera.lookAt(cameraTarget);
-            }
-        } else {
-            console.warn("Invalid camera position calculated:", cameraPosition);
+            this.camera.lookAt(cameraTarget);
         }
     }
     
@@ -389,12 +363,12 @@ export class PlayerMovement {
             return;
         }
         
-        // Update position
+        // Update position (logical world position for game logic)
         this.position.set(x, y, z);
         
-        // Update model position (if it exists) - use the full position vector to ensure proper update
+        // Keep model at origin for rendering (world rebasing)
         if (this.modelGroup) {
-            this.modelGroup.position.set(x, y, z);
+            this.modelGroup.position.set(0, 0, 0);
         }
     }
     

@@ -353,7 +353,7 @@ export class BleedingEffect extends SkillEffect {
         const effectGroup = hitBleedingEffect.create(position, new THREE.Vector3(0, 1, 0));
         
         // Add the effect to the scene
-        this.skill.game.scene.add(effectGroup);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(effectGroup);
         
         // Add to the effects array for updates if we have access to the effects manager
         if (this.skill.game.effectsManager) {

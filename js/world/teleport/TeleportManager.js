@@ -433,7 +433,7 @@ export class TeleportManager {
         portalLabel.position.y += portal.size || 5; // Position above portal
         
         // Add to scene
-        this.scene.add(portalLabel);
+        (this.game?.getWorldGroup?.() || this.scene).add(portalLabel);
         
         // Store reference to nameplate
         this.portalLabels[portal.id] = portalLabel;

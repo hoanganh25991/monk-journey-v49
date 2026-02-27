@@ -279,7 +279,7 @@ export class SkillEffect {
         hitEffectGroup.position.copy(adjustedHitPosition);
         
         // Add to scene
-        this.skill.game.scene.add(hitEffectGroup);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(hitEffectGroup);
         
         // Animate the hit effect
         let elapsedTime = 0;

@@ -794,20 +794,13 @@ export class CameraControlUI extends UIComponent {
                 horizontalDegrees: THREE.MathUtils.radToDeg(this.cameraState.originalRotationY)
             });
         } else if (this.game && this.game.camera && this.game.player) {
-            // Calculate initial rotation from camera position (first time)
-            const playerPosition = this.game.player.getPosition();
+            // World rebasing: player is at (0,0,0); compute rotation from camera offset
             const cameraPosition = this.game.camera.position;
-            
-            // Calculate the horizontal angle (around Y axis)
-            // This is the angle in the XZ plane
-            const dx = cameraPosition.x - playerPosition.x;
-            const dz = cameraPosition.z - playerPosition.z;
+            const dx = cameraPosition.x;
+            const dz = cameraPosition.z;
             const horizontalAngle = Math.atan2(dx, dz);
-            
-            // Calculate the vertical angle (around X axis)
-            // This is the angle from the XZ plane to the camera
             const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
-            const dy = cameraPosition.y - (playerPosition.y + 20); // Adjust for height offset
+            const dy = cameraPosition.y - 20; // height offset
             const verticalAngle = Math.atan2(dy, horizontalDistance);
             
             // Store both original and current rotation values
@@ -1187,92 +1180,35 @@ export class CameraControlUI extends UIComponent {
                 return;
             }
             
-            // Get player position
-            const playerPosition = this.game.player.getPosition();
-            if (!playerPosition) {
-                console.error("Player position is null or undefined");
-                return;
-            }
-            console.debug("Player position:", playerPosition);
-            
-            // Use the camera distance from settings or default
+            // World rebasing: orbit around (0,0,0) for clean precision
             const distance = this.cameraDistance;
-            
-            // Validate rotation values to prevent NaN or Infinity
             if (isNaN(rotationX) || !isFinite(rotationX) || isNaN(rotationY) || !isFinite(rotationY)) {
                 console.error("Invalid rotation values:", {rotationX, rotationY});
                 return;
             }
-            
-            // Create a new THREE.Spherical to handle the orbital position calculation
-            // This is a more reliable way to position a camera in an orbit
             const spherical = new THREE.Spherical(
-                distance,                    // radius
-                Math.PI/2 - rotationX,       // phi (vertical angle from top)
-                rotationY                    // theta (horizontal angle)
+                distance,
+                Math.PI/2 - rotationX,
+                rotationY
             );
-            
-            // Convert spherical coordinates to cartesian
             const cameraOffset = new THREE.Vector3();
             cameraOffset.setFromSpherical(spherical);
-            
-            // Add the player position to get the final camera position
-            // Apply height offsets to position camera appropriately using the configurable height offset
-            // Negative values move the camera down, positive values move it up
             const heightOffset = this.cameraHeightConfig.heightOffset;
-            
             const cameraPosition = new THREE.Vector3(
-                playerPosition.x + cameraOffset.x,
-                playerPosition.y + cameraOffset.y + heightOffset, // Adjusted height offset for better view
-                playerPosition.z + cameraOffset.z
+                cameraOffset.x,
+                cameraOffset.y + heightOffset,
+                cameraOffset.z
             );
-            
-            // Validate camera position to prevent NaN or Infinity
             if (isNaN(cameraPosition.x) || !isFinite(cameraPosition.x) ||
                 isNaN(cameraPosition.y) || !isFinite(cameraPosition.y) ||
                 isNaN(cameraPosition.z) || !isFinite(cameraPosition.z)) {
                 console.error("Invalid camera position calculated:", cameraPosition);
                 return;
             }
-            
-            console.debug("New camera position calculated:", cameraPosition);
-            console.debug("Vertical angle in degrees:", THREE.MathUtils.radToDeg(rotationX));
-            
-            // Store original camera position for comparison
-            const originalPosition = this.game.camera.position.clone();
-            
-            // Update camera position
             this.game.camera.position.copy(cameraPosition);
-            
-            console.debug("Camera position updated from:", originalPosition, "to:", this.game.camera.position);
-            
-            // Calculate look direction based on rotation
-            // When looking up (positive rotationX), we want to look higher than the player's head
-            // When looking down (negative rotationX), we want to look lower
-            
-            // Calculate vertical offset based on camera mode and rotation
-            let verticalOffset;
-            
-            // Use the configurable vertical look offset as the base value
-            // Then add rotation-based adjustment to allow looking up/down when rotating
             const rotationFactor = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? 15 : 25;
-            verticalOffset = this.cameraHeightConfig.verticalLookOffset + (rotationX * rotationFactor);
-            
-            // Look at position that changes with vertical rotation
-            const lookAtPosition = new THREE.Vector3(
-                playerPosition.x,
-                playerPosition.y + verticalOffset, // Adjust vertical look target based on rotation and mode
-                playerPosition.z
-            );
-            
-            // Validate lookAt position
-            if (isNaN(lookAtPosition.x) || !isFinite(lookAtPosition.x) ||
-                isNaN(lookAtPosition.y) || !isFinite(lookAtPosition.y) ||
-                isNaN(lookAtPosition.z) || !isFinite(lookAtPosition.z)) {
-                console.error("Invalid lookAt position calculated:", lookAtPosition);
-                return;
-            }
-            
+            const verticalOffset = this.cameraHeightConfig.verticalLookOffset + (rotationX * rotationFactor);
+            const lookAtPosition = new THREE.Vector3(0, verticalOffset, 0);
             this.game.camera.lookAt(lookAtPosition);
             
             console.debug("Camera lookAt set to:", lookAtPosition, "with vertical offset:", verticalOffset);
@@ -1433,62 +1369,30 @@ export class CameraControlUI extends UIComponent {
             
             // Only update if we have valid rotation values
             if (rotationX !== undefined && rotationY !== undefined) {
-                // Get player position
-                const playerPosition = this.game.player.getPosition();
-                
-                // Use the camera distance from settings or default
+                // World rebasing: player is at (0,0,0) for rendering; orbit camera around origin for clean precision
                 const distance = this.cameraDistance;
-                
-                // Create a new THREE.Spherical to handle the orbital position calculation
                 const spherical = new THREE.Spherical(
-                    distance,                    // radius
-                    Math.PI/2 - rotationX,       // phi (vertical angle from top)
-                    rotationY                    // theta (horizontal angle)
+                    distance,
+                    Math.PI/2 - rotationX,
+                    rotationY
                 );
-                
-                // Convert spherical coordinates to cartesian
                 const cameraOffset = new THREE.Vector3();
                 cameraOffset.setFromSpherical(spherical);
-                
-                // Add the player position to get the final camera position
-                // Use the configured height offset from cameraHeightConfig
                 const heightOffset = this.cameraHeightConfig.heightOffset;
-                
                 const cameraPosition = new THREE.Vector3(
-                    playerPosition.x + cameraOffset.x,
-                    playerPosition.y + cameraOffset.y + heightOffset, // Use the user-configured height offset
-                    playerPosition.z + cameraOffset.z
+                    cameraOffset.x,
+                    cameraOffset.y + heightOffset,
+                    cameraOffset.z
                 );
-                
-                // Update camera position
                 this.game.camera.position.copy(cameraPosition);
-                
-                // Calculate vertical offset based on user configuration and rotation
-                // Use the configurable vertical look offset as the base value
-                // Then add rotation-based adjustment to allow looking up/down when rotating
                 const rotationFactor = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? 15 : 25;
                 const verticalOffset = this.cameraHeightConfig.verticalLookOffset + (rotationX * rotationFactor);
-                
-                // Look at position that changes with vertical rotation
-                const lookAtPosition = new THREE.Vector3(
-                    playerPosition.x,
-                    playerPosition.y + verticalOffset,
-                    playerPosition.z
-                );
-                
-                // Update camera look-at
+                const lookAtPosition = new THREE.Vector3(0, verticalOffset, 0);
                 this.game.camera.lookAt(lookAtPosition);
-                
-                // Update orbit controls target if available
                 if (this.game.controls) {
                     this.game.controls.target.copy(lookAtPosition);
                 }
-                
-                // Force the camera to update its matrix
                 this.game.camera.updateMatrixWorld(true);
-                
-                // Log that we're maintaining the camera position
-                // console.debug("Maintaining camera position in update loop");
             }
         }
     }
@@ -1581,20 +1485,12 @@ export class CameraControlUI extends UIComponent {
             } catch (error) {
                 console.error("Error during camera reset:", error);
                 
-                // Last resort - try to directly position the camera
+                // Last resort - world rebasing: player at (0,0,0)
                 if (this.game && this.game.camera && this.game.player) {
                     try {
-                        const playerPosition = this.game.player.getPosition();
-                        if (playerPosition) {
-                            // Position camera directly behind player
-                            this.game.camera.position.set(
-                                playerPosition.x, 
-                                playerPosition.y + 20, 
-                                playerPosition.z + 20
-                            );
-                            this.game.camera.lookAt(playerPosition);
-                            console.debug("Camera emergency reset applied");
-                        }
+                        this.game.camera.position.set(0, 20, 20);
+                        this.game.camera.lookAt(0, 0, 0);
+                        console.debug("Camera emergency reset applied");
                     } catch (emergencyError) {
                         console.error("Emergency camera positioning failed:", emergencyError);
                     }

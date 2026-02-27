@@ -211,7 +211,7 @@ export class BreathOfHeavenEffect extends SkillEffect {
                     
                     // Create and add the effect to the scene
                     const effectGroup = healEffect.create(healPosition, new THREE.Vector3(0, 1, 0));
-                    this.skill.game.scene.add(effectGroup);
+                    (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(effectGroup);
                     
                     // Add to effects manager for updates
                     this.skill.game.effectsManager.effects.push(healEffect);

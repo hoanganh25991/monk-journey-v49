@@ -194,7 +194,7 @@ export class TempestsHeartEffect extends CycloneStrikeEffect {
         
         // Add to scene
         if (this.skill.game.scene) {
-            this.skill.game.scene.add(lightning);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(lightning);
             
             // Store for animation and cleanup
             this.lightningBolts.push({

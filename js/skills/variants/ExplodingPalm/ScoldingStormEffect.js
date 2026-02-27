@@ -130,7 +130,7 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
         particles.position.copy(enemyPosition);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Store for animation and cleanup
         const frostParticleData = {
@@ -282,7 +282,7 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
         const shards = new THREE.Points(shardGeometry, shardMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(shards);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(shards);
         
         // 2. Frost ring
         const ringGeometry = new THREE.RingGeometry(0.1, this.explosionRadius, 32);
@@ -300,7 +300,7 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // 3. Frost mist
         const mistCount = 50;
@@ -344,7 +344,7 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
         const mist = new THREE.Points(mistGeometry, mistMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(mist);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(mist);
         
         // Animate the explosion
         const startTime = this.skill.game.time.getElapsedTime();
@@ -481,7 +481,7 @@ export class ScoldingStormEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the burst
         const startTime = this.skill.game.time.getElapsedTime();

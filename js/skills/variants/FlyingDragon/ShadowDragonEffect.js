@@ -224,7 +224,7 @@ export class ShadowDragonEffect extends FlyingDragonEffect {
             cloneGroup.position.z -= playerDirection.z * 1.5;
             
             // Add to scene
-            this.skill.game.scene.add(cloneGroup);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(cloneGroup);
             
             // Store for animation and updates
             this.shadowCloneObject = cloneGroup;
@@ -448,7 +448,7 @@ export class ShadowDragonEffect extends FlyingDragonEffect {
         flash.position.copy(position);
         
         // Add to scene
-        this.skill.game.scene.add(flash);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(flash);
         
         // Animate and remove
         const startTime = Date.now();

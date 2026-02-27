@@ -149,7 +149,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         particles.position.copy(enemyPosition);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Store for animation and cleanup
         const fireParticleData = {
@@ -273,7 +273,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // 2. Fire particles
         const particleCount = 50;
@@ -322,7 +322,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the explosion
         const startTime = this.skill.game.time.getElapsedTime();
@@ -463,7 +463,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         burnAreaGroup.add(fireParticles);
         
         // Add to scene
-        this.skill.game.scene.add(burnAreaGroup);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(burnAreaGroup);
         
         // Store for animation and cleanup
         this.burnAreaEffect = {
@@ -625,7 +625,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the fire
         const startTime = this.skill.game.time.getElapsedTime();
@@ -738,7 +738,7 @@ export class PathOfThePresentEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the burst
         const startTime = this.skill.game.time.getElapsedTime();

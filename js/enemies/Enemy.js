@@ -161,8 +161,9 @@ export class Enemy {
             this._setupLOD(profile.enemyLod);
         }
         
-        // Add model to scene
-        this.scene.add(this.modelGroup);
+        // Add model to world group for origin rebasing (clean render at any distance)
+        const root = this.game?.getWorldGroup?.() || this.scene;
+        root.add(this.modelGroup);
     }
 
     /**

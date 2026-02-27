@@ -239,7 +239,7 @@ export class PathManager {
         }
         stoneGroup.userData.sharedGeometry = stoneGeometry;
         stoneGroup.userData.sharedMaterial = stoneMaterial;
-        this.scene.add(stoneGroup);
+        (this.game?.getWorldGroup?.() || this.scene).add(stoneGroup);
         this.edgeStoneMeshes.push(stoneGroup);
     }
     
@@ -373,7 +373,7 @@ export class PathManager {
         pathMesh.frustumCulled = true;
         pathMesh.userData = { isPath: true, pathId: pathId };
         
-        this.scene.add(pathMesh);
+        (this.game?.getWorldGroup?.() || this.scene).add(pathMesh);
         this.pathMeshes.push(pathMesh);
     }
     

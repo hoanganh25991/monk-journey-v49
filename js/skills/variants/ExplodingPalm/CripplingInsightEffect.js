@@ -120,7 +120,7 @@ export class CripplingInsightEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the blood drips falling to the ground
         const startTime = this.skill.game.time.getElapsedTime();
@@ -237,7 +237,7 @@ export class CripplingInsightEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the blood splash
         const startTime = this.skill.game.time.getElapsedTime();

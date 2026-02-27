@@ -126,7 +126,7 @@ export class EffectsManager {
         
         // Add the effect to the scene
         if (this.game && this.game.scene) {
-            this.game.scene.add(effectGroup);
+            (this.game.getWorldGroup?.() || this.game.scene).add(effectGroup);
             
             // Add to the effects array for updates
             this.effects.push(bleedingEffect);
@@ -270,7 +270,7 @@ export class EffectsManager {
         
         // Add the shield to the scene
         if (this.game && this.game.scene) {
-            this.game.scene.add(group);
+            (this.game.getWorldGroup?.() || this.game.scene).add(group);
             
             // Add to the effects array for updates
             this.effects.push(shieldEffect);
@@ -375,7 +375,7 @@ export class EffectsManager {
         
         // Add the effect to the scene
         if (this.game && this.game.scene) {
-            this.game.scene.add(group);
+            (this.game.getWorldGroup?.() || this.game.scene).add(group);
             
             // Add to the effects array for updates
             this.effects.push(defenseBoostEffect);
@@ -515,7 +515,7 @@ export class EffectsManager {
         
         // Add the effect to the scene
         if (this.game && this.game.scene) {
-            this.game.scene.add(group);
+            (this.game.getWorldGroup?.() || this.game.scene).add(group);
             
             // Add to the effects array for updates
             this.effects.push(freezeEffect);

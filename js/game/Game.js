@@ -230,6 +230,20 @@ export class Game {
             this.scene.background = new THREE.Color(0x6B7B8C); // Darker blue-gray for atmospheric mood
             // Fog will be managed by FogManager
             
+            // World origin rebasing: keep rendering near (0,0,0) to avoid float precision blur on mobile when far from origin.
+            // All world content (terrain, env, enemies, etc.) goes in worldGroup; we set worldGroup.position = -playerPosition each frame.
+            // Player model stays at (0,0,0) in scene; camera orbits (0,0,0). Game logic still uses logical world positions.
+            this.worldGroup = new THREE.Group();
+            this.worldGroup.name = 'WorldGroup';
+            this.scene.add(this.worldGroup);
+            
+            /**
+             * Root for world-positioned objects (terrain, env, enemies, items). Used for origin rebasing:
+             * worldGroup.position = -playerPosition so the player stays at (0,0,0) for clean rendering on all devices.
+             * @returns {THREE.Group}
+             */
+            this.getWorldGroup = () => this.worldGroup;
+            
             // Initialize item drop manager
             this.itemDropManager = new ItemDropManager(this.scene, this);
             
@@ -579,7 +593,7 @@ export class Game {
             const dpr = window.devicePixelRatio || 1;
             let pixelRatio = settings?.pixelRatio ?? dpr;
             if (qualityLevel === 'high') {
-                pixelRatio = Math.min(dpr, 2);
+                pixelRatio = 2;
             } else if (qualityLevel === 'medium') {
                 pixelRatio = Math.min(dpr, 0.85);
             } else if (this.deviceCapabilities && (this.deviceCapabilities.isMobile || this.deviceCapabilities.isTablet) &&
@@ -909,6 +923,11 @@ export class Game {
         // Update player
         this.player.update(delta);
         
+        // Rebase world so player is at origin for rendering (avoids float precision blur far from 0,0,0)
+        if (this.worldGroup && this.player?.movement?.getPosition) {
+            this.worldGroup.position.copy(this.player.movement.getPosition()).negate();
+        }
+        
         // Update world based on player position
         this.world.update(this.player.getPosition(), delta);
         
@@ -1106,7 +1125,7 @@ export class Game {
         // Apply pixel ratio - always compute from current device so "high" on mobile is sharp (not baked at load time)
         let pixelRatio;
         if (qualityLevel === 'high') {
-            pixelRatio = Math.min(dpr, 2);
+            pixelRatio = 2;
         } else if (qualityLevel === 'medium') {
             pixelRatio = Math.min(dpr, 0.85);
         } else {

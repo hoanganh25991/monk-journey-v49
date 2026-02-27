@@ -97,7 +97,7 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // 2. Smoke particles
         const particleCount = 50;
@@ -138,7 +138,7 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Store for animation
         this.smokeParticles = particles;
@@ -266,7 +266,7 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
         particles.position.copy(enemyPosition);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the incense aura
         const startTime = this.skill.game.time.getElapsedTime();
@@ -390,7 +390,7 @@ export class BreathOfIncenseEffect extends ExplodingPalmEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the burst
         const startTime = this.skill.game.time.getElapsedTime();

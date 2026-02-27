@@ -359,7 +359,7 @@ export class BulShadowCloneEffect extends SkillEffect {
                 // Energy aura removed - keeping only the model
                 
                 // Add to scene
-                this.skill.game.scene.add(cloneGroup);
+                (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(cloneGroup);
                 
                 // Create clone object (target is a reference; once set, clone keeps it until target dies)
                 const clone = {

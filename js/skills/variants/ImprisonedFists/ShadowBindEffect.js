@@ -183,7 +183,7 @@ export class ShadowBindEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(tendril);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(tendril);
             
             // Store for animation and cleanup
             this.shadowTendrils.push({
@@ -331,7 +331,7 @@ export class ShadowBindEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(particles);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
             
             // Remove after a short duration
             setTimeout(() => {

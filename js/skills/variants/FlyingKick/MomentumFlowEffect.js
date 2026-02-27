@@ -149,7 +149,7 @@ export class MomentumFlowEffect extends FlyingKickEffect {
         afterimage.rotation.copy(effectObject.player.rotation);
         
         // Add to scene
-        this.skill.game.scene.add(afterimage);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(afterimage);
         
         // Store for animation
         this.afterimages.push({
@@ -401,7 +401,7 @@ export class MomentumFlowEffect extends FlyingKickEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(lightning);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(lightning);
         }
         
         // Animate the dash effect
@@ -529,7 +529,7 @@ export class MomentumFlowEffect extends FlyingKickEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Create lightning bolts
         const boltCount = 5;
@@ -576,7 +576,7 @@ export class MomentumFlowEffect extends FlyingKickEffect {
             const bolt = new THREE.Line(geometry, material);
             
             // Add to scene
-            this.skill.game.scene.add(bolt);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(bolt);
             
             // Store for animation
             bolts.push({

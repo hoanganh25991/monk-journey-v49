@@ -505,7 +505,7 @@ export class PlayerSkills {
         // Add skill effect to scene
         if (skillEffect) {
             console.debug(`Adding ${skillTemplate.name} effect to scene`);
-            this.scene.add(skillEffect);
+            (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
         } else {
             console.error(`Failed to create effect for ${skillTemplate.name}`);
         }
@@ -604,7 +604,7 @@ export class PlayerSkills {
                 const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                 
                 // Add skill effect to scene
-                this.scene.add(skillEffect);
+                (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
                 
                 // Play sound
                 if (this.game && this.game.audioManager) {
@@ -666,7 +666,7 @@ export class PlayerSkills {
                         const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        this.scene.add(skillEffect);
+                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
                     } else {
                         // Enemy is beyond minimum teleport range, teleport to the enemy
                         console.debug(`Enemy at distance ${distanceToEnemy.toFixed(2)} is beyond minimum teleport range (${minTeleportRange}), teleporting`);
@@ -686,7 +686,7 @@ export class PlayerSkills {
                         const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        this.scene.add(skillEffect);
+                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
                     }
                     
                     // Play sound
@@ -721,7 +721,7 @@ export class PlayerSkills {
                         const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        this.scene.add(skillEffect);
+                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
                         
                         // Play sound
                         if (this.game && this.game.audioManager) {
@@ -762,7 +762,7 @@ export class PlayerSkills {
                         
                         this.playerPosition.copy(teleportPosition);
                         const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
-                        this.scene.add(skillEffect);
+                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
                         
                         if (this.game && this.game.audioManager) {
                             this.game.audioManager.playSound('playerAttack');

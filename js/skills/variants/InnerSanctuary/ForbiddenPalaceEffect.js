@@ -402,7 +402,7 @@ export class ForbiddenPalaceEffect extends InnerSanctuaryEffect {
         };
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // Store for animation and cleanup
         this.slowTimeEffects.push(ring);

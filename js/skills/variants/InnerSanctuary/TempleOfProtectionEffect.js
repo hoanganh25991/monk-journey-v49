@@ -389,7 +389,7 @@ export class TempleOfProtectionEffect extends InnerSanctuaryEffect {
         ring.rotation.x = -Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // Animate and remove the ring
         let pulseTime = 0;

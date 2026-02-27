@@ -183,7 +183,7 @@ export class TerrainManager {
                     const chunk = this.buffer.get(chunkKey);
                     this.buffer.delete(chunkKey);
                     this.chunks.set(chunkKey, chunk);
-                    this.scene.add(chunk);
+                    (this.game?.getWorldGroup?.() || this.scene).add(chunk);
                     continue;
                 }
                 const dx = x - centerChunk.x, dz = z - centerChunk.z;
@@ -324,7 +324,7 @@ export class TerrainManager {
         if (isImmediate) {
             // Add to active chunks and scene immediately
             this.chunks.set(chunkKey, chunk);
-            this.scene.add(chunk);
+            (this.game?.getWorldGroup?.() || this.scene).add(chunk);
         } else {
             // Add to buffer
             this.buffer.set(chunkKey, chunk);
@@ -939,7 +939,7 @@ export class TerrainManager {
         // Remove chunks
         for (const { key, chunk, isActive } of chunksToRemove) {
             if (isActive) {
-                this.scene.remove(chunk);
+                (chunk.parent || this.scene).remove(chunk);
                 this.chunks.delete(key);
             } else {
                 this.buffer.delete(key);
@@ -1081,14 +1081,14 @@ export class TerrainManager {
     clear() {
         // Remove base terrain if it exists (legacy cleanup)
         if (this.baseTerrain) {
-            this.scene.remove(this.baseTerrain);
+            (this.baseTerrain.parent || this.scene).remove(this.baseTerrain);
             this.baseTerrain.geometry.dispose();
             this.baseTerrain = null;
         }
         
         // Remove all chunks from scene
         for (const chunk of this.chunks.values()) {
-            this.scene.remove(chunk);
+            (chunk.parent || this.scene).remove(chunk);
             chunk.geometry.dispose();
         }
         

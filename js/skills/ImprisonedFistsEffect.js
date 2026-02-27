@@ -146,7 +146,7 @@ export class ImprisonedFistsEffect extends SkillEffect {
         
         // Add ground indicator to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(this.groundIndicator);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(this.groundIndicator);
         }
         
         // Position the effect
@@ -313,7 +313,7 @@ export class ImprisonedFistsEffect extends SkillEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(ring);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
             
             // Store for cleanup
             this.lockEffects.push(ring);

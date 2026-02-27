@@ -402,7 +402,7 @@ export class PathOfTheStormEffect extends CycloneStrikeEffect {
         
         // Add to scene
         if (this.skill.game.scene) {
-            this.skill.game.scene.add(particles);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
             
             // Remove after a short time
             setTimeout(() => {

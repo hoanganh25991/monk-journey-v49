@@ -291,9 +291,9 @@ export class EnvironmentManager {
                 object = this.worldManager.lodManager.applyLOD(object, type, position);
             }
             
-            // Add to scene (only if not already added by factory)
+            // Add to world group for origin rebasing (only if not already added by factory)
             if (object.parent === null) {
-                this.scene.add(object);
+                (this.game?.getWorldGroup?.() || this.scene).add(object);
                 console.debug(`🌳 EnvironmentManager: Added ${type} to scene at (${x.toFixed(1)}, ${y.toFixed(1)}, ${z.toFixed(1)})`);
             } else {
                 console.debug(`🌳 EnvironmentManager: ${type} already had parent, not adding to scene`);

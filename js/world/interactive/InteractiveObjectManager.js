@@ -131,7 +131,7 @@ export class InteractiveObjectManager {
         chestGroup.position.set(x, y, z);
         
         // Add to scene
-        this.scene.add(chestGroup);
+        (this.game?.getWorldGroup?.() || this.scene).add(chestGroup);
         
         // If the chest should be open, call open() method
         if (isOpen) {
@@ -188,7 +188,7 @@ export class InteractiveObjectManager {
         markerGroup.position.set(x, this.worldManager.getTerrainHeight(x, z), z);
         
         // Add to scene
-        this.scene.add(markerGroup);
+        (this.game?.getWorldGroup?.() || this.scene).add(markerGroup);
         
         // Add to interactive objects
         this.interactiveObjects.push({
@@ -232,7 +232,7 @@ export class InteractiveObjectManager {
         markerGroup.position.set(x, this.worldManager.getTerrainHeight(x, z), z);
         
         // Add to scene
-        this.scene.add(markerGroup);
+        (this.game?.getWorldGroup?.() || this.scene).add(markerGroup);
         
         // Add to interactive objects
         this.interactiveObjects.push({

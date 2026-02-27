@@ -252,7 +252,7 @@ export class LightningBurstEffect extends WaveOfLightEffect {
         const lightning = new THREE.Line(geometry, material);
         
         // Add to scene
-        this.skill.game.scene.add(lightning);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(lightning);
         
         // Create glow effect
         const glowMaterial = new THREE.LineBasicMaterial({
@@ -266,7 +266,7 @@ export class LightningBurstEffect extends WaveOfLightEffect {
         const glowLightning = new THREE.Line(geometry, glowMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(glowLightning);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(glowLightning);
         
         // Store for animation and cleanup
         this.lightningBolts.push({
@@ -332,7 +332,7 @@ export class LightningBurstEffect extends WaveOfLightEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the impact effect
         const startTime = this.skill.game.time.getElapsedTime();

@@ -23,7 +23,7 @@ export class StructureManager {
         this.performanceProfile = getPerformanceProfile(this.qualityLevel);
         
         // Initialize structure factory
-        this.structureFactory = new StructureFactory(scene, worldManager);
+        this.structureFactory = new StructureFactory(scene, worldManager, game);
         
         // Structure collections
         this.structures = [];

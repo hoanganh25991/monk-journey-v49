@@ -37,12 +37,13 @@ export class ItemDropManager {
         ring.rotation.x = -Math.PI / 2;
         ring.position.copy(itemGroup.position);
         ring.position.y += 0.05;
-        this.scene.add(ring);
+        const worldRoot = this.game?.getWorldGroup?.() || this.scene;
+        worldRoot.add(ring);
 
         ItemModelFactory.applyRarityEffects(itemModel, item);
         this.ensureMaterialsSafe(itemGroup);
 
-        this.scene.add(itemGroup);
+        worldRoot.add(itemGroup);
         const dropId = `drop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         this.droppedItems.set(dropId, { item, group: itemGroup, model: itemModel, ring, dropTime: Date.now() });
 

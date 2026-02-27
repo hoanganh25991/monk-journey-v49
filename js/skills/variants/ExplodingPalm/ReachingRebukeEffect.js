@@ -186,7 +186,7 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
         const lightning = new THREE.Line(geometry, material);
         
         // Add to scene
-        this.skill.game.scene.add(lightning);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(lightning);
         
         // Store for animation and cleanup
         this.lightningBolts.push({
@@ -288,7 +288,7 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
         particles.position.copy(enemyPosition);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the electric aura
         const startTime = this.skill.game.time.getElapsedTime();
@@ -389,7 +389,7 @@ export class ReachingRebukeEffect extends ExplodingPalmEffect {
         ring.rotation.x = Math.PI / 2; // Lay flat
         
         // Add to scene
-        this.skill.game.scene.add(ring);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(ring);
         
         // Animate the burst
         const startTime = this.skill.game.time.getElapsedTime();

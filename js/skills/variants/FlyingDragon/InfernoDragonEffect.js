@@ -337,7 +337,7 @@ export class InfernoDragonEffect extends FlyingDragonEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Animate the fire effect
         let elapsed = 0;

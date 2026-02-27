@@ -304,7 +304,7 @@ export class DamageNumberSpriteEffect {
         this.group.position.copy(this.worldPosition);
         this.group.add(this.mesh);
 
-        this.game.scene.add(this.group);
+        (this.game.getWorldGroup?.() || this.game.scene).add(this.group);
         return true;
     }
 

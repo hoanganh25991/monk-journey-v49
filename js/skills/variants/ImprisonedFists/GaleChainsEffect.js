@@ -310,7 +310,7 @@ export class GaleChainsEffect extends ImprisonedFistsEffect {
         
         // Add to scene
         if (this.skill.game && this.skill.game.scene) {
-            this.skill.game.scene.add(vortex);
+            (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(vortex);
             
             // Store for animation and cleanup
             this.airCurrents.push({

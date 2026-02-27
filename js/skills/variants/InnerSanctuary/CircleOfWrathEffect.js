@@ -463,7 +463,7 @@ export class CircleOfWrathEffect extends InnerSanctuaryEffect {
         const particles = new THREE.Points(particleGeometry, particleMaterial);
         
         // Add to scene
-        this.skill.game.scene.add(particles);
+        (this.skill.game.getWorldGroup?.() || this.skill.game.scene).add(particles);
         
         // Remove after a short duration
         setTimeout(() => {
