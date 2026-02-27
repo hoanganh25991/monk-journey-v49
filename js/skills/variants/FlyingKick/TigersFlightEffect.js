@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
+import { fastInvSqrt, fastCos, fastSin } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Tiger's Flight variant of Flying Kick
@@ -278,19 +279,15 @@ export class TigersFlightEffect extends FlyingKickEffect {
             positions[i * 3 + 1] += (0.5 + Math.random() * 0.5) * delta;
             positions[i * 3 + 2] += (Math.random() - 0.5) * 0.2;
             
-            // Reset particles that go too far
-            const distance = Math.sqrt(
-                positions[i * 3] * positions[i * 3] +
-                positions[i * 3 + 2] * positions[i * 3 + 2]
-            );
-            
-            if (distance > 2 || positions[i * 3 + 1] > 3 || Math.random() < 0.05) {
+            // Reset particles that go too far (squared distance avoids sqrt)
+            const dx = positions[i * 3], dz = positions[i * 3 + 2];
+            const distSq = dx * dx + dz * dz;
+            if (distSq > 4 || positions[i * 3 + 1] > 3 || Math.random() < 0.05) {
                 const angle = Math.random() * Math.PI * 2;
                 const radius = Math.random() * 0.5;
-                
-                positions[i * 3] = Math.cos(angle) * radius;
+                positions[i * 3] = fastCos(angle) * radius;
                 positions[i * 3 + 1] = Math.random() * 0.5;
-                positions[i * 3 + 2] = Math.sin(angle) * radius;
+                positions[i * 3 + 2] = fastSin(angle) * radius;
             }
         }
         
@@ -477,12 +474,11 @@ export class TigersFlightEffect extends FlyingKickEffect {
                 const dx = positions[i * 3] - position.x;
                 const dy = positions[i * 3 + 1] - position.y - 0.5;
                 const dz = positions[i * 3 + 2] - position.z;
-                
-                // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() + 0.5; // Mostly upward
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
+                const lenSq = dx * dx + dy * dy + dz * dz;
+                const invLen = lenSq > 0 ? fastInvSqrt(lenSq) : 0;
+                const dirX = invLen > 0 ? dx * invLen : Math.random() - 0.5;
+                const dirY = invLen > 0 ? dy * invLen : Math.random() + 0.5;
+                const dirZ = invLen > 0 ? dz * invLen : Math.random() - 0.5;
                 
                 // Move outward and upward
                 const speed = 2;

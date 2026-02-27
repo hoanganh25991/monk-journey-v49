@@ -636,6 +636,15 @@
                 </div>
             </div>
             <div id="join-connection-status" class="connection-status"></div>
+            <!-- NFC: ask to confirm before joining (HOST or PLAYER touched this device) -->
+            <div id="nfc-join-confirm" class="nfc-join-confirm" style="display: none;">
+                <p class="nfc-join-confirm-msg">Game found. Join this game?</p>
+                <p class="nfc-join-confirm-code"></p>
+                <div class="nfc-join-confirm-btns">
+                    <button type="button" id="nfc-join-confirm-join-btn" class="settings-button">Join</button>
+                    <button type="button" id="nfc-join-confirm-cancel-btn" class="settings-button secondary-button">Cancel</button>
+                </div>
+            </div>
             <button id="join-use-code-qr-btn" class="settings-button secondary-button" style="display: none; margin: 0.5rem auto;">Use code or QR</button>
         </div>
         

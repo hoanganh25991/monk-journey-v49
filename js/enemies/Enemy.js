@@ -856,14 +856,21 @@ export class Enemy {
             const remotePlayerCount = this.player.game.multiplayerManager.remotePlayerManager ? 
                 this.player.game.multiplayerManager.remotePlayerManager.getPlayers().size : 0;
             const totalPlayerCount = remotePlayerCount + 1; // +1 for local player
-            
-            // Calculate experience per player (divide equally)
-            const expPerPlayer = Math.floor(this.experienceValue / totalPlayerCount);
-            
-            // Award experience to local player
-            this.player.addExperience(expPerPlayer);
-            
-            // If we're the host, broadcast experience to all remote players
+            const partyBonusMult = 1 + (totalPlayerCount - 1) * 0.15;
+            const totalExpToShare = this.experienceValue * partyBonusMult;
+            const expPerPlayer = Math.floor(totalExpToShare / totalPlayerCount);
+            let hostExp = expPerPlayer;
+            const effectsManager = this.player.game.effectsManager;
+            const deathPos = this.getPosition ? this.getPosition() : this.position;
+            const pos = deathPos && typeof deathPos.x === 'number' ? { x: deathPos.x, y: (deathPos.y ?? 0) + 1, z: deathPos.z } : { x: 0, y: 1, z: 0 };
+            void effectsManager?.createExperienceNumberSprite(expPerPlayer, pos, { isBonus: false });
+            const bonusChance = 0.15;
+            if (Math.random() < bonusChance && effectsManager) {
+                const bonusAmount = Math.max(1, Math.floor(expPerPlayer * (0.25 + Math.random() * 0.25)));
+                hostExp += bonusAmount;
+                void effectsManager.createExperienceNumberSprite(bonusAmount, pos, { isBonus: true });
+            }
+            this.player.addExperience(hostExp);
             if (this.player.game.multiplayerManager.isHost) {
                 this.player.game.multiplayerManager.connection.broadcast({
                     type: 'shareExperience',
@@ -871,8 +878,6 @@ export class Enemy {
                     enemyId: this.id,
                     playerCount: totalPlayerCount
                 });
-                
-                console.debug(`[Multiplayer] Shared ${expPerPlayer} experience with ${totalPlayerCount} players from enemy ${this.id}`);
             }
         } else {
             // Single player mode - award all experience to the player
@@ -1056,8 +1061,10 @@ export class Enemy {
                 });
             }
             
-            // Remove from scene
-            this.scene.remove(this.modelGroup);
+            // Remove from actual parent (we add to getWorldGroup() or scene, so remove from parent)
+            if (this.modelGroup.parent) {
+                this.modelGroup.parent.remove(this.modelGroup);
+            }
             this.modelGroup = null;
             
             // Force a garbage collection hint (not guaranteed to run)

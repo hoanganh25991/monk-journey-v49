@@ -1,5 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { EnemyModel } from './EnemyModel.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 
 /**
  * Model for Fire Elemental enemy type
@@ -141,12 +142,10 @@ export class FireElementalModel extends EnemyModel {
                 // Pulsate the core (faster when moving, intense when attacking)
                 const pulseBase = this.enemy.state.isAttacking ? 0.25 : 0.1;
                 const pulseSpeed = 3.0 * moveBoost * attackBoost;
-                const pulseFactor = 1.0 + Math.sin(time * pulseSpeed) * pulseBase;
+                const pulseFactor = 1.0 + fastSin(time * pulseSpeed) * pulseBase;
                 core.scale.set(pulseFactor, pulseFactor, pulseFactor);
-                
-                // Pulsate the outer flame more dramatically
                 const flamePulseBase = this.enemy.state.isAttacking ? 0.35 : 0.2;
-                const flamePulseFactor = 1.0 + Math.sin(time * 2.0 * moveBoost) * flamePulseBase;
+                const flamePulseFactor = 1.0 + fastSin(time * 2.0 * moveBoost) * flamePulseBase;
                 flame.scale.set(flamePulseFactor, flamePulseFactor, flamePulseFactor);
             }
             
@@ -173,14 +172,12 @@ export class FireElementalModel extends EnemyModel {
             
             // If particle is too old, reset it
             if (userData.age > userData.maxAge) {
-                // Reset position
                 const angle = Math.random() * Math.PI * 2;
                 const radius = 0.3 + Math.random() * 0.5;
-                
                 particle.position.set(
-                    Math.sin(angle) * radius,
+                    fastSin(angle) * radius,
                     0.7 + Math.random() * 0.5,
-                    Math.cos(angle) * radius
+                    fastCos(angle) * radius
                 );
                 
                 // Reset velocity

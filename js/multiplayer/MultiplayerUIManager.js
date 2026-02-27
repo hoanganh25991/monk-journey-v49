@@ -350,9 +350,69 @@ export class MultiplayerUIManager {
             this.nfcScanController = null;
         }
     }
-    
+
     /**
-     * One-touch JOIN: try NFC scan first; on success join; else show QR/manual join UI
+     * Show confirmation before joining when connection ID received via NFC.
+     * (HOST already exists, or PLAYER/HOST touched this device -> JOIN ask to confirm.)
+     * @param {string} connectionId - Room ID from NFC
+     * @param {HTMLElement} statusEl - Status element to update
+     * @param {HTMLElement} useCodeQrBtn - "Use code or QR" button
+     * @param {() => void} onCancelResumeScan - Called on Cancel to resume NFC scan
+     */
+    showNfcJoinConfirm(connectionId, statusEl, useCodeQrBtn, onCancelResumeScan) {
+        const confirmEl = document.getElementById('nfc-join-confirm');
+        const codeEl = confirmEl?.querySelector('.nfc-join-confirm-code');
+        const joinBtn = document.getElementById('nfc-join-confirm-join-btn');
+        const cancelBtn = document.getElementById('nfc-join-confirm-cancel-btn');
+        if (!confirmEl || !joinBtn || !cancelBtn) return;
+
+        if (statusEl) statusEl.textContent = '';
+        if (codeEl) codeEl.textContent = `Code: ${connectionId}`;
+        confirmEl.style.display = 'block';
+
+        const cleanup = () => {
+            confirmEl.style.display = 'none';
+            joinBtn.onclick = null;
+            cancelBtn.onclick = null;
+        };
+
+        joinBtn.onclick = () => {
+            cleanup();
+            if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
+            if (statusEl) statusEl.textContent = 'Connecting…';
+            this.multiplayerManager.joinGame(connectionId);
+        };
+
+        cancelBtn.onclick = () => {
+            cleanup();
+            if (useCodeQrBtn) useCodeQrBtn.style.display = 'block';
+            onCancelResumeScan();
+        };
+    }
+
+    /**
+     * Start NFC scan for join (used from startOneTouchJoin and when user cancels NFC confirm).
+     * @param {(msg: string) => void} setStatus
+     * @param {HTMLElement} useCodeQrBtn
+     * @returns {Promise<void>}
+     */
+    async startNfcScanForJoin(setStatus, useCodeQrBtn) {
+        try {
+            this.nfcScanController = await startNfcScan((connectionId) => {
+                this.stopNfcScan();
+                if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
+                const statusEl = document.getElementById('join-connection-status');
+                this.showNfcJoinConfirm(connectionId, statusEl, useCodeQrBtn, () => this.startNfcScanForJoin(setStatus, useCodeQrBtn));
+            });
+            setStatus('NFC on — touch the other device to join');
+        } catch (e) {
+            this.nfcScanController = null;
+            setStatus('NFC failed — use code or QR');
+        }
+    }
+
+    /**
+     * One-touch JOIN: try NFC scan first; on NFC receive ask to confirm then join; else show QR/manual join UI
      */
     async startOneTouchJoin() {
         if (isNfcSupported()) {
@@ -369,6 +429,7 @@ export class MultiplayerUIManager {
                 useCodeQrBtn.style.display = 'block';
                 useCodeQrBtn.onclick = () => {
                     this.stopNfcScan();
+                    document.getElementById('nfc-join-confirm').style.display = 'none';
                     useCodeQrBtn.style.display = 'none';
                     this.showJoinUI();
                     document.getElementById('scan-qr-view').style.display = 'flex';
@@ -378,15 +439,8 @@ export class MultiplayerUIManager {
             }
             setStatus('Hold your device to the HOST device…');
             try {
-                this.nfcScanController = await startNfcScan((connectionId) => {
-                    this.stopNfcScan();
-                    if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
-                    setStatus('Connecting…');
-                    this.multiplayerManager.joinGame(connectionId);
-                });
-                setStatus('NFC on — touch the other device to join');
+                await this.startNfcScanForJoin(setStatus, useCodeQrBtn);
             } catch (e) {
-                this.nfcScanController = null;
                 if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
                 setStatus('NFC failed — use code or QR');
                 await this.showJoinUI();
@@ -396,6 +450,7 @@ export class MultiplayerUIManager {
             if (backBtn) {
                 backBtn.onclick = () => {
                     this.stopNfcScan();
+                    document.getElementById('nfc-join-confirm').style.display = 'none';
                     if (useCodeQrBtn) useCodeQrBtn.style.display = 'none';
                     document.getElementById('join-game-screen').style.display = 'none';
                     this.showMultiplayerModal();
@@ -410,10 +465,11 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * If host and NFC supported, show "Share via NFC" on connection screen
+     * If connected (HOST or PLAYER) and NFC supported, show "Share via NFC" on connection screen.
+     * So when a new device touches either HOST or PLAYER, it receives the room ID and can confirm JOIN.
      */
     maybeShowNfcShareOnConnectionScreen() {
-        if (!isNfcSupported() || !this.multiplayerManager.connection?.isHost) return;
+        if (!isNfcSupported() || !this.multiplayerManager.connection?.isConnected) return;
         const hostControls = document.getElementById('host-controls');
         if (!hostControls) return;
         let nfcBtn = document.getElementById('nfc-share-invite-btn');
@@ -428,10 +484,12 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * Host: write connection ID to NFC so the other device can join when they touch
+     * Host or Player: write room/connection ID to NFC so the other device can join when they touch (then confirm).
      */
     async sendInviteViaNfc() {
-        const roomId = this.multiplayerManager.connection?.roomId;
+        const roomId = this.multiplayerManager.connection?.isHost
+            ? this.multiplayerManager.connection?.roomId
+            : this.multiplayerManager.connection?.hostId;
         if (!roomId) return;
         const btn = document.getElementById('nfc-share-invite-btn');
         if (btn) {
@@ -665,7 +723,10 @@ export class MultiplayerUIManager {
         // By default, show manual code view
         document.getElementById('scan-qr-view').style.display = 'none';
         document.getElementById('manual-code-view').style.display = 'flex';
-        
+
+        const nfcConfirm = document.getElementById('nfc-join-confirm');
+        if (nfcConfirm) nfcConfirm.style.display = 'none';
+
         // Clear input fields to prepare for new connection
         const manualInput = document.getElementById('manual-connection-input');
         if (manualInput) {

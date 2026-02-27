@@ -1,5 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { EnemyModel } from './EnemyModel.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 
 /**
  * Model for Molten Behemoth enemy type
@@ -251,37 +252,18 @@ export class MoltenBehemothModel extends EnemyModel {
             const core = this.modelGroup.children[2]; // The molten core
             
             if (core) {
-                // Pulsate the core
-                const pulseFactor = 1.0 + Math.sin(time * 2.0) * 0.2;
+                const pulseFactor = 1.0 + fastSin(time * 2.0) * 0.2;
                 core.scale.set(pulseFactor, pulseFactor, pulseFactor);
-                
-                // Adjust core intensity
-                if (core.material) {
-                    core.material.emissiveIntensity = 0.7 + Math.sin(time * 3.0) * 0.3;
-                }
+                if (core.material) core.material.emissiveIntensity = 0.7 + fastSin(time * 3.0) * 0.3;
             }
-            
-            // Pulsate the cracks (starting from index 12, which is where cracks begin)
             for (let i = 12; i < 20; i++) {
-                if (this.modelGroup.children[i]) {
-                    const crack = this.modelGroup.children[i];
-                    if (crack.material) {
-                        crack.material.emissiveIntensity = 0.7 + Math.sin(time * 3.0 + i * 0.2) * 0.3;
-                    }
-                }
+                const crack = this.modelGroup.children[i];
+                if (crack?.material) crack.material.emissiveIntensity = 0.7 + fastSin(time * 3.0 + i * 0.2) * 0.3;
             }
-            
-            // Pulsate the eyes
             const leftEye = this.modelGroup.children[10];
             const rightEye = this.modelGroup.children[11];
-            
-            if (leftEye && leftEye.material) {
-                leftEye.material.emissiveIntensity = 0.7 + Math.sin(time * 4.0) * 0.3;
-            }
-            
-            if (rightEye && rightEye.material) {
-                rightEye.material.emissiveIntensity = 0.7 + Math.sin(time * 4.0) * 0.3;
-            }
+            if (leftEye?.material) leftEye.material.emissiveIntensity = 0.7 + fastSin(time * 4.0) * 0.3;
+            if (rightEye?.material) rightEye.material.emissiveIntensity = 0.7 + fastSin(time * 4.0) * 0.3;
         }
         
         // Update lava particles
@@ -297,14 +279,12 @@ export class MoltenBehemothModel extends EnemyModel {
             
             // If particle is too old, reset it
             if (userData.age > userData.maxAge) {
-                // Reset position
                 const angle = Math.random() * Math.PI * 2;
                 const radius = 1.0 + Math.random() * 0.5;
-                
                 particle.position.set(
-                    Math.sin(angle) * radius,
+                    fastSin(angle) * radius,
                     0.5 + Math.random() * 1.5,
-                    Math.cos(angle) * radius
+                    fastCos(angle) * radius
                 );
                 
                 // Reset velocity
@@ -329,10 +309,8 @@ export class MoltenBehemothModel extends EnemyModel {
             particle.scale.set(scale, scale, scale);
         }
         
-        // Add a slight sway to the entire model to simulate breathing
         if (this.modelGroup) {
-            const time = Date.now() * 0.001;
-            this.modelGroup.rotation.x = Math.sin(time * 0.5) * 0.05;
+            this.modelGroup.rotation.x = fastSin(Date.now() * 0.0005) * 0.05;
         }
     }
 }

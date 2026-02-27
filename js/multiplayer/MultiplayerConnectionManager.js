@@ -228,6 +228,17 @@ export class MultiplayerConnectionManager {
         
         // Create remote player with the assigned color
         this.multiplayerManager.remotePlayerManager.createRemotePlayer(conn.peer, playerColor);
+        
+        // Notify ALL players (including the new joiner) that extra EXP is active with more players
+        const totalCount = 1 + this.peers.size;
+        const partyMsg = { type: 'partyBonusUpdate', playerCount: totalCount };
+        this.peers.forEach(peerConn => peerConn.send(partyMsg));
+        if (this.multiplayerManager.game?.hudManager) {
+            this.multiplayerManager.game.hudManager.showNotification(
+                `Player joined! Extra EXP active (${totalCount} players).`,
+                'info'
+            );
+        }
     }
 
     /**
@@ -334,11 +345,32 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.game.player.takeDamage(data.amount);
                 }
                 break;
+            case 'partyBonusUpdate':
+                if (data.playerCount != null && this.multiplayerManager.game?.hudManager) {
+                    const n = data.playerCount;
+                    this.multiplayerManager.game.hudManager.showNotification(
+                        n >= 2 ? `Extra experience with ${n} players!` : 'Extra EXP active.',
+                        'info'
+                    );
+                }
+                break;
             case 'shareExperience':
-                // Handle experience shared from killing an enemy
+                // Handle experience shared from killing an enemy + 3D notification + random bonus
                 if (data.amount && this.multiplayerManager.game.player) {
-                    console.debug(`[MultiplayerConnectionManager] Player receiving experience: ${data.amount} from enemy ID: ${data.enemyId} (shared among ${data.playerCount} players)`);
-                    this.multiplayerManager.game.player.addExperience(data.amount);
+                    const game = this.multiplayerManager.game;
+                    const player = game.player;
+                    let totalExp = data.amount;
+                    const effectsManager = game.effectsManager;
+                    const pos = player.getPosition ? player.getPosition() : (game.camera?.position ? game.camera.position.clone() : { x: 0, y: 1, z: 0 });
+                    const posVec = pos && typeof pos.x === 'number' ? { x: pos.x, y: pos.y ?? 1, z: pos.z } : { x: 0, y: 1, z: 0 };
+                    void effectsManager?.createExperienceNumberSprite(data.amount, posVec, { isBonus: false });
+                    const bonusChance = 0.15;
+                    if (Math.random() < bonusChance && effectsManager) {
+                        const bonusAmount = Math.max(1, Math.floor(data.amount * (0.25 + Math.random() * 0.25)));
+                        totalExp += bonusAmount;
+                        void effectsManager.createExperienceNumberSprite(bonusAmount, posVec, { isBonus: true });
+                    }
+                    player.addExperience(totalExp);
                 }
                 break;
             default:

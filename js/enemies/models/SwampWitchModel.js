@@ -305,9 +305,9 @@ export class SwampWitchModel extends EnemyModel {
                         const attackHeight = 0.5 + fastSin(time * 10.0 + particle.userData.angle) * 0.3;
                         
                         particle.position.set(
-                            Math.sin(attackAngle) * attackRadius,
+                            fastSin(attackAngle) * attackRadius,
                             attackHeight,
-                            Math.cos(attackAngle) * attackRadius
+                            fastCos(attackAngle) * attackRadius
                         );
                         
                         // Particles pulse more dramatically during attack
@@ -331,9 +331,9 @@ export class SwampWitchModel extends EnemyModel {
                         const height = 0.5 + fastSin(time * 3.0 + particle.userData.angle) * 0.2;
                         
                         particle.position.set(
-                            Math.sin(angle) * radius,
+                            fastSin(angle) * radius,
                             height,
-                            Math.cos(angle) * radius
+                            fastCos(angle) * radius
                         );
                         
                         // Pulse the particles

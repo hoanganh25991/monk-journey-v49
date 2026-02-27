@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2 } from '../utils/FastMath.js';
+import { fastAtan2, distanceApprox3D, fastSin } from '../utils/FastMath.js';
 import { SkillEffect } from "./SkillEffect.js";
 
 /**
@@ -649,36 +649,28 @@ export class BulPalmEffect extends SkillEffect {
    * @private
    */
   updateTravelingPhase(delta) {
-    // Calculate distance to target
-    const currentPosition = this.effect.position.clone();
-    const dx = this.targetPosition.x - currentPosition.x;
-    const dy = this.targetPosition.y - currentPosition.y;
-    const dz = this.targetPosition.z - currentPosition.z;
-    const distanceToTarget = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    
-    // Calculate movement speed
+    // Distance to target (no clone; use effect.position; approx distance is good enough)
+    const px = this.effect.position.x, py = this.effect.position.y, pz = this.effect.position.z;
+    const dx = this.targetPosition.x - px;
+    const dy = this.targetPosition.y - py;
+    const dz = this.targetPosition.z - pz;
+    const distanceToTarget = distanceApprox3D(px, py, pz, this.targetPosition.x, this.targetPosition.y, this.targetPosition.z);
+
     const speed = this.skill.projectileSpeed || 18;
     const moveDistance = Math.min(speed * delta, distanceToTarget);
     this.distanceTraveled += moveDistance;
-    
-    // Move the palm forward in 3D (from player height toward target)
+
     if (this.direction) {
       this.effect.position.x += this.direction.x * moveDistance;
       this.effect.position.y += this.direction.y * moveDistance;
       this.effect.position.z += this.direction.z * moveDistance;
     }
 
-    // Update angle to match direction (horizontal only, no vertical tilt)
     this.effect.rotation.y = fastAtan2(this.direction.x, this.direction.z);
-    // No rotation.x - keep skill vertical, only adjust height naturally
-    
-    // Animate hand
+
     if (this.handGroup) {
-      // Slight bobbing motion (keep low, just above ground)
-      this.handGroup.position.y = 0.4 + Math.sin(this.age * 6) * 0.08;
-      
-      // Slight rotation
-      this.handGroup.rotation.z = Math.sin(this.age * 4) * 0.15;
+      this.handGroup.position.y = 0.4 + fastSin(this.age * 6) * 0.08;
+      this.handGroup.rotation.z = fastSin(this.age * 4) * 0.15;
     }
     
     // Animate particles

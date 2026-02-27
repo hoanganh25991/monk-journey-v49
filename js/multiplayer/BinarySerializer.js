@@ -17,7 +17,8 @@ export const MessageType = {
     PLAYER_POSITION: 8,
     HOST_LEFT: 9,
     PLAYER_DAMAGE: 10,
-    SHARE_EXPERIENCE: 11
+    SHARE_EXPERIENCE: 11,
+    PARTY_BONUS_UPDATE: 12
 };
 
 // Schema definitions for different message types
@@ -34,7 +35,8 @@ const SCHEMAS = {
     [MessageType.PLAYER_POSITION]: ['position', 'rotation', 'animation', 'modelId'],
     [MessageType.HOST_LEFT]: [],
     [MessageType.PLAYER_DAMAGE]: ['amount', 'enemyId'],
-    [MessageType.SHARE_EXPERIENCE]: ['amount', 'enemyId', 'playerCount']
+    [MessageType.SHARE_EXPERIENCE]: ['amount', 'enemyId', 'playerCount'],
+    [MessageType.PARTY_BONUS_UPDATE]: ['playerCount']
 };
 
 export class BinarySerializer {
@@ -240,6 +242,7 @@ export class BinarySerializer {
             case 'hostLeft': return MessageType.HOST_LEFT;
             case 'playerDamage': return MessageType.PLAYER_DAMAGE;
             case 'shareExperience': return MessageType.SHARE_EXPERIENCE;
+            case 'partyBonusUpdate': return MessageType.PARTY_BONUS_UPDATE;
             default: return undefined;
         }
     }
@@ -263,6 +266,7 @@ export class BinarySerializer {
             case MessageType.HOST_LEFT: return 'hostLeft';
             case MessageType.PLAYER_DAMAGE: return 'playerDamage';
             case MessageType.SHARE_EXPERIENCE: return 'shareExperience';
+            case MessageType.PARTY_BONUS_UPDATE: return 'partyBonusUpdate';
             default: return 'unknown';
         }
     }

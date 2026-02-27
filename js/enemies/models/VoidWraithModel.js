@@ -1,5 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { EnemyModel } from './EnemyModel.js';
+import { fastSin, fastCos } from '../../utils/FastMath.js';
 
 /**
  * Model for Void Wraith enemy type
@@ -257,15 +258,12 @@ export class VoidWraithModel extends EnemyModel {
             const radius = 0.3 + Math.random() * 0.7;
             const height = 0.5 + Math.random() * 1.5;
             
-            particle.position.set(
-                Math.sin(angle) * radius,
-                height,
-                Math.cos(angle) * radius
-            );
-            
-            // Store original position and animation parameters
+            const px = Math.sin(angle) * radius;
+            const pz = Math.cos(angle) * radius;
+            particle.position.set(px, height, pz);
+
             particle.userData = {
-                originalPosition: particle.position.clone(),
+                ox: px, oy: height, oz: pz,
                 speed: 0.5 + Math.random() * 1.0,
                 offset: Math.random() * Math.PI * 2
             };
@@ -285,7 +283,7 @@ export class VoidWraithModel extends EnemyModel {
             // The Y position is managed by the Enemy class for proper terrain positioning.
             // Apply hovering motion to the torso (faster when moving, more intense when attacking)
             const hoverAmp = 0.1 * moveBoost * (this.enemy.state.isAttacking ? 1.5 : 1);
-            const hoveringMotion = Math.sin(time * 0.8 * moveBoost) * hoverAmp;
+            const hoveringMotion = fastSin(time * 0.8 * moveBoost) * hoverAmp;
             const torso = this.modelGroup.children[0]; // Torso is first child
             if (torso && torso.userData.originalY === undefined) {
                 torso.userData.originalY = torso.position.y;
@@ -295,8 +293,8 @@ export class VoidWraithModel extends EnemyModel {
             }
             
             // Slight floating motion (only X and Z rotation, Y rotation handled by Enemy class)
-            this.modelGroup.rotation.x = Math.sin(time * 0.4) * 0.05;
-            this.modelGroup.rotation.z = Math.cos(time * 0.3) * 0.08;
+            this.modelGroup.rotation.x = fastSin(time * 0.4) * 0.05;
+            this.modelGroup.rotation.z = fastCos(time * 0.3) * 0.08;
             
             // Animate the void core
             const core = this.modelGroup.children[6]; // Void core
@@ -305,52 +303,33 @@ export class VoidWraithModel extends EnemyModel {
             if (core && glow) {
                 // Pulse the core (intense when attacking)
                 const corePulseBase = this.enemy.state.isAttacking ? 0.35 : 0.2;
-                const corePulse = 1.0 + Math.sin(time * 3.0 * attackBoost) * corePulseBase;
+                const corePulse = 1.0 + fastSin(time * 3.0 * attackBoost) * corePulseBase;
                 core.scale.set(corePulse, corePulse, corePulse);
-                
-                // Pulse the glow more dramatically
                 const glowPulseBase = this.enemy.state.isAttacking ? 0.45 : 0.3;
-                const glowPulse = 1.0 + Math.sin(time * 2.0 * moveBoost) * glowPulseBase;
+                const glowPulse = 1.0 + fastSin(time * 2.0 * moveBoost) * glowPulseBase;
                 glow.scale.set(glowPulse, glowPulse, glowPulse);
-                
-                // Change the emissive intensity (brighter when attacking)
                 const coreIntensity = this.enemy.state.isAttacking ? 1.2 : 0.8;
-                core.material.emissiveIntensity = coreIntensity + Math.sin(time * 4.0) * 0.2;
-                glow.material.emissiveIntensity = 0.4 + Math.sin(time * 3.0) * 0.3;
+                core.material.emissiveIntensity = coreIntensity + fastSin(time * 4.0) * 0.2;
+                glow.material.emissiveIntensity = 0.4 + fastSin(time * 3.0) * 0.3;
             }
             
-            // Animate the void particles
             for (let i = 8; i < this.modelGroup.children.length; i++) {
                 const particle = this.modelGroup.children[i];
-                if (particle && particle.userData && particle.userData.originalPosition) {
-                    const originalPos = particle.userData.originalPosition;
-                    const speed = particle.userData.speed;
-                    const offset = particle.userData.offset;
-                    
-                    // Orbit around the original position
+                const ud = particle?.userData;
+                if (particle && ud && ud.ox !== undefined) {
+                    const t = time * ud.speed + ud.offset;
                     particle.position.set(
-                        originalPos.x + Math.sin(time * speed + offset) * 0.2,
-                        originalPos.y + Math.cos(time * speed + offset) * 0.1,
-                        originalPos.z + Math.sin(time * speed * 0.7 + offset) * 0.2
+                        ud.ox + fastSin(t) * 0.2,
+                        ud.oy + fastCos(t) * 0.1,
+                        ud.oz + fastSin(t * 0.7) * 0.2
                     );
-                    
-                    // Pulse the particles
-                    const particleScale = 1.0 + Math.sin(time * 5.0 + offset * 3.0) * 0.3;
-                    particle.scale.set(particleScale, particleScale, particleScale);
-                    
-                    // Fade in and out
-                    particle.material.opacity = 0.5 + Math.sin(time * 3.0 + offset * 2.0) * 0.3;
+                    particle.scale.setScalar(1.0 + fastSin(time * 5.0 + ud.offset * 3.0) * 0.3);
+                    particle.material.opacity = 0.5 + fastSin(time * 3.0 + ud.offset * 2.0) * 0.3;
                 }
             }
-            
-            // Animate the wispy hands
             for (let i = 0; i < 8; i++) {
-                // Fingers start at index 8
                 const finger = this.modelGroup.children[i + 8];
-                if (finger) {
-                    // Wiggle the fingers
-                    finger.rotation.z += Math.sin(time * 3.0 + i * 0.5) * 0.01;
-                }
+                if (finger) finger.rotation.z += fastSin(time * 3.0 + i * 0.5) * 0.01;
             }
         }
     }

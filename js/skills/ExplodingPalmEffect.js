@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2 } from '../utils/FastMath.js';
+import { fastAtan2, distanceApprox3D } from '../utils/FastMath.js';
 import { SkillEffect } from "./SkillEffect.js";
 
 /**
@@ -477,14 +477,9 @@ export class ExplodingPalmEffect extends SkillEffect {
    * @private
    */
   updateFlyingPhase(delta) {
-    // Calculate distance to target
-    const currentPosition = this.effect.position.clone();
-    const dx = this.targetPosition.x - currentPosition.x;
-    const dy = this.targetPosition.y - currentPosition.y;
-    const dz = this.targetPosition.z - currentPosition.z;
-    const distanceToTarget = Math.sqrt(dx * dx + dy * dy + dz * dz);
-    
-    // Calculate movement speed
+    const px = this.effect.position.x, py = this.effect.position.y, pz = this.effect.position.z;
+    const distanceToTarget = distanceApprox3D(px, py, pz, this.targetPosition.x, this.targetPosition.y, this.targetPosition.z);
+
     const speed = this.explodingPalmState.flyingSpeed || 15;
     const moveDistance = Math.min(speed * delta, distanceToTarget);
     this.distanceTraveled += moveDistance;

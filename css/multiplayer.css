@@ -83,6 +83,31 @@
     opacity: 0.8;
 }
 
+/* NFC join confirmation (HOST or PLAYER touched -> ask before joining) */
+.nfc-join-confirm {
+    margin: 1rem auto;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    max-width: 320px;
+}
+.nfc-join-confirm-msg {
+    margin: 0 0 0.5rem;
+    font-weight: bold;
+}
+.nfc-join-confirm-code {
+    margin: 0 0 1rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+    word-break: break-all;
+}
+.nfc-join-confirm-btns {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 /* Host game layout - optimized for landscape */
 .host-game-layout {
     display: flex;

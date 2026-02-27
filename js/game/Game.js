@@ -723,8 +723,8 @@ export class Game {
             } else if (!isLoadedGame) {
                 this.player.setPosition(0, 1, -13);
             }
-            // New game: clear pre-spawned enemies from init() so we don't start with 50+ (first-time fix)
-            if (!isLoadedGame && this.enemyManager) {
+            // Always clear pre-spawned enemies from init() so we don't have static enemies on first play or load
+            if (this.enemyManager) {
                 this.enemyManager.removeAllEnemies();
             }
             this.state.setRunning();

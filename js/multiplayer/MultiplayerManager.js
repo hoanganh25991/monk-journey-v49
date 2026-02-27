@@ -18,6 +18,8 @@ export class MultiplayerManager {
         this._lastBroadcast = 0; // Timestamp of last state broadcast
         this._lastUpdateLog = 0; // Timestamp of last update log
         this._lastGameStateLog = 0; // Timestamp of last game state log
+        this._lastReceivedGameStateTime = 0; // Member: last time we got gameState (for gap detection)
+        this._slowGapNotified = false; // Member: only notify once per gap
         
         // Player colors for multiplayer
         this.playerColors = [
@@ -92,9 +94,9 @@ export class MultiplayerManager {
      * @param {Object} data - The game state data
      */
     updateGameState(data) {
-        // Only log occasionally to reduce console spam
-        const shouldLog = Math.random() < 0.01; // ~1% of updates
-        
+        this._lastReceivedGameStateTime = Date.now();
+        this._slowGapNotified = false;
+        const shouldLog = Math.random() < 0.01;
         if (shouldLog) {
             console.debug('[MultiplayerManager] Received game state update from host');
         }
@@ -358,10 +360,20 @@ export class MultiplayerManager {
         
         // If host, broadcast game state to members
         if (this.connection.isHost && this.connection.peers.size > 0) {
-            // Throttle broadcasts to 10-20 times per second
             if (!this._lastBroadcast || Date.now() - this._lastBroadcast > 50) {
                 this.connection.broadcastGameState();
                 this._lastBroadcast = Date.now();
+            }
+        }
+        
+        // Member: notify when sync gap too long (auto local when lost is already in handleHostDisconnection)
+        if (!this.connection.isHost && this.connection.isConnected && this._lastReceivedGameStateTime > 0) {
+            const gap = Date.now() - this._lastReceivedGameStateTime;
+            if (gap > 4000 && !this._slowGapNotified) {
+                this._slowGapNotified = true;
+                if (this.game.hudManager) {
+                    this.game.hudManager.showNotification('Connection slow…', 'info');
+                }
             }
         }
     }

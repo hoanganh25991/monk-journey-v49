@@ -149,6 +149,21 @@ export class EffectsManager {
         // Redirect to 3D text system
         return this.createDamageNumberSprite(amount, position, options);
     }
+
+    /**
+     * Create a floating EXP (or BONUS) number in world space (multiplayer).
+     * Near player or at kill position; reuses damage number pool.
+     * @param {number} amount - EXP amount to display
+     * @param {THREE.Vector3|Object} position - World position {x, y, z}
+     * @param {Object} options - { isBonus: boolean }
+     * @returns {Promise<DamageNumberSpriteEffect|null>}
+     */
+    createExperienceNumberSprite(amount, position, options = {}) {
+        if (!this.game?.scene || amount == null) return Promise.resolve(null);
+        const pos = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(position.x, position.y, position.z);
+        pos.y += 1.2;
+        return this.createDamageNumberSprite(amount, pos, { isExperience: true, isBonus: options.isBonus || false });
+    }
     
     /**
      * Used when the game is paused

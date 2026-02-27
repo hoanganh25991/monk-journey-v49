@@ -224,10 +224,14 @@ export class SpiritualProtectionEffect extends ShieldOfZenEffect {
                 if (particle.userData) {
                     // Move particle in its direction
                     const moveAmount = particle.userData.speed * delta;
-                    particle.position.add(particle.userData.direction.clone().multiplyScalar(moveAmount));
+                    const d = particle.userData.direction;
+                    particle.position.x += d.x * moveAmount;
+                    particle.position.y += d.y * moveAmount;
+                    particle.position.z += d.z * moveAmount;
                     
-                    // If particle moves too far, reset it
-                    if (particle.position.length() > 2.0) {
+                    // If particle moves too far, reset it (squared compare avoids sqrt)
+                    const px = particle.position.x, py = particle.position.y, pz = particle.position.z;
+                    if (px * px + py * py + pz * pz > 4) {
                         // Reset to a random position near the center
                         const phi = Math.random() * Math.PI * 2;
                         const theta = Math.random() * Math.PI;

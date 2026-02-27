@@ -32,7 +32,12 @@ export class InputHandler {
             this.skillKeysHeld[key] = false;
             this.skillCastCooldowns[key] = 0;
         });
-        
+
+        // Reusable scratch objects for getMovementDirection (avoids per-frame allocations)
+        this._scratchLocal = new THREE.Vector3(0, 0, 0);
+        this._scratchWorld = new THREE.Vector3();
+        this._scratchMatrix = new THREE.Matrix4();
+
         // Initialize input event listeners
         this.initKeyboardEvents();
         
@@ -324,77 +329,43 @@ export class InputHandler {
     }
     
     getMovementDirection() {
-        // Get raw input direction in local space (relative to screen)
-        const localDirection = new THREE.Vector3(0, 0, 0);
-        
-        // Check for keyboard input using movement keys from config
-        if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) {
-            localDirection.z -= 1;
-        }
-        
-        if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) {
-            localDirection.z += 1;
-        }
-        
-        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) {
-            localDirection.x -= 1;
-        }
-        
-        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) {
-            localDirection.x += 1;
-        }
-        
-        // Check for joystick input (if available)
-        if (this.game && this.game.hudManager && this.game.hudManager.getJoystickDirection) {
-            const joystickDir = this.game.hudManager.getJoystickDirection();
-            
-            // Only use joystick if it's active (has non-zero values)
-            if (joystickDir && (joystickDir.x !== 0 || joystickDir.y !== 0)) {
-                // Override keyboard input with joystick input
-                localDirection.x = joystickDir.x;
-                localDirection.z = joystickDir.y; // Y axis of joystick maps to Z axis in 3D space
+        const local = this._scratchLocal;
+        local.set(0, 0, 0);
+
+        if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
+        if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
+        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x -= 1;
+        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x += 1;
+
+        if (this.game?.hudManager?.getJoystickDirection) {
+            const j = this.game.hudManager.getJoystickDirection();
+            if (j && (j.x !== 0 || j.y !== 0)) {
+                local.x = j.x;
+                local.z = j.y;
             }
         }
-        
-        // If no input, return zero vector
-        if (localDirection.length() === 0) {
-            return localDirection;
+
+        if (local.x * local.x + local.z * local.z === 0) {
+            this._scratchWorld.set(0, 0, 0);
+            return this._scratchWorld;
         }
-        
-        // Normalize the local direction
-        localDirection.normalize();
-        
-        // Transform the local direction to world space based on camera rotation
-        const worldDirection = new THREE.Vector3();
-        
-        // Get camera rotation around Y axis (horizontal rotation)
+
+        local.normalize();
+
         let cameraRotationY = 0;
-        
-        // If we have a camera control UI, use its rotation
-        if (this.game && this.game.hudManager && this.game.hudManager.components && 
-            this.game.hudManager.components.cameraControlUI) {
+        if (this.game?.hudManager?.components?.cameraControlUI) {
             cameraRotationY = this.game.hudManager.components.cameraControlUI.cameraState.rotationY;
-        } 
-        // Fallback to camera's rotation if available
-        else if (this.game && this.game.camera) {
+        } else if (this.game?.camera) {
             cameraRotationY = this.game.camera.rotation.y;
         }
-        
-        // Create rotation matrix for the camera's Y rotation
-        const rotationMatrix = new THREE.Matrix4().makeRotationY(cameraRotationY);
-        
-        // Apply rotation to the local direction to get world direction
-        worldDirection.copy(localDirection).applyMatrix4(rotationMatrix);
-        
-        // Ensure Y component is zero (we only want horizontal movement)
-        worldDirection.y = 0;
-        
-        // Normalize again to ensure unit length
-        if (worldDirection.length() > 0) {
-            worldDirection.normalize();
+
+        this._scratchMatrix.makeRotationY(cameraRotationY);
+        this._scratchWorld.copy(local).applyMatrix4(this._scratchMatrix);
+        this._scratchWorld.y = 0;
+        if (this._scratchWorld.x * this._scratchWorld.x + this._scratchWorld.z * this._scratchWorld.z > 0) {
+            this._scratchWorld.normalize();
         }
-        
-        return worldDirection;
+        return this._scratchWorld;
     }
     
     // Mouse target and state methods removed as per requirements

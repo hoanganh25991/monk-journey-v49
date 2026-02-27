@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ShieldOfZenEffect } from '../../ShieldOfZenEffect.js';
+import { distanceApprox3D } from '../../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Shield of Zen - Transcendence variant
@@ -184,8 +185,8 @@ export class TranscendenceEffect extends ShieldOfZenEffect {
                         particle.userData.direction.multiplyScalar(-1);
                     }
                     
-                    // Fade particles based on distance from center
-                    const distanceFromCenter = particle.position.length();
+                    // Fade particles based on distance from center (approx distance, good enough)
+                    const distanceFromCenter = distanceApprox3D(particle.position.x, particle.position.y, particle.position.z, 0, 0, 0);
                     if (distanceFromCenter > 2.0) {
                         particle.material.opacity = Math.max(0, 0.8 - (distanceFromCenter - 2.0) * 2);
                     } else {

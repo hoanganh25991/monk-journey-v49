@@ -26,9 +26,9 @@ const DAMAGE_NUMBER_CONFIG = {
     OUTLINE_OPACITY: 0.7, // Slightly more transparent
     OUTLINE_ENABLED: true, // Can be disabled for better performance
     
-    // Animation parameters
-    DURATION: 1.0, // Faster disappear - was 2.0
-    FLOAT_SPEED: 3.0, // Faster float - was 1.5
+    // Animation parameters — fast up and disappear for strong-attack feel
+    DURATION: 0.45,
+    FLOAT_SPEED: 6.0,
     SCALE_NORMAL: 0.5, // 10x bigger - was 0.05
     SCALE_CRITICAL: 0.6, // 10x bigger - was 0.06
     SCALE_KILL: 0.8, // 10x bigger - was 0.08
@@ -58,7 +58,7 @@ export class DamageNumberSpriteEffect {
      * @param {Object} game - Game instance (for scene)
      * @param {number} amount - Damage value to display
      * @param {THREE.Vector3} worldPosition - Position in world (cloned; effect stays here)
-     * @param {Object} options - { isPlayerDamage, isCritical, isKill }
+     * @param {Object} options - { isPlayerDamage, isCritical, isKill, isExperience, isBonus }
      */
     constructor(game, amount, worldPosition, options = {}) {
         this.game = game;
@@ -67,17 +67,23 @@ export class DamageNumberSpriteEffect {
         this.isPlayerDamage = options.isPlayerDamage || false;
         this.isCritical = options.isCritical || options.isKill || false;
         this.isKill = options.isKill || false;
+        this.isExperience = options.isExperience || false;
+        this.isBonus = options.isBonus || false;
         this.duration = DAMAGE_NUMBER_CONFIG.DURATION;
         this.floatSpeed = DAMAGE_NUMBER_CONFIG.FLOAT_SPEED;
         this.elapsed = 0;
         this.isActive = true;
         this.group = null;
         this.mesh = null;
-        this.initialScale = this.isKill 
-            ? DAMAGE_NUMBER_CONFIG.SCALE_KILL 
-            : this.isCritical 
-                ? DAMAGE_NUMBER_CONFIG.SCALE_CRITICAL 
-                : DAMAGE_NUMBER_CONFIG.SCALE_NORMAL;
+        this.initialScale = this.isBonus
+            ? DAMAGE_NUMBER_CONFIG.SCALE_KILL
+            : this.isExperience
+                ? DAMAGE_NUMBER_CONFIG.SCALE_CRITICAL
+                : this.isKill
+                    ? DAMAGE_NUMBER_CONFIG.SCALE_KILL
+                    : this.isCritical
+                        ? DAMAGE_NUMBER_CONFIG.SCALE_CRITICAL
+                        : DAMAGE_NUMBER_CONFIG.SCALE_NORMAL;
         
         // Billboard optimization - don't update every frame
         this.billboardTimer = 0;
@@ -181,6 +187,12 @@ export class DamageNumberSpriteEffect {
         if (type === 'playerDamage') {
             color = 0xff2222;
             emissiveColor = 0xff0000;
+        } else if (type === 'exp') {
+            color = 0xffcc00;
+            emissiveColor = 0xffaa00;
+        } else if (type === 'bonus') {
+            color = 0x44ff88;
+            emissiveColor = 0x22cc66;
         } else if (type === 'kill') {
             color = 0xff5500;
             emissiveColor = 0xff3300;
@@ -238,16 +250,21 @@ export class DamageNumberSpriteEffect {
             const font = await DamageNumberSpriteEffect.loadFont();
             if (!font) return null;
 
-            const text = this.isPlayerDamage ? `-${this.amount.toLocaleString()}` : this.amount.toLocaleString();
+            let text;
+            if (this.isExperience) text = `+${this.amount} EXP`;
+            else if (this.isBonus) text = `+${this.amount} BONUS!`;
+            else text = this.isPlayerDamage ? `-${this.amount.toLocaleString()}` : this.amount.toLocaleString();
             
             // Get cached geometry (or create new one)
             const geometry = DamageNumberSpriteEffect.getCachedGeometry(text, font);
             this.usingCachedGeometry = true;
             
             // Get material type
-            const materialType = this.isPlayerDamage ? 'playerDamage' 
-                : this.isKill ? 'kill' 
-                : this.isCritical ? 'critical' 
+            const materialType = this.isBonus ? 'bonus'
+                : this.isExperience ? 'exp'
+                : this.isPlayerDamage ? 'playerDamage'
+                : this.isKill ? 'kill'
+                : this.isCritical ? 'critical'
                 : 'normal';
             
             // Get cached materials
@@ -335,10 +352,8 @@ export class DamageNumberSpriteEffect {
             }
         }
         
-        // Float up with slight deceleration
-        const floatProgress = this.elapsed / this.duration;
-        const floatSpeed = this.floatSpeed * (1 - floatProgress * 0.3);
-        this.group.position.y += floatSpeed * delta;
+        // Float up fast (no deceleration — snappy)
+        this.group.position.y += this.floatSpeed * delta;
         
         // Billboard optimization - only update rotation periodically
         this.billboardTimer += delta;
@@ -363,19 +378,18 @@ export class DamageNumberSpriteEffect {
             }
         }
         
-        // Scale animation: pop in slightly, then shrink
+        // Scale: quick pop then hold (no slow shrink — snappy)
         const t = this.elapsed / this.duration;
-        let scale = this.initialScale;
-        if (t < 0.15) {
-            scale = this.initialScale * (1 + 0.2 * (t / 0.15));
-        } else {
-            scale = this.initialScale * (1.2 - 0.3 * ((t - 0.15) / 0.85));
-        }
+        const scale = t < 0.12
+            ? this.initialScale * (1 + 0.25 * (t / 0.12))
+            : this.initialScale * 1.25;
         
-        // Fade out: stay visible longer, then fade quickly
+        // Fade out early and fast — no long blur
+        const fadeStart = 0.2;
         let opacity = 1;
-        if (t > 0.6) {
-            opacity = Math.max(0, 1 - ((t - 0.6) / 0.4) * ((t - 0.6) / 0.4));
+        if (t > fadeStart) {
+            const f = (t - fadeStart) / (1 - fadeStart);
+            opacity = Math.max(0, 1 - f * f);
         }
         
         // Update opacity and scale for both main mesh and outline
@@ -398,12 +412,8 @@ export class DamageNumberSpriteEffect {
     dispose() {
         this.isActive = false;
         if (this.mesh) {
-            // Don't dispose cached geometries and materials!
-            // Only remove from scene
             const mainMesh = this.mesh.userData?.mainMesh;
             const outlineMesh = this.mesh.userData?.outlineMesh;
-            
-            // If using cached geometry, don't dispose it
             if (!this.usingCachedGeometry) {
                 if (mainMesh?.geometry) mainMesh.geometry.dispose();
                 if (outlineMesh?.geometry) outlineMesh.geometry.dispose();
@@ -411,8 +421,8 @@ export class DamageNumberSpriteEffect {
                 if (outlineMesh?.material) outlineMesh.material.dispose();
             }
         }
-        if (this.group && this.game?.scene) {
-            this.game.scene.remove(this.group);
+        if (this.group?.parent) {
+            this.group.parent.remove(this.group);
         }
         this.mesh = null;
         this.group = null;

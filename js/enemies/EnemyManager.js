@@ -183,12 +183,8 @@ export class EnemyManager {
     }
     
     async init() {
-        // Initialize enemy pools first
-        // Spawn initial enemies (async - fire and forget, they appear as models load)
-        for (let i = 0; i < this.maxEnemies / 2; i++) {
-            void this.spawnEnemy();
-        }
-        
+        // Do not pre-spawn enemies here — they are spawned in update() once the game is running.
+        // This avoids many static enemies on load / first play.
         return true;
     }
     
@@ -564,7 +560,9 @@ export class EnemyManager {
     setMultiplayerMode(isMultiplayer, isHost) {
         this.isMultiplayer = isMultiplayer;
         this.isHost = isHost;
-        
+        if (isMultiplayer && !isHost) {
+            this.removeAllEnemies();
+        }
         console.debug(`EnemyManager: Multiplayer mode ${isMultiplayer ? 'enabled' : 'disabled'}, isHost: ${isHost}`);
     }
     
@@ -1248,13 +1246,14 @@ export class EnemyManager {
     }
     
     removeAllEnemies() {
-        // Remove all enemies
         this.enemies.forEach(enemy => {
             enemy.remove();
         });
-        
-        // Clear the Map instead of redefining it as an array
         this.enemies.clear();
+        this.enemiesArray = [];
+        this.enemiesArrayDirty = true;
+        this.processedDrops.clear();
+        this.enemyLastUpdated.clear();
     }
     
     onPlayerMovedScreenDistance(playerPosition) {
