@@ -66,6 +66,12 @@ export class PlayerCombat {
         this.game = game;
         
         /**
+         * World position where the player died (for respawn at same spot)
+         * @type {THREE.Vector3}
+         */
+        this.deathPosition = new THREE.Vector3(0, 0, 0);
+        
+        /**
          * Simplified punch system
          * @type {PunchSystem}
          */
@@ -200,6 +206,11 @@ export class PlayerCombat {
      * Handles player death
      */
     die() {
+        // Store current position for respawn at same spot
+        if (this.game?.player?.movement?.getPosition) {
+            this.deathPosition.copy(this.game.player.movement.getPosition());
+        }
+        
         // Set dead state
         this.playerState.setDead(true);
         this.playerState.setMoving(false);
@@ -237,12 +248,13 @@ export class PlayerCombat {
             this.game.player.statusEffects.clearAllEffects();
         }
         
-        // Reset movement position and target to spawn so we're not stuck at death location
+        // Respawn at death position (current position when died)
+        const respawnPos = this.deathPosition;
         if (this.game?.player?.movement) {
-            this.game.player.movement.setPosition(0, 0, 0);
-            this.game.player.movement.targetPosition.set(0, 0, 0);
+            this.game.player.movement.setPosition(respawnPos.x, respawnPos.y, respawnPos.z);
+            this.game.player.movement.targetPosition.copy(respawnPos);
         }
-        this.playerModel.setPosition(new THREE.Vector3(0, 0, 0));
+        this.playerModel.setPosition(respawnPos.clone());
         this.playerModel.getModelGroup().rotation.x = 0;
         
         // Hide death screen
