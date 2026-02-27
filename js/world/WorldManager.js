@@ -825,4 +825,3 @@ export class WorldManager {
         console.debug('generateInitialObjectsAroundOrigin called - handled by generateInitialContent');
     }
 }
-}

@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { distanceSq2D } from '../utils/FastMath.js';
+import { distanceSq2D, fastSin, fastCos, fastSqrt } from '../utils/FastMath.js';
 import { Enemy } from './Enemy.js';
 import { EnemyProjectileManager } from './EnemyProjectileManager.js';
 import { 
@@ -667,8 +667,8 @@ export class EnemyManager {
         // Calculate direction from player's rotation
         const playerRotation = this.game.player.getRotation();
         const playerDirection = {
-            x: Math.sin(playerRotation.y),
-            z: Math.cos(playerRotation.y)
+            x: fastSin(playerRotation.y),
+            z: fastCos(playerRotation.y)
         };
         const groupDistance = 60 + Math.random() * 30; // 60-90 units away (3x increased)
         
@@ -688,8 +688,8 @@ export class EnemyManager {
             const spreadRadius = 8; // Tight formation
             const angle = Math.random() * Math.PI * 2;
             const distance = Math.random() * spreadRadius;
-            const x = groupX + Math.cos(angle) * distance;
-            const z = groupZ + Math.sin(angle) * distance;
+            const x = groupX + fastCos(angle) * distance;
+            const z = groupZ + fastSin(angle) * distance;
             
             // Don't set Y position here - let the spawnEnemy method handle terrain height
             // This ensures consistent terrain height calculation
@@ -1061,16 +1061,16 @@ export class EnemyManager {
             const cave = caves[Math.floor(Math.random() * caves.length)];
             const spreadRadius = 12 + Math.random() * 18;
             const angle = Math.random() * Math.PI * 2;
-            const x = cave.x + Math.cos(angle) * spreadRadius;
-            const z = cave.z + Math.sin(angle) * spreadRadius;
+            const x = cave.x + fastCos(angle) * spreadRadius;
+            const z = cave.z + fastSin(angle) * spreadRadius;
             return new THREE.Vector3(x, 0, z);
         }
         
         // Fallback: spawn around player
         const angle = Math.random() * Math.PI * 2;
         const distance = this.spawnRadius * 0.5 + Math.random() * this.spawnRadius * 0.5;
-        const x = playerPos.x + Math.cos(angle) * distance;
-        const z = playerPos.z + Math.sin(angle) * distance;
+        const x = playerPos.x + fastCos(angle) * distance;
+        const z = playerPos.z + fastSin(angle) * distance;
         
         return new THREE.Vector3(x, 0, z);
     }
@@ -1305,7 +1305,7 @@ export class EnemyManager {
             // Calculate squared horizontal distance to player (ignore Y/height) for performance
             const dx = position.x - playerPos.x;
             const dz = position.z - playerPos.z;
-            const distanceSq = dx * dx + dz * dz; // No Math.sqrt needed!
+            const distanceSq = distanceSq2D(position.x, position.z, playerPos.x, playerPos.z);
             
             // Different distance thresholds for bosses and regular enemies
             const distanceThreshold = enemy.isBoss ? adjustedBossMaxDistance : adjustedMaxDistance;
@@ -1362,7 +1362,7 @@ export class EnemyManager {
         const originalMaxEnemies = this.maxEnemies;
         if (inMultiplierZone) {
             // Scale max enemies based on multiplier, but cap it for performance
-            this.maxEnemies = Math.min(200, Math.floor(originalMaxEnemies * Math.sqrt(multiplierValue)));
+            this.maxEnemies = Math.min(200, Math.floor(originalMaxEnemies * fastSqrt(multiplierValue)));
             console.debug(`In multiplier zone (${multiplierValue}x) - increased max enemies to ${this.maxEnemies}`);
         }
         
@@ -1388,7 +1388,7 @@ export class EnemyManager {
         // In multiplier zones, spawn more enemies per wave
         if (inMultiplierZone) {
             // Scale enemy count based on multiplier, using square root for more reasonable scaling
-            baseEnemyCount = Math.floor(baseEnemyCount * Math.sqrt(multiplierValue) * 0.5);
+            baseEnemyCount = Math.floor(baseEnemyCount * fastSqrt(multiplierValue) * 0.5);
             
             // Ensure we spawn at least some enemies
             baseEnemyCount = Math.max(5, baseEnemyCount);
@@ -1432,8 +1432,8 @@ export class EnemyManager {
                 const cave = caves[Math.floor(Math.random() * caves.length)];
                 const spreadRadius = 15 + Math.random() * 25;
                 const angle = Math.random() * Math.PI * 2;
-                groupX = cave.x + Math.cos(angle) * spreadRadius;
-                groupZ = cave.z + Math.sin(angle) * spreadRadius;
+                groupX = cave.x + fastCos(angle) * spreadRadius;
+                groupZ = cave.z + fastSin(angle) * spreadRadius;
             } else {
                 // Determine group position around player
                 let groupAngle;
@@ -1445,8 +1445,8 @@ export class EnemyManager {
                 const groupDistance = inMultiplierZone ?
                     60 + Math.random() * 30 :
                     75 + Math.random() * 30;
-                groupX = playerPosition.x + Math.cos(groupAngle) * groupDistance;
-                groupZ = playerPosition.z + Math.sin(groupAngle) * groupDistance;
+                groupX = playerPosition.x + fastCos(groupAngle) * groupDistance;
+                groupZ = playerPosition.z + fastSin(groupAngle) * groupDistance;
             }
             
             // Spawn the group of enemies
@@ -1466,8 +1466,8 @@ export class EnemyManager {
                     
                 const angle = Math.random() * Math.PI * 2;
                 const distance = Math.random() * spreadRadius;
-                const x = groupX + Math.cos(angle) * distance;
-                const z = groupZ + Math.sin(angle) * distance;
+                const x = groupX + fastCos(angle) * distance;
+                const z = groupZ + fastSin(angle) * distance;
                 
                 // Don't set Y position here - let the spawnEnemy method handle terrain height
                 // This ensures consistent terrain height calculation
@@ -1700,8 +1700,8 @@ export class EnemyManager {
         for (let i = 0; i < groupSize && this.enemies.size < this.maxEnemies; i++) {
             const angle = Math.random() * Math.PI * 2;
             const dist = Math.random() * spreadRadius;
-            const x = cave.x + Math.cos(angle) * dist;
-            const z = cave.z + Math.sin(angle) * dist;
+            const x = cave.x + fastCos(angle) * dist;
+            const z = cave.z + fastSin(angle) * dist;
             const enemyType = zoneEnemyTypes[Math.floor(Math.random() * zoneEnemyTypes.length)];
             const position = new THREE.Vector3(x, 0, z);
             await this.spawnEnemy(enemyType, position, null, caveKey);

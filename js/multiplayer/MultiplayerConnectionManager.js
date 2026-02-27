@@ -239,7 +239,7 @@ export class MultiplayerConnectionManager {
         
         switch (data.type) {
             case 'welcome':
-                console.error('Received welcome message:', data.message);
+                console.debug('Received welcome from host:', data.message);
                 break;
             case 'gameState':
                 this.multiplayerManager.updateGameState(data);
@@ -846,29 +846,33 @@ export class MultiplayerConnectionManager {
             
             // Only add host player if we have valid position and rotation
             if (hostPosition && hostRotation) {
+                let hostModelId = DEFAULT_CHARACTER_MODEL;
+                if (this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.currentModelId) {
+                    hostModelId = this.multiplayerManager.game.player.model.currentModelId;
+                }
+                const hostColor = this.multiplayerManager.assignedColors.get(this.peer.id);
                 players[this.peer.id] = {
                     position: hostPosition,
                     rotation: hostRotation,
-                    animation: this.multiplayerManager.game.player.currentAnimation || 'idle'
+                    animation: this.multiplayerManager.game.player.currentAnimation || 'idle',
+                    modelId: hostModelId,
+                    playerColor: hostColor || null
                 };
             }
         }
         
-        // Add remote players with minimal data
+        // Add remote players: position + rotation + animation + modelId + playerColor
         this.multiplayerManager.remotePlayerManager.getPlayers().forEach((player, peerId) => {
             if (player && player.group) {
                 const position = player.group.position;
                 if (!isNaN(position.x) && !isNaN(position.y) && !isNaN(position.z)) {
+                    const color = this.multiplayerManager.assignedColors.get(peerId);
                     players[peerId] = {
-                        position: {
-                            x: position.x,
-                            y: position.y,
-                            z: position.z
-                        },
-                        rotation: player.model ? {
-                            y: player.model.rotation.y // Only send y rotation to save bandwidth
-                        } : { y: 0 },
-                        animation: player.currentAnimation || 'idle'
+                        position: { x: position.x, y: position.y, z: position.z },
+                        rotation: player.model ? { y: player.model.rotation.y } : { y: 0 },
+                        animation: player.currentAnimation || 'idle',
+                        modelId: player.modelId || DEFAULT_CHARACTER_MODEL,
+                        playerColor: color || null
                     };
                 }
             }

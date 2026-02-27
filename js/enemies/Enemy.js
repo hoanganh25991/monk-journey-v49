@@ -2,7 +2,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
-import { distanceSq2D, fastAtan2, normalize2D, tempVec2 } from '../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, normalize2D, tempVec2 } from '../utils/FastMath.js';
 
 export class Enemy {
     // Static counter for generating unique IDs
@@ -367,7 +367,7 @@ export class Enemy {
         // Debug log for targeting - log every 2 seconds to avoid spam
         if (Math.random() < 0.01) { // ~1% chance each frame to log
             const targetType = this.targetPlayer === this.player ? "player" : "remote player";
-            const distanceToPlayer = Math.sqrt(distanceSqToPlayer);
+            const distanceToPlayer = distanceApprox2D(this.position.x, this.position.z, playerPosition.x, playerPosition.z);
             console.debug(`Enemy ${this.id} targeting ${targetType}, distance: ${distanceToPlayer.toFixed(2)}, attack range: ${this.attackRange.toFixed(2)}`);
         }
 

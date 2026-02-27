@@ -132,7 +132,9 @@ export class MultiplayerManager {
                             playerId,
                             position,
                             rotation,
-                            playerData.animation
+                            playerData.animation,
+                            playerData.modelId,
+                            playerData.playerColor
                         );
                     }
                 }
@@ -178,6 +180,11 @@ export class MultiplayerManager {
         this.connection.broadcast({
             type: 'startGame'
         });
+        
+        // Host controls enemies; tell EnemyManager so only host spawns/updates authority
+        if (this.game.enemyManager) {
+            this.game.enemyManager.setMultiplayerMode(true, true);
+        }
         
         // Close multiplayer modal
         this.ui.closeMultiplayerModal();
@@ -250,6 +257,11 @@ export class MultiplayerManager {
         // For members, we need to ensure the game is fully started
         if (!this.connection.isHost) {
             console.debug('[MultiplayerManager] Member starting game - calling game.start()');
+            
+            // Members receive enemy state from host; no local spawning
+            if (this.game.enemyManager) {
+                this.game.enemyManager.setMultiplayerMode(true, false);
+            }
             
             // Show all HUD elements
             if (this.game.hudManager) {

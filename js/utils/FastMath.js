@@ -133,6 +133,15 @@ export function fastInvSqrt(x) {
 }
 
 /**
+ * Fast approximate sqrt (uses fastInvSqrt). Near good enough for scaling/counts.
+ * @param {number} x - Input number (>= 0)
+ * @returns {number} Approximate sqrt(x)
+ */
+export function fastSqrt(x) {
+    return x <= 0 ? 0 : x * fastInvSqrt(x);
+}
+
+/**
  * Linear interpolation (optimized with fround)
  * @param {number} a - Start value
  * @param {number} b - End value
