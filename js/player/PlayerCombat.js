@@ -183,15 +183,15 @@ export class PlayerCombat {
             this.die();
         }
         
-        // Visual effect: cloned world position so effect stays in world space (does not fly with player)
-        const playerWorldPosition = this.playerModel.getPosition();
+        // Visual effect: use player logical world position (movement), not model position.
+        // With world rebasing, model is always at (0,0,0); effects are in worldGroup so they need logical world pos.
+        const playerWorldPosition = this.game?.player?.movement?.getPosition()
+            ? this.game.player.movement.getPosition().clone()
+            : this.playerModel.getPosition();
         if (this.game?.hudManager) {
             this.game.hudManager.createBleedingEffect(reducedDamage, playerWorldPosition, true);
         }
-        // Three.js floating damage number: stays at hit location, floats up and fades (no DOM, no following player)
-        if (this.game?.effectsManager?.createDamageNumberSprite) {
-            this.game.effectsManager.createDamageNumberSprite(reducedDamage, playerWorldPosition, { isPlayerDamage: true });
-        }
+        // Player: bleeding effect only; no DamageNumberSpriteEffect for player.
 
         return reducedDamage;
     }

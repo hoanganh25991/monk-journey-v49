@@ -92,9 +92,9 @@ export class ItemDropManager {
         if (itemData.ring) {
             itemData.ring.geometry?.dispose();
             itemData.ring.material?.dispose();
-            this.scene.remove(itemData.ring);
+            if (itemData.ring.parent) itemData.ring.parent.remove(itemData.ring);
         }
-        if (itemData.group) this.scene.remove(itemData.group);
+        if (itemData.group?.parent) itemData.group.parent.remove(itemData.group);
         this.droppedItems.delete(itemId);
         if (showNotification && this.game?.hudManager) this.game.hudManager.showNotification(`${itemData.item.name} disappeared!`);
     }
@@ -133,9 +133,9 @@ export class ItemDropManager {
         if (itemData.ring) {
             itemData.ring.geometry?.dispose();
             itemData.ring.material?.dispose();
-            this.scene.remove(itemData.ring);
+            if (itemData.ring.parent) itemData.ring.parent.remove(itemData.ring);
         }
-        if (itemData.group) this.scene.remove(itemData.group);
+        if (itemData.group?.parent) itemData.group.parent.remove(itemData.group);
         this.droppedItems.delete(itemId);
     }
     
