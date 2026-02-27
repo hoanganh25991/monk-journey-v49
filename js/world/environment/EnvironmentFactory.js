@@ -36,6 +36,7 @@ import { BerryBush } from './BerryBush.js';
 // Import village and urban environment objects
 import { Market } from './Market.js';
 import { Square } from './Square.js';
+import { GrassCircle } from './GrassCircle.js';
 import { Plaza } from './Plaza.js';
 import { Stairs } from './Stairs.js';
 import { Well } from './Well.js';
@@ -187,6 +188,10 @@ export class EnvironmentFactory {
         this.register(ENVIRONMENT_OBJECTS.SQUARE, (position, size, data) => {
             const square = new Square(this.getAddTarget(), this.worldManager);
             return square.createMesh({ position, size, ...data });
+        });
+        this.register(ENVIRONMENT_OBJECTS.GRASS_CIRCLE, (position, size, data) => {
+            const grassCircle = new GrassCircle(this.getAddTarget(), this.worldManager);
+            return grassCircle.createMesh({ position, radius: size, size: size, ...data });
         });
         this.register(ENVIRONMENT_OBJECTS.PLAZA, (position, size, data) => {
             const plaza = new Plaza(this.getAddTarget(), this.worldManager);

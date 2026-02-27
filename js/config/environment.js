@@ -99,6 +99,7 @@ export const ENVIRONMENT_OBJECTS = {
     // Village and urban features
     MARKET: 'market',
     SQUARE: 'square',
+    GRASS_CIRCLE: 'grass_circle',
     PLAZA: 'plaza',
     STAIRS: 'stairs',
     WELL: 'well',

@@ -30,6 +30,7 @@ import { PlayerSkills } from './PlayerSkills.js';
 import { PlayerCombat } from './PlayerCombat.js';
 import { PlayerStatusEffects } from './PlayerStatusEffects.js';
 import { ITEM_TEMPLATES } from '../config/items.js';
+import { getElementalEffect } from '../config/elemental-effects.js';
 
 export class Player {
     /**
@@ -59,6 +60,9 @@ export class Player {
         this.skills = null;
         this.combat = null;
         this.statusEffects = null;
+
+        /** Active elemental effect from consumables: { id: string, endTime: number } - skills/attacks get elemental visuals */
+        this.elementalEffect = { id: null, endTime: 0 };
     }
     
     /**
@@ -501,6 +505,31 @@ export class Player {
         const current = stat === 'maxHealth' ? this.stats.getMaxHealth() : (this.stats[stat] ?? 0);
         const ratio = (current > 0 && amount > 0) ? amount / current : 0;
         if (ratio > 0) this.stats.addTemporaryBoost(stat, ratio, duration);
+    }
+
+    /**
+     * Set temporary elemental effect on skills and attacks (from consumables).
+     * While active, createEffect() will add elemental overlay (fire, water, thunder, etc.).
+     * @param {string} elementalId - Id from ELEMENTAL_EFFECTS (e.g. 'fire', 'water', 'thunder')
+     * @param {number} durationSeconds - How long the effect lasts
+     */
+    setElementalEffect(elementalId, durationSeconds) {
+        if (!elementalId || durationSeconds <= 0) return;
+        const endTime = Date.now() + durationSeconds * 1000;
+        this.elementalEffect = { id: elementalId, endTime };
+    }
+
+    /**
+     * Get currently active elemental effect config, or null if none/expired.
+     * @returns {import('../config/elemental-effects.js').ElementalEffectConfig|null}
+     */
+    getActiveElementalEffect() {
+        const { id, endTime } = this.elementalEffect || {};
+        if (!id || Date.now() >= endTime) {
+            if (id) this.elementalEffect = { id: null, endTime: 0 };
+            return null;
+        }
+        return getElementalEffect(id);
     }
     
     /**

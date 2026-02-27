@@ -4,6 +4,7 @@ import { ModelPreview } from '../menu-system/ModelPreview.js';
 import { ItemPreview } from '../menu-system/ItemPreview.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
 import { CONSUMABLE_SKILL_EFFECTS } from '../config/consumable-skills.js';
+import { getElementalEffect } from '../config/elemental-effects.js';
 
 /**
  * Inventory UI component
@@ -782,6 +783,18 @@ export class InventoryUI extends UIComponent {
 
                     effectsApplied = true;
                     effectsDescription.push(`${effectConfig.name || skillId}: ${hitCount} enemies`);
+                }
+            }
+
+            // Handle elemental effect consumables (skills and attacks get elemental visuals for a duration)
+            if (item.baseStats.effectType === 'elemental_effect' && item.baseStats.elementalId) {
+                const elementalId = item.baseStats.elementalId;
+                const duration = item.baseStats.duration ?? 90;
+                const elementalConfig = getElementalEffect(elementalId);
+                if (elementalConfig && this.game?.player) {
+                    this.game.player.setElementalEffect(elementalId, duration);
+                    effectsApplied = true;
+                    effectsDescription.push(`${elementalConfig.name} effect for ${duration}s`);
                 }
             }
 

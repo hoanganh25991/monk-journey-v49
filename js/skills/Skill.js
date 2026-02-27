@@ -1,5 +1,6 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffectFactory } from './SkillEffectFactory.js';
+import { applyElementalOverlay, updateElementalOverlay } from './ElementalOverlay.js';
 
 /**
  * Base class for all skills
@@ -238,6 +239,13 @@ export class Skill {
             if (this.effectHandler.applyShadowsToEffect) {
                 this.effectHandler.applyShadowsToEffect(effect);
             }
+            // Apply elemental overlay when player has consumed an elemental effect consumable
+            const player = this.game?.player;
+            const elemental = player?.getActiveElementalEffect?.();
+            if (elemental) {
+                const scale = (this.radius && this.radius > 0) ? Math.max(0.8, Math.min(2, this.radius)) : 1;
+                applyElementalOverlay(effect, elemental, scale);
+            }
             this.isActive = true;
             console.debug(`Created new effect for skill: ${this.name}`);
             return effect;
@@ -270,7 +278,10 @@ export class Skill {
             
             // Update effect using the effect handler
             this.effectHandler.update(delta);
-            
+            // Animate elemental overlay if present (works even when effect handler overrides update and doesn't call super)
+            if (this.effectHandler.effect) {
+                updateElementalOverlay(this.effectHandler.effect, delta);
+            }
             // Check if skill duration has expired
             if (this.elapsedTime >= this.duration) {
                 this.isActive = false;

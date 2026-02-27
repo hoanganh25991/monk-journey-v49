@@ -1185,6 +1185,120 @@ export const ITEM_TEMPLATES = [
         consumable: true
     },
 
+    // ==================== ELEMENTAL EFFECT CONSUMABLES (skills/attacks get elemental visuals) ====================
+    {
+        id: "essenceOfFlame",
+        name: "Essence of Flame",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks burn with fire for a time.",
+        icon: "🔥",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "fire",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfTide",
+        name: "Essence of Tide",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks flow with water for a time.",
+        icon: "💧",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "water",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfStorm",
+        name: "Essence of Storm",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks crackle with lightning for a time.",
+        icon: "⚡",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "thunder",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfGale",
+        name: "Essence of Gale",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks swirl with wind for a time.",
+        icon: "💨",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "wind",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfStone",
+        name: "Essence of Stone",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks carry earth and stone for a time.",
+        icon: "🪨",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "earth",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfFrost",
+        name: "Essence of Frost",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks gleam with frost for a time.",
+        icon: "❄️",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "ice",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfRadiance",
+        name: "Essence of Radiance",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks shine with holy light for a time.",
+        icon: "✨",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "light",
+            duration: 90
+        },
+        consumable: true
+    },
+    {
+        id: "essenceOfVoid",
+        name: "Essence of Void",
+        type: "consumable",
+        subType: "elemental",
+        description: "Your skills and attacks trail shadow for a time.",
+        icon: "🌑",
+        baseStats: {
+            effectType: "elemental_effect",
+            elementalId: "shadow",
+            duration: 90
+        },
+        consumable: true
+    },
+
     // ==================== SKILL CONSUMABLES (cast skill at pickup point) ====================
     {
         id: "waveOfLightShard",
