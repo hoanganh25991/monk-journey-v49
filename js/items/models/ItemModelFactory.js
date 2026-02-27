@@ -15,6 +15,7 @@ import { PotionModel } from './consumable/PotionModel.js';
 import { FoodModel } from './consumable/FoodModel.js';
 import { ScrollModel } from './consumable/ScrollModel.js';
 import { CrystalModel } from './consumable/CrystalModel.js';
+import { SkillConsumableModel } from './consumable/SkillConsumableModel.js';
 
 /**
  * Factory class for creating item models
@@ -89,6 +90,8 @@ export class ItemModelFactory {
                         return new ScrollModel(item, modelGroup);
                     case 'crystal':
                         return new CrystalModel(item, modelGroup);
+                    case 'skill':
+                        return new SkillConsumableModel(item, modelGroup);
                     default:
                         console.warn(`No specific model for consumable subtype: ${subType}, using default`);
                         return new ItemModel(item, modelGroup);

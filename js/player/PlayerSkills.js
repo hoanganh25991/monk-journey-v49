@@ -524,6 +524,43 @@ export class PlayerSkills {
         
         return true;
     }
+
+    /**
+     * Cast a skill at a specific world position (e.g. from a skill consumable pickup).
+     * Does not consume mana or trigger cooldown. Used when player picks up a skill consumable.
+     * @param {string} skillName - Name of the skill (must exist in SKILLS)
+     * @param {THREE.Vector3} worldPosition - Position to cast the skill at (e.g. drop position)
+     * @returns {Promise<boolean>} - True if the skill was cast, false otherwise
+     */
+    async castSkillAtPosition(skillName, worldPosition) {
+        if (!this.game || !worldPosition) return false;
+        const skillConfig = SKILLS.find(c => c.name === skillName);
+        if (!skillConfig) {
+            console.warn(`castSkillAtPosition: skill not found: ${skillName}`);
+            return false;
+        }
+        const copy = { ...skillConfig };
+        if (typeof copy.color === 'string' && copy.color.startsWith('#')) {
+            copy.color = parseInt(copy.color.slice(1), 16);
+        } else if (copy.color == null) {
+            copy.color = 0xffffff;
+        }
+        if (this.skillTreeData && this.skillTreeData[skillName]) {
+            const entry = this.skillTreeData[skillName];
+            if (entry.activeVariant) copy.variant = entry.activeVariant;
+            if (entry.buffs && Object.keys(entry.buffs).length > 0) copy.buffs = entry.buffs;
+        }
+        const skillInstance = new Skill(copy, this.game);
+        skillInstance.game = this.game;
+        const rotation = { y: 0 };
+        const skillEffect = await skillInstance.createEffect(worldPosition.clone(), rotation);
+        if (skillEffect) {
+            (this.game.getWorldGroup?.() || this.scene).add(skillEffect);
+            this.activeSkills.push(skillInstance);
+            return true;
+        }
+        return false;
+    }
     
     /**
      * Activates the player's primary attack skill

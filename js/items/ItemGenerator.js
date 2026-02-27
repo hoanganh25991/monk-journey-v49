@@ -83,7 +83,7 @@ export class ItemGenerator {
             weapon: ['fist', 'staff', 'dagger'],
             armor: ['robe', 'belt', 'boots', 'gloves', 'helmet', 'shoulders'],
             accessory: ['amulet', 'ring', 'talisman'],
-            consumable: ['potion', 'scroll', 'food', 'crystal']
+            consumable: ['potion', 'scroll', 'food', 'crystal', 'skill']
         };
         
         return this.randomElement(subTypes[type] || []);

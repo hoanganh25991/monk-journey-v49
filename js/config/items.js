@@ -1183,6 +1183,47 @@ export const ITEM_TEMPLATES = [
             skillDuration: 1.5
         },
         consumable: true
+    },
+
+    // ==================== SKILL CONSUMABLES (cast skill at pickup point) ====================
+    {
+        id: "waveOfLightShard",
+        name: "Wave of Light Shard",
+        type: "consumable",
+        subType: "skill",
+        description: "Pick up to summon a bell that crashes down at this spot.",
+        icon: "🔔",
+        baseStats: {
+            effectType: "skill",
+            skillName: "Wave of Light"
+        },
+        consumable: true
+    },
+    {
+        id: "cycloneShard",
+        name: "Cyclone Shard",
+        type: "consumable",
+        subType: "skill",
+        description: "Pick up to create a vortex at this spot.",
+        icon: "🌪️",
+        baseStats: {
+            effectType: "skill",
+            skillName: "Cyclone Strike"
+        },
+        consumable: true
+    },
+    {
+        id: "waveStrikeShard",
+        name: "Wave Strike Shard",
+        type: "consumable",
+        subType: "skill",
+        description: "Pick up to release a wave of energy at this spot.",
+        icon: "🌊",
+        baseStats: {
+            effectType: "skill",
+            skillName: "Wave Strike"
+        },
+        consumable: true
     }
 ];
 

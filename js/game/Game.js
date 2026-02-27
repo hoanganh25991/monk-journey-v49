@@ -593,7 +593,7 @@ export class Game {
             const dpr = window.devicePixelRatio || 1;
             let pixelRatio = settings?.pixelRatio ?? dpr;
             if (qualityLevel === 'high') {
-                pixelRatio = 2;
+                pixelRatio = Math.max(2, dpr); // Minimum 2, no upper cap
             } else if (qualityLevel === 'medium') {
                 pixelRatio = Math.min(dpr, 0.85);
             } else if (this.deviceCapabilities && (this.deviceCapabilities.isMobile || this.deviceCapabilities.isTablet) &&
@@ -1125,7 +1125,7 @@ export class Game {
         // Apply pixel ratio - always compute from current device so "high" on mobile is sharp (not baked at load time)
         let pixelRatio;
         if (qualityLevel === 'high') {
-            pixelRatio = 2;
+            pixelRatio = Math.max(2, dpr); // Minimum 2, no upper cap
         } else if (qualityLevel === 'medium') {
             pixelRatio = Math.min(dpr, 0.85);
         } else {

@@ -112,7 +112,8 @@ export class ItemDropManager {
             const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
             let didConsume = false;
             if (autoConsume && isItemConsumable(item) && hud?.components?.inventoryUI?.useConsumableItem) {
-                hud.components.inventoryUI.useConsumableItem(item);
+                const castPosition = itemData.group?.position?.clone?.() ?? null;
+                hud.components.inventoryUI.useConsumableItem(item, castPosition ? { castPosition } : undefined);
                 didConsume = true;
             }
             if (hud && !didConsume) {

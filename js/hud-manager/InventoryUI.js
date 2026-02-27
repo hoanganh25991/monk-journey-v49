@@ -709,12 +709,20 @@ export class InventoryUI extends UIComponent {
      * @param {Object} item - Consumable item to use
      * @private
      */
-    useConsumableItem(item) {
+    useConsumableItem(item, options = {}) {
         let effectsApplied = false;
         let effectsDescription = [];
         
         // Check for baseStats properties (from item-templates.js)
         if (item.baseStats) {
+            // Handle skill consumables: cast the skill at pickup point (or player position)
+            if (item.baseStats.effectType === 'skill' && item.baseStats.skillName && this.game?.player?.skills) {
+                const castPosition = options.castPosition ?? this.game.player.getPosition().clone();
+                this.game.player.skills.castSkillAtPosition(item.baseStats.skillName, castPosition);
+                effectsApplied = true;
+                effectsDescription.push(`Cast ${item.baseStats.skillName}`);
+            }
+
             // Handle health restoration
             if (item.baseStats.healthRestore) {
                 const healAmount = item.baseStats.healthRestore;
