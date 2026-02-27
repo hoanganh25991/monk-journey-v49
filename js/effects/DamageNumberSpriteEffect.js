@@ -26,8 +26,8 @@ const DAMAGE_NUMBER_CONFIG = {
     OUTLINE_OPACITY: 0.7, // Slightly more transparent
     OUTLINE_ENABLED: true, // Can be disabled for better performance
     
-    // Animation parameters — fast up and disappear for strong-attack feel
-    DURATION: 0.45,
+    // Animation parameters — fast up and disappear for strong-attack feel (2x longer visible)
+    DURATION: 0.9,
     FLOAT_SPEED: 6.0,
     SCALE_NORMAL: 0.5, // 10x bigger - was 0.05
     SCALE_CRITICAL: 0.6, // 10x bigger - was 0.06
