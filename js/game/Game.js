@@ -715,8 +715,18 @@ export class Game {
         this.camera.position.set(0, 10, 20);
         this.camera.lookAt(0, 0, 0);
 
+        // Hide game container until warmup completes (avoids showing janky first frames)
+        if (this.gameContainer) {
+            this.gameContainer.style.opacity = '0';
+            this.gameContainer.style.pointerEvents = 'none';
+        }
+        this._warmupFramesLeft = 8; // show game after 8 frames so first-frame spikes are off-screen
+
         const runAfterMapLoaded = (mapData) => {
-            if (overlayEl) overlayEl.style.display = 'none';
+            // Keep overlay visible with "Preparing..." until warmup ends (animate() will hide it)
+            if (overlayEl && loadingTextEl) {
+                loadingTextEl.textContent = 'Preparing your adventure...';
+            }
             if (!isLoadedGame && this.player && mapData?.spawn) {
                 const s = mapData.spawn;
                 this.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
@@ -915,6 +925,23 @@ export class Game {
             // Just render the scene using safe render
             this.safeRender(this.scene, this.camera);
             return;
+        }
+        
+        // Warmup: hide game container for first N frames to avoid showing slow first-frame spikes
+        if (this._warmupFramesLeft > 0) {
+            this._warmupFramesLeft--;
+            if (this._warmupFramesLeft === 0) {
+                const overlayEl = document.getElementById('mapLoadingOverlay');
+                if (overlayEl) overlayEl.style.display = 'none';
+                if (this.gameContainer) {
+                    this.gameContainer.style.opacity = '1';
+                    this.gameContainer.style.pointerEvents = '';
+                }
+                if (this.hudManager) this.hudManager.showAllUI();
+                const homeButton = document.getElementById('home-button');
+                if (homeButton) homeButton.style.display = 'block';
+                this._warmupFramesLeft = -1;
+            }
         }
         
         // Update input handler for continuous skill casting

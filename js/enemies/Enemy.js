@@ -717,6 +717,12 @@ export class Enemy {
         // Reduce health by the actual damage
         this.health -= actualDamage;
         
+        // Show floating damage number (-XXX in red) for every hit
+        if (actualDamage > 0 && this.player?.game?.effectsManager) {
+            const isKill = this.health <= 0;
+            this.player.game.effectsManager.createDamageNumberSprite(actualDamage, this.getPosition(), { isEnemyDamage: true, isKill });
+        }
+        
         // Check if dead
         if (this.health <= 0) {
             this.die();

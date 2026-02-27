@@ -368,13 +368,7 @@ export class CollisionManager {
         
         // Only show effects if damage was actually dealt (enemy not already dead)
         if (actualDamage > 0) {
-            // Show damage number (RPG style) — critical on kill, combo finisher, or ~8% random
-            const isKill = enemy.state.isDead || enemy.getHealth() <= 0;
-            const isComboFinisher = !!skill.isComboFinisher;
-            const isCritical = isKill || isComboFinisher || (Math.random() < 0.08);
-            if (this.player.game.effectsManager) {
-                this.player.game.effectsManager.createDamageNumberSprite(actualDamage, enemyPosition, { isKill, isCritical });
-            }
+            // Damage number is created in Enemy.takeDamage so all hit paths show -XXX in red
             if (this.player.game.hudManager) {
                 this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
             }

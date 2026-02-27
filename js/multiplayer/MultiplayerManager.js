@@ -197,17 +197,7 @@ export class MultiplayerManager {
             this.game.menuManager.hideActiveMenu();
         }
         
-        // Show all HUD elements
-        if (this.game.hudManager) {
-            console.debug('[MultiplayerManager] Showing all HUD elements');
-            this.game.hudManager.showAllUI();
-        }
-        
-        // Make sure home button is visible
-        const homeButton = document.getElementById('home-button');
-        if (homeButton) {
-            homeButton.style.display = 'block';
-        }
+        // HUD and home button are shown by Game after warmup
         
         // Store current player level and stats before starting
         let currentLevel = null;
@@ -265,17 +255,7 @@ export class MultiplayerManager {
                 this.game.enemyManager.setMultiplayerMode(true, false);
             }
             
-            // Show all HUD elements
-            if (this.game.hudManager) {
-                console.debug('[MultiplayerManager] Showing all HUD elements');
-                this.game.hudManager.showAllUI();
-            }
-            
-            // Make sure home button is visible
-            const homeButton = document.getElementById('home-button');
-            if (homeButton) {
-                homeButton.style.display = 'block';
-            }
+            // HUD and home button are shown by Game after warmup
             
             // Store current player level and stats before starting
             let currentLevel = null;

@@ -101,9 +101,14 @@ export class DamageNumberSpriteEffect {
         
         DamageNumberSpriteEffect.fontLoadPromise = new Promise((resolve, reject) => {
             const loader = new FontLoader();
+            // Resolve path from document so it works when script is loaded as module (./ would be relative to script URL)
+            const base = typeof document !== 'undefined' && document.baseURI
+                ? document.baseURI.replace(/[^/]+$/, '')
+                : '';
+            if (base) loader.setPath(base);
             // Use Helvetiker Bold font (included with Three.js)
             loader.load(
-                './fonts/helvetiker_bold.typeface.json',
+                'fonts/helvetiker_bold.typeface.json',
                 (font) => {
                     DamageNumberSpriteEffect.font = font;
                     resolve(font);
@@ -314,6 +319,7 @@ export class DamageNumberSpriteEffect {
         this.group = new THREE.Group();
         this.group.position.copy(this.worldPosition);
         this.group.add(this.mesh);
+        this.group.renderOrder = 1000; // Draw on top of terrain/enemies so damage numbers are visible
 
         (this.game.getWorldGroup?.() || this.game.scene).add(this.group);
         return true;
@@ -332,18 +338,18 @@ export class DamageNumberSpriteEffect {
             return false;
         }
         
-        // Frustum culling - hide if too far from camera
+        // Frustum culling - use scene-space position (group is under worldGroup which moves)
         if (this.game?.camera) {
-            const dx = this.group.position.x - this.game.camera.position.x;
-            const dy = this.group.position.y - this.game.camera.position.y;
-            const dz = this.group.position.z - this.game.camera.position.z;
+            const worldPos = this.group.getWorldPosition(new THREE.Vector3());
+            const dx = worldPos.x - this.game.camera.position.x;
+            const dy = worldPos.y - this.game.camera.position.y;
+            const dz = worldPos.z - this.game.camera.position.z;
             const distSqToCamera = dx * dx + dy * dy + dz * dz;
             if (distSqToCamera > 6400) { // 80^2 // Hide damage numbers beyond 80 units
                 this.group.visible = false;
                 return true; // Keep alive but hidden
-            } else {
-                this.group.visible = true;
             }
+            this.group.visible = true;
         }
         
         // Float up fast (no deceleration — snappy); no rotation — keep orientation as created

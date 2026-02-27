@@ -97,37 +97,37 @@ export class PlayerEquipmentVisuals {
         
         this.clearAllVisuals();
         
-        if (equipment.weapon) {
-            this.createWeaponVisual(equipment.weapon);
-        }
+        // if (equipment.weapon) {
+        //     this.createWeaponVisual(equipment.weapon);
+        // }
         
         // if (equipment.armor) {
         //     this.createArmorVisual(equipment.armor);
         // }
         
-        if (equipment.helmet) {
-            this.createHelmetVisual(equipment.helmet);
-        }
+        // if (equipment.helmet) {
+        //     this.createHelmetVisual(equipment.helmet);
+        // }
 
-        if (equipment.gloves) {
-            this.createGlovesVisual(equipment.gloves);
-        }
+        // if (equipment.gloves) {
+        //     this.createGlovesVisual(equipment.gloves);
+        // }
 
-        if (equipment.boots) {
-            this.createBootsVisual(equipment.boots);
-        }
+        // if (equipment.boots) {
+        //     this.createBootsVisual(equipment.boots);
+        // }
 
-        if (equipment.belt) {
-            this.createBeltVisual(equipment.belt);
-        }
+        // if (equipment.belt) {
+        //     this.createBeltVisual(equipment.belt);
+        // }
 
         // if (equipment.shoulder) {
         //     this.createShoulderVisual(equipment.shoulder);
         // }
         
-        if (equipment.accessory1 || equipment.accessory2) {
-            this.createAccessoryEffects(equipment.accessory1, equipment.accessory2);
-        }
+        // if (equipment.accessory1 || equipment.accessory2) {
+        //     this.createAccessoryEffects(equipment.accessory1, equipment.accessory2);
+        // }
     }
     
     /**

@@ -19,7 +19,7 @@
 body {
     overflow: hidden;
     font-family: Arial, sans-serif;
-    background-color: transparent; /* Changed from #000 to transparent */
+    background-color: #EDE4C8; /* Warm cream – matches flash/reveal color */
     -webkit-tap-highlight-color: transparent !important;
 }
 

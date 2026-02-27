@@ -72,86 +72,28 @@ export class GameMenu extends IMenu {
                             console.debug("Game data loaded successfully");
                             this.hide();
                             
-                            // Start the game with loaded data - this will set isPaused to false and start the game loop
-                            // Pass true to indicate this is a loaded game, so player position isn't reset
+                            // Start the game with loaded data - HUD is shown by Game after warmup
                             this.game.start(true);
-                            
-                            // Make sure settings button is visible
-                            const homeButton = document.getElementById('home-button');
-                            if (homeButton) {
-                                homeButton.style.display = 'block';
-                            }
-                            
-                            // Show all HUD elements
-                            if (this.game.hudManager) {
-                                this.game.hudManager.showAllUI();
-                            }
                             
                             console.debug("Game started with loaded data - enemies and player are now active");
                         } else {
                             console.debug("No save data found or failed to load, starting new game instead");
                             
-                            // Start a new game instead
                             this.hide();
-                            
-                            // Start the game - this will set isPaused to false and start the game loop
-                            // Pass false to indicate this is a new game, so player position should be reset
                             this.game.start(false);
-                            
-                            // Make sure settings button is visible
-                            const homeButton = document.getElementById('home-button');
-                            if (homeButton) {
-                                homeButton.style.display = 'block';
-                            }
-                            
-                            // Show all HUD elements
-                            if (this.game.hudManager) {
-                                this.game.hudManager.showAllUI();
-                            }
                         }
                     } catch (error) {
                         console.error("Error loading game data:", error);
                         alert('An error occurred while loading the game. Starting a new game instead.');
                         
-                        // Start a new game instead
                         this.hide();
-                        
-                        // Start the game - this will set isPaused to false and start the game loop
                         this.game.start(false);
-                        
-                        // Make sure settings button is visible
-                        const homeButton = document.getElementById('home-button');
-                        if (homeButton) {
-                            homeButton.style.display = 'block';
-                        }
-                        
-                        // Show all HUD elements
-                        if (this.game.hudManager) {
-                            this.game.hudManager.showAllUI();
-                        }
                     }
                 } else {
-                    // Game has never been started - start a new game
+                    // Game has never been started - start a new game (HUD shown by Game after warmup)
                     console.debug("New Game button clicked - starting new game...");
                     this.hide();
-                    
-                    // Hide the main background when starting the game
-                    
-                    // Start the game - this will set isPaused to false and start the game loop
-                    // Pass false to indicate this is a new game, so player position should be reset
                     this.game.start(false);
-                    
-                    // Make sure settings button is visible
-                    const homeButton = document.getElementById('home-button');
-                    if (homeButton) {
-                        homeButton.style.display = 'block';
-                    }
-                    
-                    // Show all HUD elements
-                    if (this.game.hudManager) {
-                        this.game.hudManager.showAllUI();
-                    }
-                    
                     console.debug("New game started - enemies and player are now active");
                 }
             })

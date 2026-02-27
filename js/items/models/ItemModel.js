@@ -71,9 +71,10 @@ export class ItemModel {
      * @param {number} color - The color to apply
      */
     applyColor(color) {
+        const hex = typeof color === 'number' ? color : parseInt(String(color).replace(/^#/, '0x'), 16);
         this.modelGroup.traverse(child => {
-            if (child.isMesh && child.material) {
-                child.material.color.set(color);
+            if (child.isMesh && child.material && child.material.color) {
+                child.material.color.setHex(hex);
             }
         });
     }
