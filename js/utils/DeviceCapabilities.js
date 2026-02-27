@@ -412,22 +412,43 @@ export class DeviceCapabilities {
     }
     
     /**
-     * Log device capabilities to console
+     * Log device capabilities to console (all selected/detected values in this group)
      */
     logCapabilities() {
         if (!this.capabilities) {
             console.warn('Capabilities not detected yet');
             return;
         }
-        
+        const c = this.capabilities;
         console.group('Device Capabilities');
-        console.log('Device Type:', this.isMobile ? 'Mobile' : this.isTablet ? 'Tablet' : 'Desktop');
-        console.log('GPU Tier:', this.capabilities.gpuTier);
-        console.log('Max Texture Size:', this.capabilities.maxTextureSize);
-        console.log('Max Renderbuffer Size:', this.capabilities.maxRenderbufferSize);
-        console.log('WebGL 2:', this.capabilities.isWebGL2);
-        console.log('Optimal Shadow Map Sizes:', this.capabilities.optimalShadowMapSize);
-        console.log('Estimated GPU Memory:', this.capabilities.estimatedGPUMemoryMB, 'MB');
+        console.log('Device Type:', c.isMobile ? 'Mobile' : c.isTablet ? 'Tablet' : 'Desktop');
+        console.log('isMobile:', c.isMobile);
+        console.log('isTablet:', c.isTablet);
+        console.log('isDesktop:', c.isDesktop);
+        console.log('GPU Tier:', c.gpuTier);
+        console.log('Max Texture Size:', c.maxTextureSize);
+        console.log('Max Renderbuffer Size:', c.maxRenderbufferSize);
+        console.log('Max Viewport Dims:', c.maxViewportDims);
+        console.log('WebGL 2:', c.isWebGL2);
+        console.log('Max Anisotropy:', c.maxAnisotropy);
+        console.log('Estimated GPU Memory:', c.estimatedGPUMemoryMB, 'MB');
+        console.log('Optimal Shadow Map Sizes:', c.optimalShadowMapSize);
+        if (c.optimalShadowMapSize) {
+            console.log('  → high:', c.optimalShadowMapSize.high);
+            console.log('  → medium:', c.optimalShadowMapSize.medium);
+            console.log('  → low:', c.optimalShadowMapSize.low);
+            console.log('  → minimal:', c.optimalShadowMapSize.minimal);
+        }
+        if (c.extensions) {
+            console.log('Extensions:', {
+                depthTexture: !!c.extensions.depthTexture,
+                textureFloat: !!c.extensions.textureFloat,
+                textureHalfFloat: !!c.extensions.textureHalfFloat,
+                anisotropic: !!c.extensions.anisotropic,
+                standardDerivatives: !!c.extensions.standardDerivatives,
+                shaderTextureLod: !!c.extensions.shaderTextureLod
+            });
+        }
         console.groupEnd();
     }
 }
