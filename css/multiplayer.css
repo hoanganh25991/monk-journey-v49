@@ -317,18 +317,65 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.contact-join-btn,
-.contact-remove-btn {
+/* Join & Remove in contacts list: yellow/gold style (override .small-btn) */
+.contacts-list .contact-join-btn,
+.contacts-list .contact-remove-btn {
     flex-shrink: 0;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 230, 150, 0.8);
+    background-color: rgba(255, 204, 0, 0.7);
+    color: #4a3000;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.contact-remove-btn {
-    color: #e74c3c;
+.contacts-list .contact-join-btn:hover,
+.contacts-list .contact-remove-btn:hover {
+    background-color: rgba(255, 214, 50, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.contacts-list .contact-join-btn:active,
+.contacts-list .contact-remove-btn:active {
+    transform: scale(0.98);
 }
 .contacts-manage-toggle-btn {
     margin-right: 0.25rem;
 }
+
+/* Contacts popup: 2 tabs with same style as close (X) button – gold/amber */
+.contacts-popup-header-tabs .contacts-popup-tabs {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+.contacts-tab-btn {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    border: 2px solid rgba(255, 230, 150, 0.8);
+    background-color: rgba(120, 90, 40, 0.5);
+    color: rgba(255, 230, 150, 0.9);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.contacts-tab-btn:hover {
+    background-color: rgba(180, 140, 50, 0.6);
+    color: #fff;
+}
+.contacts-tab-btn.contacts-tab-active {
+    background-color: rgba(255, 204, 0, 0.7);
+    color: #4a3000;
+    border-color: rgba(255, 230, 150, 0.8);
+}
+.contacts-tab-btn.contacts-tab-active:hover {
+    background-color: rgba(255, 214, 50, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
 .contacts-empty {
     margin: 0.5rem 0;
     font-size: 0.9rem;

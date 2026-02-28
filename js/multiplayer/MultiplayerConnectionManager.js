@@ -299,6 +299,7 @@ export class MultiplayerConnectionManager {
 
         this.multiplayerManager.ui.addPlayerToList(peerId, playerColor);
         this.multiplayerManager.ui.setStartButtonEnabled(true);
+        this.multiplayerManager.ui.addJoinerContact(peerId, persistentId);
         // Refresh host's Connected Players list so host sees self + all joiners
         this.multiplayerManager.ui.updateConnectionInfoPlayerList();
         conn.on('data', data => this.handleDataFromMember(peerId, this.processReceivedData(data)));
@@ -953,6 +954,7 @@ export class MultiplayerConnectionManager {
         this._hostTickCount = (this._hostTickCount || 0) + 1;
         const fullSync = this._hostTickCount % 90 === 0;
         const playerPositions = [];
+        const players = {};
         const pl = this.multiplayerManager.game?.player;
         if (pl) {
             let pos = null;

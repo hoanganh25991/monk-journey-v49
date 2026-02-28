@@ -38,9 +38,7 @@ export class MultiplayerUIManager {
         this._joinSoundCycleMs = 18000;
         /** When set, primary button shows "Play" and joins this host (from NFC/Sound/QR or single LAN) */
         this._detectedHostId = null;
-        /** When true, joiner used "Rejoin to last host" — show overlay only until startGame, don't show full Multiplayer screen */
-        this._silentRejoinInProgress = false;
-        /** @type {number|undefined} */
+        /** @type {number|undefined} - cleared in hideRejoinOverlay to avoid leaks */
         this._silentRejoinFallbackTimeoutId = undefined;
         /** @type {number|undefined} - 10s status refresh while contacts popup is open */
         this._contactsPopupIntervalId = undefined;
@@ -105,7 +103,7 @@ export class MultiplayerUIManager {
                     try {
                         const ids = JSON.parse(legacy);
                         if (Array.isArray(ids) && ids.length) {
-                            const contacts = ids.filter(Boolean).map(id => ({ id, name: id.slice(0, 8) + '…' }));
+                            const contacts = ids.filter(Boolean).map(id => ({ id, name: 'Player-' + MultiplayerUIManager.roomIdFirst4(id) }));
                             localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(contacts));
                             localStorage.removeItem('monkJourney_joinedHostIds');
                             raw = JSON.stringify(contacts);
@@ -116,16 +114,33 @@ export class MultiplayerUIManager {
             if (!raw) return [];
             const arr = JSON.parse(raw);
             if (!Array.isArray(arr)) return [];
-            return arr.filter(c => c && c.id).map(c => ({ id: c.id, name: c.name || (c.id.slice(0, 8) + '…') }));
+            return arr.filter(c => c && c.id).map(c => ({
+                id: c.id,
+                name: 'Player-' + MultiplayerUIManager.roomIdFirst4(c.id),
+                isJoiner: !!c.isJoiner
+            }));
         } catch (_) { return []; }
     }
 
-    /** Add or update a host contact (when we successfully join). Moves to end if already present. */
+    /** Add or update a host contact (when we successfully join). Moves to end if already present. Never auto-removed on disconnect. */
     addJoinedHostId(hostId, name) {
         if (!hostId) return;
         const contacts = this.getHostContacts();
         const filtered = contacts.filter(c => c.id !== hostId);
-        filtered.push({ id: hostId, name: name || hostId.slice(0, 8) + '…' });
+        filtered.push({ id: hostId, name: 'Player-' + MultiplayerUIManager.roomIdFirst4(hostId) });
+        try {
+            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(filtered));
+        } catch (_) {}
+    }
+
+    /** Host: add a joiner to contacts when they connect. Uses persistentId as id when present to avoid duplicates on reconnect. Never auto-removed on disconnect. */
+    addJoinerContact(peerId, persistentId) {
+        if (!peerId) return;
+        const id = persistentId || peerId;
+        const contacts = this.getHostContacts();
+        const filtered = contacts.filter(c => c.id !== id);
+        const name = 'Player-' + MultiplayerUIManager.roomIdFirst4(peerId);
+        filtered.push({ id, name, isJoiner: true });
         try {
             localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(filtered));
         } catch (_) {}
@@ -135,13 +150,13 @@ export class MultiplayerUIManager {
         const contacts = this.getHostContacts();
         const idx = contacts.findIndex(c => c.id === hostId);
         if (idx === -1) return;
-        contacts[idx].name = (name || '').trim() || contacts[idx].id.slice(0, 8) + '…';
+        contacts[idx].name = 'Player-' + MultiplayerUIManager.roomIdFirst4(contacts[idx].id);
         try {
             localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(contacts));
         } catch (_) {}
     }
 
-    /** Remove a host from contacts (only when user taps Remove in Manage mode; disconnect does not remove). */
+    /** Remove a contact (only when user taps Remove in Manage mode). Disconnect never auto-removes. */
     removeJoinedHostId(hostId) {
         if (!hostId) return;
         const contacts = this.getHostContacts().filter(c => c.id !== hostId);
@@ -153,11 +168,11 @@ export class MultiplayerUIManager {
     }
 
     getJoinedHostIds() {
-        return this.getHostContacts().map(c => c.id);
+        return this.getHostContacts().filter(c => !c.isJoiner).map(c => c.id);
     }
 
     getLatestJoinedHostId() {
-        const contacts = this.getHostContacts();
+        const contacts = this.getHostContacts().filter(c => !c.isJoiner);
         return contacts.length ? contacts[contacts.length - 1].id : null;
     }
 
@@ -181,7 +196,6 @@ export class MultiplayerUIManager {
      * @param {string} roomId - The host room ID that could not be joined
      */
     onJoinToHostFailed(roomId) {
-        this._silentRejoinInProgress = false;
         this.hideRejoinOverlay();
         this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
         this.setHostStatus(roomId, 'offline');
@@ -239,7 +253,6 @@ export class MultiplayerUIManager {
                 btn.appendChild(dot);
                 btn.appendChild(label);
                 btn.onclick = () => {
-                    this._silentRejoinInProgress = true;
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
                     this.showRejoinOverlay('Reconnecting...');
                     this.multiplayerManager.joinGame(latestHostId);
@@ -258,7 +271,8 @@ export class MultiplayerUIManager {
     showContactsPopup() {
         const popup = document.getElementById('contacts-popup');
         const closeBtn = document.getElementById('contacts-popup-close');
-        const manageToggleBtn = document.getElementById('contacts-manage-toggle-btn');
+        const tabListBtn = document.getElementById('contacts-tab-list-btn');
+        const tabManageBtn = document.getElementById('contacts-tab-manage-btn');
         if (!popup) return;
         if (this._contactsPopupIntervalId !== undefined) {
             clearInterval(this._contactsPopupIntervalId);
@@ -273,9 +287,15 @@ export class MultiplayerUIManager {
                 this._contactsPopupIntervalId = undefined;
             }
         };
-        if (manageToggleBtn) {
-            manageToggleBtn.onclick = () => {
-                this._contactsManageMode = !this._contactsManageMode;
+        if (tabListBtn) {
+            tabListBtn.onclick = () => {
+                this._contactsManageMode = false;
+                this.refreshContactsPopupList();
+            };
+        }
+        if (tabManageBtn) {
+            tabManageBtn.onclick = () => {
+                this._contactsManageMode = true;
                 this.refreshContactsPopupList();
             };
         }
@@ -283,7 +303,7 @@ export class MultiplayerUIManager {
         // While popup is open, refresh status every 10s (status channel); keeps list in sync
         const CONTACTS_STATUS_INTERVAL_MS = 10000;
         this._contactsPopupIntervalId = window.setInterval(() => {
-            const contacts = this.getHostContacts();
+            const contacts = this.getHostContacts().filter(c => !c.isJoiner);
             contacts.forEach((c) => {
                 this._lastStatusPingAt[c.id] = 0;
             });
@@ -295,12 +315,15 @@ export class MultiplayerUIManager {
         const listEl = document.getElementById('contacts-list');
         const emptyEl = document.getElementById('contacts-empty');
         const hintEl = document.getElementById('contacts-popup-hint');
-        const manageToggleBtn = document.getElementById('contacts-manage-toggle-btn');
+        const tabListBtn = document.getElementById('contacts-tab-list-btn');
+        const tabManageBtn = document.getElementById('contacts-tab-manage-btn');
         if (!listEl) return;
         const manageMode = this._contactsManageMode;
-        if (manageToggleBtn) {
-            manageToggleBtn.textContent = manageMode ? 'Connect' : 'Manage';
-            manageToggleBtn.title = manageMode ? 'Show list to join' : 'Manage contacts';
+        if (tabListBtn) {
+            tabListBtn.classList.toggle('contacts-tab-active', !manageMode);
+        }
+        if (tabManageBtn) {
+            tabManageBtn.classList.toggle('contacts-tab-active', manageMode);
         }
         if (hintEl) {
             hintEl.textContent = manageMode
@@ -314,12 +337,15 @@ export class MultiplayerUIManager {
             return;
         }
         if (emptyEl) emptyEl.style.display = 'none';
-        contacts.forEach((c) => this.pingHostStatus(c.id));
-        contacts.forEach(({ id, name }) => {
-            const status = this.getHostStatus(id);
+        contacts.forEach((c) => {
+            if (!c.isJoiner) this.pingHostStatus(c.id);
+        });
+        contacts.forEach((c) => {
+            const { id, name, isJoiner } = c;
+            const status = isJoiner ? null : this.getHostStatus(id);
             const li = document.createElement('li');
             const dot = document.createElement('span');
-            dot.className = 'contact-status-dot ' + (status || 'unknown');
+            dot.className = 'contact-status-dot ' + (isJoiner ? 'offline' : (status || 'unknown'));
             dot.setAttribute('aria-hidden', 'true');
             const nameSpan = document.createElement('span');
             nameSpan.className = 'contact-name';
@@ -337,6 +363,7 @@ export class MultiplayerUIManager {
                 };
                 li.appendChild(removeBtn);
             } else {
+                // Join screen: show Join for every contact (hosts we joined + joiners Host added). User picked Contacts to join someone.
                 const joinBtn = document.createElement('button');
                 joinBtn.type = 'button';
                 joinBtn.className = 'small-btn contact-join-btn';
@@ -348,7 +375,6 @@ export class MultiplayerUIManager {
                         clearInterval(this._contactsPopupIntervalId);
                         this._contactsPopupIntervalId = undefined;
                     }
-                    this._silentRejoinInProgress = true;
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
                     this.showRejoinOverlay('Reconnecting...');
                     this.multiplayerManager.joinGame(id);
@@ -864,20 +890,14 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * Show the connection info screen
-     * Displays current connection status, host info, and connected players.
-     * When silent rejoin is in progress (Rejoin to last host), show overlay only until startGame or timeout.
+     * Show the connection info screen.
+     * Host: full "Multiplayer Connection" screen (QR, code, connected players, start game).
+     * Joiner: only the "Connected. Joining game..." overlay; never show the full connection screen.
      */
     showConnectionInfoScreen() {
-        if (this._silentRejoinInProgress) {
+        const conn = this.multiplayerManager.connection;
+        if (conn && conn.isConnected && !conn.isHost) {
             this.showRejoinOverlay('Connected. Joining game...');
-            if (this._silentRejoinFallbackTimeoutId !== undefined) return;
-            this._silentRejoinFallbackTimeoutId = window.setTimeout(() => {
-                this._silentRejoinFallbackTimeoutId = undefined;
-                this._silentRejoinInProgress = false;
-                this.hideRejoinOverlay();
-                this._showConnectionInfoScreenInternal();
-            }, 8000);
             return;
         }
         this._showConnectionInfoScreenInternal();
@@ -975,7 +995,6 @@ export class MultiplayerUIManager {
      * Close the multiplayer modal
      */
     closeMultiplayerModal() {
-        this._silentRejoinInProgress = false;
         this.hideRejoinOverlay();
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {

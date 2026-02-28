@@ -560,7 +560,7 @@
         </div>
     </div>
 
-    <!-- Rejoin overlay: shown when "Rejoin to last host" is used, until startGame or failure (joiner only) -->
+    <!-- Joiner overlay: shown when connecting (Contacts/Rejoin/QR/Enter Code) until startGame or disconnect -->
     <div id="rejoin-overlay" class="rejoin-overlay" style="display: none;" aria-live="polite">
         <div class="rejoin-overlay-message" id="rejoin-overlay-message">Reconnecting...</div>
     </div>
@@ -628,7 +628,7 @@
                 <div class="join-actions-row join-actions-column">
                     <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">QR scan</button>
                     <button type="button" id="join-enter-code-btn" class="settings-button join-enter-code-btn">Enter Code</button>
-                    <button type="button" id="join-contacts-btn" class="settings-button join-contacts-btn">Contacts</button>
+                    <button type="button" id="join-contacts-btn" class="settings-button join-contacts-btn" title="Host contacts">👥 Contacts</button>
                     <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn" style="display: none;">Retry</button>
                 </div>
             </div>
@@ -636,9 +636,11 @@
             <div id="contacts-popup" class="qr-scan-popup" style="display: none;">
                 <div class="qr-scan-popup-backdrop"></div>
                 <div class="qr-scan-popup-box contacts-popup-box">
-                    <div class="qr-scan-popup-header">
-                        <span>Host contacts</span>
-                        <button type="button" id="contacts-manage-toggle-btn" class="small-btn contacts-manage-toggle-btn" title="Manage contacts">Manage</button>
+                    <div class="qr-scan-popup-header contacts-popup-header-tabs">
+                        <div class="contacts-popup-tabs">
+                            <button type="button" id="contacts-tab-list-btn" class="contacts-tab-btn contacts-tab-active" title="Host contacts">👥</button>
+                            <button type="button" id="contacts-tab-manage-btn" class="contacts-tab-btn" title="Manage contacts">✏️</button>
+                        </div>
                         <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
                     </div>
                     <div class="contacts-popup-body">

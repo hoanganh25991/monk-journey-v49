@@ -3,6 +3,9 @@ import { MultiplayerUIManager } from './MultiplayerUIManager.js';
 import { MultiplayerConnectionManager } from './MultiplayerConnectionManager.js';
 import { BinarySerializer } from './BinarySerializer.js';
 
+/** Set to true to log game state updates (debug). */
+const shouldLog = false;
+
 /**
  * Manages multiplayer functionality using WebRTC
  * Handles game state synchronization and coordinates UI and connection managers
