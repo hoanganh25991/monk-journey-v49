@@ -32,6 +32,8 @@ export class MultiplayerConnectionManager {
         this._hostLeftIntentional = false;
         /** Member: send position only once on first sync, then only input. */
         this._initialPositionSent = false;
+        /** Member: throttle input send to ~30 Hz to match host tick and reduce load. */
+        this._lastInputSend = 0;
         this.serializer = new BinarySerializer(); // Binary serializer for efficient data transfer
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
     }
@@ -295,6 +297,8 @@ export class MultiplayerConnectionManager {
 
         this.multiplayerManager.ui.addPlayerToList(peerId, playerColor);
         this.multiplayerManager.ui.setStartButtonEnabled(true);
+        // Refresh host's Connected Players list so host sees self + all joiners
+        this.multiplayerManager.ui.updateConnectionInfoPlayerList();
         conn.on('data', data => this.handleDataFromMember(peerId, this.processReceivedData(data)));
         conn.on('close', () => this.handleDisconnect(peerId));
 
@@ -354,6 +358,7 @@ export class MultiplayerConnectionManager {
         this.multiplayerManager.assignedColors.delete(peerId);
         this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
         this.multiplayerManager.ui.showInviteNotification(peerId);
+        this.multiplayerManager.ui.updateConnectionInfoPlayerList();
         // Host can still start without joiners; do not disable Start when last joiner leaves
     }
 
@@ -648,6 +653,7 @@ export class MultiplayerConnectionManager {
         }
 
         this._initialPositionSent = false;
+        this._lastInputSend = 0;
 
         // Remove all remote players
         if (this.multiplayerManager.remotePlayerManager) {
@@ -686,6 +692,8 @@ export class MultiplayerConnectionManager {
             });
             this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
             this._snapHostJoinersList();
+            // Refresh host's Connected Players list so it stays in sync
+            this.multiplayerManager.ui.updateConnectionInfoPlayerList();
             // Host can play alone; do not disable Start when last joiner disconnects
         } else {
             // If host disconnected, handle it with the unified method
@@ -890,10 +898,13 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Send player input (joystick + jump) to host (member only). Called every frame instead of position for smooth, low-lag sync.
+     * Send player input (joystick + jump) to host (member only). Throttled to ~30 Hz to match host and reduce bottleneck.
      */
     sendPlayerInput() {
         if (this.isHost || !this.isConnected) return;
+        const now = Date.now();
+        if (now - this._lastInputSend < 33) return;
+        this._lastInputSend = now;
         if (!this.multiplayerManager.game?.player) return;
         const hostConn = this.peers.get(this.hostId);
         if (!hostConn) return;
@@ -930,16 +941,13 @@ export class MultiplayerConnectionManager {
 
     /**
      * Broadcast game state to all members (host only).
-     * Fast host-authority: send any remaining enemiesRemoved first, then compact full state at ~30 Hz.
+     * Single packet: removedIds + players + enemies at ~30 Hz (no separate enemiesRemoved message).
      */
     broadcastGameState() {
         if (!this.isHost) return;
         const em = this.multiplayerManager.game?.enemyManager;
         const removedIds = em?.getRecentlyRemovedEnemyIds?.() ?? [];
-        if (removedIds.length > 0) {
-            em.clearRecentlyRemovedEnemyIds();
-            this.broadcast({ type: 'enemiesRemoved', ids: removedIds });
-        }
+        if (removedIds.length > 0) em.clearRecentlyRemovedEnemyIds();
         const players = {};
         const pl = this.multiplayerManager.game?.player;
         if (pl) {
@@ -982,7 +990,9 @@ export class MultiplayerConnectionManager {
             };
         });
         const enemies = em && typeof em.getSerializableEnemyData === 'function' ? em.getSerializableEnemyData() : {};
-        this.broadcast({ type: 'gameState', players, enemies });
+        const gameState = { type: 'gameState', players, enemies };
+        if (removedIds.length > 0) gameState.removedIds = removedIds;
+        this.broadcast(gameState);
     }
 
 

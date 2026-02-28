@@ -24,7 +24,7 @@ export class RemotePlayer {
         this.currentAnimation = null;
         this.targetPosition = new THREE.Vector3();
         this.targetRotation = new THREE.Euler();
-        this.interpolationFactor = 0.1; // Smoothing factor for movement
+        this.interpolationFactor = 0.22; // Snappier follow for "nearly exact" feel (was 0.1)
         // Input-driven movement (host simulates from member input)
         this._inputDriven = false;
         this.position = new THREE.Vector3();

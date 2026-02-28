@@ -2414,7 +2414,7 @@ export class MultiplayerUIManager {
      * @param {string} playerColor - The color assigned to the player
      */
     addPlayerToList(playerId, playerColor) {
-        const playersList = document.getElementById('connected-players-list');
+        const playersList = document.getElementById('connection-info-players');
         if (!playersList) return;
         
         // Create player item

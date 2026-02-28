@@ -131,60 +131,30 @@ export class MultiplayerManager {
     updateGameState(data) {
         this._lastReceivedGameStateTime = Date.now();
         this._slowGapNotified = false;
-        const shouldLog = Math.random() < 0.01;
-        if (shouldLog) {
-            console.debug('[MultiplayerManager] Received game state update from host');
+        if (data.removedIds?.length && this.game.enemyManager) {
+            this.game.enemyManager.removeEnemiesByIds(data.removedIds);
         }
-        
-        // Update player positions (with reduced logging)
         if (data.players) {
             if (shouldLog) {
                 console.debug('[MultiplayerManager] Updating', Object.keys(data.players).length, 'players');
             }
             
-            Object.entries(data.players).forEach(([playerId, playerData]) => {
-                if (playerId !== this.connection.peer.id) {
-                    // Only update remote players if we have valid position data
-                    if (playerData.position && playerData.rotation) {
-                        // Process position data - could be array [x,y,z] or object {x,y,z}
-                        let position = playerData.position;
-                        if (Array.isArray(position)) {
-                            position = BinarySerializer.restoreVector(position);
-                        }
-                        
-                        // Process rotation data - could be number (y) or object {y}
-                        let rotation;
-                        if (typeof playerData.rotation === 'number') {
-                            rotation = BinarySerializer.restoreRotation(playerData.rotation);
-                        } else {
-                            // Create a complete rotation object (we only send y rotation to save bandwidth)
-                            rotation = {
-                                x: 0,
-                                y: playerData.rotation.y || 0,
-                                z: 0
-                            };
-                        }
-                        
-                        this.remotePlayerManager.updatePlayer(
-                            playerId,
-                            position,
-                            rotation,
-                            playerData.animation,
-                            playerData.modelId,
-                            playerData.playerColor
-                        );
-                    }
-                }
-            });
-        }
-        
-        // Update enemies - this is the primary focus
-        if (data.enemies && this.game.enemyManager) {
-            if (shouldLog) {
-                console.debug('[MultiplayerManager] Updating enemies from host data');
+            for (const playerId in data.players) {
+                if (playerId === this.connection.peer.id) continue;
+                const playerData = data.players[playerId];
+                if (!playerData?.position || playerData.rotation === undefined) continue;
+                let position = playerData.position;
+                if (Array.isArray(position)) position = BinarySerializer.restoreVector(position);
+                const rotation = typeof playerData.rotation === 'number'
+                    ? BinarySerializer.restoreRotation(playerData.rotation)
+                    : { x: 0, y: playerData.rotation?.y ?? 0, z: 0 };
+                this.remotePlayerManager.updatePlayer(
+                    playerId, position, rotation,
+                    playerData.animation, playerData.modelId, playerData.playerColor
+                );
             }
-            
-            // Update enemy positions and states
+        }
+        if (data.enemies && this.game.enemyManager) {
             this.game.enemyManager.updateEnemiesFromHost(data.enemies);
         }
     }

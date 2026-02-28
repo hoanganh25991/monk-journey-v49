@@ -502,10 +502,11 @@ export class EnemyManager {
             if (idx >= 0) this.disposalQueue.splice(idx, 1);
         }
         
-        // Process enemy updates (create/update to match host). Accept compact {p,h,t,b} or legacy {position,health,type,isBoss,id}.
-        Object.entries(enemiesData).forEach(([id, raw]) => {
+        for (const id in enemiesData) {
+            if (!Object.prototype.hasOwnProperty.call(enemiesData, id)) continue;
+            const raw = enemiesData[id];
             const pos = raw.p ? { x: raw.p[0], y: raw.p[1], z: raw.p[2] } : raw.position;
-            if (!pos || isNaN(pos.x) || isNaN(pos.y) || isNaN(pos.z)) return;
+            if (!pos || isNaN(pos.x) || isNaN(pos.y) || isNaN(pos.z)) continue;
             const enemyData = {
                 id,
                 position: pos,
@@ -525,13 +526,14 @@ export class EnemyManager {
                 }
                 enemy.setPosition(enemyData.position.x, newY, enemyData.position.z);
                 if (enemyData.health !== undefined) {
+                    const changed = Math.abs(enemy.health - enemyData.health) > 0.5;
                     enemy.health = enemyData.health;
-                    enemy.updateHealthBar();
+                    if (changed) enemy.updateHealthBar();
                 }
             } else {
                 void this.createEnemyFromData(enemyData);
             }
-        });
+        }
     }
     
     /**
