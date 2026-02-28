@@ -51,6 +51,16 @@ export class MultiplayerUIManager {
         return segment && segment.length >= 8 ? segment : roomId.substring(0, 8);
     }
 
+    /**
+     * First 4 chars of UUID for short display (e.g. "Player-xxxx" in header).
+     * @param {string} roomId - Full Peer/room ID (UUID)
+     * @returns {string} First 4 chars
+     */
+    static roomIdFirst4(roomId) {
+        if (!roomId) return '????';
+        return roomId.substring(0, 4);
+    }
+
     /** localStorage: last role so we show Resume hosting vs Rejoin correctly */
     static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
     /** localStorage: contact list of hosts { id, name } (joiners); enables rejoin and rename. */
@@ -596,13 +606,46 @@ export class MultiplayerUIManager {
     }
 
     /**
+     * Update the centered player info in a modal header: green connected + Player-xxxx (first 4 of UUID).
+     * @param {string} elementId - ID of the .multiplayer-header-player-info element
+     */
+    updateHeaderPlayerInfo(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        // Connected when in a session OR when we have persistent room ID (created on Game init)
+        const inSession = !!(this.multiplayerManager.connection && this.multiplayerManager.connection.isConnected);
+        const hasPersistentId = !!this.multiplayerManager.getMyPersistentPeerId();
+        const isConnected = inSession || hasPersistentId;
+        const myId = this.multiplayerManager.getMyPersistentPeerId();
+        const xxxx = MultiplayerUIManager.roomIdFirst4(myId);
+        const dotClass = isConnected ? 'connected' : 'disconnected';
+        el.innerHTML = '';
+        const dot = document.createElement('span');
+        dot.className = `player-info-dot ${dotClass}`;
+        dot.setAttribute('aria-hidden', 'true');
+        el.appendChild(dot);
+        if (isConnected) {
+            const connectedLabel = document.createElement('span');
+            connectedLabel.textContent = 'connected';
+            el.appendChild(connectedLabel);
+            const sep = document.createElement('span');
+            sep.textContent = ' · ';
+            sep.setAttribute('aria-hidden', 'true');
+            el.appendChild(sep);
+        }
+        const playerLabel = document.createElement('span');
+        playerLabel.textContent = `Player-${xxxx}`;
+        el.appendChild(playerLabel);
+    }
+
+    /**
      * Show the multiplayer modal (one-touch HOST / JOIN screen)
      */
     showMultiplayerModal() {
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'flex';
-            
+
             // Show initial one-touch screen, hide others
             document.getElementById('multiplayer-initial-screen').style.display = 'flex';
             document.getElementById('join-game-screen').style.display = 'none';
@@ -621,8 +664,9 @@ export class MultiplayerUIManager {
             // Reset connection status
             const statusElements = document.querySelectorAll('.connection-status');
             statusElements.forEach(el => el.textContent = '');
-            
+
             this.updateResumeHostArea();
+            this.updateHeaderPlayerInfo('multiplayer-initial-player-info');
         }
     }
     
@@ -681,9 +725,10 @@ export class MultiplayerUIManager {
                 playerWaitingScreen.style.display = 'none';
             }
             connectionInfoScreen.style.display = 'flex';
-            
+
             // Update connection info
             this.updateConnectionInfoScreen();
+            this.updateHeaderPlayerInfo('connection-info-player-info');
             // Ensure Sound 📤 / NFC 📤 are shown for host/player whenever connection screen is visible
             this.maybeShowNfcShareOnConnectionScreen();
         }
@@ -1325,8 +1370,10 @@ export class MultiplayerUIManager {
                 console.warn('Room ID not available for QR code generation');
             }
         }
+
+        this.updateHeaderPlayerInfo('connection-info-player-info');
     }
-    
+
     /**
      * Update the player list in the connection info screen
      */
@@ -1481,6 +1528,8 @@ export class MultiplayerUIManager {
 
         // Permissions row: refresh status (Allow buttons wired in setupUIListeners)
         await this.refreshJoinPermissions();
+
+        this.updateHeaderPlayerInfo('join-game-player-info');
 
         // Primary button: QR scan
         const primaryBtn = document.getElementById('join-primary-btn');

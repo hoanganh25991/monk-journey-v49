@@ -72,6 +72,9 @@ export class MultiplayerManager {
      */
     async init() {
         try {
+            // Create persistent Peer ID on first load so roomID is on-hand and persistent for this device
+            this.getMyPersistentPeerId();
+
             // Initialize RemotePlayerManager
             this.remotePlayerManager = new RemotePlayerManager(this.game);
             

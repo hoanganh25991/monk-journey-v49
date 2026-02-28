@@ -566,6 +566,7 @@
         <div class="multiplayer-menu-content" id="multiplayer-initial-screen">
             <div class="modal-header">
                 <h2>Play Together</h2>
+                <div id="multiplayer-initial-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
                 <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
             </div>
             <div id="resume-host-area" class="resume-host-area" style="display: none;">
@@ -584,6 +585,7 @@
         <div class="multiplayer-menu-content fullscreen-layout" id="join-game-screen" style="display: none;">
             <div class="modal-header">
                 <h2>Join Game</h2>
+                <div id="join-game-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
                 <button id="back-from-join-btn" class="circle-btn" title="Close">↩️</button>
             </div>
             <!-- Permissions: one row — green (allowed), Allow button (denied), gray (not supported) -->
@@ -704,6 +706,7 @@
         <div class="multiplayer-menu-content fullscreen-layout" id="connection-info-screen" style="display: none;">
             <div class="modal-header">
                 <h2>Multiplayer Connection</h2>
+                <div id="connection-info-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
                 <button id="close-connection-info-btn" class="circle-btn" title="Close">↩️</button>
             </div>
             <div class="host-game-layout">
