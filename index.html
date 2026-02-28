@@ -632,7 +632,7 @@
                     <button type="button" id="nfc-join-confirm-cancel-btn" class="settings-button secondary-button">Cancel</button>
                 </div>
             </div>
-            <!-- QR Scan popup: overlay, auto-start scan, auto-close when host detected -->
+            <!-- QR Scan popup: overlay, auto-start scan, on success connect and close -->
             <div id="qr-scan-popup" class="qr-scan-popup" style="display: none;">
                 <div class="qr-scan-popup-backdrop"></div>
                 <div class="qr-scan-popup-box">
@@ -645,6 +645,25 @@
                         <div id="qr-scanner-loading" class="qr-scanner-loading" style="display: none;">
                             <div class="loading-spinner"></div>
                             <div class="loading-text">Initializing camera...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Enter Code popup: same flow as QR (input + Connect, then join and close) -->
+            <div id="enter-code-popup" class="qr-scan-popup" style="display: none;">
+                <div class="qr-scan-popup-backdrop"></div>
+                <div class="qr-scan-popup-box">
+                    <div class="qr-scan-popup-header">
+                        <span>Enter Code</span>
+                        <button type="button" id="enter-code-popup-close" class="circle-btn" title="Close">✕</button>
+                    </div>
+                    <div class="qr-scan-popup-body enter-code-popup-body">
+                        <div class="manual-input-section">
+                            <div class="input-with-buttons">
+                                <input type="text" id="enter-code-popup-input" placeholder="Enter connection code" autocomplete="off">
+                                <button type="button" id="enter-code-popup-paste" class="small-btn" title="Paste">📋</button>
+                            </div>
+                            <button type="button" id="enter-code-popup-connect" class="settings-button">Connect</button>
                         </div>
                     </div>
                 </div>

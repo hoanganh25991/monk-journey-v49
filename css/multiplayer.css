@@ -521,6 +521,25 @@
     max-height: 60vh;
     aspect-ratio: 1 / 1;
 }
+.enter-code-popup-body {
+    padding: 1.5rem;
+    min-height: 140px;
+}
+.enter-code-popup-body .manual-input-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.enter-code-popup-body .input-with-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+.enter-code-popup-body .input-with-buttons input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+}
 .qr-scanner-loading {
     position: absolute;
     inset: 0;

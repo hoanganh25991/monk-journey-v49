@@ -737,12 +737,30 @@ export class MultiplayerUIManager {
         if (manualSection) manualSection.style.display = 'none';
     }
 
-    /** Show manual code section and focus input */
+    /** Show manual code section and focus input (used e.g. from URL params or fallback) */
     showJoinManualCodeSection() {
         const section = document.getElementById('join-manual-code-section');
         const input = document.getElementById('manual-connection-input');
         if (section) section.style.display = 'block';
         if (input) input.focus();
+    }
+
+    /** Open Enter Code popup (same flow as QR Scan: input + Connect, then join and close). */
+    openEnterCodePopup() {
+        const popup = document.getElementById('enter-code-popup');
+        const input = document.getElementById('enter-code-popup-input');
+        if (!popup) return;
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+        popup.style.display = 'flex';
+    }
+
+    /** Close Enter Code popup. */
+    closeEnterCodePopup() {
+        const popup = document.getElementById('enter-code-popup');
+        if (popup) popup.style.display = 'none';
     }
     
     /**
@@ -1120,6 +1138,7 @@ export class MultiplayerUIManager {
         if (nfcConfirm) nfcConfirm.style.display = 'none';
         document.getElementById('join-manual-code-section').style.display = 'none';
         document.getElementById('qr-scan-popup').style.display = 'none';
+        document.getElementById('enter-code-popup').style.display = 'none';
 
         const manualInput = document.getElementById('manual-connection-input');
         if (manualInput) manualInput.value = '';
@@ -1133,6 +1152,7 @@ export class MultiplayerUIManager {
                 this.stopJoinAutoMethods();
                 document.getElementById('join-game-screen').style.display = 'none';
                 document.getElementById('qr-scan-popup').style.display = 'none';
+                document.getElementById('enter-code-popup').style.display = 'none';
                 this.showMultiplayerModal();
             };
         }
@@ -1146,10 +1166,10 @@ export class MultiplayerUIManager {
             primaryBtn.onclick = () => this.onJoinPrimaryClick();
         }
 
-        // Enter Code button (below QR scan): show manual code section
+        // Enter Code button (below QR scan): show Enter Code popup (same flow as QR → Connect)
         const enterCodeBtn = document.getElementById('join-enter-code-btn');
         if (enterCodeBtn) {
-            enterCodeBtn.onclick = () => this.showJoinManualCodeSection();
+            enterCodeBtn.onclick = () => this.openEnterCodePopup();
         }
 
         // Manual connect (when manual section is visible)
@@ -1171,6 +1191,38 @@ export class MultiplayerUIManager {
         const qrPopupClose = document.getElementById('qr-scan-popup-close');
         if (qrPopupClose) {
             qrPopupClose.onclick = () => this.closeQRScanPopup();
+        }
+
+        // Enter Code popup: close, connect, paste, Enter key
+        const enterCodePopupClose = document.getElementById('enter-code-popup-close');
+        if (enterCodePopupClose) enterCodePopupClose.onclick = () => this.closeEnterCodePopup();
+        const enterCodePopupConnect = document.getElementById('enter-code-popup-connect');
+        const enterCodePopupInput = document.getElementById('enter-code-popup-input');
+        if (enterCodePopupConnect && enterCodePopupInput) {
+            enterCodePopupConnect.onclick = () => {
+                const code = enterCodePopupInput.value.trim();
+                if (code) {
+                    this.updateConnectionStatus('Connecting...', 'join-connection-status');
+                    this.multiplayerManager.joinGame(code);
+                    this.closeEnterCodePopup();
+                } else {
+                    this.updateConnectionStatus('Please enter a connection code', 'join-connection-status');
+                }
+            };
+            enterCodePopupInput.onkeydown = (e) => {
+                if (e.key === 'Enter') enterCodePopupConnect.click();
+            };
+        }
+        const enterCodePopupPaste = document.getElementById('enter-code-popup-paste');
+        if (enterCodePopupPaste && enterCodePopupInput) {
+            enterCodePopupPaste.onclick = async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    enterCodePopupInput.value = text;
+                } catch (err) {
+                    this.updateConnectionStatus('Could not paste from clipboard', 'join-connection-status');
+                }
+            };
         }
 
         // Reset auto-scan state and wire Retry all
