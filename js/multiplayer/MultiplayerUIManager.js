@@ -436,6 +436,8 @@ export class MultiplayerUIManager {
 
     /** localStorage key for last host room (enables resume after network issues) */
     static get STORAGE_KEY_LAST_HOST_ROOM() { return 'monkJourney_lastHostRoomId'; }
+    /** localStorage: host's list of joiners by roomId; value = JSON array of { persistentId, color }. */
+    static get STORAGE_KEY_HOST_JOINERS_PREFIX() { return 'monkJourney_hostJoiners_'; }
 
     getLastHostRoomId() {
         try {
@@ -452,6 +454,55 @@ export class MultiplayerUIManager {
 
     clearLastHostRoomId() {
         this.setLastHostRoomId(null);
+    }
+
+    /** Host: get stored joiner list for roomId (array of { persistentId, color }). */
+    getStoredJoiners(roomId) {
+        if (!roomId) return null;
+        try {
+            const raw = localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_HOST_JOINERS_PREFIX + roomId);
+            if (!raw) return null;
+            const arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : null;
+        } catch (_) { return null; }
+    }
+
+    /** Host: persist joiner list for roomId; snap on add/remove/reconnect. */
+    setStoredJoiners(roomId, list) {
+        if (!roomId) return;
+        try {
+            const key = MultiplayerUIManager.STORAGE_KEY_HOST_JOINERS_PREFIX + roomId;
+            if (list && list.length > 0) {
+                localStorage.setItem(key, JSON.stringify(list));
+            } else {
+                localStorage.removeItem(key);
+            }
+        } catch (_) {}
+    }
+
+    /** Joiner: show "Reconnecting..." and retry join to last host until connected or user leaves. */
+    showReconnectingAndRetryJoin() {
+        this.showRejoinOverlay('Reconnecting...');
+        this.updateConnectionStatus('Waiting for host to come back...', 'connection-info-status-bar');
+        const RECONNECT_INTERVAL_MS = 5000;
+        if (this._reconnectRetryIntervalId !== undefined) {
+            clearInterval(this._reconnectRetryIntervalId);
+        }
+        this._reconnectRetryIntervalId = window.setInterval(() => {
+            const lastHostId = this.getLatestJoinedHostId();
+            if (lastHostId) {
+                this.multiplayerManager.joinGame(lastHostId);
+            }
+        }, RECONNECT_INTERVAL_MS);
+    }
+
+    /** Joiner: stop reconnecting retry (e.g. when connected to host). */
+    clearReconnectRetry() {
+        if (this._reconnectRetryIntervalId !== undefined) {
+            clearInterval(this._reconnectRetryIntervalId);
+            this._reconnectRetryIntervalId = undefined;
+        }
+        this.hideRejoinOverlay();
     }
 
     /**

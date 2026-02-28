@@ -446,7 +446,10 @@ export class MultiplayerManager {
         // Explicit disconnect: host clears their room ID; joiner removes this host from joined list.
         // On network/lag disconnect we do not call leaveGame(), so stored IDs stay for rejoin/resume.
         if (wasHost) this.ui.clearLastHostRoomId();
-        else if (hostId) this.ui.removeJoinedHostId(hostId);
+        else {
+            if (hostId) this.ui.removeJoinedHostId(hostId);
+            this.ui.clearReconnectRetry();
+        }
 
         // Clean up remote players
         if (this.remotePlayerManager) {

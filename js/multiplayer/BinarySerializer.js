@@ -38,7 +38,7 @@ const SCHEMAS = {
     [MessageType.PLAYER_DAMAGE]: ['amount', 'enemyId'],
     [MessageType.SHARE_EXPERIENCE]: ['amount', 'enemyId', 'playerCount'],
     [MessageType.PARTY_BONUS_UPDATE]: ['playerCount'],
-    [MessageType.REQUEST_START_GAME]: []
+    [MessageType.REQUEST_START_GAME]: ['persistentId']
 };
 
 export class BinarySerializer {

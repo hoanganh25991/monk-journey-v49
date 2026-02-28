@@ -24,6 +24,12 @@ export class MultiplayerConnectionManager {
         this.isConnected = false;
         this.hostId = null; // ID of the host (if member)
         this.roomId = null; // Room ID (if host)
+        /** Host: persistentId (joiner device) -> current peerId (connection). One player per persistentId. */
+        this.persistentIdToPeerId = new Map();
+        /** Host: peerId -> persistentId (for snap and reconnect dedupe). */
+        this.peerIdToPersistentId = new Map();
+        /** Joiner: set when host sends hostLeft so we don't auto-retry reconnecting. */
+        this._hostLeftIntentional = false;
         this.serializer = new BinarySerializer(); // Binary serializer for efficient data transfer
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
     }
@@ -138,6 +144,7 @@ export class MultiplayerConnectionManager {
             // Set up connection
             conn.on('open', () => {
                 this._joinAttemptRoomId = null; // join succeeded
+                this.multiplayerManager.ui.clearReconnectRetry();
                 // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
                 conn.on('data', data => this.handleDataFromHost(this.processReceivedData(data)));
                 conn.on('close', () => this.handleDisconnect(roomId));
@@ -161,7 +168,11 @@ export class MultiplayerConnectionManager {
                 // Show the connection info screen (or rejoin overlay if silent rejoin)
                 this.multiplayerManager.ui.showConnectionInfoScreen();
                 // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
-                this.sendToHost({ type: 'requestStartGame' });
+                // Send persistentId so host can dedupe one player per device (off->on->off->on = same slot)
+                this.sendToHost({
+                    type: 'requestStartGame',
+                    persistentId: this.multiplayerManager.getMyPersistentPeerId()
+                });
             });
             
             conn.on('error', (err) => {
@@ -212,7 +223,7 @@ export class MultiplayerConnectionManager {
                 conn.close();
                 return;
             }
-            this._addJoinerAsPlayer(conn);
+            this._addJoinerAsPlayer(conn, d);
             this.handleDataFromMember(conn.peer, d);
         });
     }
@@ -224,21 +235,59 @@ export class MultiplayerConnectionManager {
 
     /**
      * Add connection as a game player (host only); used after we know it's not an inviteRequest.
-     * Same peerId (persistent device ID) reconnecting = reuse existing remote player, one character.
+     * Same persistentId (joiner device) reconnecting = one slot only; replace old connection.
      * @param {DataConnection} conn - The PeerJS connection
+     * @param {Object} [firstMessage] - First message from joiner (may contain persistentId)
      */
-    _addJoinerAsPlayer(conn) {
+    _addJoinerAsPlayer(conn, firstMessage) {
+        const persistentId = firstMessage?.persistentId || null;
+        const roomId = this.roomId;
+
+        // Reconnect: same device (persistentId) already had a slot — replace old connection
+        if (persistentId && this.persistentIdToPeerId.has(persistentId)) {
+            const oldPeerId = this.persistentIdToPeerId.get(persistentId);
+            const oldConn = this.peers.get(oldPeerId);
+            const existingColor = this.multiplayerManager.assignedColors.get(oldPeerId);
+            if (oldConn && oldConn !== conn) {
+                oldConn.removeAllListeners('close');
+                oldConn.close();
+            }
+            this.peers.delete(oldPeerId);
+            this.multiplayerManager.ui.removePlayerFromList(oldPeerId);
+            this.multiplayerManager.remotePlayerManager.removePlayer(oldPeerId);
+            this.multiplayerManager.assignedColors.delete(oldPeerId);
+            this.peerIdToPersistentId.delete(oldPeerId);
+            this.persistentIdToPeerId.delete(persistentId);
+            this.peers.forEach(peerConn => {
+                peerConn.send({ type: 'playerLeft', playerId: oldPeerId });
+            });
+            // Assign same color to new peerId
+            if (existingColor) {
+                this.multiplayerManager.assignedColors.set(conn.peer, existingColor);
+            }
+        }
+
         conn.removeAllListeners('data');
         this.peers.set(conn.peer, conn);
         const peerId = conn.peer;
-        const isReconnect = !!this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
+        if (persistentId) {
+            this.persistentIdToPeerId.set(persistentId, peerId);
+            this.peerIdToPersistentId.set(peerId, persistentId);
+        }
+        const isReconnect = !!persistentId && this.multiplayerManager.ui.getStoredJoiners(roomId)?.some(j => j.persistentId === persistentId);
 
-        // Assign a color only if new (reconnect keeps existing color)
+        // Assign a color only if new (reconnect keeps existing from above or from stored list)
         if (!this.multiplayerManager.assignedColors.has(peerId)) {
-            const usedColors = Array.from(this.multiplayerManager.assignedColors.values());
-            const availableColor = this.multiplayerManager.playerColors.find(color => !usedColors.includes(color)) ||
-                                  this.multiplayerManager.playerColors[Math.floor(Math.random() * this.multiplayerManager.playerColors.length)];
-            this.multiplayerManager.assignedColors.set(peerId, availableColor);
+            const stored = this.multiplayerManager.ui.getStoredJoiners(roomId);
+            const fromStored = stored && persistentId && stored.find(j => j.persistentId === persistentId);
+            if (fromStored?.color) {
+                this.multiplayerManager.assignedColors.set(peerId, fromStored.color);
+            } else {
+                const usedColors = Array.from(this.multiplayerManager.assignedColors.values());
+                const availableColor = this.multiplayerManager.playerColors.find(color => !usedColors.includes(color)) ||
+                                      this.multiplayerManager.playerColors[Math.floor(Math.random() * this.multiplayerManager.playerColors.length)];
+                this.multiplayerManager.assignedColors.set(peerId, availableColor);
+            }
         }
         const playerColor = this.multiplayerManager.assignedColors.get(peerId);
 
@@ -258,9 +307,11 @@ export class MultiplayerConnectionManager {
             }
         });
 
-        if (!isReconnect) {
+        if (!this.multiplayerManager.remotePlayerManager.getPlayer(peerId)) {
             this.multiplayerManager.remotePlayerManager.createRemotePlayer(peerId, playerColor);
         }
+
+        this._snapHostJoinersList();
 
         const totalCount = 1 + this.peers.size;
         const partyMsg = { type: 'partyBonusUpdate', playerCount: totalCount };
@@ -275,6 +326,18 @@ export class MultiplayerConnectionManager {
         if (this.multiplayerManager.game?.state?.hasStarted?.()) {
             this.sendToPeer(peerId, { type: 'startGame' });
         }
+    }
+
+    /** Host: persist list of joiners (by roomId) to localStorage; call on add/remove. */
+    _snapHostJoinersList() {
+        if (!this.isHost || !this.roomId) return;
+        const list = [];
+        this.peers.forEach((_, peerId) => {
+            const persistentId = this.peerIdToPersistentId.get(peerId);
+            const color = this.multiplayerManager.assignedColors.get(peerId);
+            if (persistentId && color) list.push({ persistentId, color });
+        });
+        this.multiplayerManager.ui.setStoredJoiners(this.roomId, list);
     }
 
     /**
@@ -394,7 +457,7 @@ export class MultiplayerConnectionManager {
                 }
                 break;
             case 'hostLeft':
-                // Handle host leaving the game using the unified method
+                this._hostLeftIntentional = true;
                 this.handleHostDisconnection();
                 break;
             case 'playerDamage':
@@ -573,40 +636,36 @@ export class MultiplayerConnectionManager {
      * the 'hostLeft' message handler and the handleDisconnect method
      */
     handleHostDisconnection() {
-        console.debug('[MultiplayerConnectionManager] Host disconnected from game');
-        
+        const intentional = this._hostLeftIntentional;
+        this._hostLeftIntentional = false;
+
+        console.debug('[MultiplayerConnectionManager] Host disconnected from game', intentional ? '(host left)' : '(reconnecting…)');
+
         this.isConnected = false;
         this.multiplayerManager.ui.updateMultiplayerButton(false);
-        this.multiplayerManager.ui.updateConnectionStatus('Disconnected from host');
-        
-        // Show notification
-        if (this.multiplayerManager.game.hudManager) {
-            this.multiplayerManager.game.hudManager.showNotification('The host has left the game', 'error');
+
+        if (intentional) {
+            this.multiplayerManager.ui.updateConnectionStatus('Disconnected from host');
+            if (this.multiplayerManager.game.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('The host has left the game', 'error');
+            }
+        } else {
+            this.multiplayerManager.ui.showReconnectingAndRetryJoin();
         }
-        
+
         // Remove all remote players
         if (this.multiplayerManager.remotePlayerManager) {
-            console.debug('[MultiplayerConnectionManager] Removing all remote players after host left');
             this.multiplayerManager.remotePlayerManager.removeAllPlayers();
         }
-        
-        // Take back control of enemy spawning as local mode
+
         if (this.multiplayerManager.game.enemyManager) {
-            console.debug('[MultiplayerConnectionManager] Taking back control of enemy spawning in local mode');
-            
-            // Clear existing enemies (which were controlled by host)
             this.multiplayerManager.game.enemyManager.removeAllEnemies();
-            
-            // Start local enemy spawning
             this.multiplayerManager.game.enemyManager.enableLocalSpawning();
         }
-        
-        // Clean up connection
+
         this.dispose();
-        
-        // Keep the game running but in local mode instead of returning to menu
-        if (this.multiplayerManager.game.state) {
-            // Don't pause the game, just continue in local mode
+
+        if (intentional && this.multiplayerManager.game.state) {
             console.debug('[MultiplayerConnectionManager] Continuing game in local mode after host left');
         }
     }
@@ -620,11 +679,17 @@ export class MultiplayerConnectionManager {
         this.peers.delete(peerId);
         
         if (this.isHost) {
+            const persistentId = this.peerIdToPersistentId.get(peerId);
+            if (persistentId) {
+                this.persistentIdToPeerId.delete(persistentId);
+                this.peerIdToPersistentId.delete(peerId);
+            }
             this.multiplayerManager.ui.removePlayerFromList(peerId);
             this.peers.forEach(conn => {
                 conn.send({ type: 'playerLeft', playerId: peerId });
             });
             this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
+            this._snapHostJoinersList();
             // Host can play alone; do not disable Start when last joiner disconnects
         } else {
             // If host disconnected, handle it with the unified method
@@ -1028,20 +1093,17 @@ export class MultiplayerConnectionManager {
      */
     dispose() {
         const wasHost = this.isHost;
-        const roomId = this.roomId;
         // Close all connections
         if (this.peers) {
             this.peers.forEach(conn => conn.close());
             this.peers.clear();
         }
-        
-        // Close peer connection
+        if (this.persistentIdToPeerId) this.persistentIdToPeerId.clear();
+        if (this.peerIdToPersistentId) this.peerIdToPersistentId.clear();
         if (this.peer) {
             this.peer.destroy();
             this.peer = null;
         }
-        
-        // Reset flags
         this.isHost = false;
         this.isConnected = false;
         this.hostId = null;
