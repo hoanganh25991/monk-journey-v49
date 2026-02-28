@@ -353,9 +353,14 @@ export class Enemy {
         // Reset movement state
         this.state.isMoving = false;
         
-        // Find the closest player (local or remote)
+        // Find the closest alive player (local or remote); dead players are skipped
         this.findClosestPlayer();
-        
+
+        if (!this.targetPlayer) {
+            this.updateAnimations(delta);
+            return;
+        }
+
         // Get squared distance to target player (avoids Math.sqrt in hot path)
         const playerPosition = this.targetPlayer.getPosition();
         const dx = playerPosition.x - this.position.x;
@@ -507,58 +512,52 @@ export class Enemy {
     }
 
     /**
-     * Find the closest player (local or remote) to target
+     * Find the closest alive player (local or remote) to target. Dead players are skipped.
      */
     findClosestPlayer() {
-        // Start with the local player as the default target
-        this.targetPlayer = this.player;
+        this.targetPlayer = null;
         let closestDistanceSq = Number.MAX_VALUE;
 
-        // Get local player position
-        const localPlayerPos = this.player.getPosition();
-        closestDistanceSq = distanceSq2D(
-            this.position.x, this.position.z,
-            localPlayerPos.x, localPlayerPos.z
-        );
+        // Consider local player only if alive
+        const localAlive = this.player.state && !this.player.state.isDead();
+        if (localAlive) {
+            const localPlayerPos = this.player.getPosition();
+            closestDistanceSq = distanceSq2D(
+                this.position.x, this.position.z,
+                localPlayerPos.x, localPlayerPos.z
+            );
+            this.targetPlayer = this.player;
+        }
 
         // Check if we have access to the game and multiplayer manager
         if (this.player.game &&
             this.player.game.multiplayerManager &&
             this.player.game.multiplayerManager.remotePlayerManager) {
 
-            // Get all remote players
             const remotePlayers = this.player.game.multiplayerManager.remotePlayerManager.getPlayers();
 
-            // Check each remote player
             remotePlayers.forEach((remotePlayer, peerId) => {
-                if (remotePlayer && remotePlayer.group) {
-                    const remotePos = remotePlayer.group.position;
-                    const distanceSq = distanceSq2D(
-                        this.position.x, this.position.z,
-                        remotePos.x, remotePos.z
-                    );
+                if (!remotePlayer || !remotePlayer.group || !remotePlayer.isAlive || !remotePlayer.isAlive()) return;
+                const remotePos = remotePlayer.group.position;
+                const distanceSq = distanceSq2D(
+                    this.position.x, this.position.z,
+                    remotePos.x, remotePos.z
+                );
 
-                    // If this remote player is closer, target them instead
-                    if (distanceSq < closestDistanceSq) {
-                        closestDistanceSq = distanceSq;
-                        // Create a wrapper object that mimics the player interface
-                        this.targetPlayer = {
-                            getPosition: () => remotePos,
-                            takeDamage: (amount) => {
-                                // For remote players, we'll notify the host about the damage
-                                // The actual damage will be applied by the host
-                                if (this.player.game.multiplayerManager.isHost) {
-                                    // If we're the host, broadcast damage to the specific player
-                                    // Use the connection manager's sendToPeer method to ensure proper serialization
-                                    this.player.game.multiplayerManager.connection.sendToPeer(peerId, {
-                                        type: 'playerDamage',
-                                        amount: amount,
-                                        enemyId: this.id
-                                    });
-                                }
+                if (distanceSq < closestDistanceSq) {
+                    closestDistanceSq = distanceSq;
+                    this.targetPlayer = {
+                        getPosition: () => remotePos,
+                        takeDamage: (amount) => {
+                            if (this.player.game.multiplayerManager.isHost) {
+                                this.player.game.multiplayerManager.connection.sendToPeer(peerId, {
+                                    type: 'playerDamage',
+                                    amount: amount,
+                                    enemyId: this.id
+                                });
                             }
-                        };
-                    }
+                        }
+                    };
                 }
             });
         }

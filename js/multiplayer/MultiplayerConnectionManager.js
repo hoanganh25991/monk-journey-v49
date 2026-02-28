@@ -471,21 +471,23 @@ export class MultiplayerConnectionManager {
                 this.multiplayerManager.ui.updateConnectionInfoPlayerList();
                 break;
             case 'skillCast':
+                // When we're paused (e.g. death screen, menu), skip creating skill effects so they don't pile up
+                // and all run at once on resume (which would burst-kill enemies).
+                if (this.multiplayerManager.game?.isPaused) {
+                    break;
+                }
                 // Handle skill cast from host or forwarded from another member
                 if (!data.skillName) {
                     console.error('Received incomplete skill cast data from host');
                     return;
                 }
                 
-                // Get the player ID who cast the skill
                 const casterId = data.playerId || this.hostId;
                 
                 console.debug(`[MultiplayerConnectionManager] Player ${casterId} cast skill: ${data.skillName}`);
                 
-                // Get the remote player
                 const remotePlayer = this.multiplayerManager.remotePlayerManager.getPlayer(casterId);
                 
-                // If position and rotation are provided, update the remote player first
                 if (data.position && remotePlayer) {
                     remotePlayer.updatePosition(data.position);
                 }
@@ -494,7 +496,6 @@ export class MultiplayerConnectionManager {
                     remotePlayer.updateRotation(data.rotation);
                 }
                 
-                // Trigger skill cast animation on remote player
                 this.multiplayerManager.remotePlayerManager.handleSkillCast(casterId, data.skillName, data.variant, data.targetEnemyId);
                 break;
             case 'kicked':
@@ -530,6 +531,28 @@ export class MultiplayerConnectionManager {
                     }
                     console.debug(`[MultiplayerConnectionManager] Player taking damage: ${data.amount} from enemy ID: ${data.enemyId}`);
                     this.multiplayerManager.game.player.takeDamage(data.amount);
+                }
+                break;
+            case 'playerDied':
+                // Another player died; mark their remote avatar as dead and inform local user
+                if (data.playerId) {
+                    const rp = this.multiplayerManager.remotePlayerManager.getPlayer(data.playerId);
+                    if (rp && typeof rp.setDead === 'function') {
+                        rp.setDead(true);
+                    }
+                    const isUs = this.multiplayerManager.connection?.peer?.id === data.playerId;
+                    if (!isUs && this.multiplayerManager.game?.hudManager) {
+                        const name = rp && typeof rp.getRoomIdPrefix === 'function' ? `Player-${rp.getRoomIdPrefix()}` : `Player`;
+                        this.multiplayerManager.game.hudManager.showNotification(`${name} died`, 'warning');
+                    }
+                }
+                break;
+            case 'playerRevived':
+                if (data.playerId) {
+                    const rpRev = this.multiplayerManager.remotePlayerManager.getPlayer(data.playerId);
+                    if (rpRev && typeof rpRev.setDead === 'function') {
+                        rpRev.setDead(false);
+                    }
                 }
                 break;
             case 'partyBonusUpdate':
@@ -658,6 +681,22 @@ export class MultiplayerConnectionManager {
                             }
                         });
                     }
+                    break;
+                case 'playerDied':
+                    // Member died; mark remote player as dead so enemies skip them, then inform other peers
+                    const rpDead = this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
+                    if (rpDead && typeof rpDead.setDead === 'function') {
+                        rpDead.setDead(true);
+                    }
+                    this.broadcast({ type: 'playerDied', playerId: peerId });
+                    break;
+                case 'playerRevived':
+                    // Member respawned; mark remote player alive again so enemies can target
+                    const rpRevived = this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
+                    if (rpRevived && typeof rpRevived.setDead === 'function') {
+                        rpRevived.setDead(false);
+                    }
+                    this.broadcast({ type: 'playerRevived', playerId: peerId });
                     break;
                 case 'enemyKilled':
                     // Member killed an enemy locally; host removes it and grants drops/XP to the killer

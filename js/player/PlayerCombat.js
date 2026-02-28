@@ -230,6 +230,11 @@ export class PlayerCombat {
         if (this.game?.hudManager) {
             this.game.hudManager.showDeathScreen();
         }
+
+        // Multiplayer: notify host so enemies stop targeting this player and others can be informed
+        if (this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.isHost) {
+            this.game.multiplayerManager.connection.sendToHost({ type: 'playerDied' });
+        }
     }
     
     /**
@@ -266,6 +271,11 @@ export class PlayerCombat {
         if (this.game?.player?.statusEffects) {
             this.game.player.statusEffects.applyEffect('invulnerable', 3.0, 1.0);
             console.debug("Applied 3-second invulnerability after respawn");
+        }
+
+        // Multiplayer: notify host so remote avatar is marked alive again and enemies can target
+        if (this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.isHost) {
+            this.game.multiplayerManager.connection.sendToHost({ type: 'playerRevived' });
         }
     }
 }

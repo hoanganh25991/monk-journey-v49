@@ -41,7 +41,9 @@ export class RemotePlayer {
         this.playerColor = playerColor || '#FFFFFF'; // Default to white if no color provided
         this.colorIndicator = null;
         this.modelId = modelId || DEFAULT_CHARACTER_MODEL; // Use default model if none provided
-        
+        /** Whether this remote player is dead (enemies skip as target; show death pose). */
+        this.isDead = false;
+
         // Create a group to hold the player model and name tag
         this.group = new THREE.Group();
         (this.game.getWorldGroup?.() || this.game.scene).add(this.group);
@@ -52,6 +54,25 @@ export class RemotePlayer {
         if (!this.peerId) return '????';
         const segment = this.peerId.split('-')[0];
         return segment && segment.length >= 8 ? segment : this.peerId.substring(0, 8);
+    }
+
+    /**
+     * Whether this remote player is alive (not dead). Enemies use this to skip dead players as targets.
+     * @returns {boolean}
+     */
+    isAlive() {
+        return !this.isDead;
+    }
+
+    /**
+     * Set dead state (e.g. when they died on their device and host broadcast playerDied).
+     * When dead: show death pose (lie down), enemies skip as target.
+     * @param {boolean} dead
+     */
+    setDead(dead) {
+        this.isDead = !!dead;
+        if (!this.group) return;
+        this.group.rotation.x = dead ? Math.PI / 2 : 0;
     }
 
     /**

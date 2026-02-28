@@ -814,9 +814,13 @@ export class Game {
 
     /**
      * Pause the game
-     * Properly pauses all game systems including physics, animations, and timers
+     * Properly pauses all game systems including physics, animations, and timers.
+     * In multiplayer the game is not paused so the session stays in sync.
      */
     pause(emitEvent = true) {
+        if (this.multiplayerManager?.connection?.isConnected) {
+            return;
+        }
         console.debug("Pausing game...");
         
         // Set game state to paused

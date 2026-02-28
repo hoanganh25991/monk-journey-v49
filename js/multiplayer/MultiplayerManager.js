@@ -301,8 +301,6 @@ export class MultiplayerManager {
                 this.game.enemyManager.setMultiplayerMode(true, false);
             }
             
-            // HUD and home button are shown by Game after warmup
-            
             // Store current player level and stats before starting
             let currentLevel = null;
             let currentExp = null;
@@ -318,6 +316,11 @@ export class MultiplayerManager {
             // so pass false for requestFullscreenMode
             console.debug('[MultiplayerManager] Member starting game without fullscreen request');
             this.game.start(true, false);
+            
+            // Joiner: clear all enemies so we start from host state only (avoids stale enemies until first fullSync)
+            if (this.game.enemyManager && typeof this.game.enemyManager.removeAllEnemies === 'function') {
+                this.game.enemyManager.removeAllEnemies();
+            }
             
             // Restore player level and experience if we had them
             if (currentLevel !== null && this.game.player && this.game.player.stats) {
