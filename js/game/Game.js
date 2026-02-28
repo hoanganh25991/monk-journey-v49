@@ -952,21 +952,26 @@ export class Game {
                         }
                         if (playRevealEl) {
                             playRevealEl.removeEventListener('animationend', onRevealDone);
-                            playRevealEl.style.display = 'none';
-                            playRevealEl.classList.remove('reveal-circle', 'fog-waiting');
                         }
                         if (this.gameContainer) {
                             this.gameContainer.style.opacity = '1';
                             this.gameContainer.style.pointerEvents = '';
                         }
-                        if (this.hudManager) this.hudManager.showAllUI();
-                        const homeButton = document.getElementById('home-button');
-                        if (homeButton) homeButton.style.display = 'block';
-                        const mapOverlayEl = document.getElementById('mapLoadingOverlay');
-                        if (mapOverlayEl) mapOverlayEl.style.display = 'none';
-                        this.resume();
-                        this.audioManager.playMusic();
-                        console.debug("Game revealed and unpaused");
+                        // Wait 1s after game container is visible before removing overlay and resuming
+                        setTimeout(() => {
+                            if (playRevealEl) {
+                                playRevealEl.style.display = 'none';
+                                playRevealEl.classList.remove('reveal-circle', 'fog-waiting');
+                            }
+                            if (this.hudManager) this.hudManager.showAllUI();
+                            const homeButton = document.getElementById('home-button');
+                            if (homeButton) homeButton.style.display = 'block';
+                            const mapOverlayEl = document.getElementById('mapLoadingOverlay');
+                            if (mapOverlayEl) mapOverlayEl.style.display = 'none';
+                            this.resume();
+                            this.audioManager.playMusic();
+                            console.debug("Game revealed and unpaused");
+                        }, 1000);
                     };
                     if (playRevealEl) {
                         playRevealEl.addEventListener('animationend', onRevealDone);
