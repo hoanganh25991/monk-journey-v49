@@ -271,6 +271,24 @@
     flex-shrink: 0;
 }
 
+/* Pending invite from host (Host tapped Request; joiner sees this on Join screen) */
+.join-pending-invite-banner {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(80, 120, 80, 0.25);
+    border: 1px solid rgba(100, 160, 100, 0.5);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.join-pending-invite-msg {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 /* Contacts popup (host list with status and Join only; same flow as Rejoin to last host) */
 .contacts-popup-box {
     max-width: 90vw;

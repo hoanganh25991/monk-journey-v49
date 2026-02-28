@@ -845,6 +845,10 @@ export class Game {
             this.effectsManager.pause();
         }
         
+        // Multiplayer: so member re-sends position on resume and host can reconcile (avoids drift after menu/death pause)
+        if (this.multiplayerManager?.connection) {
+            this.multiplayerManager.connection.resetPositionSyncForResume();
+        }
         // Dispatch event that game has been paused
         emitEvent && this.events.dispatch('gameStateChanged', 'paused');
         

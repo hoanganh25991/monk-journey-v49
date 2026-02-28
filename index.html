@@ -619,6 +619,11 @@
                 </div>
                 <p id="join-host-empty" class="join-host-empty">Use QR scan or Enter Code to join.</p>
             </div>
+            <!-- Pending invite from host (shown when Host sent Request and we're on Join screen) -->
+            <div id="join-pending-invite-banner" class="join-pending-invite-banner" style="display: none;">
+                <p class="join-pending-invite-msg">Host invited you to join.</p>
+                <button type="button" id="join-pending-invite-btn" class="settings-button">Join</button>
+            </div>
             <!-- Primary action: QR scan or Enter Code -->
             <div id="join-method-status" class="join-method-status join-method-status-compact">
                 <div class="join-method-lines">
@@ -630,24 +635,6 @@
                     <button type="button" id="join-enter-code-btn" class="settings-button join-enter-code-btn">Enter Code</button>
                     <button type="button" id="join-contacts-btn" class="settings-button join-contacts-btn" title="Host contacts">👥 Contacts</button>
                     <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn" style="display: none;">Retry</button>
-                </div>
-            </div>
-            <!-- Contacts popup: list of hosts with status and Join (same flow as Rejoin to last host) -->
-            <div id="contacts-popup" class="qr-scan-popup" style="display: none;">
-                <div class="qr-scan-popup-backdrop"></div>
-                <div class="qr-scan-popup-box contacts-popup-box">
-                    <div class="qr-scan-popup-header contacts-popup-header-tabs">
-                        <div class="contacts-popup-tabs">
-                            <button type="button" id="contacts-tab-list-btn" class="contacts-tab-btn contacts-tab-active" title="Host contacts">👥</button>
-                            <button type="button" id="contacts-tab-manage-btn" class="contacts-tab-btn" title="Manage contacts">✏️</button>
-                        </div>
-                        <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
-                    </div>
-                    <div class="contacts-popup-body">
-                        <p id="contacts-popup-hint" class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
-                        <ul id="contacts-list" class="contacts-list"></ul>
-                        <p id="contacts-empty" class="contacts-empty" style="display: none;">No contacts. Join a host first (QR or Enter Code).</p>
-                    </div>
                 </div>
             </div>
             <!-- Manual code section (shown when user chooses Enter Code) -->
@@ -736,12 +723,31 @@
                     </div>
                     <div class="multiplayer-action" id="host-controls">
                         <!-- Host-specific controls will be shown here when user is host -->
+                        <button type="button" id="host-contacts-btn" class="settings-button join-contacts-btn" title="Ask contacts to join your game">👥 Contacts</button>
                         <button id="start-game-btn" class="settings-button">Start Game</button>
                         <button id="disconnect-btn" class="settings-button danger-button">Disconnect</button>
                     </div>
                 </div>
             </div>
             <div id="connection-info-status-bar" class="connection-status"></div>
+        </div>
+        <!-- Contacts popup: used from Join screen (Join) and Host connection screen (Request). Must be sibling of screens so it shows when connection-info-screen is visible. -->
+        <div id="contacts-popup" class="qr-scan-popup" style="display: none;">
+            <div class="qr-scan-popup-backdrop"></div>
+            <div class="qr-scan-popup-box contacts-popup-box">
+                <div class="qr-scan-popup-header contacts-popup-header-tabs">
+                    <div class="contacts-popup-tabs">
+                        <button type="button" id="contacts-tab-list-btn" class="contacts-tab-btn contacts-tab-active" title="Host contacts">👥</button>
+                        <button type="button" id="contacts-tab-manage-btn" class="contacts-tab-btn" title="Manage contacts">✏️</button>
+                    </div>
+                    <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
+                </div>
+                <div class="contacts-popup-body">
+                    <p id="contacts-popup-hint" class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
+                    <ul id="contacts-list" class="contacts-list"></ul>
+                    <p id="contacts-empty" class="contacts-empty" style="display: none;">No contacts. Join a host first (QR or Enter Code).</p>
+                </div>
+            </div>
         </div>
     </div>
 

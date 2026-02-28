@@ -44,6 +44,10 @@ export class MultiplayerUIManager {
         this._contactsPopupIntervalId = undefined;
         /** @type {boolean} - true = show Remove buttons; false = show Join buttons */
         this._contactsManageMode = false;
+        /** @type {boolean} - true = opened from Host connection screen: show Request instead of Join */
+        this._contactsHostRequestMode = false;
+        /** @type {string|null} - hostRoomId when Host sent inviteFromHost; show "Join" on Join screen */
+        this._pendingInviteFromHost = null;
     }
 
     /**
@@ -268,7 +272,10 @@ export class MultiplayerUIManager {
         }
     }
 
-    showContactsPopup() {
+    /**
+     * @param {boolean} [hostRequestMode] - true when opened from Host connection screen (show Request instead of Join)
+     */
+    showContactsPopup(hostRequestMode = false) {
         const popup = document.getElementById('contacts-popup');
         const closeBtn = document.getElementById('contacts-popup-close');
         const tabListBtn = document.getElementById('contacts-tab-list-btn');
@@ -278,6 +285,7 @@ export class MultiplayerUIManager {
             clearInterval(this._contactsPopupIntervalId);
             this._contactsPopupIntervalId = undefined;
         }
+        this._contactsHostRequestMode = !!hostRequestMode;
         this._contactsManageMode = false;
         popup.style.display = 'flex';
         closeBtn.onclick = () => {
@@ -324,16 +332,29 @@ export class MultiplayerUIManager {
         }
         if (tabManageBtn) {
             tabManageBtn.classList.toggle('contacts-tab-active', manageMode);
+            tabManageBtn.style.display = this._contactsHostRequestMode ? 'none' : '';
+        }
+        if (tabListBtn && this._contactsHostRequestMode) {
+            tabListBtn.style.display = '';
         }
         if (hintEl) {
-            hintEl.textContent = manageMode
-                ? 'Tap Remove to remove a host from contacts.'
-                : 'Pick a host and tap Join to reconnect.';
+            if (manageMode) {
+                hintEl.textContent = 'Tap Remove to remove a host from contacts.';
+            } else if (this._contactsHostRequestMode) {
+                hintEl.textContent = 'Pick a contact and tap Request to ask them to join your game.';
+            } else {
+                hintEl.textContent = 'Pick a host and tap Join to reconnect.';
+            }
         }
         const contacts = this.getHostContacts();
         listEl.innerHTML = '';
         if (contacts.length === 0) {
-            if (emptyEl) emptyEl.style.display = 'block';
+            if (emptyEl) {
+                emptyEl.style.display = 'block';
+                emptyEl.textContent = this._contactsHostRequestMode
+                    ? "No contacts yet. When someone joins your game they'll appear here."
+                    : 'No contacts. Join a host first (QR or Enter Code).';
+            }
             return;
         }
         if (emptyEl) emptyEl.style.display = 'none';
@@ -362,6 +383,16 @@ export class MultiplayerUIManager {
                     this.refreshContactsPopupList();
                 };
                 li.appendChild(removeBtn);
+            } else if (this._contactsHostRequestMode) {
+                // Host connection screen: Request = ask this contact to join our game
+                const requestBtn = document.createElement('button');
+                requestBtn.type = 'button';
+                requestBtn.className = 'small-btn contact-join-btn';
+                requestBtn.textContent = 'Request';
+                requestBtn.onclick = () => {
+                    this.sendInviteToJoiner(id);
+                };
+                li.appendChild(requestBtn);
             } else {
                 // Join screen: show Join for every contact (hosts we joined + joiners Host added). User picked Contacts to join someone.
                 const joinBtn = document.createElement('button');
@@ -419,6 +450,47 @@ export class MultiplayerUIManager {
         } catch (_) {
             if (this.multiplayerManager.game?.hudManager) {
                 this.multiplayerManager.game.hudManager.showNotification('Could not send invite.', 'error');
+            }
+        }
+    }
+
+    /**
+     * Host: send "invite to join my game" to a contact (joiner or other peer). They see a notification and can tap to join.
+     * @param {string} joinerId - Contact's peer ID (e.g. joiner's persistent id or host id we have in contacts)
+     */
+    async sendInviteToJoiner(joinerId) {
+        const roomId = this.multiplayerManager.connection?.roomId;
+        if (!roomId || !this.multiplayerManager.connection?.isHost) return;
+        try {
+            const peer = new Peer();
+            await new Promise((resolve, reject) => {
+                peer.on('open', () => resolve());
+                peer.on('error', err => reject(err));
+            });
+            const conn = peer.connect(joinerId, { reliable: true });
+            const sent = await new Promise((resolve) => {
+                const t = setTimeout(() => resolve(false), 5000);
+                conn.on('open', () => {
+                    conn.send({ type: 'inviteFromHost', hostRoomId: roomId });
+                    conn.close();
+                    clearTimeout(t);
+                    resolve(true);
+                });
+                conn.on('error', () => {
+                    clearTimeout(t);
+                    resolve(false);
+                });
+            });
+            peer.destroy();
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification(
+                    sent ? 'Request sent. They can join from the Join screen.' : 'Could not reach contact.',
+                    sent ? 'info' : 'error'
+                );
+            }
+        } catch (_) {
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('Could not send request.', 'error');
             }
         }
     }
@@ -491,6 +563,46 @@ export class MultiplayerUIManager {
         this._pendingInviteFrom = null;
         const dot = document.getElementById('invite-dot');
         if (dot) dot.style.display = 'none';
+    }
+
+    /**
+     * Joiner: show that Host invited us to join (Host tapped Request). Sets pending invite; banner on Join screen offers one-tap Join.
+     * @param {string} hostRoomId - Host's room ID to join
+     */
+    showInviteFromHostNotification(hostRoomId) {
+        this._pendingInviteFromHost = hostRoomId || null;
+        if (this.multiplayerManager.game?.hudManager) {
+            this.multiplayerManager.game.hudManager.showNotification('Host invited you to join! Open Multiplayer → Join to see the invite.', 'info');
+        }
+        this.updateJoinPendingInviteBanner();
+    }
+
+    /** Clear pending invite from host (e.g. after we joined or dismissed). */
+    clearPendingInviteFromHost() {
+        this._pendingInviteFromHost = null;
+        this.updateJoinPendingInviteBanner();
+    }
+
+    /** Update visibility and action of the "Host invited you - Join" banner on the Join screen. */
+    updateJoinPendingInviteBanner() {
+        const banner = document.getElementById('join-pending-invite-banner');
+        const joinBtn = document.getElementById('join-pending-invite-btn');
+        if (!banner) return;
+        if (this._pendingInviteFromHost) {
+            banner.style.display = 'flex';
+            if (joinBtn) {
+                joinBtn.onclick = () => {
+                    const hostRoomId = this._pendingInviteFromHost;
+                    this._pendingInviteFromHost = null;
+                    banner.style.display = 'none';
+                    this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                    this.showRejoinOverlay('Reconnecting...');
+                    if (hostRoomId) this.multiplayerManager.joinGame(hostRoomId);
+                };
+            }
+        } else {
+            banner.style.display = 'none';
+        }
     }
 
     /** localStorage key for last host room (enables resume after network issues) */
@@ -941,10 +1053,16 @@ export class MultiplayerUIManager {
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => this.closeMultiplayerModal());
                 }
-                
+                const hostContactsBtn = document.getElementById('host-contacts-btn');
+                if (hostContactsBtn) {
+                    hostContactsBtn.addEventListener('click', () => this.showContactsPopup(true));
+                }
                 this.connectionInfoListenersInitialized = true;
             }
-            
+            const hostContactsBtn = document.getElementById('host-contacts-btn');
+            if (hostContactsBtn) {
+                hostContactsBtn.style.display = this.multiplayerManager.connection?.isHost ? '' : 'none';
+            }
             // Hide other screens, show connection info screen
             document.getElementById('multiplayer-initial-screen').style.display = 'none';
             document.getElementById('join-game-screen').style.display = 'none';
@@ -996,10 +1114,13 @@ export class MultiplayerUIManager {
      */
     closeMultiplayerModal() {
         this.hideRejoinOverlay();
+        if (this.multiplayerManager.connection?.stopJoinListener) {
+            this.multiplayerManager.connection.stopJoinListener();
+        }
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'none';
-            
+
             if (this._nfcWriteTimeoutId !== undefined) {
                 clearTimeout(this._nfcWriteTimeoutId);
                 this._nfcWriteTimeoutId = undefined;
@@ -1741,12 +1862,19 @@ export class MultiplayerUIManager {
             backButton.onclick = () => {
                 this.stopQRScanner();
                 this.stopJoinAutoMethods();
+                if (this.multiplayerManager.connection?.stopJoinListener) {
+                    this.multiplayerManager.connection.stopJoinListener();
+                }
                 document.getElementById('join-game-screen').style.display = 'none';
                 document.getElementById('qr-scan-popup').style.display = 'none';
                 document.getElementById('enter-code-popup').style.display = 'none';
                 this.showMultiplayerModal();
             };
         }
+        if (this.multiplayerManager.connection?.startJoinListener) {
+            this.multiplayerManager.connection.startJoinListener();
+        }
+        this.updateJoinPendingInviteBanner();
 
         // Permissions row: refresh status (Allow buttons wired in setupUIListeners)
         await this.refreshJoinPermissions();

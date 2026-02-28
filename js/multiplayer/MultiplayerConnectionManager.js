@@ -38,6 +38,8 @@ export class MultiplayerConnectionManager {
         this._hostTickCount = 0;
         this.serializer = new BinarySerializer(); // Binary serializer for efficient data transfer
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
+        /** Joiner: Peer used on Join screen to receive inviteFromHost from Host. Destroyed when leaving Join screen or when joining. */
+        this._joinListenerPeer = null;
     }
 
     /**
@@ -128,6 +130,7 @@ export class MultiplayerConnectionManager {
      * @param {string} roomId - The room ID to join
      */
     async joinGame(roomId) {
+        this.stopJoinListener();
         this._joinAttemptRoomId = roomId; // track so we can detect host-unavailable on error/close
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
@@ -157,6 +160,7 @@ export class MultiplayerConnectionManager {
 
                 // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
+                this.multiplayerManager.ui.clearPendingInviteFromHost();
                 this.multiplayerManager.ui.setLastRole('joiner');
                 this.multiplayerManager.ui.setHostStatus(roomId, 'online');
                 // Add to peers map
@@ -205,6 +209,47 @@ export class MultiplayerConnectionManager {
             this.multiplayerManager.ui.updateConnectionStatus('Error joining game: ' + error.message);
             return false;
         }
+    }
+
+    /**
+     * Start listening for inviteFromHost (Host tapped Request). Use persistent peer id so Host can reach us. Call when Join screen is shown.
+     */
+    startJoinListener() {
+        if (this._joinListenerPeer || this.isHost || this.isConnected) return;
+        const persistentId = this.multiplayerManager.getMyPersistentPeerId();
+        try {
+            this._joinListenerPeer = new Peer(persistentId);
+            this._joinListenerPeer.on('connection', (conn) => this._handleInviteFromHostConnection(conn));
+            this._joinListenerPeer.on('error', () => { /* e.g. ID taken; ignore */ });
+        } catch (_) {
+            this._joinListenerPeer = null;
+        }
+    }
+
+    /** Stop the Join-screen listener (when leaving Join screen or when joining a host). */
+    stopJoinListener() {
+        if (this._joinListenerPeer) {
+            try { this._joinListenerPeer.destroy(); } catch (_) {}
+            this._joinListenerPeer = null;
+        }
+    }
+
+    /**
+     * Handle incoming connection on Join screen: if first message is inviteFromHost, notify UI and close.
+     * @param {DataConnection} conn - Incoming connection from Host who tapped Request
+     */
+    _handleInviteFromHostConnection(conn) {
+        conn.once('data', (data) => {
+            let raw = data;
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch (_) {}
+            }
+            const d = raw && typeof raw === 'object' ? raw : {};
+            if (d.type === 'inviteFromHost' && d.hostRoomId) {
+                this.multiplayerManager.ui.showInviteFromHostNotification(d.hostRoomId);
+            }
+            try { conn.close(); } catch (_) {}
+        });
     }
 
     /**
@@ -546,7 +591,7 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.processPlayerInput(peerId, data);
                     break;
                 case 'playerPosition':
-                    // Initial position sync from member (once); host uses this to start input-driven simulation from correct place
+                    // Initial position sync from member (once, or on resume after pause); host uses this to reconcile
                     if (!data.position || !data.rotation) {
                         console.error('[MultiplayerConnectionManager] Received incomplete position data from member:', peerId);
                         return;
@@ -559,6 +604,9 @@ export class MultiplayerConnectionManager {
                         data.modelId,
                         undefined
                     );
+                    // Clear movement input so remote doesn't drift with stale input until next input packet
+                    const rp = this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
+                    if (rp && rp.setMovementInput) rp.setMovementInput(0, 0);
                     break;
                 case 'skillCast':
                     // Handle skill cast from member
@@ -850,6 +898,15 @@ export class MultiplayerConnectionManager {
             }
         } catch (error) {
             console.error('[MultiplayerConnectionManager] Error sending to host:', error);
+        }
+    }
+
+    /**
+     * Reset so member will re-send position on next resume. Call when game pauses (menu, death, etc.) so host can reconcile after unpause.
+     */
+    resetPositionSyncForResume() {
+        if (!this.isHost && this.isConnected) {
+            this._initialPositionSent = false;
         }
     }
 
