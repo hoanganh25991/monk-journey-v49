@@ -560,6 +560,11 @@
         </div>
     </div>
 
+    <!-- Rejoin overlay: shown when "Rejoin to last host" is used, until startGame or failure (joiner only) -->
+    <div id="rejoin-overlay" class="rejoin-overlay" style="display: none;" aria-live="polite">
+        <div class="rejoin-overlay-message" id="rejoin-overlay-message">Reconnecting...</div>
+    </div>
+
     <!-- Multiplayer Menu -->
     <div id="multiplayer-menu" class="game-menu main-background" style="display: none;">
         <!-- One-touch: HOST or JOIN (touch devices / NFC) -->
@@ -609,8 +614,8 @@
             <!-- Join via QR or code (no auto-discovery) -->
             <div id="join-host-area" class="join-host-area">
                 <div id="join-rejoin-host-area" class="join-rejoin-host-area" style="display: none;">
-                    <p class="join-rejoin-msg">Rejoin previous host after network issue?</p>
-                    <button type="button" id="join-rejoin-host-btn" class="settings-button join-rejoin-btn">Join to existing host</button>
+                    <p class="join-rejoin-msg">Rejoin previous host (e.g. after app reload)? You’ll continue without host clicking Start.</p>
+                    <button type="button" id="join-rejoin-host-btn" class="settings-button join-rejoin-btn">Rejoin to last host</button>
                 </div>
                 <p id="join-host-empty" class="join-host-empty">Use QR scan or Enter Code to join.</p>
             </div>

@@ -38,6 +38,10 @@ export class MultiplayerUIManager {
         this._joinSoundCycleMs = 18000;
         /** When set, primary button shows "Play" and joins this host (from NFC/Sound/QR or single LAN) */
         this._detectedHostId = null;
+        /** When true, joiner used "Rejoin to last host" — show overlay only until startGame, don't show full Multiplayer screen */
+        this._silentRejoinInProgress = false;
+        /** @type {number|undefined} */
+        this._silentRejoinFallbackTimeoutId = undefined;
     }
 
     /**
@@ -170,11 +174,29 @@ export class MultiplayerUIManager {
      * @param {string} roomId - The host room ID that could not be joined
      */
     onJoinToHostFailed(roomId) {
+        this._silentRejoinInProgress = false;
+        this.hideRejoinOverlay();
         this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
         this.setHostStatus(roomId, 'offline');
         this.removeJoinedHostId(roomId);
         this.updateRejoinHostArea();
         this.refreshContactsPopupList();
+    }
+
+    showRejoinOverlay(message) {
+        const el = document.getElementById('rejoin-overlay');
+        const msgEl = document.getElementById('rejoin-overlay-message');
+        if (el) el.style.display = 'flex';
+        if (msgEl) msgEl.textContent = message;
+    }
+
+    hideRejoinOverlay() {
+        const el = document.getElementById('rejoin-overlay');
+        if (el) el.style.display = 'none';
+        if (this._silentRejoinFallbackTimeoutId !== undefined) {
+            clearTimeout(this._silentRejoinFallbackTimeoutId);
+            this._silentRejoinFallbackTimeoutId = undefined;
+        }
     }
 
     /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
@@ -189,7 +211,9 @@ export class MultiplayerUIManager {
             const btn = document.getElementById('join-rejoin-host-btn');
             if (btn) {
                 btn.onclick = () => {
+                    this._silentRejoinInProgress = true;
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                    this.showRejoinOverlay('Reconnecting...');
                     this.multiplayerManager.joinGame(latestHostId);
                 };
             }
@@ -422,6 +446,7 @@ export class MultiplayerUIManager {
                 }
             });
         }
+
         
         // One-touch HOST: start hosting, then show connection screen (NFC share optional there)
         const oneTouchHostBtn = document.getElementById('one-touch-host-btn');
@@ -663,9 +688,25 @@ export class MultiplayerUIManager {
     
     /**
      * Show the connection info screen
-     * Displays current connection status, host info, and connected players
+     * Displays current connection status, host info, and connected players.
+     * When silent rejoin is in progress (Rejoin to last host), show overlay only until startGame or timeout.
      */
     showConnectionInfoScreen() {
+        if (this._silentRejoinInProgress) {
+            this.showRejoinOverlay('Connected. Joining game...');
+            if (this._silentRejoinFallbackTimeoutId !== undefined) return;
+            this._silentRejoinFallbackTimeoutId = window.setTimeout(() => {
+                this._silentRejoinFallbackTimeoutId = undefined;
+                this._silentRejoinInProgress = false;
+                this.hideRejoinOverlay();
+                this._showConnectionInfoScreenInternal();
+            }, 8000);
+            return;
+        }
+        this._showConnectionInfoScreenInternal();
+    }
+
+    _showConnectionInfoScreenInternal() {
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'flex';
@@ -757,6 +798,8 @@ export class MultiplayerUIManager {
      * Close the multiplayer modal
      */
     closeMultiplayerModal() {
+        this._silentRejoinInProgress = false;
+        this.hideRejoinOverlay();
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'none';

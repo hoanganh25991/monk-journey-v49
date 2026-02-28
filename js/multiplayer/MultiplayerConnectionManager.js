@@ -88,8 +88,10 @@ export class MultiplayerConnectionManager {
             // Set up connection handler
             this.peer.on('connection', conn => {
                 this.handleNewConnection(conn);
-                // Show connection info screen when a player joins
-                this.multiplayerManager.ui.showConnectionInfoScreen();
+                // Only show connection info screen when still in lobby (game never started). Once game has started (running or paused e.g. You Died), host stays on current screen — rejoiner gets startGame and drops in.
+                if (!this.multiplayerManager.game?.state?.hasStarted?.()) {
+                    this.multiplayerManager.ui.showConnectionInfoScreen();
+                }
             });
             
             // Show connection info screen immediately
@@ -136,6 +138,10 @@ export class MultiplayerConnectionManager {
             // Set up connection
             conn.on('open', () => {
                 this._joinAttemptRoomId = null; // join succeeded
+                // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
+                conn.on('data', data => this.handleDataFromHost(this.processReceivedData(data)));
+                conn.on('close', () => this.handleDisconnect(roomId));
+
                 // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
                 this.multiplayerManager.ui.setLastRole('joiner');
@@ -152,16 +158,10 @@ export class MultiplayerConnectionManager {
                 // Update connection status
                 this.multiplayerManager.ui.updateConnectionStatus('Connected to host! Waiting for game to start...', 'connection-info-status-bar');
                 
-                // Show the connection info screen instead of waiting screen
+                // Show the connection info screen (or rejoin overlay if silent rejoin)
                 this.multiplayerManager.ui.showConnectionInfoScreen();
-                
-                // The connect button is already disabled in the UI handler
-                
-                // Set up data handler
-                conn.on('data', data => this.handleDataFromHost(this.processReceivedData(data)));
-                
-                // Set up close handler
-                conn.on('close', () => this.handleDisconnect(roomId));
+                // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
+                this.sendToHost({ type: 'requestStartGame' });
             });
             
             conn.on('error', (err) => {
@@ -248,7 +248,8 @@ export class MultiplayerConnectionManager {
                 'info'
             );
         }
-        if (this.multiplayerManager.game?.state?.isRunning?.()) {
+        // If game has already been started (running or paused e.g. You Died), send startGame so rejoiner drops in without waiting for host to click Start again
+        if (this.multiplayerManager.game?.state?.hasStarted?.()) {
             this.sendToPeer(peerId, { type: 'startGame' });
         }
     }
@@ -429,6 +430,12 @@ export class MultiplayerConnectionManager {
         }
         if (data.type === 'inviteRequest') {
             this._removeJoinerAsInvite(peerId);
+            return;
+        }
+        if (data.type === 'requestStartGame') {
+            if (this.multiplayerManager.game?.state?.hasStarted?.()) {
+                this.sendToPeer(peerId, { type: 'startGame' });
+            }
             return;
         }
         try {
