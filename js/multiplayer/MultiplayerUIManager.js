@@ -25,6 +25,8 @@ export class MultiplayerUIManager {
         this._nfcWriteTimeoutId = undefined;
         /** @type {{ stop: () => void } | null} */
         this.ultrasoundListenController = null;
+        /** @type {{ stop: () => void } | null} */
+        this.soundShareController = null;
         /** Join method status and retry counts */
         this._joinMethodState = { nfcRetries: 0, lanRetries: 0, soundRetries: 0, connected: false };
         /** Max retries per join method (NFC, LAN, Sound) before stopping */
@@ -150,8 +152,11 @@ export class MultiplayerUIManager {
         // Start game button (for host)
         const startGameBtn = document.getElementById('start-game-btn');
         if (startGameBtn) {
-            // Add click event listener
-            startGameBtn.addEventListener('click', () => this.multiplayerManager.startMultiplayerGame());
+            // Add click event listener (stop sound share so joiners know to stop listening)
+            startGameBtn.addEventListener('click', () => {
+                this.stopSoundShare();
+                this.multiplayerManager.startMultiplayerGame();
+            });
             
             // Hide the button if player is not the host
             if (this.multiplayerManager.connection && !this.multiplayerManager.connection.isHost) {
@@ -363,15 +368,26 @@ export class MultiplayerUIManager {
     }
 
     /**
+     * Stop sound share loop if running (and update button). Call before reset or on Disconnect/Play.
+     */
+    stopSoundShare() {
+        if (this.soundShareController) {
+            this.soundShareController.stop();
+            this.soundShareController = null;
+        }
+        const soundBtn = document.getElementById('sound-share-invite-btn');
+        if (soundBtn) {
+            soundBtn.disabled = false;
+            soundBtn.textContent = 'Sound 📤';
+        }
+    }
+
+    /**
      * Reset invite buttons (Sound 📤, NFC 📤) to default labels.
      * Call when closing modal or on disconnect so they never stay "Playing…" or "Hold…".
      */
     resetInviteButtons() {
-        const soundBtn = document.getElementById('sound-share-invite-btn');
-        if (soundBtn) {
-            soundBtn.disabled = false;
-            soundBtn.textContent = '📤 Sound';
-        }
+        this.stopSoundShare();
         const nfcBtn = document.getElementById('nfc-share-invite-btn');
         if (nfcBtn) {
             nfcBtn.disabled = false;
@@ -884,7 +900,7 @@ export class MultiplayerUIManager {
             soundBtn.id = 'sound-share-invite-btn';
             soundBtn.className = 'settings-button';
             soundBtn.textContent = 'Sound 📤';
-            soundBtn.title = 'Play inaudible sound so the other phone can receive the invite when nearby';
+            soundBtn.title = 'Play inaudible sound (loops). Tap again to stop. Join device listens on Join screen.';
             soundBtn.addEventListener('click', () => this.sendInviteViaSound());
             hostControls.insertBefore(soundBtn, hostControls.firstChild);
         }
@@ -902,31 +918,37 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Host or Player: play ultrasound with room ID so nearby device can join.
+     * Host or Player: toggle sound share. One click = loop until stop; click again or Disconnect/Play = stop.
      */
-    async sendInviteViaSound() {
+    sendInviteViaSound() {
+        if (this.soundShareController) {
+            this.stopSoundShare();
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('Sound invite stopped', 'info');
+            }
+            return;
+        }
         const roomId = this.multiplayerManager.connection?.isHost
             ? this.multiplayerManager.connection?.roomId
             : this.multiplayerManager.connection?.hostId;
         if (!roomId) return;
         const btn = document.getElementById('sound-share-invite-btn');
         if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Playing…';
+            btn.textContent = '⏹ Stop';
+            btn.disabled = false;
+            btn.title = 'Stop broadcasting so joiners can stop listening';
         }
         try {
-            await playUltrasoundInvite(roomId);
+            this.soundShareController = playUltrasoundInviteLoop(roomId);
             if (this.multiplayerManager.game?.hudManager) {
-                this.multiplayerManager.game.hudManager.showNotification('Invite sent via sound', 'info');
+                this.multiplayerManager.game.hudManager.showNotification('Broadcasting invite via sound. Tap Stop or Disconnect to stop.', 'info');
             }
         } catch (e) {
+            this.soundShareController = null;
+            if (btn) btn.textContent = 'Sound 📤';
             if (this.multiplayerManager.game?.hudManager) {
                 this.multiplayerManager.game.hudManager.showNotification('Sound invite failed. Use code or QR.', 'error');
             }
-        }
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = 'Sound 📤';
         }
     }
     
