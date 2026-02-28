@@ -363,6 +363,8 @@ export class MultiplayerUIManager {
             
             // Update connection info
             this.updateConnectionInfoScreen();
+            // Ensure Sound 📤 / NFC 📤 are shown for host/player whenever connection screen is visible
+            this.maybeShowNfcShareOnConnectionScreen();
         }
     }
 
