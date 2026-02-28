@@ -38,6 +38,7 @@ import shadowDebugger from '../debug/ShadowDebugger.js';
  * @property {GameState} state - Manages the game state (running, paused, etc.)
  * @property {GameEvents} events - Event system for game-wide event handling
  * @property {THREE.LoadingManager} loadingManager - Manages asset loading and tracks loading progress
+ * @property {HTMLElement} loadingScreen - First-time loading screen element (orange bar)
  * @property {THREE.WebGLRenderer} renderer - WebGL renderer for the game
  * @property {THREE.Scene} scene - The main 3D scene containing all game objects
  * @property {THREE.PerspectiveCamera} camera - The main camera used for rendering the scene
@@ -185,7 +186,7 @@ export class Game {
      */
     async init() {
         try {
-            // Update loading progress (log only; loading screen UI removed)
+            this.loadingScreen = document.getElementById('loading-screen');
             this.updateLoadingProgress(5, 'Initializing storage...', 'Setting up cloud sync');
             
             // Initialize storage service with timeout to prevent hanging on mobile
@@ -399,7 +400,12 @@ export class Game {
      * @param {string} detail - Detailed information
      */
     updateLoadingProgress(percent, status, detail) {
-        // Log progress only (loading screen UI removed)
+        const loadingBar = document.getElementById('loading-bar');
+        if (loadingBar) loadingBar.style.width = `${percent}%`;
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText && status) loadingText.textContent = status;
+        const loadingInfo = document.getElementById('loading-info');
+        if (loadingInfo && detail) loadingInfo.textContent = detail;
         console.debug(`Loading progress: ${percent}% - ${status} - ${detail}`);
     }
     
@@ -921,7 +927,7 @@ export class Game {
             if (playRevealEl && this._playRevealStartTime != null) {
                 const elapsed = (Date.now() - this._playRevealStartTime) / 1000;
                 const stillWaiting = this._warmupFramesLeft > 0 || (this._revealStableFramesLeft != null && this._revealStableFramesLeft > 0);
-                if (elapsed >= 1 && stillWaiting) {
+                if (elapsed >= 0.5 && stillWaiting) {
                     playRevealEl.classList.add('fog-waiting');
                     if (this.gameContainer) {
                         this.gameContainer.style.opacity = '1';
@@ -971,12 +977,12 @@ export class Game {
                             this.resume();
                             this.audioManager.playMusic();
                             console.debug("Game revealed and unpaused");
-                        }, 1000);
+                        }, 543);
                     };
                     if (playRevealEl) {
                         playRevealEl.addEventListener('animationend', onRevealDone);
-                        playRevealEl.classList.add('reveal-circle'); // 3s minimum fog circle reveal
-                        this._revealFallbackTimer = setTimeout(onRevealDone, 3200);
+                        playRevealEl.classList.add('reveal-circle'); // x minimum fog circle reveal
+                        this._revealFallbackTimer = setTimeout(onRevealDone, 543);
                     } else {
                         onRevealDone();
                     }

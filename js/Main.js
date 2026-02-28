@@ -272,28 +272,18 @@ class Main {
         }, 200);
     }
     
-    /**
-     * Hide the loading screen
-     */
     completeGameAssetsLoad() {
-        if (window.simulatedLoadingScreen) {
-            window.simulatedLoadingScreen.complete();
-            return;
-        }
+        // No-op; first-time loading screen is shown/hidden via DOM below
     }
 
     showLoadingScreen() {
-        if (window.simulatedLoadingScreen) {
-            window.simulatedLoadingScreen.show();
-            return;
-        }
+        const el = document.getElementById('loading-screen');
+        if (el) el.style.display = 'flex';
     }
 
     hideLoadingScreen() {
-        if (window.simulatedLoadingScreen) {
-            window.simulatedLoadingScreen.hide();
-            return;
-        }
+        const el = document.getElementById('loading-screen');
+        if (el) el.style.display = 'none';
     }
     
     /**

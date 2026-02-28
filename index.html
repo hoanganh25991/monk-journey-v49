@@ -46,6 +46,16 @@
 
 <body>
     <div id="viewport-rotator">
+    <!-- First-time loading screen (orange progress bar; hidden after init) -->
+    <div id="loading-screen" style="display: none;">
+        <h2>Loading Monk Journey...</h2>
+        <div id="loading-bar-container">
+            <div id="loading-bar"></div>
+        </div>
+        <p id="loading-text">Loading resources...</p>
+        <p id="loading-info">Downloading game assets...</p>
+    </div>
+
     <!-- Login Modal -->
     <div id="login-modal" class="login-modal-overlay">
         <div class="login-modal-dialog">
