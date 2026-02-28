@@ -5,7 +5,7 @@
  */
 
 import { isNfcSupported, startNfcScan, writeNfcInvite } from './NfcHelper.js';
-import { discoverHosts, discoverHostsLocal, isDiscoveryAvailable } from './LanDiscovery.js';
+import { discoverHostsLocal } from './LanDiscovery.js';
 import { isUltrasoundSupported, playUltrasoundInviteLoop, startUltrasoundListen } from './UltrasoundHelper.js';
 
 export class MultiplayerUIManager {
@@ -28,11 +28,11 @@ export class MultiplayerUIManager {
         /** @type {{ stop: () => void } | null} */
         this.soundShareController = null;
         /** Join method status and retry counts */
-        this._joinMethodState = { nfcRetries: 0, lanRetries: 0, soundRetries: 0, connected: false };
+        this._joinMethodState = { nfcRetries: 0, soundRetries: 0, connected: false };
         /** Max retries per join method (NFC, LAN, Sound) before stopping */
         this._maxJoinRetries = 3;
         /** @type {number|undefined} */
-        this._joinLanPollId = undefined;
+        this._joinNearbyPollId = undefined;
         /** @type {number|undefined} */
         this._joinSoundCycleId = undefined;
         /** Sound listen cycle duration (ms) before marking "not success" and retrying */
@@ -497,12 +497,11 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Update the join method status panel (NFC, LAN, Sound) and optional retry counts.
-     * @param {{ nfc?: string, lan?: string, sound?: string }} status - Text for each line; empty = leave unchanged
-     * @param {{ nfcClass?: string, lanClass?: string, soundClass?: string }} classes - Optional CSS class for status (status-trying, status-fail, status-success, status-skip)
+     * Update the join method status panel (NFC, Sound) and optional retry counts.
+     * @param {{ nfc?: string, sound?: string }} status - Text for each line; empty = leave unchanged
+     * @param {{ nfcClass?: string, soundClass?: string }} classes - Optional CSS class for status (status-trying, status-fail, status-success, status-skip)
      */
     updateJoinMethodStatus(status, classes = {}) {
-        const s = this._joinMethodState;
         const set = (id, text, cls) => {
             const el = document.getElementById(id);
             if (!el) return;
@@ -510,15 +509,14 @@ export class MultiplayerUIManager {
             el.className = 'join-method-line' + (cls ? ' ' + cls : '');
         };
         if (status.nfc !== undefined) set('join-method-nfc', status.nfc, classes.nfcClass);
-        if (status.lan !== undefined) set('join-method-lan', status.lan, classes.lanClass);
         if (status.sound !== undefined) set('join-method-sound', status.sound, classes.soundClass);
     }
 
-    /** Stop LAN poll and sound cycle timers when leaving join screen or when connected */
+    /** Stop nearby poll and sound cycle timers when leaving join screen or when connected */
     stopJoinAutoMethods() {
-        if (this._joinLanPollId !== undefined) {
-            clearInterval(this._joinLanPollId);
-            this._joinLanPollId = undefined;
+        if (this._joinNearbyPollId !== undefined) {
+            clearInterval(this._joinNearbyPollId);
+            this._joinNearbyPollId = undefined;
         }
         if (this._joinSoundCycleId !== undefined) {
             clearTimeout(this._joinSoundCycleId);
@@ -560,16 +558,9 @@ export class MultiplayerUIManager {
             this.updateJoinMethodStatus({ nfc: 'NFC: not available' }, { nfcClass: 'status-skip' });
         }
 
-        // LAN: poll; if exactly one game, set _detectedHostId and show Play; stop after max retries.
-        // Without a discovery server, only same-device (other tabs) is possible — no repeated polling.
-        if (!isDiscoveryAvailable()) {
-            this.updateJoinMethodStatus({ lan: 'LAN: same-device only (no server)' }, { lanClass: 'status-skip' });
-        } else {
-            this.updateJoinMethodStatus({ lan: 'LAN: searching…' }, { lanClass: 'status-trying' });
-        }
-        const runLanPoll = async () => {
+        // Nearby: same-device only (other tabs via BroadcastChannel). Refreshes list periodically.
+        const runNearbyPoll = async () => {
             if (state.connected) return;
-            if (state.lanRetries >= max) return;
             const nearbyContainer = document.getElementById('nearby-games-container');
             const nearbyList = document.getElementById('nearby-games-list');
             const emptyE = document.getElementById('join-host-empty');
@@ -594,19 +585,11 @@ export class MultiplayerUIManager {
                 nearbyList.appendChild(btn);
             };
             try {
-                const [lanRooms, localRooms] = await Promise.all([
-                    isDiscoveryAvailable() ? discoverHosts() : Promise.resolve([]),
-                    discoverHostsLocal()
-                ]);
+                const localRooms = await discoverHostsLocal();
                 localRooms.forEach(({ roomId }) => addRoom(roomId));
-                lanRooms.forEach(({ roomId }) => addRoom(roomId));
                 if (seen.size > 0) {
                     nearbyContainer.style.display = 'block';
                     if (emptyE) emptyE.textContent = '';
-                    this.updateJoinMethodStatus(
-                        { lan: `LAN: ${seen.size} game(s) found` },
-                        { lanClass: 'status-success' }
-                    );
                     if (roomIds.length === 1) {
                         this._detectedHostId = roomIds[0];
                         this.updateJoinPrimaryButton();
@@ -615,42 +598,18 @@ export class MultiplayerUIManager {
                         this.updateJoinPrimaryButton();
                     }
                 } else {
-                    if (emptyE) emptyE.textContent = isDiscoveryAvailable()
-                        ? 'No nearby host. Use QR scan or Enter Code.'
-                        : 'Use Enter Code or Sound Invite to join.';
+                    if (emptyE) emptyE.textContent = 'Use Enter Code or Sound Invite to join.';
                     this._detectedHostId = null;
                     this.updateJoinPrimaryButton();
-                    state.lanRetries++;
-                    const stopped = state.lanRetries >= max;
-                    if (stopped && this._joinLanPollId !== undefined) {
-                        clearInterval(this._joinLanPollId);
-                        this._joinLanPollId = undefined;
-                    }
-                    this.updateJoinMethodStatus(
-                        { lan: stopped ? `LAN: no host (stopped after ${max} retries)` : `LAN: no host (retry ${state.lanRetries})` },
-                        { lanClass: 'status-fail' }
-                    );
                 }
             } catch (e) {
-                if (emptyE) emptyE.textContent = 'Scanning…';
+                if (emptyE) emptyE.textContent = 'Use Enter Code or Sound Invite to join.';
                 this._detectedHostId = null;
                 this.updateJoinPrimaryButton();
-                state.lanRetries++;
-                const stopped = state.lanRetries >= max;
-                if (stopped && this._joinLanPollId !== undefined) {
-                    clearInterval(this._joinLanPollId);
-                    this._joinLanPollId = undefined;
-                }
-                this.updateJoinMethodStatus(
-                    { lan: stopped ? `LAN: not success (stopped after ${max} retries)` : `LAN: not success (retry ${state.lanRetries})` },
-                    { lanClass: 'status-fail' }
-                );
             }
         };
-        runLanPoll();
-        if (isDiscoveryAvailable() && state.lanRetries < max) {
-            this._joinLanPollId = window.setInterval(runLanPoll, 6000);
-        }
+        runNearbyPoll();
+        this._joinNearbyPollId = window.setInterval(runNearbyPoll, 6000);
 
         // Sound: stop after max retries
         if (isUltrasoundSupported()) {
@@ -701,8 +660,7 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Fetch and show nearby games (same machine + same WiFi). Call when Join screen is shown.
-     * Same-machine discovery runs always (BroadcastChannel); LAN discovery only if discovery server is configured.
+     * Fetch and show nearby games (same device only: other tabs via BroadcastChannel). Call when Join screen is shown.
      */
     async refreshNearbyGames() {
         const nearbyContainer = document.getElementById('nearby-games-container');
@@ -725,12 +683,8 @@ export class MultiplayerUIManager {
             nearbyList.appendChild(btn);
         };
         try {
-            const [lanRooms, localRooms] = await Promise.all([
-                isDiscoveryAvailable() ? discoverHosts() : Promise.resolve([]),
-                discoverHostsLocal()
-            ]);
+            const localRooms = await discoverHostsLocal();
             localRooms.forEach(({ roomId }) => addRoom(roomId));
-            lanRooms.forEach(({ roomId }) => addRoom(roomId));
             if (seen.size > 0) {
                 nearbyContainer.style.display = 'block';
             }
@@ -1308,7 +1262,6 @@ export class MultiplayerUIManager {
         const state = this._joinMethodState;
         state.connected = false;
         state.nfcRetries = 0;
-        state.lanRetries = 0;
         state.soundRetries = 0;
         this.stopJoinAutoMethods();
 
@@ -1320,7 +1273,6 @@ export class MultiplayerUIManager {
             retryAllBtn.onclick = () => {
                 state.connected = false;
                 state.nfcRetries = 0;
-                state.lanRetries = 0;
                 state.soundRetries = 0;
                 this.stopJoinAutoMethods();
                 this.startJoinAutoMethods(statusEl, setStatus);

@@ -1,11 +1,16 @@
 /**
  * MultiplayerConnectionManager.js
- * Handles WebRTC connections, peer management, and data transfer
+ * Handles WebRTC connections, peer management, and data transfer.
+ *
+ * PeerJS does not provide a client API to list room IDs / active peers. The Join screen
+ * uses Enter Code, Sound Invite, QR, NFC, and same-device discovery (BroadcastChannel).
+ * To show a list of rooms from a server you would need to run your own PeerServer and
+ * add a custom HTTP endpoint that returns peer IDs (tracked via server 'connection'/'disconnect' events).
  */
 
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
-import { registerHost, unregisterHost, registerHostLocal, unregisterHostLocal } from './LanDiscovery.js';
+import { registerHostLocal, unregisterHostLocal } from './LanDiscovery.js';
 
 export class MultiplayerConnectionManager {
     /**
@@ -61,7 +66,6 @@ export class MultiplayerConnectionManager {
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => {
                     this.roomId = id;
-                    registerHost(id).then(() => {}).catch(() => {});
                     registerHostLocal(id);
                     resolve();
                 });
@@ -977,7 +981,6 @@ export class MultiplayerConnectionManager {
         const wasHost = this.isHost;
         const roomId = this.roomId;
         if (wasHost && roomId) {
-            unregisterHost(roomId).then(() => {}).catch(() => {});
             unregisterHostLocal();
         }
         // Close all connections
