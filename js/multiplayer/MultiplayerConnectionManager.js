@@ -69,6 +69,7 @@ export class MultiplayerConnectionManager {
      * @param {string} [_unused] - Ignored; we always use getMyPersistentPeerId()
      */
     async hostGame(_unused) {
+        this.stopJoinListener();
         const myId = this.multiplayerManager.getMyPersistentPeerId();
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');

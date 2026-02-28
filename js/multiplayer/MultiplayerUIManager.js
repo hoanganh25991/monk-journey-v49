@@ -472,9 +472,12 @@ export class MultiplayerUIManager {
                 const t = setTimeout(() => resolve(false), 5000);
                 conn.on('open', () => {
                     conn.send({ type: 'inviteFromHost', hostRoomId: roomId });
-                    conn.close();
-                    clearTimeout(t);
-                    resolve(true);
+                    // Brief delay so the message is flushed before we close (Joiner may miss data otherwise)
+                    setTimeout(() => {
+                        try { conn.close(); } catch (_) {}
+                        clearTimeout(t);
+                        resolve(true);
+                    }, 350);
                 });
                 conn.on('error', () => {
                     clearTimeout(t);
@@ -571,10 +574,10 @@ export class MultiplayerUIManager {
      */
     showInviteFromHostNotification(hostRoomId) {
         this._pendingInviteFromHost = hostRoomId || null;
-        if (this.multiplayerManager.game?.hudManager) {
-            this.multiplayerManager.game.hudManager.showNotification('Host invited you to join! Open Multiplayer → Join to see the invite.', 'info');
-        }
         this.updateJoinPendingInviteBanner();
+        if (this.multiplayerManager.game?.hudManager) {
+            this.multiplayerManager.game.hudManager.showNotification('Host invited you to join! Tap Join in the banner above.', 5000);
+        }
     }
 
     /** Clear pending invite from host (e.g. after we joined or dismissed). */
@@ -998,6 +1001,11 @@ export class MultiplayerUIManager {
 
             this.updateResumeHostArea();
             this.updateHeaderPlayerInfo('multiplayer-initial-player-info');
+            // Start join listener so we can receive "Request" from Host even when on initial screen
+            if (this.multiplayerManager.connection?.startJoinListener) {
+                this.multiplayerManager.connection.startJoinListener();
+            }
+            this.updateJoinPendingInviteBanner();
         }
     }
     

@@ -926,6 +926,15 @@ export class Game {
         if (this.state.isPaused()) {
             this.jumpRequested = false; // clear so we don't jump when resuming
             this.safeRender(this.scene, this.camera);
+            // Host when paused (e.g. dead): keep multiplayer sync so remote players keep moving and broadcast stays current
+            const conn = this.multiplayerManager?.connection;
+            if (this.multiplayerManager && conn?.isHost && conn.peers?.size > 0) {
+                const now = performance.now();
+                const last = this._lastHostPausedMpTime;
+                this._lastHostPausedMpTime = now;
+                const mpDelta = last != null ? Math.min((now - last) / 1000, 0.1) : 0.033;
+                this.multiplayerManager.update(mpDelta);
+            }
             const playRevealEl = document.getElementById('play-reveal-overlay');
             // After 1s if not yet stable, switch to blur (fog-waiting); on low-end blur stays until loaded stable
             if (playRevealEl && this._playRevealStartTime != null) {

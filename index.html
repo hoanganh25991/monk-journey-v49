@@ -619,11 +619,6 @@
                 </div>
                 <p id="join-host-empty" class="join-host-empty">Use QR scan or Enter Code to join.</p>
             </div>
-            <!-- Pending invite from host (shown when Host sent Request and we're on Join screen) -->
-            <div id="join-pending-invite-banner" class="join-pending-invite-banner" style="display: none;">
-                <p class="join-pending-invite-msg">Host invited you to join.</p>
-                <button type="button" id="join-pending-invite-btn" class="settings-button">Join</button>
-            </div>
             <!-- Primary action: QR scan or Enter Code -->
             <div id="join-method-status" class="join-method-status join-method-status-compact">
                 <div class="join-method-lines">
@@ -730,6 +725,11 @@
                 </div>
             </div>
             <div id="connection-info-status-bar" class="connection-status"></div>
+        </div>
+        <!-- Pending invite from host: visible when Host tapped Request. Sibling of screens so it shows on initial or Join screen. -->
+        <div id="join-pending-invite-banner" class="join-pending-invite-banner join-pending-invite-banner-modal" style="display: none;">
+            <p class="join-pending-invite-msg">Host invited you to join.</p>
+            <button type="button" id="join-pending-invite-btn" class="settings-button">Join</button>
         </div>
         <!-- Contacts popup: used from Join screen (Join) and Host connection screen (Request). Must be sibling of screens so it shows when connection-info-screen is visible. -->
         <div id="contacts-popup" class="qr-scan-popup" style="display: none;">
