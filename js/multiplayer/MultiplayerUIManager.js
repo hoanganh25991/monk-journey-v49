@@ -6,7 +6,7 @@
 
 import { isNfcSupported, startNfcScan, writeNfcInvite } from './NfcHelper.js';
 import { discoverHosts, discoverHostsLocal, isDiscoveryAvailable } from './LanDiscovery.js';
-import { isUltrasoundSupported, playUltrasoundInvite, startUltrasoundListen } from './UltrasoundHelper.js';
+import { isUltrasoundSupported, playUltrasoundInviteLoop, startUltrasoundListen } from './UltrasoundHelper.js';
 
 export class MultiplayerUIManager {
     /**
@@ -27,6 +27,8 @@ export class MultiplayerUIManager {
         this.ultrasoundListenController = null;
         /** Join method status and retry counts */
         this._joinMethodState = { nfcRetries: 0, lanRetries: 0, soundRetries: 0, connected: false };
+        /** Max retries per join method (NFC, LAN, Sound) before stopping */
+        this._maxJoinRetries = 3;
         /** @type {number|undefined} */
         this._joinLanPollId = undefined;
         /** @type {number|undefined} */
@@ -511,6 +513,178 @@ export class MultiplayerUIManager {
     }
 
     /**
+     * Start NFC, LAN, and Sound join methods. Each method retries up to _maxJoinRetries (3) then stops.
+     * @param {HTMLElement|null} statusEl - Element for connection status
+     * @param {(msg: string) => void} setStatus - Callback to set status text
+     */
+    startJoinAutoMethods(statusEl, setStatus) {
+        const state = this._joinMethodState;
+        const max = this._maxJoinRetries;
+        const emptyEl = document.getElementById('join-host-empty');
+        if (emptyEl) emptyEl.textContent = 'Scanning…';
+
+        // NFC
+        if (isNfcSupported()) {
+            this.updateJoinMethodStatus({ nfc: 'NFC: waiting — touch host' }, { nfcClass: 'status-trying' });
+            startNfcScan((connectionId) => {
+                this.stopJoinAutoMethods();
+                this.showNfcJoinConfirm(connectionId, statusEl, null, () => this.showJoinUI());
+            }).then(ctrl => {
+                this.nfcScanController = ctrl;
+            }).catch(() => {
+                this.nfcScanController = null;
+                state.nfcRetries++;
+                const stopped = state.nfcRetries >= max;
+                this.updateJoinMethodStatus(
+                    { nfc: stopped ? `NFC: not success (stopped after ${max} retries)` : `NFC: not success (retry ${state.nfcRetries})` },
+                    { nfcClass: 'status-fail' }
+                );
+            });
+        } else {
+            this.updateJoinMethodStatus({ nfc: 'NFC: not available' }, { nfcClass: 'status-skip' });
+        }
+
+        // LAN: poll; if exactly one game, set _detectedHostId and show Play; stop after max retries.
+        // Without a discovery server, only same-device (other tabs) is possible — no repeated polling.
+        if (!isDiscoveryAvailable()) {
+            this.updateJoinMethodStatus({ lan: 'LAN: same-device only (no server)' }, { lanClass: 'status-skip' });
+        } else {
+            this.updateJoinMethodStatus({ lan: 'LAN: searching…' }, { lanClass: 'status-trying' });
+        }
+        const runLanPoll = async () => {
+            if (state.connected) return;
+            if (state.lanRetries >= max) return;
+            const nearbyContainer = document.getElementById('nearby-games-container');
+            const nearbyList = document.getElementById('nearby-games-list');
+            const emptyE = document.getElementById('join-host-empty');
+            if (!nearbyContainer || !nearbyList) return;
+            nearbyList.innerHTML = '';
+            nearbyContainer.style.display = 'none';
+            const seen = new Set();
+            const roomIds = [];
+            const addRoom = (roomId) => {
+                if (!roomId || seen.has(roomId)) return;
+                seen.add(roomId);
+                roomIds.push(roomId);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'nearby-game-btn';
+                btn.innerHTML = `Join game <span class="game-code">${roomId}</span>`;
+                btn.onclick = () => {
+                    this.stopJoinAutoMethods();
+                    this.updateConnectionStatus('Connecting...', 'join-connection-status');
+                    this.multiplayerManager.joinGame(roomId);
+                };
+                nearbyList.appendChild(btn);
+            };
+            try {
+                const [lanRooms, localRooms] = await Promise.all([
+                    isDiscoveryAvailable() ? discoverHosts() : Promise.resolve([]),
+                    discoverHostsLocal()
+                ]);
+                localRooms.forEach(({ roomId }) => addRoom(roomId));
+                lanRooms.forEach(({ roomId }) => addRoom(roomId));
+                if (seen.size > 0) {
+                    nearbyContainer.style.display = 'block';
+                    if (emptyE) emptyE.textContent = '';
+                    this.updateJoinMethodStatus(
+                        { lan: `LAN: ${seen.size} game(s) found` },
+                        { lanClass: 'status-success' }
+                    );
+                    if (roomIds.length === 1) {
+                        this._detectedHostId = roomIds[0];
+                        this.updateJoinPrimaryButton();
+                    } else {
+                        this._detectedHostId = null;
+                        this.updateJoinPrimaryButton();
+                    }
+                } else {
+                    if (emptyE) emptyE.textContent = isDiscoveryAvailable()
+                        ? 'No nearby host. Use QR scan or Enter Code.'
+                        : 'Use Enter Code or Sound Invite to join.';
+                    this._detectedHostId = null;
+                    this.updateJoinPrimaryButton();
+                    state.lanRetries++;
+                    const stopped = state.lanRetries >= max;
+                    if (stopped && this._joinLanPollId !== undefined) {
+                        clearInterval(this._joinLanPollId);
+                        this._joinLanPollId = undefined;
+                    }
+                    this.updateJoinMethodStatus(
+                        { lan: stopped ? `LAN: no host (stopped after ${max} retries)` : `LAN: no host (retry ${state.lanRetries})` },
+                        { lanClass: 'status-fail' }
+                    );
+                }
+            } catch (e) {
+                if (emptyE) emptyE.textContent = 'Scanning…';
+                this._detectedHostId = null;
+                this.updateJoinPrimaryButton();
+                state.lanRetries++;
+                const stopped = state.lanRetries >= max;
+                if (stopped && this._joinLanPollId !== undefined) {
+                    clearInterval(this._joinLanPollId);
+                    this._joinLanPollId = undefined;
+                }
+                this.updateJoinMethodStatus(
+                    { lan: stopped ? `LAN: not success (stopped after ${max} retries)` : `LAN: not success (retry ${state.lanRetries})` },
+                    { lanClass: 'status-fail' }
+                );
+            }
+        };
+        runLanPoll();
+        if (isDiscoveryAvailable() && state.lanRetries < max) {
+            this._joinLanPollId = window.setInterval(runLanPoll, 6000);
+        }
+
+        // Sound: stop after max retries
+        if (isUltrasoundSupported()) {
+            this.updateJoinMethodStatus({ sound: 'Sound: listening…' }, { soundClass: 'status-trying' });
+            const startSoundCycle = () => {
+                if (state.connected) return;
+                if (state.soundRetries >= max) return;
+                startUltrasoundListen((connectionId) => {
+                    this.stopJoinAutoMethods();
+                    state.connected = true;
+                    this.updateJoinMethodStatus({ sound: 'Sound: received' }, { soundClass: 'status-success' });
+                    this.showNfcJoinConfirm(connectionId, statusEl, null, () => this.showJoinUI());
+                }).then(ctrl => {
+                    this.ultrasoundListenController = ctrl;
+                    const scheduleNextRetryTick = () => {
+                        if (state.connected) return;
+                        if (state.soundRetries >= max) return;
+                        this._joinSoundCycleId = window.setTimeout(() => {
+                            this._joinSoundCycleId = undefined;
+                            if (state.connected) return;
+                            state.soundRetries++;
+                            const stopped = state.soundRetries >= max;
+                            this.updateJoinMethodStatus(
+                                { sound: stopped ? `Sound: not success (stopped after ${max} retries)` : `Sound: listening… (retry ${state.soundRetries})` },
+                                { soundClass: stopped ? 'status-fail' : 'status-trying' }
+                            );
+                            if (!stopped) scheduleNextRetryTick();
+                        }, this._joinSoundCycleMs);
+                    };
+                    scheduleNextRetryTick();
+                }).catch(() => {
+                    state.soundRetries++;
+                    const stopped = state.soundRetries >= max;
+                    this.updateJoinMethodStatus(
+                        { sound: stopped ? `Sound: not success (stopped after ${max} retries)` : `Sound: not success (retry ${state.soundRetries})` },
+                        { soundClass: 'status-fail' }
+                    );
+                    if (!stopped) this._joinSoundCycleId = window.setTimeout(startSoundCycle, 2000);
+                });
+            };
+            startSoundCycle();
+        } else {
+            this.updateJoinMethodStatus({ sound: 'Sound: not available' }, { soundClass: 'status-skip' });
+        }
+
+        this.updateJoinPrimaryButton();
+        this.updateConnectionStatus('', 'join-connection-status');
+    }
+
+    /**
      * Fetch and show nearby games (same machine + same WiFi). Call when Join screen is shown.
      * Same-machine discovery runs always (BroadcastChannel); LAN discovery only if discovery server is configured.
      */
@@ -611,8 +785,20 @@ export class MultiplayerUIManager {
     }
 
     /**
+     * Message shown when media permission was denied so the user can allow in site
+     * settings and click Allow again. Browsers do not re-prompt after a denial.
+     * @param {'microphone'|'camera'} mediaType
+     * @returns {string}
+     */
+    getMediaPermissionDeniedHint(mediaType) {
+        const label = mediaType === 'microphone' ? 'Microphone' : 'Camera';
+        return `${label} was blocked. Allow it in your browser’s site settings (lock/info icon in the address bar), then click Allow again.`;
+    }
+
+    /**
      * Request camera permission from a click. Must call getUserMedia synchronously
      * in the click handler so the browser shows the permission prompt (user activation).
+     * If the user previously denied, we still try; on failure we show how to allow and click again.
      */
     requestCameraPermissionFromClick() {
         const p = navigator.mediaDevices.getUserMedia({ video: true });
@@ -623,12 +809,16 @@ export class MultiplayerUIManager {
         }).catch(() => {
             this.updateCameraPermissionUI();
             this.updateJoinPrimaryButton();
+            const statusEl = document.getElementById('join-connection-status');
+            if (statusEl) this.updateConnectionStatus(this.getMediaPermissionDeniedHint('camera'), 'join-connection-status');
         });
     }
 
     /**
      * Request microphone permission from a click. Must call getUserMedia synchronously
      * in the click handler so the browser shows the permission prompt (user activation).
+     * If the user previously denied, the browser won't re-prompt; we show instructions
+     * so they can allow in site settings and click Allow again.
      */
     requestMicrophonePermissionFromClick() {
         this.updateConnectionStatus('Requesting microphone access…', 'join-connection-status');
@@ -641,7 +831,7 @@ export class MultiplayerUIManager {
         }).catch(() => {
             this.updateMicrophonePermissionUI();
             this.updateJoinPrimaryButton();
-            this.updateConnectionStatus('Microphone denied. Enable in browser settings to use ultrasound.', 'join-connection-status');
+            this.updateConnectionStatus(this.getMediaPermissionDeniedHint('microphone'), 'join-connection-status');
         });
     }
 
@@ -1092,153 +1282,30 @@ export class MultiplayerUIManager {
             qrPopupClose.onclick = () => this.closeQRScanPopup();
         }
 
-        // Reset auto-scan state and update empty message
+        // Reset auto-scan state and wire Retry all
         const state = this._joinMethodState;
         state.connected = false;
         state.nfcRetries = 0;
         state.lanRetries = 0;
         state.soundRetries = 0;
         this.stopJoinAutoMethods();
-        const emptyEl = document.getElementById('join-host-empty');
-        if (emptyEl) emptyEl.textContent = 'Scanning…';
 
         const statusEl = document.getElementById('join-connection-status');
         const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
 
-        // NFC
-        if (isNfcSupported()) {
-            this.updateJoinMethodStatus({ nfc: 'NFC: waiting — touch host' }, { nfcClass: 'status-trying' });
-            startNfcScan((connectionId) => {
+        const retryAllBtn = document.getElementById('join-retry-all-btn');
+        if (retryAllBtn) {
+            retryAllBtn.onclick = () => {
+                state.connected = false;
+                state.nfcRetries = 0;
+                state.lanRetries = 0;
+                state.soundRetries = 0;
                 this.stopJoinAutoMethods();
-                this.showNfcJoinConfirm(connectionId, statusEl, null, () => this.showJoinUI());
-            }).then(ctrl => {
-                this.nfcScanController = ctrl;
-            }).catch(() => {
-                this.nfcScanController = null;
-                state.nfcRetries++;
-                this.updateJoinMethodStatus(
-                    { nfc: `NFC: not success (retry ${state.nfcRetries})` },
-                    { nfcClass: 'status-fail' }
-                );
-            });
-        } else {
-            this.updateJoinMethodStatus({ nfc: 'NFC: not available' }, { nfcClass: 'status-skip' });
+                this.startJoinAutoMethods(statusEl, setStatus);
+            };
         }
 
-        // LAN: poll; if exactly one game, set _detectedHostId and show Play
-        this.updateJoinMethodStatus({ lan: 'LAN: searching…' }, { lanClass: 'status-trying' });
-        const runLanPoll = async () => {
-            if (state.connected) return;
-            const nearbyContainer = document.getElementById('nearby-games-container');
-            const nearbyList = document.getElementById('nearby-games-list');
-            const emptyE = document.getElementById('join-host-empty');
-            if (!nearbyContainer || !nearbyList) return;
-            nearbyList.innerHTML = '';
-            nearbyContainer.style.display = 'none';
-            const seen = new Set();
-            const roomIds = [];
-            const addRoom = (roomId) => {
-                if (!roomId || seen.has(roomId)) return;
-                seen.add(roomId);
-                roomIds.push(roomId);
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'nearby-game-btn';
-                btn.innerHTML = `Join game <span class="game-code">${roomId}</span>`;
-                btn.onclick = () => {
-                    this.stopJoinAutoMethods();
-                    this.updateConnectionStatus('Connecting...', 'join-connection-status');
-                    this.multiplayerManager.joinGame(roomId);
-                };
-                nearbyList.appendChild(btn);
-            };
-            try {
-                const [lanRooms, localRooms] = await Promise.all([
-                    isDiscoveryAvailable() ? discoverHosts() : Promise.resolve([]),
-                    discoverHostsLocal()
-                ]);
-                localRooms.forEach(({ roomId }) => addRoom(roomId));
-                lanRooms.forEach(({ roomId }) => addRoom(roomId));
-                if (seen.size > 0) {
-                    nearbyContainer.style.display = 'block';
-                    if (emptyE) emptyE.textContent = '';
-                    this.updateJoinMethodStatus(
-                        { lan: `LAN: ${seen.size} game(s) found` },
-                        { lanClass: 'status-success' }
-                    );
-                    if (roomIds.length === 1) {
-                        this._detectedHostId = roomIds[0];
-                        this.updateJoinPrimaryButton();
-                    } else {
-                        this._detectedHostId = null;
-                        this.updateJoinPrimaryButton();
-                    }
-                } else {
-                    if (emptyE) emptyE.textContent = 'No nearby host. Use QR scan or Enter Code.';
-                    this._detectedHostId = null;
-                    this.updateJoinPrimaryButton();
-                    state.lanRetries++;
-                    this.updateJoinMethodStatus(
-                        { lan: `LAN: no host (retry ${state.lanRetries})` },
-                        { lanClass: 'status-fail' }
-                    );
-                }
-            } catch (e) {
-                if (emptyE) emptyE.textContent = 'Scanning…';
-                this._detectedHostId = null;
-                this.updateJoinPrimaryButton();
-                state.lanRetries++;
-                this.updateJoinMethodStatus(
-                    { lan: `LAN: not success (retry ${state.lanRetries})` },
-                    { lanClass: 'status-fail' }
-                );
-            }
-        };
-        await runLanPoll();
-        this._joinLanPollId = window.setInterval(runLanPoll, 6000);
-
-        // Sound
-        if (isUltrasoundSupported()) {
-            this.updateJoinMethodStatus({ sound: 'Sound: listening…' }, { soundClass: 'status-trying' });
-            const startSoundCycle = () => {
-                if (state.connected) return;
-                startUltrasoundListen((connectionId) => {
-                    this.stopJoinAutoMethods();
-                    state.connected = true;
-                    this.updateJoinMethodStatus({ sound: 'Sound: received' }, { soundClass: 'status-success' });
-                    this.showNfcJoinConfirm(connectionId, statusEl, null, () => this.showJoinUI());
-                }).then(ctrl => {
-                    this.ultrasoundListenController = ctrl;
-                    const scheduleNextRetryTick = () => {
-                        if (state.connected) return;
-                        this._joinSoundCycleId = window.setTimeout(() => {
-                            this._joinSoundCycleId = undefined;
-                            if (state.connected) return;
-                            state.soundRetries++;
-                            this.updateJoinMethodStatus(
-                                { sound: `Sound: listening… (retry ${state.soundRetries})` },
-                                { soundClass: 'status-trying' }
-                            );
-                            scheduleNextRetryTick();
-                        }, this._joinSoundCycleMs);
-                    };
-                    scheduleNextRetryTick();
-                }).catch(() => {
-                    state.soundRetries++;
-                    this.updateJoinMethodStatus(
-                        { sound: `Sound: not success (retry ${state.soundRetries})` },
-                        { soundClass: 'status-fail' }
-                    );
-                    this._joinSoundCycleId = window.setTimeout(startSoundCycle, 2000);
-                });
-            };
-            startSoundCycle();
-        } else {
-            this.updateJoinMethodStatus({ sound: 'Sound: not available' }, { soundClass: 'status-skip' });
-        }
-
-        this.updateJoinPrimaryButton();
-        this.updateConnectionStatus('', 'join-connection-status');
+        this.startJoinAutoMethods(statusEl, setStatus);
     }
 
     /** Handle primary button click: Play / QR scan / Enter Code */

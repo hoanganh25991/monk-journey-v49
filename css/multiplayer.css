@@ -108,6 +108,22 @@
 .join-method-line.status-success { color: #90ee90; }
 .join-method-line.status-fail { color: #ffb0b0; }
 .join-method-line.status-skip { opacity: 0.6; }
+.join-actions-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.join-actions-row .join-primary-btn {
+    margin: 0;
+    min-width: 0;
+}
+.join-actions-row .join-retry-all-btn {
+    margin: 0;
+    flex-shrink: 0;
+    font-size: 0.9rem;
+}
 .join-use-qr-btn {
     margin-top: 0.75rem;
     display: block;
@@ -199,18 +215,33 @@
 .join-method-status-compact {
     padding: 0.4rem 1rem;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.join-method-status-compact .join-method-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    min-width: 0;
+}
+.join-method-status-compact .join-actions-row {
+    margin-top: 0;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.join-method-status-compact .join-actions-row .join-primary-btn {
+    flex: 0 1 auto;
+}
+.join-method-status-compact .join-actions-row .join-retry-all-btn {
+    flex-shrink: 0;
 }
 .join-method-status-compact .join-method-status-title { display: none; }
-.join-primary-row {
-    padding: 0.75rem 1rem;
-    flex-shrink: 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
 .join-primary-btn {
     display: block;
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
     font-weight: bold;
 }
 .join-manual-code-section {

@@ -604,15 +604,17 @@
                 </div>
                 <p id="join-host-empty" class="join-host-empty">Scanning…</p>
             </div>
-            <!-- Compact: auto-scan status (allowed methods only) -->
+            <!-- Compact: auto-scan status + primary action (QR scan) + Retry-Auto Scan in one row, buttons right-bottom -->
             <div id="join-method-status" class="join-method-status join-method-status-compact">
-                <div id="join-method-nfc" class="join-method-line"></div>
-                <div id="join-method-lan" class="join-method-line"></div>
-                <div id="join-method-sound" class="join-method-line"></div>
-            </div>
-            <!-- One primary button: Play (if detected) / QR scan / Enter Code -->
-            <div class="join-primary-row">
-                <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">Continue</button>
+                <div class="join-method-lines">
+                    <div id="join-method-nfc" class="join-method-line"></div>
+                    <div id="join-method-lan" class="join-method-line"></div>
+                    <div id="join-method-sound" class="join-method-line"></div>
+                </div>
+                <div class="join-actions-row">
+                    <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">Continue</button>
+                    <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn">Retry-Auto Scan</button>
+                </div>
             </div>
             <!-- Manual code section (shown when user chooses Enter Code) -->
             <div id="join-manual-code-section" class="join-manual-code-section" style="display: none;">
