@@ -214,6 +214,15 @@ export class HUDManager {
     toggleInventory() {
         this.components.inventoryUI.toggleInventory();
     }
+
+    /**
+     * Update player stats display (health, mana, attack, defense, etc.)
+     */
+    updatePlayerStats() {
+        if (this.components.inventoryUI && typeof this.components.inventoryUI.updatePlayerStats === 'function') {
+            this.components.inventoryUI.updatePlayerStats();
+        }
+    }
     
     /**
      * Toggle skill tree visibility

@@ -924,8 +924,13 @@ export class MultiplayerUIManager {
         }
         
         try {
+            // Ensure any previous scanner is fully stopped and container is clean
+            await this.stopQRScanner();
+            const scannerEl = document.getElementById('qr-scanner-view');
+            if (scannerEl) scannerEl.innerHTML = '';
+            
             // Get available cameras if we haven't already
-            if (this.availableCameras.length === 0) {
+            if (!this.availableCameras || this.availableCameras.length === 0) {
                 await this.getAvailableCameras();
             }
             
@@ -973,17 +978,28 @@ export class MultiplayerUIManager {
                 }
             }
             
-            // Start the scanner with improved settings
+            // Start the scanner with improved settings for reliable detection
+            // qrbox as function: use most of the viewfinder so QR can be detected anywhere on screen
+            // (fixed 250x250 was often too small on large screens, so camera looked "static" with no scan)
+            const qrboxSize = (viewfinderWidth, viewfinderHeight) => {
+                const minSide = Math.min(viewfinderWidth, viewfinderHeight);
+                const size = Math.min(Math.floor(minSide * 0.85), 400); // 85% of view, max 400px
+                return { width: size, height: size };
+            };
             await this.qrCodeScanner.start(
                 cameraConfig,
                 { 
-                    fps: 15,                // Higher FPS for better detection
-                    qrbox: { width: 250, height: 250 }, // Optimal size for QR detection
+                    fps: 20,                // Higher FPS for more frequent scan attempts
+                    qrbox: qrboxSize,
                     aspectRatio: 1,         // Square aspect ratio
-                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], // Only scan for QR codes
-                    disableFlip: false,     // Allow mirrored QR codes
+                    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE],
+                    disableFlip: false,
+                    videoConstraints: {
+                        width: { ideal: 1280, min: 640 },
+                        height: { ideal: 720, min: 480 }
+                    },
                     experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true // Use native API if available
+                        useBarCodeDetectorIfSupported: true
                     }
                 },
                 (decodedText) => {
@@ -1046,18 +1062,21 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * Stop the QR scanner
+     * Stop the QR scanner. Returns a Promise that resolves when the camera is fully stopped.
      */
-    stopQRScanner() {
+    async stopQRScanner() {
         if (this.qrCodeScanner) {
-            this.qrCodeScanner.stop().catch(err => {
-                console.error('Error stopping camera:', err);
-            });
+            const scanner = this.qrCodeScanner;
             this.qrCodeScanner = null;
+            try {
+                await scanner.stop();
+            } catch (err) {
+                console.error('Error stopping camera:', err);
+            }
             
             // Keep camera select visible if we have multiple cameras
             const cameraSelect = document.getElementById('camera-select');
-            if (cameraSelect && this.availableCameras.length > 1) {
+            if (cameraSelect && this.availableCameras && this.availableCameras.length > 1) {
                 cameraSelect.style.display = 'block';
             }
             
