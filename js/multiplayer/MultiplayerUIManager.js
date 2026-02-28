@@ -361,19 +361,19 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Reset invite buttons (Share via sound, Share via NFC) to default labels.
-     * Call when closing modal or on disconnect so they never stay "Playing…" or "Hold device near friend…".
+     * Reset invite buttons (Sound 📤, NFC 📤) to default labels.
+     * Call when closing modal or on disconnect so they never stay "Playing…" or "Hold…".
      */
     resetInviteButtons() {
         const soundBtn = document.getElementById('sound-share-invite-btn');
         if (soundBtn) {
             soundBtn.disabled = false;
-            soundBtn.textContent = 'Share via sound';
+            soundBtn.textContent = '📤 Sound';
         }
         const nfcBtn = document.getElementById('nfc-share-invite-btn');
         if (nfcBtn) {
             nfcBtn.disabled = false;
-            nfcBtn.textContent = 'Share via NFC';
+            nfcBtn.textContent = '📤 NFC';
         }
     }
 
@@ -677,7 +677,7 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * If connected (HOST or PLAYER), show Share via NFC and Share via sound on connection screen.
+     * If connected (HOST or PLAYER), show NFC 📤 and Sound 📤 on connection screen.
      * Auto-starts NFC write when NFC is supported.
      */
     maybeShowNfcShareOnConnectionScreen() {
@@ -693,7 +693,7 @@ export class MultiplayerUIManager {
             const soundBtn = document.createElement('button');
             soundBtn.id = 'sound-share-invite-btn';
             soundBtn.className = 'settings-button';
-            soundBtn.textContent = 'Share via sound';
+            soundBtn.textContent = 'Sound 📤';
             soundBtn.title = 'Play inaudible sound so the other phone can receive the invite when nearby';
             soundBtn.addEventListener('click', () => this.sendInviteViaSound());
             hostControls.insertBefore(soundBtn, hostControls.firstChild);
@@ -703,7 +703,7 @@ export class MultiplayerUIManager {
             const nfcBtn = document.createElement('button');
             nfcBtn.id = 'nfc-share-invite-btn';
             nfcBtn.className = 'settings-button';
-            nfcBtn.textContent = 'Share via NFC';
+            nfcBtn.textContent = 'NFC 📤';
             nfcBtn.title = 'Hold your device to the other device to send invite (tap to retry)';
             nfcBtn.addEventListener('click', () => this.sendInviteViaNfc());
             hostControls.insertBefore(nfcBtn, hostControls.firstChild);
@@ -736,7 +736,7 @@ export class MultiplayerUIManager {
         }
         if (btn) {
             btn.disabled = false;
-            btn.textContent = 'Share via sound';
+            btn.textContent = 'Sound 📤';
         }
     }
     
@@ -752,7 +752,7 @@ export class MultiplayerUIManager {
         const btn = document.getElementById('nfc-share-invite-btn');
         if (btn) {
             btn.disabled = true;
-            btn.textContent = 'Hold device near friend…';
+            btn.textContent = 'Hold…';
         }
         const resetButton = (immediate) => {
             if (this._nfcWriteTimeoutId !== undefined) {
@@ -762,7 +762,7 @@ export class MultiplayerUIManager {
             const b = document.getElementById('nfc-share-invite-btn');
             if (b) {
                 b.disabled = false;
-                b.textContent = 'Share via NFC';
+                b.textContent = 'NFC 📤';
             }
         };
         writeNfcInvite(roomId).then(() => {
@@ -777,13 +777,13 @@ export class MultiplayerUIManager {
             }
             if (this.multiplayerManager.game?.hudManager) {
                 this.multiplayerManager.game.hudManager.showNotification(
-                    'NFC didn\'t connect. Tap "Share via NFC" and hold devices together, or use code/QR.',
+                    'NFC didn\'t connect. Tap NFC 📤 and hold devices together, or use code/QR.',
                     'error'
                 );
             }
             this._resetNfcShareButtonAfterDelay(false);
         });
-        // If no peer touches within 45s, re-enable button so user can tap "Share via NFC" to retry
+        // If no peer touches within 45s, re-enable button so user can tap NFC 📤 to retry
         this._nfcWriteTimeoutId = window.setTimeout(() => {
             this._nfcWriteTimeoutId = undefined;
             resetButton(true);
@@ -800,7 +800,7 @@ export class MultiplayerUIManager {
             const b = document.getElementById('nfc-share-invite-btn');
             if (b) {
                 b.disabled = false;
-                b.textContent = 'Share via NFC';
+                b.textContent = 'NFC 📤';
             }
         }, delayMs);
     }
@@ -817,7 +817,7 @@ export class MultiplayerUIManager {
         const btn = document.getElementById('nfc-share-invite-btn');
         if (btn) {
             btn.disabled = true;
-            btn.textContent = 'Hold device near friend…';
+            btn.textContent = 'Hold…';
         }
         try {
             await writeNfcInvite(roomId);
