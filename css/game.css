@@ -1,8 +1,14 @@
+/* Hidden until user clicks Play - avoids Three.js rendering before menu on low-end devices */
 #game-container {
     position: relative;
     width: 100vw;
     height: 100vh;
     transition: opacity 0.2s ease-out;
+    display: none;
+}
+
+#game-container.game-visible {
+    display: block;
 }
 
 #game-canvas {
@@ -24,4 +30,33 @@
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
+}
+
+/* Play reveal overlay: full-screen warm cream, circular "fog opens" into center when game is ready */
+.play-reveal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #EDE4C8;
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    /* Start fully visible; .play-reveal-overlay.reveal-circle shrinks to center */
+    clip-path: circle(150vmax at 50% 50%);
+    transition: clip-path 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.play-reveal-overlay.reveal-circle {
+    clip-path: circle(0% at 50% 50%);
+}
+
+.play-reveal-overlay .play-reveal-text {
+    color: rgba(0, 0, 0, 0.4);
+    font-size: 1rem;
+    font-weight: 500;
+    user-select: none;
 }

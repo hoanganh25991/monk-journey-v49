@@ -625,8 +625,8 @@ export class Enemy {
 
         if (distanceSqToPlayer < 25) { // 5^2
             this.player.takeDamage(this.damage * 1.5);
-            // Apply slow effect to player
-            this.player.applyEffect('slow', 3);
+            // Apply slow effect to player (max 5s per cast)
+            this.player.applyEffect('slow', Math.min(3, 5));
         }
         
         // Reset attack state after a delay
@@ -650,8 +650,8 @@ export class Enemy {
 
         if (distanceSq < frostNovaRangeSq) {
             this.player.takeDamage(this.damage);
-            // Apply freeze effect to player
-            this.player.applyEffect('freeze', 2);
+            // Apply freeze effect to player (max 5s per cast; clears when Titan dies)
+            this.player.applyEffect('freeze', Math.min(2, 5));
         }
         
         // Reset attack state after a delay
@@ -835,19 +835,11 @@ export class Enemy {
         this.state.isDead = true;
         
         // Clean up any status effects this enemy applied to the player
-        // This is especially important for Frost Titan's freeze effect
-        if (this.player && this.player.statusEffects) {
-            // Remove freeze effect when Frost Titan dies
-            if (this.type === 'frost_titan' && this.player.hasEffect('freeze')) {
-                this.player.removeEffect('freeze');
-                console.debug(`Removed freeze effect from player when ${this.name} died`);
-            }
-            
-            // Also remove slow effect if this enemy applied it (Ice Storm)
-            if (this.type === 'frost_titan' && this.player.hasEffect('slow')) {
-                this.player.removeEffect('slow');
-                console.debug(`Removed slow effect from player when ${this.name} died`);
-            }
+        // Critical for Frost Titan: freeze/slow must end when Titan dies (unconditionally clear)
+        if (this.type === 'frost_titan' && this.player?.statusEffects) {
+            this.player.statusEffects.removeEffect('freeze');
+            this.player.statusEffects.removeEffect('slow');
+            console.debug(`Cleared freeze/slow from player when ${this.name} died`);
         }
         
         // Track when the enemy died (used for timeout cleanup)

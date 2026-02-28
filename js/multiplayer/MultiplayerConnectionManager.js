@@ -5,6 +5,7 @@
 
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
+import { registerHost, unregisterHost, registerHostLocal, unregisterHostLocal } from './LanDiscovery.js';
 
 export class MultiplayerConnectionManager {
     /**
@@ -60,6 +61,8 @@ export class MultiplayerConnectionManager {
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => {
                     this.roomId = id;
+                    registerHost(id).then(() => {}).catch(() => {});
+                    registerHostLocal(id);
                     resolve();
                 });
                 this.peer.on('error', err => reject(err));
@@ -339,8 +342,12 @@ export class MultiplayerConnectionManager {
                 this.handleHostDisconnection();
                 break;
             case 'playerDamage':
-                // Handle damage to the local player from an enemy
+                // Handle damage to the local player from an enemy (skip when game is paused - e.g. menu/multiplayer modal open)
                 if (data.amount && this.multiplayerManager.game.player) {
+                    if (this.multiplayerManager.game.isPaused) {
+                        console.debug(`[MultiplayerConnectionManager] Ignoring player damage while game is paused`);
+                        break;
+                    }
                     console.debug(`[MultiplayerConnectionManager] Player taking damage: ${data.amount} from enemy ID: ${data.enemyId}`);
                     this.multiplayerManager.game.player.takeDamage(data.amount);
                 }
@@ -471,6 +478,20 @@ export class MultiplayerConnectionManager {
                                 });
                             }
                         });
+                    }
+                    break;
+                case 'enemyKilled':
+                    // Member killed an enemy locally; host removes it and grants drops/XP to the killer
+                    if (data.enemyId && this.multiplayerManager.game?.enemyManager) {
+                        const enemyManager = this.multiplayerManager.game.enemyManager;
+                        const enemy = enemyManager.getEnemyById(data.enemyId);
+                        if (enemy) {
+                            const expAmount = enemy.experienceValue ?? 0;
+                            enemyManager.removeEnemyById(data.enemyId, { runDropAndQuest: true });
+                            if (expAmount > 0) {
+                                this.sendToPeer(peerId, { type: 'shareExperience', amount: expAmount });
+                            }
+                        }
                     }
                     break;
                 default:
@@ -687,6 +708,27 @@ export class MultiplayerConnectionManager {
             
             // Return original data as fallback
             return data;
+        }
+    }
+
+    /**
+     * Send data to host (member only). Used for enemy kills and other member->host messages.
+     * @param {Object} data - The data to send (e.g. { type: 'enemyKilled', enemyId: '...' })
+     */
+    sendToHost(data) {
+        if (this.isHost || !this.isConnected || !this.hostId) return;
+        const hostConn = this.peers.get(this.hostId);
+        if (!hostConn) return;
+        try {
+            if (this.useBinaryFormat) {
+                const binaryData = this.serializer.serialize(data);
+                if (binaryData) hostConn.send(binaryData);
+                else hostConn.send(data);
+            } else {
+                hostConn.send(data);
+            }
+        } catch (error) {
+            console.error('[MultiplayerConnectionManager] Error sending to host:', error);
         }
     }
 
@@ -932,6 +974,12 @@ export class MultiplayerConnectionManager {
      * Clean up resources
      */
     dispose() {
+        const wasHost = this.isHost;
+        const roomId = this.roomId;
+        if (wasHost && roomId) {
+            unregisterHost(roomId).then(() => {}).catch(() => {});
+            unregisterHostLocal();
+        }
         // Close all connections
         if (this.peers) {
             this.peers.forEach(conn => conn.close());

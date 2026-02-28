@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { fastAtan2, fastSin, fastCos } from '../utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
@@ -229,7 +229,7 @@ export class MysticAllyEffect extends SkillEffect {
         allyGroup.add(placeholderMesh);
         
         // Load the hero model
-        const loader = new GLTFLoader();
+        const loader = getGLTFLoader();
         loader.load(
             this.modelPath,
             (gltf) => {

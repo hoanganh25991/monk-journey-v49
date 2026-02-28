@@ -48,20 +48,30 @@ div, span, p {
     font-size: 1rem;
 }
 
-/* Force landscape orientation */
+/* Wrapper for content that rotates in portrait; fills viewport in landscape */
+#viewport-rotator {
+    min-height: 100%;
+    width: 100%;
+}
+
+/* Force landscape orientation: rotate only the game content; orientation message stays in viewport */
 @media screen and (orientation: portrait) {
-    html {
-        transform: rotate(-90deg);
-        transform-origin: left top;
+    #viewport-rotator {
+        /* Swap dimensions so rotated content matches viewport aspect */
         width: 100vh;
         height: 100vw;
-        overflow-x: hidden;
-        position: absolute;
-        top: 100%;
+        position: fixed;
+        top: 0;
         left: 0;
+        /* Rotate -90deg from top-left, then translate down so content fills viewport (no clip) */
+        transform: translate(0, 100vh) rotate(-90deg);
+        transform-origin: left top;
+        overflow: hidden;
+        z-index: 1;
     }
-    
+
     #orientation-message {
         display: flex !important;
+        z-index: 9999;
     }
 }

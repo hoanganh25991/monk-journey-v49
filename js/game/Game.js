@@ -247,12 +247,13 @@ export class Game {
             // Initialize item drop manager
             this.itemDropManager = new ItemDropManager(this.scene, this);
             
-            // Initialize camera
+            // Initialize camera (far plane large enough for origin-shifted world: worldGroup.position = -player,
+            // so paths/terrain at scene position up to ~map radius away must still be within far plane)
             this.camera = new THREE.PerspectiveCamera(
-                75, 
-                window.innerWidth / window.innerHeight, 
-                0.1, 
-                1000
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                15000
             );
             this.camera.position.set(0, 10, 20);
             

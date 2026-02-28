@@ -195,6 +195,7 @@ export class PathManager {
         });
         const stoneGroup = new THREE.Group();
         stoneGroup.name = 'path-edge-stones';
+        stoneGroup.frustumCulled = false; // Stay visible when worldGroup moves (origin shifting)
         for (let side = 0; side < 2; side++) {
             const sign = side === 0 ? 1 : -1;
             for (let i = 0; i <= stonesPerSide; i++) {
@@ -370,7 +371,9 @@ export class PathManager {
         pathMesh.receiveShadow = true;
         pathMesh.castShadow = true;
         pathMesh.renderOrder = 100;
-        pathMesh.frustumCulled = true;
+        // Keep paths visible when player is far from origin: worldGroup moves with player,
+        // so path meshes end up far in scene space and would be culled otherwise.
+        pathMesh.frustumCulled = false;
         pathMesh.userData = { isPath: true, pathId: pathId };
         
         (this.game?.getWorldGroup?.() || this.scene).add(pathMesh);

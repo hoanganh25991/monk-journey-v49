@@ -45,6 +45,7 @@
 </head>
 
 <body>
+    <div id="viewport-rotator">
     <!-- Loading Screen -->
     <div id="loading-screen" style="display: none;">
         <h2>Loading Monk Journey...</h2>
@@ -63,15 +64,6 @@
         </div>
         <div class="loading-text" id="initial-loading-text">Generating world...</div>
         <div class="loading-info" id="initial-loading-info">Please wait while we create your adventure</div>
-    </div>
-    
-    <!-- Orientation Message -->
-    <div id="orientation-message" style="display: none;">
-        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-            <path d="M12 18h.01" />
-        </svg>
-        <p>Please rotate your device to landscape mode for the best experience</p>
     </div>
     
     <!-- Login Modal -->
@@ -128,6 +120,11 @@
     <!-- Game Container -->
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
+    </div>
+
+    <!-- Play reveal overlay: full-screen #EDE4C8, circular shrink into center when game is ready -->
+    <div id="play-reveal-overlay" class="play-reveal-overlay" style="display: none;" aria-hidden="true">
+        <div class="play-reveal-text" id="play-reveal-text">Preparing your adventure...</div>
     </div>
 
     <!-- Touch Debug Container -->
@@ -580,14 +577,13 @@
     </div>
 
     <!-- Multiplayer Menu -->
-    <div id="multiplayer-menu" class="game-menu main-background">
+    <div id="multiplayer-menu" class="game-menu main-background" style="display: none;">
         <!-- One-touch: HOST or JOIN (touch devices / NFC) -->
         <div class="multiplayer-menu-content" id="multiplayer-initial-screen">
             <div class="modal-header">
                 <h2>Play Together</h2>
                 <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
             </div>
-            <p id="one-touch-hint" class="one-touch-hint">Touch the two devices together, or choose below.</p>
             <div class="multiplayer-options one-touch-options">
                 <button id="one-touch-host-btn" class="menu-button one-touch-btn host-btn">HOST</button>
                 <button id="one-touch-join-btn" class="menu-button one-touch-btn join-btn">JOIN</button>
@@ -595,44 +591,56 @@
             <p id="nfc-status" class="nfc-status"></p>
         </div>
         
-        <!-- Host Game Screen -->
-        <!-- Host Game Screen has been removed as it's no longer needed -->
-        
-        <!-- Join Game Screen -->
+        <!-- Join Game Screen (single screen: permissions row + host area + auto-scan + primary button) -->
         <div class="multiplayer-menu-content fullscreen-layout" id="join-game-screen" style="display: none;">
             <div class="modal-header">
                 <h2>Join Game</h2>
                 <button id="back-from-join-btn" class="circle-btn" title="Close">↩️</button>
             </div>
-            <div class="join-game-layout">
-                <div class="join-options-container">
-                    
-                    <!-- QR Scanner View (hidden initially) -->
-                    <div id="scan-qr-view" class="scan-qr-view" style="display: none;">
-                        <div class="scanner-section">
-                            <div id="qr-scanner-view"></div>
-                            <select id="camera-select" class="camera-select" style="display: none;">
-                                <option value="">Loading cameras...</option>
-                            </select>
-                            <!-- Enter Code button overlay -->
-                            <div id="enter-code-overlay" class="enter-code-overlay" style="display: none;">
-                                <button id="overlay-enter-code-btn" class="settings-button">Enter Code</button>
-                            </div>
-                        </div>
+            <!-- Permissions: one row — green (allowed), Allow button (denied), gray (not supported) -->
+            <div id="join-permissions-row" class="join-permissions-row">
+                <div id="perm-nfc" class="join-perm-chip" data-perm="nfc">
+                    <span class="perm-label">NFC</span>
+                    <span id="perm-nfc-status" class="perm-status"></span>
+                    <button type="button" id="perm-nfc-allow" class="perm-allow-chip" style="display: none;">Allow</button>
+                </div>
+                <div id="perm-camera" class="join-perm-chip" data-perm="camera">
+                    <span class="perm-label">Camera</span>
+                    <span id="perm-camera-status" class="perm-status"></span>
+                    <button type="button" id="perm-camera-allow" class="perm-allow-chip">Allow</button>
+                </div>
+                <div id="perm-microphone" class="join-perm-chip" data-perm="microphone">
+                    <span class="perm-label">Mic</span>
+                    <span id="perm-microphone-status" class="perm-status"></span>
+                    <button type="button" id="perm-microphone-allow" class="perm-allow-chip">Allow</button>
+                </div>
+            </div>
+            <!-- Large: host select and play -->
+            <div id="join-host-area" class="join-host-area">
+                <p class="join-host-area-title">Select a host</p>
+                <div id="nearby-games-container" class="nearby-games-container" style="display: none;">
+                    <div id="nearby-games-list" class="nearby-games-list"></div>
+                </div>
+                <p id="join-host-empty" class="join-host-empty">Scanning…</p>
+            </div>
+            <!-- Compact: auto-scan status (allowed methods only) -->
+            <div id="join-method-status" class="join-method-status join-method-status-compact">
+                <div id="join-method-nfc" class="join-method-line"></div>
+                <div id="join-method-lan" class="join-method-line"></div>
+                <div id="join-method-sound" class="join-method-line"></div>
+            </div>
+            <!-- One primary button: Play (if detected) / QR scan / Enter Code -->
+            <div class="join-primary-row">
+                <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">Continue</button>
+            </div>
+            <!-- Manual code section (shown when user chooses Enter Code) -->
+            <div id="join-manual-code-section" class="join-manual-code-section" style="display: none;">
+                <div class="manual-input-section">
+                    <div class="input-with-buttons">
+                        <input type="text" id="manual-connection-input" placeholder="Enter connection code">
+                        <button id="paste-code-btn" class="small-btn" title="Paste from clipboard">📋</button>
                     </div>
-                    
-                    <!-- Manual Code Entry (hidden initially) -->
-                    <div id="manual-code-view" class="manual-code-view" style="display: none;">
-                        <div class="manual-input-section">
-                            <div class="input-with-buttons">
-                                <input type="text" id="manual-connection-input" placeholder="Enter connection code">
-                                <button id="paste-code-btn" class="small-btn" title="Paste from clipboard">📋</button>
-                            </div>
-                            <div class="connect-button-container">
-                                <button id="manual-connect-btn" class="settings-button">Connect</button>
-                            </div>
-                        </div>
-                    </div>
+                    <button id="manual-connect-btn" class="settings-button">Connect</button>
                 </div>
             </div>
             <div id="join-connection-status" class="connection-status"></div>
@@ -645,7 +653,23 @@
                     <button type="button" id="nfc-join-confirm-cancel-btn" class="settings-button secondary-button">Cancel</button>
                 </div>
             </div>
-            <button id="join-use-code-qr-btn" class="settings-button secondary-button" style="display: none; margin: 0.5rem auto;">Use code or QR</button>
+            <!-- QR Scan popup: overlay, auto-start scan, auto-close when host detected -->
+            <div id="qr-scan-popup" class="qr-scan-popup" style="display: none;">
+                <div class="qr-scan-popup-backdrop"></div>
+                <div class="qr-scan-popup-box">
+                    <div class="qr-scan-popup-header">
+                        <span>Scan QR code</span>
+                        <button type="button" id="qr-scan-popup-close" class="circle-btn" title="Close">✕</button>
+                    </div>
+                    <div class="qr-scan-popup-body">
+                        <div id="qr-scanner-view"></div>
+                        <div id="qr-scanner-loading" class="qr-scanner-loading" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <div class="loading-text">Initializing camera...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Player Waiting Screen has been removed and functionality merged into connection-info-screen -->
@@ -752,23 +776,6 @@
                             </div>
                             <div class="settings-description">Lower profile = better performance on low-end tablets. If game freezes, try Low or Minimal.</div>
                         </div>
-                        
-                        <!-- UI Settings -->
-                        <div id="ui-settings-container" class="setting-item">
-                            <h3>UI Settings</h3>
-                            <div id="show-minimap-container" class="setting-row">
-                                <label for="show-minimap-checkbox" class="settings-label">Show Mini Map</label>
-                                <input type="checkbox" id="show-minimap-checkbox" class="settings-checkbox" checked>
-                            </div>
-                            <div class="settings-description">Toggle mini map visibility in the top-right corner</div>
-                        </div>
-
-                         <!-- FPS Setting -->
-                        <div id="fps-container" class="setting-item">
-                            <label for="fps-slider" class="settings-label">Target FPS: </label>
-                            <input type="range" id="fps-slider" class="settings-slider" min="30" max="240" step="5" value="120">
-                            <span id="fps-value" class="settings-value">120 FPS</span>
-                        </div>
 
                         <!-- Game Difficulty Setting -->
                         <div id="difficulty-container" class="setting-item">
@@ -806,7 +813,7 @@
                     </div>
                 </div>
 
-                <!-- Camera Settings Tab -->
+                <!-- Camera Settings Tab (render-related: camera, UI, FPS) -->
                 <div id="camera-tab" class="tab-content">
                     <h2 id="camera-title">Camera Settings</h2>
                     <div class="settings-section">
@@ -820,6 +827,20 @@
                                 </div>
                             </div>
                             <div class="settings-description">Adjust camera distance (higher values = further away)</div>
+                        </div>
+                        <!-- UI / Render Settings -->
+                        <div id="ui-settings-container" class="setting-item">
+                            <h3>UI Settings</h3>
+                            <div id="show-minimap-container" class="setting-row">
+                                <label for="show-minimap-checkbox" class="settings-label">Show Mini Map</label>
+                                <input type="checkbox" id="show-minimap-checkbox" class="settings-checkbox" checked>
+                            </div>
+                            <div class="settings-description">Toggle mini map visibility in the top-right corner</div>
+                        </div>
+                        <div id="fps-container" class="setting-item">
+                            <label for="fps-slider" class="settings-label">Target FPS: </label>
+                            <input type="range" id="fps-slider" class="settings-slider" min="30" max="240" step="5" value="120">
+                            <span id="fps-value" class="settings-value">120 FPS</span>
                         </div>
                     </div>
                 </div>
@@ -1274,6 +1295,17 @@
             text-shadow: 0 0 10px #ff6600;
         }
     </style>
+
+    </div><!-- #viewport-rotator -->
+
+    <!-- Orientation message: outside rotator so it stays fixed to the real viewport in portrait -->
+    <div id="orientation-message" style="display: none;">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+            <path d="M12 18h.01" />
+        </svg>
+        <p>Please rotate your device to landscape mode for the best experience</p>
+    </div>
 
     <!-- Main script module -->
     <script type="module" src="js/Main.js"></script>

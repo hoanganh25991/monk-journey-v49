@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
@@ -281,7 +281,7 @@ export class BulShadowCloneEffect extends SkillEffect {
         cloneGroup.position.z += offsetZ;
         
         // Load the hero model
-        const loader = new GLTFLoader();
+        const loader = getGLTFLoader();
         loader.load(
             this.modelPath,
             (gltf) => {

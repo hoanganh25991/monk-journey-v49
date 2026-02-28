@@ -218,6 +218,12 @@ export class PlayerStatusEffects {
             console.warn(`Unknown effect type: ${effectType}`);
             return false;
         }
+
+        // Cap freeze/slow at 5s so they never persist indefinitely (e.g. Frost Titan death cleanup edge cases)
+        const MAX_FREEZE_SLOW_DURATION = 5;
+        if ((effectType === 'freeze' || effectType === 'slow') && duration > MAX_FREEZE_SLOW_DURATION) {
+            duration = MAX_FREEZE_SLOW_DURATION;
+        }
         
         // Get effect definition
         const effectDef = this.effectDefinitions[effectType];
@@ -298,15 +304,16 @@ export class PlayerStatusEffects {
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
-        // Process each active effect
+        // Collect expired effects first to avoid modifying Map during iteration
+        const toRemove = [];
         for (const [effectType, effectData] of this.activeEffects.entries()) {
-            // Reduce duration
             effectData.duration -= delta;
-            
-            // Remove expired effects
             if (effectData.duration <= 0) {
-                this.removeEffect(effectType);
+                toRemove.push(effectType);
             }
+        }
+        for (const effectType of toRemove) {
+            this.removeEffect(effectType);
         }
     }
     

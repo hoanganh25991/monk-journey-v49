@@ -21,8 +21,9 @@ export class SceneOptimizer {
                 const isPlayerModel = object.userData && object.userData.isPlayerModel;
                 const isPath = object.userData && object.userData.isPath;
 
-                // Enable frustum culling
-                object.frustumCulled = true;
+                // Paths: disable frustum culling so they stay visible when worldGroup moves (origin shifting)
+                if (isPath) object.frustumCulled = false;
+                else object.frustumCulled = true;
                 
                 // Shadows follow profile only: minimal = off, else on
                 if (object.castShadow) {

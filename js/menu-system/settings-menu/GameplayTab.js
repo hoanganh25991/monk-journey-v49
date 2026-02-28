@@ -31,13 +31,6 @@ export class GameplayTab extends SettingsTab {
         // Game settings elements
         this.difficultySelect = document.getElementById('difficulty-select');
         
-        // UI settings
-        this.showMinimapCheckbox = document.getElementById('show-minimap-checkbox');
-        
-        // FPS settings (moved from PerformanceTab)
-        this.fpsSlider = document.getElementById('fps-slider');
-        this.fpsValue = document.getElementById('fps-value');
-        
         // Material quality settings
         this.materialQualitySelect = document.getElementById('material-quality-select');
         
@@ -82,14 +75,8 @@ export class GameplayTab extends SettingsTab {
         // Update UI based on the key that changed
         if (key === STORAGE_KEYS.DIFFICULTY && this.difficultySelect) {
             this.difficultySelect.value = newValue || 'basic';
-        } else if (key === STORAGE_KEYS.TARGET_FPS && this.fpsSlider && this.fpsValue) {
-            const parsedFPS = parseInt(newValue) || 120;
-            this.fpsSlider.value = parsedFPS;
-            this.fpsValue.textContent = parsedFPS;
         } else if (key === STORAGE_KEYS.QUALITY_LEVEL && this.materialQualitySelect) {
             this.materialQualitySelect.value = newValue || 'medium';
-        } else if (key === STORAGE_KEYS.SHOW_MINIMAP && this.showMinimapCheckbox) {
-            this.showMinimapCheckbox.checked = newValue === true || newValue === 'true';
         }
     }
     
@@ -199,65 +186,6 @@ export class GameplayTab extends SettingsTab {
                     if (this.game.hudManager) {
                         const difficultyName = DIFFICULTY_SCALING.difficultyLevels[selectedDifficulty].name;
                         this.game.hudManager.showNotification(`Difficulty changed to ${difficultyName}`);
-                    }
-                }
-            });
-        }
-        
-        // Initialize FPS slider if it exists (moved from PerformanceTab)
-        if (this.fpsSlider && this.fpsValue) {
-            // Set current target FPS synchronously
-            const targetFPS = this.loadSettingSync(STORAGE_KEYS.TARGET_FPS, 120);
-            const parsedFPS = parseInt(targetFPS) || 120;
-            this.fpsSlider.value = parsedFPS;
-            this.fpsValue.textContent = parsedFPS;
-            
-            // Add input event listener with debounce
-            let fpsDebounceTimeout = null;
-            this.fpsSlider.addEventListener('input', () => {
-                const value = parseInt(this.fpsSlider.value);
-                this.fpsValue.textContent = value;
-                
-                // Clear previous timeout
-                if (fpsDebounceTimeout) {
-                    clearTimeout(fpsDebounceTimeout);
-                }
-                
-                // Set new timeout for saving
-                fpsDebounceTimeout = setTimeout(() => {
-                    // Save immediately to localStorage
-                    this.saveSetting(STORAGE_KEYS.TARGET_FPS, value.toString());
-                    
-                    // Apply target FPS immediately if game is available
-                    if (this.game && this.game.setTargetFPS) {
-                        this.game.setTargetFPS(value);
-                    }
-                }, 300); // Reduced debounce time
-            });
-        }
-        
-        // Initialize minimap visibility checkbox if it exists
-        if (this.showMinimapCheckbox) {
-            // Set current minimap visibility state synchronously (default is true)
-            const showMinimap = this.loadSettingSync(STORAGE_KEYS.SHOW_MINIMAP, true);
-            this.showMinimapCheckbox.checked = showMinimap === true || showMinimap === 'true';
-            
-            // Add change event listener
-            this.showMinimapCheckbox.addEventListener('change', () => {
-                const isVisible = this.showMinimapCheckbox.checked;
-                this.saveSetting(STORAGE_KEYS.SHOW_MINIMAP, isVisible.toString());
-                
-                // Apply minimap visibility immediately if game is available
-                if (this.game && this.game.hudManager && this.game.hudManager.components && this.game.hudManager.components.miniMapUI) {
-                    if (isVisible) {
-                        this.game.hudManager.components.miniMapUI.show();
-                    } else {
-                        this.game.hudManager.components.miniMapUI.hide();
-                    }
-                    
-                    // Show notification
-                    if (this.game.hudManager) {
-                        this.game.hudManager.showNotification(`Mini map ${isVisible ? 'enabled' : 'disabled'}`);
                     }
                 }
             });
@@ -415,10 +343,6 @@ export class GameplayTab extends SettingsTab {
             }
         }
         
-        if (this.fpsSlider) {
-            savePromises.push(this.saveSetting(STORAGE_KEYS.TARGET_FPS, parseInt(this.fpsSlider.value).toString()));
-        }
-        
         if (this.materialQualitySelect) {
             const materialQuality = this.materialQualitySelect.value || 'high';
             savePromises.push(this.saveSetting(STORAGE_KEYS.QUALITY_LEVEL, materialQuality));
@@ -440,11 +364,6 @@ export class GameplayTab extends SettingsTab {
         if (this.difficultySelect) {
             this.difficultySelect.value = 'basic';
             console.debug('Reset difficulty to basic');
-        }
-        
-        if (this.fpsSlider && this.fpsValue) {
-            this.fpsSlider.value = 120; // Default FPS
-            this.fpsValue.textContent = 120;
         }
         
         if (this.materialQualitySelect) {

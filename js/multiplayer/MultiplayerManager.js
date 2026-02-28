@@ -163,6 +163,39 @@ export class MultiplayerManager {
                (this.connection.isHost || this.connection.isConnected) && 
                this.remotePlayerManager !== null;
     }
+
+    /**
+     * Get all player positions for spawn anchors (host + joiners). Used by host to spawn/cleanup
+     * enemies around every player so joiners can play independently on the large map.
+     * @returns {Array<{x: number, y: number, z: number}>|null} Array of positions, or null if not host
+     */
+    getSpawnAnchorPositions() {
+        if (!this.isActive() || !this.connection.isHost || !this.game?.player) {
+            return null;
+        }
+        const positions = [];
+        const hostPos = this.game.player.getPosition?.();
+        if (hostPos && !isNaN(hostPos.x)) {
+            positions.push({ x: hostPos.x, y: hostPos.y ?? 0, z: hostPos.z });
+        }
+        this.remotePlayerManager.getPlayers().forEach((remote) => {
+            if (remote?.group?.position && !isNaN(remote.group.position.x)) {
+                const p = remote.group.position;
+                positions.push({ x: p.x, y: p.y, z: p.z });
+            }
+        });
+        return positions.length > 0 ? positions : null;
+    }
+
+    /**
+     * Report an enemy kill to the host (member only). When a joiner kills an enemy locally,
+     * this syncs the death to the host so the host can remove it and grant drops/XP.
+     * @param {string} enemyId - The ID of the enemy that was killed
+     */
+    reportEnemyKilled(enemyId) {
+        if (!this.connection || this.connection.isHost || !enemyId) return;
+        this.connection.sendToHost({ type: 'enemyKilled', enemyId });
+    }
     
     /**
      * Check if this client is the host

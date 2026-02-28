@@ -386,6 +386,41 @@ export class EnemyManager {
     getEnemyById(id) {
         return this.enemies.get(id);
     }
+
+    /**
+     * Get all spawn anchor positions (host + joiners in multiplayer). Used so the host spawns
+     * and cleans enemies around every player for independent play on a large map.
+     * @returns {Array<{x: number, y: number, z: number}>} Non-empty array of positions
+     */
+    getAllSpawnAnchorPositions() {
+        if (this.isMultiplayer && this.isHost && this.game?.multiplayerManager?.getSpawnAnchorPositions) {
+            const anchors = this.game.multiplayerManager.getSpawnAnchorPositions();
+            if (anchors && anchors.length > 0) return anchors;
+        }
+        const p = this.player.getPosition();
+        return [{ x: p.x, y: p.y ?? 0, z: p.z }];
+    }
+
+    /**
+     * Remove an enemy by ID. Optionally run drop and quest logic (e.g. when host receives enemyKilled from a member).
+     * @param {string} id - Enemy ID to remove
+     * @param {{ runDropAndQuest?: boolean }} [options] - If runDropAndQuest is true, run handleEnemyDrop and quest update
+     */
+    removeEnemyById(id, options = {}) {
+        const enemy = this.enemies.get(id);
+        if (!enemy) return;
+        if (options.runDropAndQuest) {
+            if (this.game?.questManager) this.game.questManager.updateEnemyKill(enemy);
+            this.handleEnemyDrop(enemy);
+            if (!enemy.isBoss) this.enemyKillCount++;
+        }
+        this._removeEnemyFromCaveGroup(enemy);
+        enemy.remove();
+        this.enemies.delete(id);
+        this.enemiesArrayDirty = true;
+        this.processedDrops.delete(id);
+        this.enemyLastUpdated.delete(id);
+    }
     
     /**
      * Get enemies as an array (cached for performance)
@@ -438,7 +473,30 @@ export class EnemyManager {
         // Update the last sync time
         this.lastSyncTime = Date.now();
         
-        // Process enemy updates
+        // Clean up local enemies that are no longer in host data BEFORE applying sync.
+        // Otherwise we get "zombie" models (static on ground) because we batch-apply
+        // to existing and never remove obsolete ones in the same frame.
+        const hostEnemyIds = new Set(Object.keys(enemiesData));
+        const idsToRemove = [];
+        for (const [id] of this.enemies.entries()) {
+            if (!hostEnemyIds.has(id)) idsToRemove.push(id);
+        }
+        for (const id of idsToRemove) {
+            const enemy = this.enemies.get(id);
+            if (enemy) {
+                this._removeEnemyFromCaveGroup(enemy);
+                enemy.remove();
+                this.enemies.delete(id);
+                this.enemiesArrayDirty = true;
+                this.processedDrops.delete(id);
+                this.enemyLastUpdated.delete(id);
+            }
+            // Don't leave in disposal queue if it was queued (avoid double-remove later)
+            const idx = this.disposalQueue.findIndex(e => e.id === id);
+            if (idx >= 0) this.disposalQueue.splice(idx, 1);
+        }
+        
+        // Process enemy updates (create/update to match host)
         Object.values(enemiesData).forEach(enemyData => {
             const id = enemyData.id;
             
@@ -482,30 +540,6 @@ export class EnemyManager {
                 void this.createEnemyFromData(enemyData);
             }
         });
-        
-        // Remove enemies that no longer exist in the host data
-        const hostEnemyIds = new Set(Object.keys(enemiesData));
-        const enemiesToRemove = [];
-        
-        for (const [id, enemy] of this.enemies.entries()) {
-            if (!hostEnemyIds.has(id)) {
-                enemiesToRemove.push(id);
-            }
-        }
-        
-        // Remove enemies that are no longer in the host data
-        if (enemiesToRemove.length > 0) {
-            for (const id of enemiesToRemove) {
-                const enemy = this.enemies.get(id);
-                if (enemy) {
-                    enemy.remove();
-                    this.enemies.delete(id);
-                    this.enemiesArrayDirty = true;
-                    this.processedDrops.delete(id);
-                    this.enemyLastUpdated.delete(id);
-                }
-            }
-        }
     }
     
     /**
@@ -1051,7 +1085,8 @@ export class EnemyManager {
     }
     
     getRandomSpawnPosition() {
-        const playerPos = this.player.getPosition();
+        const anchors = this.getAllSpawnAnchorPositions();
+        const anchor = anchors[Math.floor(Math.random() * anchors.length)];
         
         // Prefer spawning near caves (65% chance) when caves exist - creates enemy groups around caves
         const caves = this.game?.world?.getCavePositions?.() ?? [];
@@ -1064,11 +1099,11 @@ export class EnemyManager {
             return new THREE.Vector3(x, 0, z);
         }
         
-        // Fallback: spawn around player
+        // Fallback: spawn around chosen anchor (host player or a joiner in multiplayer)
         const angle = Math.random() * Math.PI * 2;
         const distance = this.spawnRadius * 0.5 + Math.random() * this.spawnRadius * 0.5;
-        const x = playerPos.x + fastCos(angle) * distance;
-        const z = playerPos.z + fastSin(angle) * distance;
+        const x = anchor.x + fastCos(angle) * distance;
+        const z = anchor.z + fastSin(angle) * distance;
         
         return new THREE.Vector3(x, 0, z);
     }
@@ -1273,7 +1308,7 @@ export class EnemyManager {
     }
     
     cleanupDistantEnemies() {
-        const playerPos = this.player.getPosition();
+        const anchors = this.getAllSpawnAnchorPositions();
         
         // Use configured auto-drop distances
         const maxDistance = this.autoDropDistance; // Maximum distance to keep enemies (in world units)
@@ -1295,32 +1330,25 @@ export class EnemyManager {
         
         let removedCount = 0;
         
-        // Remove enemies that are too far away
+        // Remove enemies that are too far from *every* anchor (host and all joiners)
         const enemiesToRemove = [];
         
         for (const [id, enemy] of this.enemies.entries()) {
             const position = enemy.getPosition();
-            
-            // Calculate squared horizontal distance to player (ignore Y/height) for performance
-            const dx = position.x - playerPos.x;
-            const dz = position.z - playerPos.z;
-            const distanceSq = distanceSq2D(position.x, position.z, playerPos.x, playerPos.z);
-            
-            // Different distance thresholds for bosses and regular enemies
             const distanceThreshold = enemy.isBoss ? adjustedBossMaxDistance : adjustedMaxDistance;
             const distanceThresholdSq = distanceThreshold * distanceThreshold;
             
-            // If enemy is too far away, mark it for removal
-            if (distanceSq > distanceThresholdSq) {
-                // In multiplier zones, don't remove all enemies at once - stagger removal
-                // This creates a more gradual transition as player moves
-                if (inMultiplierZone && Math.random() > 0.3) {
-                    // Skip removal for 70% of enemies in multiplier zones
-                    continue;
-                }
-                
-                enemiesToRemove.push(id);
+            // Keep enemy if it is within range of any anchor
+            let nearestDistSq = Infinity;
+            for (const a of anchors) {
+                const dSq = distanceSq2D(position.x, position.z, a.x, a.z);
+                if (dSq < nearestDistSq) nearestDistSq = dSq;
             }
+            if (nearestDistSq <= distanceThresholdSq) continue;
+            
+            // Too far from all players - mark for removal
+            if (inMultiplierZone && Math.random() > 0.3) continue;
+            enemiesToRemove.push(id);
         }
         
         // Remove marked enemies
@@ -1348,6 +1376,8 @@ export class EnemyManager {
     }
     
     async spawnEnemiesAroundPlayer(playerPosition) {
+        const anchors = this.getAllSpawnAnchorPositions();
+        
         // Check if we're in a multiplier zone (higher enemy density)
         let inMultiplierZone = false;
         let multiplierValue = 1;
@@ -1421,6 +1451,9 @@ export class EnemyManager {
         const caves = this.game?.world?.getCavePositions?.() ?? [];
         
         for (let g = 0; g < numGroups; g++) {
+            // Pick a random anchor for this group (so groups spread around host and joiners)
+            const groupAnchor = anchors[Math.floor(Math.random() * anchors.length)];
+            
             // Select a random enemy type from the zone for this group
             const groupEnemyType = zoneEnemyTypes[Math.floor(Math.random() * zoneEnemyTypes.length)];
             
@@ -1434,7 +1467,7 @@ export class EnemyManager {
                 groupX = cave.x + fastCos(angle) * spreadRadius;
                 groupZ = cave.z + fastSin(angle) * spreadRadius;
             } else {
-                // Determine group position around player
+                // Determine group position around chosen anchor (host or a joiner)
                 let groupAngle;
                 if (inMultiplierZone) {
                     groupAngle = startAngle + (angleStep * g);
@@ -1444,8 +1477,8 @@ export class EnemyManager {
                 const groupDistance = inMultiplierZone ?
                     60 + Math.random() * 30 :
                     75 + Math.random() * 30;
-                groupX = playerPosition.x + fastCos(groupAngle) * groupDistance;
-                groupZ = playerPosition.z + fastSin(groupAngle) * groupDistance;
+                groupX = groupAnchor.x + fastCos(groupAngle) * groupDistance;
+                groupZ = groupAnchor.z + fastSin(groupAngle) * groupDistance;
             }
             
             // Spawn the group of enemies
@@ -1607,6 +1640,11 @@ export class EnemyManager {
         console.debug(`Processing batch removal of ${this.enemiesToRemove.length} enemies`);
         
         for (const enemy of this.enemiesToRemove) {
+            // Member: sync kill to host so host can remove enemy and grant drops/XP
+            if (this.isMultiplayer && !this.isHost && this.game?.multiplayerManager) {
+                this.game.multiplayerManager.reportEnemyKilled(enemy.id);
+            }
+            
             // Handle quest updates and drops (only for host in multiplayer)
             if (!this.isMultiplayer || (this.isMultiplayer && this.isHost)) {
                 // Check for quest updates

@@ -318,6 +318,11 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
 
+        // Keep path group last in worldGroup so path always renders on top of terrain (avoids path disappearing after moving)
+        if (this.pathManager && typeof this.pathManager.update === 'function') {
+            this.pathManager.update(playerPosition);
+        }
+
         // Update lighting and shadow camera to follow player (so shadows appear on terrain)
         if (this.lightingManager && this.lightingManager.update) {
             this.lightingManager.update(deltaTime, playerPosition);

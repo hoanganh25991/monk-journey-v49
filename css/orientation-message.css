@@ -5,12 +5,31 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Changed from rgba(0, 0, 0, 0.9) to a more transparent version */
+    background-color: rgba(0, 0, 0, 0.5);
     z-index: 9999;
+    display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
     color: white;
     text-align: center;
     padding: var(--padding-large);
+}
+
+/* In portrait: center the prompt in the middle of the screen */
+@media screen and (orientation: portrait) {
+    #orientation-message {
+        justify-content: center;
+        align-items: center;
+    }
+
+    #orientation-message svg {
+        flex-shrink: 0;
+        margin-bottom: 0.75rem;
+    }
+
+    #orientation-message p {
+        margin: 0;
+        max-width: 80%;
+    }
 }

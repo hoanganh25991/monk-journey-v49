@@ -144,6 +144,12 @@ export class MenuManager {
         console.debug(`Game state changed to: ${state}`);
         
         if (state === 'paused') {
+            // Don't show game menu if death screen is open (e.g. player just died)
+            const deathScreenOpen = this.game.hudManager?.components?.deathScreenUI?.isDeathScreenOpen;
+            if (deathScreenOpen) {
+                console.debug('Death screen is open, not showing game menu');
+                return;
+            }
             // Check if any menu is currently visible
             let anyMenuVisible = false;
             

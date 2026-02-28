@@ -63,6 +63,10 @@ export class DeathScreenUI extends UIComponent {
      * Show the death screen
      */
     showDeathScreen() {
+        // Idempotent: avoid showing again if already open (e.g. duplicate events)
+        if (this.isDeathScreenOpen) {
+            return;
+        }
         // Update statistics
         this.updateDeathStats();
         

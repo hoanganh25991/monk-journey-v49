@@ -18,7 +18,7 @@
  */
 
 import * as THREE from '../../libs/three/three.module.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { CHARACTER_MODELS, DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
@@ -130,7 +130,7 @@ export class PlayerModel {
         
         try {
             // Load the 3D model specified in the configuration
-            const loader = new GLTFLoader();
+            const loader = getGLTFLoader();
             
             // Return a promise that resolves when the model is loaded
             const gltf = await new Promise((resolve, reject) => {

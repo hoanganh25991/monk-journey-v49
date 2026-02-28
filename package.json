@@ -1,0 +1,15 @@
+{
+  "name": "monk-journey",
+  "private": true,
+  "description": "Monk Journey - action RPG game",
+  "scripts": {
+    "simplify-monk": "node simplify-monk-glb.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@gltf-transform/core": "^4.0.0",
+    "@gltf-transform/extensions": "^4.0.0",
+    "@gltf-transform/functions": "^4.0.0",
+    "meshoptimizer": "^1.0.1"
+  }
+}

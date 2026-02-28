@@ -86,6 +86,18 @@ Monk Journey is built using:
 - JavaScript for game logic
 - HTML5 and CSS for UI elements
 
+### Simplifying GLB models
+
+From the **project root**, reduce GLB triangle count for better performance when models are small on screen (e.g. on the battlefield):
+
+```bash
+npm run simplify-monk                    # all .glb in assets/models (default)
+npm run simplify-monk -- assets/models   # same, explicit path
+node simplify-monk-glb.js assets/models/monk-v2.glb   # single file
+```
+
+This uses [gltf-transform](https://gltf-transform.dev/) (weld + simplify). Each file is overwritten in place; originals are backed up as `<name>.origin.glb` in the same folder. Optional env: `RATIO` (vertices to keep, 0–1, default `0.4`), `ERROR` (max error, default `0.002`), `BACKUP=0` to skip backups.
+
 ### Pre-generating maps
 
 From the **project root**, generate map JSON files for each zone style and a mixed-zone map. The Maps UI (top-right) loads the manifest from `maps/index.json` and each map from `maps/<id>.json` (relative paths work when the app is served from a subpath).
