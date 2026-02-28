@@ -222,6 +222,21 @@
     font-size: 0.9rem;
     opacity: 0.8;
 }
+.join-rejoin-host-area {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.join-rejoin-msg {
+    margin: 0 0 0.5rem;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+.join-rejoin-btn {
+    width: 100%;
+}
 .join-method-status-compact {
     padding: 0.4rem 1rem;
     flex-shrink: 0;

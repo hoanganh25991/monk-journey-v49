@@ -40,6 +40,58 @@ export class MultiplayerUIManager {
         this._detectedHostId = null;
     }
 
+    /** localStorage key for last joined room (joiners only); enables rejoin after network issues */
+    static get STORAGE_KEY_LAST_JOINED_ROOM() { return 'monkJourney_lastJoinedRoomId'; }
+
+    getLastJoinedRoomId() {
+        try {
+            return localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM) || null;
+        } catch (_) { return null; }
+    }
+
+    setLastJoinedRoomId(roomId) {
+        try {
+            if (roomId) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM, roomId);
+            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM);
+        } catch (_) {}
+    }
+
+    clearLastJoinedRoomId() {
+        this.setLastJoinedRoomId(null);
+    }
+
+    /**
+     * Called when a join attempt fails (host not available). Show message and clear stored roomId so user can set up new connection.
+     * @param {string} _roomId - The room ID that could not be joined
+     */
+    onJoinToHostFailed(_roomId) {
+        this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
+        this.clearLastJoinedRoomId();
+        this.updateRejoinHostArea();
+    }
+
+    /** Show or hide "Join to existing host" block based on stored roomId; wire button if visible. */
+    updateRejoinHostArea() {
+        const area = document.getElementById('join-rejoin-host-area');
+        const emptyEl = document.getElementById('join-host-empty');
+        const lastRoomId = this.getLastJoinedRoomId();
+        if (!area) return;
+        if (lastRoomId) {
+            area.style.display = 'block';
+            if (emptyEl) emptyEl.style.display = 'none';
+            const btn = document.getElementById('join-rejoin-host-btn');
+            if (btn) {
+                btn.onclick = () => {
+                    this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                    this.multiplayerManager.joinGame(lastRoomId);
+                };
+            }
+        } else {
+            area.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = '';
+        }
+    }
+
     /**
      * Initialize the UI manager
      */
@@ -1248,6 +1300,8 @@ export class MultiplayerUIManager {
                 this.startJoinAutoMethods(statusEl, setStatus);
             };
         }
+
+        this.updateRejoinHostArea();
 
         this.startJoinAutoMethods(statusEl, setStatus);
     }

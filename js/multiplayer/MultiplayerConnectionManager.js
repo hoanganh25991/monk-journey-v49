@@ -113,6 +113,7 @@ export class MultiplayerConnectionManager {
      * @param {string} roomId - The room ID to join
      */
     async joinGame(roomId) {
+        this._joinAttemptRoomId = roomId; // track so we can detect host-unavailable on error/close
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
             
@@ -133,6 +134,9 @@ export class MultiplayerConnectionManager {
             
             // Set up connection
             conn.on('open', () => {
+                this._joinAttemptRoomId = null; // join succeeded
+                // Store roomId so joiner can rejoin after network issues (Multiplayer → Join → Join to existing host)
+                this.multiplayerManager.ui.setLastJoinedRoomId(roomId);
                 // Add to peers map
                 this.peers.set(roomId, conn);
                 
@@ -157,14 +161,27 @@ export class MultiplayerConnectionManager {
                 conn.on('close', () => this.handleDisconnect(roomId));
             });
             
-            conn.on('error', err => {
+            conn.on('error', (err) => {
                 console.error('Connection error:', err);
-                this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + err.message);
+                if (this._joinAttemptRoomId === roomId) {
+                    this._joinAttemptRoomId = null;
+                    this.multiplayerManager.ui.onJoinToHostFailed(roomId);
+                } else {
+                    this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + err.message);
+                }
+            });
+            
+            conn.on('close', () => {
+                if (this._joinAttemptRoomId === roomId) {
+                    this._joinAttemptRoomId = null;
+                    this.multiplayerManager.ui.onJoinToHostFailed(roomId);
+                }
             });
             
             return true;
         } catch (error) {
             console.error('Error joining game:', error);
+            this._joinAttemptRoomId = null;
             this.multiplayerManager.ui.updateConnectionStatus('Error joining game: ' + error.message);
             return false;
         }
