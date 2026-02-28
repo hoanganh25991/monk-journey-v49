@@ -596,23 +596,20 @@
                     <button type="button" id="perm-microphone-allow" class="perm-allow-chip">Allow</button>
                 </div>
             </div>
-            <!-- Large: host select and play -->
+            <!-- Join via QR or code (no auto-discovery) -->
             <div id="join-host-area" class="join-host-area">
-                <p class="join-host-area-title">Select a host</p>
-                <div id="nearby-games-container" class="nearby-games-container" style="display: none;">
-                    <div id="nearby-games-list" class="nearby-games-list"></div>
-                </div>
-                <p id="join-host-empty" class="join-host-empty">Scanning…</p>
+                <p id="join-host-empty" class="join-host-empty">Use QR scan or Enter Code to join.</p>
             </div>
-            <!-- Compact: auto-scan status + primary action (QR scan) + Retry-Auto Scan in one row, buttons right-bottom -->
+            <!-- Primary action: QR scan or Enter Code -->
             <div id="join-method-status" class="join-method-status join-method-status-compact">
                 <div class="join-method-lines">
                     <div id="join-method-nfc" class="join-method-line"></div>
                     <div id="join-method-sound" class="join-method-line"></div>
                 </div>
-                <div class="join-actions-row">
-                    <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">Continue</button>
-                    <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn">Retry-Auto Scan</button>
+                <div class="join-actions-row join-actions-column">
+                    <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">QR scan</button>
+                    <button type="button" id="join-enter-code-btn" class="settings-button join-enter-code-btn">Enter Code</button>
+                    <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn" style="display: none;">Retry</button>
                 </div>
             </div>
             <!-- Manual code section (shown when user chooses Enter Code) -->

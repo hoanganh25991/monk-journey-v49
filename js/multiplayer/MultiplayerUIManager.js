@@ -5,7 +5,6 @@
  */
 
 import { isNfcSupported, startNfcScan, writeNfcInvite } from './NfcHelper.js';
-import { discoverHostsLocal } from './LanDiscovery.js';
 import { isUltrasoundSupported, playUltrasoundInviteLoop, startUltrasoundListen } from './UltrasoundHelper.js';
 
 export class MultiplayerUIManager {
@@ -535,7 +534,7 @@ export class MultiplayerUIManager {
         const state = this._joinMethodState;
         const max = this._maxJoinRetries;
         const emptyEl = document.getElementById('join-host-empty');
-        if (emptyEl) emptyEl.textContent = 'Scanning…';
+        if (emptyEl) emptyEl.textContent = 'Use QR scan or Enter Code to join.';
 
         // NFC
         if (isNfcSupported()) {
@@ -557,59 +556,6 @@ export class MultiplayerUIManager {
         } else {
             this.updateJoinMethodStatus({ nfc: 'NFC: not available' }, { nfcClass: 'status-skip' });
         }
-
-        // Nearby: same-device only (other tabs via BroadcastChannel). Refreshes list periodically.
-        const runNearbyPoll = async () => {
-            if (state.connected) return;
-            const nearbyContainer = document.getElementById('nearby-games-container');
-            const nearbyList = document.getElementById('nearby-games-list');
-            const emptyE = document.getElementById('join-host-empty');
-            if (!nearbyContainer || !nearbyList) return;
-            nearbyList.innerHTML = '';
-            nearbyContainer.style.display = 'none';
-            const seen = new Set();
-            const roomIds = [];
-            const addRoom = (roomId) => {
-                if (!roomId || seen.has(roomId)) return;
-                seen.add(roomId);
-                roomIds.push(roomId);
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'nearby-game-btn';
-                btn.innerHTML = `Join game <span class="game-code">${roomId}</span>`;
-                btn.onclick = () => {
-                    this.stopJoinAutoMethods();
-                    this.updateConnectionStatus('Connecting...', 'join-connection-status');
-                    this.multiplayerManager.joinGame(roomId);
-                };
-                nearbyList.appendChild(btn);
-            };
-            try {
-                const localRooms = await discoverHostsLocal();
-                localRooms.forEach(({ roomId }) => addRoom(roomId));
-                if (seen.size > 0) {
-                    nearbyContainer.style.display = 'block';
-                    if (emptyE) emptyE.textContent = '';
-                    if (roomIds.length === 1) {
-                        this._detectedHostId = roomIds[0];
-                        this.updateJoinPrimaryButton();
-                    } else {
-                        this._detectedHostId = null;
-                        this.updateJoinPrimaryButton();
-                    }
-                } else {
-                    if (emptyE) emptyE.textContent = 'Use Enter Code or Sound Invite to join.';
-                    this._detectedHostId = null;
-                    this.updateJoinPrimaryButton();
-                }
-            } catch (e) {
-                if (emptyE) emptyE.textContent = 'Use Enter Code or Sound Invite to join.';
-                this._detectedHostId = null;
-                this.updateJoinPrimaryButton();
-            }
-        };
-        runNearbyPoll();
-        this._joinNearbyPollId = window.setInterval(runNearbyPoll, 6000);
 
         // Sound: stop after max retries
         if (isUltrasoundSupported()) {
@@ -660,37 +606,13 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Fetch and show nearby games (same device only: other tabs via BroadcastChannel). Call when Join screen is shown.
+     * No-op: LAN/same-device auto-discovery has been removed; join only via QR scan or Enter Code.
      */
     async refreshNearbyGames() {
         const nearbyContainer = document.getElementById('nearby-games-container');
         const nearbyList = document.getElementById('nearby-games-list');
-        if (!nearbyContainer || !nearbyList) return;
-        nearbyList.innerHTML = '';
-        nearbyContainer.style.display = 'none';
-        const seen = new Set();
-        const addRoom = (roomId) => {
-            if (!roomId || seen.has(roomId)) return;
-            seen.add(roomId);
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'nearby-game-btn';
-            btn.innerHTML = `Join game <span class="game-code">${roomId}</span>`;
-            btn.onclick = () => {
-                this.updateConnectionStatus('Connecting...', 'join-connection-status');
-                this.multiplayerManager.joinGame(roomId);
-            };
-            nearbyList.appendChild(btn);
-        };
-        try {
-            const localRooms = await discoverHostsLocal();
-            localRooms.forEach(({ roomId }) => addRoom(roomId));
-            if (seen.size > 0) {
-                nearbyContainer.style.display = 'block';
-            }
-        } catch (e) {
-            console.debug('[MultiplayerUIManager] Discovery failed', e);
-        }
+        if (nearbyContainer) nearbyContainer.style.display = 'none';
+        if (nearbyList) nearbyList.innerHTML = '';
     }
 
     /**
@@ -805,26 +727,13 @@ export class MultiplayerUIManager {
         });
     }
 
-    /** Update primary button label: Play (if host detected) / QR scan / Enter Code */
+    /** Update primary button label: always QR scan (Enter Code is a separate button below). */
     updateJoinPrimaryButton() {
         const btn = document.getElementById('join-primary-btn');
         const manualSection = document.getElementById('join-manual-code-section');
         if (!btn) return;
-        if (this._detectedHostId) {
-            btn.textContent = 'Play';
-            btn.dataset.action = 'play';
-            if (manualSection) manualSection.style.display = 'none';
-            return;
-        }
-        const camChip = document.getElementById('perm-camera');
-        const cameraAllowed = camChip && camChip.classList.contains('perm-allowed');
-        if (cameraAllowed) {
-            btn.textContent = 'QR scan';
-            btn.dataset.action = 'qr';
-        } else {
-            btn.textContent = 'Enter Code';
-            btn.dataset.action = 'code';
-        }
+        btn.textContent = 'QR scan';
+        btn.dataset.action = 'qr';
         if (manualSection) manualSection.style.display = 'none';
     }
 
@@ -1231,10 +1140,16 @@ export class MultiplayerUIManager {
         // Permissions row: refresh status (Allow buttons wired in setupUIListeners)
         await this.refreshJoinPermissions();
 
-        // Primary button: Play / QR scan / Enter Code
+        // Primary button: QR scan
         const primaryBtn = document.getElementById('join-primary-btn');
         if (primaryBtn) {
             primaryBtn.onclick = () => this.onJoinPrimaryClick();
+        }
+
+        // Enter Code button (below QR scan): show manual code section
+        const enterCodeBtn = document.getElementById('join-enter-code-btn');
+        if (enterCodeBtn) {
+            enterCodeBtn.onclick = () => this.showJoinManualCodeSection();
         }
 
         // Manual connect (when manual section is visible)
@@ -1270,6 +1185,7 @@ export class MultiplayerUIManager {
 
         const retryAllBtn = document.getElementById('join-retry-all-btn');
         if (retryAllBtn) {
+            retryAllBtn.style.display = 'none'; // No auto-scan; explicit QR / Enter Code only
             retryAllBtn.onclick = () => {
                 state.connected = false;
                 state.nfcRetries = 0;
@@ -1282,15 +1198,10 @@ export class MultiplayerUIManager {
         this.startJoinAutoMethods(statusEl, setStatus);
     }
 
-    /** Handle primary button click: Play / QR scan / Enter Code */
+    /** Handle primary button click: QR scan or Enter Code */
     onJoinPrimaryClick() {
         const btn = document.getElementById('join-primary-btn');
         const action = btn?.dataset?.action || '';
-        if (action === 'play' && this._detectedHostId) {
-            this.updateConnectionStatus('Connecting...', 'join-connection-status');
-            this.multiplayerManager.joinGame(this._detectedHostId);
-            return;
-        }
         if (action === 'qr') {
             this.openQRScanPopup();
             return;
@@ -1300,7 +1211,7 @@ export class MultiplayerUIManager {
         }
     }
 
-    /** Open QR scan popup and start scanning immediately; on detect close and set _detectedHostId. */
+    /** Open QR scan popup and start scanning; on success join immediately and show waiting screen. */
     async openQRScanPopup() {
         const popup = document.getElementById('qr-scan-popup');
         if (!popup) return;
@@ -1311,25 +1222,8 @@ export class MultiplayerUIManager {
             this.stopQRScanner();
             popup.style.display = 'none';
             if (loadingEl) loadingEl.style.display = 'none';
-            this._detectedHostId = connectId;
-            const emptyEl = document.getElementById('join-host-empty');
-            if (emptyEl) emptyEl.textContent = 'Host detected. Tap Play to join.';
-            const nearbyList = document.getElementById('nearby-games-list');
-            const nearbyContainer = document.getElementById('nearby-games-container');
-            if (nearbyList && nearbyContainer) {
-                nearbyList.innerHTML = '';
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'nearby-game-btn';
-                btn.innerHTML = `Play <span class="game-code">${connectId}</span>`;
-                btn.onclick = () => {
-                    this.updateConnectionStatus('Connecting...', 'join-connection-status');
-                    this.multiplayerManager.joinGame(connectId);
-                };
-                nearbyList.appendChild(btn);
-                nearbyContainer.style.display = 'block';
-            }
-            this.updateJoinPrimaryButton();
+            this.updateConnectionStatus('Connecting...', 'join-connection-status');
+            this.multiplayerManager.joinGame(connectId);
         };
         try {
             if (typeof Html5Qrcode === 'undefined') await this.loadQRScannerJS();

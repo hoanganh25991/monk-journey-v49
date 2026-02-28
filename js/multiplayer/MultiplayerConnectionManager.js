@@ -10,7 +10,6 @@
 
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
-import { registerHostLocal, unregisterHostLocal } from './LanDiscovery.js';
 
 export class MultiplayerConnectionManager {
     /**
@@ -66,7 +65,6 @@ export class MultiplayerConnectionManager {
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => {
                     this.roomId = id;
-                    registerHostLocal(id);
                     resolve();
                 });
                 this.peer.on('error', err => reject(err));
@@ -980,9 +978,6 @@ export class MultiplayerConnectionManager {
     dispose() {
         const wasHost = this.isHost;
         const roomId = this.roomId;
-        if (wasHost && roomId) {
-            unregisterHostLocal();
-        }
         // Close all connections
         if (this.peers) {
             this.peers.forEach(conn => conn.close());
