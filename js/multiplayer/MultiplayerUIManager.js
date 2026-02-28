@@ -204,14 +204,6 @@ export class MultiplayerUIManager {
         }
     }
 
-    /** Status label for display: Hosting (green), In game (red), Offline (gray). */
-    _statusLabel(status) {
-        if (status === 'hosting') return 'Hosting';
-        if (status === 'ingame') return 'In game';
-        if (status === 'online') return 'Hosting'; // legacy join-success
-        return 'Offline';
-    }
-
     /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
     updateRejoinHostArea() {
         const area = document.getElementById('join-rejoin-host-area');
@@ -220,18 +212,25 @@ export class MultiplayerUIManager {
         if (!area) return;
         if (latestHostId) {
             this.pingHostStatus(latestHostId);
+            if (this._rejoinRetryTimerId !== undefined) clearTimeout(this._rejoinRetryTimerId);
+            this._rejoinRetryTimerId = setTimeout(() => {
+                this._rejoinRetryTimerId = undefined;
+                if (this.getLatestJoinedHostId() === latestHostId && this.getHostStatus(latestHostId) === 'offline') {
+                    this._lastStatusPingAt[latestHostId] = 0;
+                    this.pingHostStatus(latestHostId);
+                }
+            }, 3500);
             area.style.display = 'block';
             if (emptyEl) emptyEl.style.display = 'none';
             const btn = document.getElementById('join-rejoin-host-btn');
             if (btn) {
                 const status = this.getHostStatus(latestHostId);
-                const statusWord = this._statusLabel(status || 'offline');
                 const xxxx = MultiplayerUIManager.roomIdFirst4(latestHostId);
                 const dot = document.createElement('span');
                 dot.className = 'contact-status-dot ' + (status || 'unknown');
-                dot.title = statusWord;
+                dot.setAttribute('aria-hidden', 'true');
                 const label = document.createElement('span');
-                label.textContent = `Rejoin to last host - ${statusWord} Player-${xxxx}`;
+                label.textContent = `Rejoin to last host - Player-${xxxx}`;
                 btn.innerHTML = '';
                 btn.appendChild(dot);
                 btn.appendChild(label);
@@ -243,6 +242,10 @@ export class MultiplayerUIManager {
                 };
             }
         } else {
+            if (this._rejoinRetryTimerId !== undefined) {
+                clearTimeout(this._rejoinRetryTimerId);
+                this._rejoinRetryTimerId = undefined;
+            }
             area.style.display = 'none';
             if (emptyEl) emptyEl.style.display = '';
         }
@@ -293,7 +296,7 @@ export class MultiplayerUIManager {
             const li = document.createElement('li');
             const dot = document.createElement('span');
             dot.className = 'contact-status-dot ' + (status || 'unknown');
-            dot.title = status === 'hosting' ? 'Hosting' : status === 'ingame' ? 'In game' : status === 'online' ? 'Hosting' : status === 'offline' ? 'Offline' : 'Unknown';
+            dot.setAttribute('aria-hidden', 'true');
             const nameSpan = document.createElement('span');
             nameSpan.className = 'contact-name';
             nameSpan.textContent = 'Player-' + MultiplayerUIManager.roomIdFirst4(id);
@@ -386,7 +389,7 @@ export class MultiplayerUIManager {
                 // Delay so host's data listener is attached first (avoids race when host is busy in-game)
                 setTimeout(() => {
                     if (!settled) conn.send({ type: 'statusRequest' });
-                }, 300);
+                }, 600);
             });
             conn.on('data', (data) => {
                 if (settled) return;
@@ -1534,7 +1537,6 @@ export class MultiplayerUIManager {
             
             const inGame = this.multiplayerManager.game?.state?.hasStarted?.();
             const connectionStatus = inGame ? 'ingame' : 'hosting';
-            const connectionStatusLabel = this._statusLabel(connectionStatus);
             allPlayerIds.forEach((playerId, index) => {
                 const isHostEntry = (playerId === hostId);
                 const isYou = (playerId === myPeerId);
@@ -1548,13 +1550,8 @@ export class MultiplayerUIManager {
                 statusBadge.className = 'player-status-badge';
                 const statusDot = document.createElement('span');
                 statusDot.className = 'contact-status-dot ' + connectionStatus;
-                statusDot.title = connectionStatusLabel;
                 statusDot.setAttribute('aria-hidden', 'true');
-                const statusLabel = document.createElement('span');
-                statusLabel.className = 'player-status-label';
-                statusLabel.textContent = connectionStatusLabel;
                 statusBadge.appendChild(statusDot);
-                statusBadge.appendChild(statusLabel);
                 
                 const colorIndicator = document.createElement('div');
                 colorIndicator.className = 'player-color-indicator';
