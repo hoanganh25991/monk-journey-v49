@@ -146,6 +146,7 @@ export class MultiplayerConnectionManager {
                 this._joinAttemptRoomId = null; // join succeeded
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
                 this.multiplayerManager.ui.setLastRole('joiner');
+                this.multiplayerManager.ui.setHostStatus(roomId, 'online');
                 // Add to peers map
                 this.peers.set(roomId, conn);
                 
@@ -197,13 +198,42 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Handle new connection from a member (host only)
+     * Handle new connection from a member (host only).
+     * If first message is inviteRequest (ask to play), show notification and close; otherwise add as game joiner.
      * @param {DataConnection} conn - The PeerJS connection
      */
     handleNewConnection(conn) {
-        // Add to peers map
+        let handled = false;
+        const addJoiner = () => {
+            if (handled) return;
+            handled = true;
+            clearTimeout(timer);
+            this._addJoinerAsPlayer(conn);
+        };
+        const onFirstData = (raw) => {
+            if (handled) return;
+            const data = this.processReceivedData(raw);
+            if (data && data.type === 'inviteRequest') {
+                handled = true;
+                clearTimeout(timer);
+                this.multiplayerManager.ui.showInviteNotification(data.from || conn.peer);
+                conn.close();
+                return;
+            }
+            addJoiner();
+        };
+        const timer = setTimeout(addJoiner, 2500);
+        conn.on('data', onFirstData);
+    }
+
+    /**
+     * Add connection as a game player (host only); used after we know it's not an inviteRequest.
+     * @param {DataConnection} conn - The PeerJS connection
+     */
+    _addJoinerAsPlayer(conn) {
+        conn.removeAllListeners('data');
         this.peers.set(conn.peer, conn);
-        
+
         // Assign a color to the player if not already assigned
         if (!this.multiplayerManager.assignedColors.has(conn.peer)) {
             // Get next available color

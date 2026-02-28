@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq2D, fastAtan2 } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastAtan2 } from '../../../utils/FastMath.js';
 import { InnerSanctuaryEffect } from '../../InnerSanctuaryEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 

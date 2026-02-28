@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { fastAtan2 } from '../../../../utils/FastMath.js';
+import { fastAtan2 } from '../../../utils/FastMath.js';
 import { FlyingDragonEffect } from '../../FlyingDragonEffect.js';
 
 /**

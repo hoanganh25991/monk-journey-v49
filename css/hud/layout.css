@@ -65,8 +65,22 @@
 }
 
 /* Home/Settings Button and Fullscreen Button */
+.home-button-wrap {
+    position: relative;
+    display: inline-block;
+}
 #home-button, #skill-selection-button {
     position: relative;
+}
+.invite-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #e74c3c;
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 /* Skill Tree Button */

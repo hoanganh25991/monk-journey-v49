@@ -1,6 +1,6 @@
-import * as THREE from '../../../../libs/three/three.module.js';
+import * as THREE from 'three';
 import { WaveStrikeEffect } from '../../WaveStrikeEffect.js';
-import { distanceApprox2D } from '../../../../utils/FastMath.js';
+import { distanceApprox2D } from '../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Wave Strike - Thunder Wave variant

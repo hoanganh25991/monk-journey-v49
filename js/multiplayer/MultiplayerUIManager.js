@@ -42,8 +42,13 @@ export class MultiplayerUIManager {
 
     /** localStorage: last role so we show Resume hosting vs Rejoin correctly */
     static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
-    /** localStorage: list of host room IDs we've joined (joiners); enables rejoin to any. */
-    static get STORAGE_KEY_JOINED_HOST_IDS() { return 'monkJourney_joinedHostIds'; }
+    /** localStorage: contact list of hosts { id, name } (joiners); enables rejoin and rename. */
+    static get STORAGE_KEY_HOST_CONTACTS() { return 'monkJourney_hostContacts'; }
+    /** In-memory cache: hostId -> 'online'|'offline' (set after join attempt); expires after 30s */
+    _hostStatusCache = {};
+    static get HOST_STATUS_TTL_MS() { return 30000; }
+    /** Pending invite from peer ID (show red dot on Menu until cleared) */
+    _pendingInviteFrom = null;
 
     getLastRole() {
         try {
@@ -58,41 +63,85 @@ export class MultiplayerUIManager {
         } catch (_) {}
     }
 
-    /** Returns array of host IDs we've joined (newest last). */
-    getJoinedHostIds() {
+    /** Returns array of contacts { id, name } (newest last). Name defaults to short id. */
+    getHostContacts() {
         try {
-            const raw = localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS);
+            let raw = localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS);
+            if (!raw) {
+                const legacy = localStorage.getItem('monkJourney_joinedHostIds');
+                if (legacy) {
+                    try {
+                        const ids = JSON.parse(legacy);
+                        if (Array.isArray(ids) && ids.length) {
+                            const contacts = ids.filter(Boolean).map(id => ({ id, name: id.slice(0, 8) + '…' }));
+                            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(contacts));
+                            localStorage.removeItem('monkJourney_joinedHostIds');
+                            raw = JSON.stringify(contacts);
+                        }
+                    } catch (_) {}
+                }
+            }
             if (!raw) return [];
             const arr = JSON.parse(raw);
-            return Array.isArray(arr) ? arr.filter(Boolean) : [];
+            if (!Array.isArray(arr)) return [];
+            return arr.filter(c => c && c.id).map(c => ({ id: c.id, name: c.name || (c.id.slice(0, 8) + '…') }));
         } catch (_) { return []; }
     }
 
-    /** Add a host ID to the joined list (when we successfully join). Moves to end if already present. */
-    addJoinedHostId(hostId) {
+    /** Add or update a host contact (when we successfully join). Moves to end if already present. */
+    addJoinedHostId(hostId, name) {
         if (!hostId) return;
-        const ids = this.getJoinedHostIds();
-        const filtered = ids.filter(id => id !== hostId);
-        filtered.push(hostId);
+        const contacts = this.getHostContacts();
+        const filtered = contacts.filter(c => c.id !== hostId);
+        filtered.push({ id: hostId, name: name || hostId.slice(0, 8) + '…' });
         try {
-            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS, JSON.stringify(filtered));
+            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(filtered));
         } catch (_) {}
     }
 
-    /** Remove a host ID from the joined list (e.g. explicit disconnect or join failed). */
+    setContactName(hostId, name) {
+        const contacts = this.getHostContacts();
+        const idx = contacts.findIndex(c => c.id === hostId);
+        if (idx === -1) return;
+        contacts[idx].name = (name || '').trim() || contacts[idx].id.slice(0, 8) + '…';
+        try {
+            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(contacts));
+        } catch (_) {}
+    }
+
+    /** Remove a host from contacts (explicit disconnect or join failed). */
     removeJoinedHostId(hostId) {
         if (!hostId) return;
-        const ids = this.getJoinedHostIds().filter(id => id !== hostId);
+        const contacts = this.getHostContacts().filter(c => c.id !== hostId);
         try {
-            if (ids.length) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS, JSON.stringify(ids));
-            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS);
+            if (contacts.length) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS, JSON.stringify(contacts));
+            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_HOST_CONTACTS);
         } catch (_) {}
+        delete this._hostStatusCache[hostId];
     }
 
-    /** Latest joined host (for "Join to existing host" primary button). */
+    getJoinedHostIds() {
+        return this.getHostContacts().map(c => c.id);
+    }
+
     getLatestJoinedHostId() {
-        const ids = this.getJoinedHostIds();
-        return ids.length ? ids[ids.length - 1] : null;
+        const contacts = this.getHostContacts();
+        return contacts.length ? contacts[contacts.length - 1].id : null;
+    }
+
+    setHostStatus(hostId, status) {
+        if (!hostId) return;
+        this._hostStatusCache[hostId] = { status, at: Date.now() };
+    }
+
+    getHostStatus(hostId) {
+        const ent = this._hostStatusCache[hostId];
+        if (!ent) return null;
+        if (Date.now() - ent.at > MultiplayerUIManager.HOST_STATUS_TTL_MS) {
+            delete this._hostStatusCache[hostId];
+            return null;
+        }
+        return ent.status;
     }
 
     /**
@@ -101,8 +150,10 @@ export class MultiplayerUIManager {
      */
     onJoinToHostFailed(roomId) {
         this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
+        this.setHostStatus(roomId, 'offline');
         this.removeJoinedHostId(roomId);
         this.updateRejoinHostArea();
+        this.refreshContactsPopupList();
     }
 
     /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
@@ -125,6 +176,124 @@ export class MultiplayerUIManager {
             area.style.display = 'none';
             if (emptyEl) emptyEl.style.display = '';
         }
+    }
+
+    showContactsPopup() {
+        const popup = document.getElementById('contacts-popup');
+        const closeBtn = document.getElementById('contacts-popup-close');
+        if (!popup) return;
+        popup.style.display = 'flex';
+        if (closeBtn) closeBtn.onclick = () => { popup.style.display = 'none'; };
+        this.refreshContactsPopupList();
+    }
+
+    refreshContactsPopupList() {
+        const listEl = document.getElementById('contacts-list');
+        const emptyEl = document.getElementById('contacts-empty');
+        if (!listEl) return;
+        const contacts = this.getHostContacts();
+        listEl.innerHTML = '';
+        if (contacts.length === 0) {
+            if (emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        if (emptyEl) emptyEl.style.display = 'none';
+        contacts.forEach(({ id, name }) => {
+            const status = this.getHostStatus(id);
+            const li = document.createElement('li');
+            const dot = document.createElement('span');
+            dot.className = 'contact-status-dot ' + (status || 'unknown');
+            dot.title = status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Unknown';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.className = 'contact-name-input';
+            nameInput.value = name;
+            nameInput.placeholder = 'Name';
+            nameInput.addEventListener('change', () => this.setContactName(id, nameInput.value.trim()));
+            nameInput.addEventListener('blur', () => this.setContactName(id, nameInput.value.trim()));
+            const joinBtn = document.createElement('button');
+            joinBtn.type = 'button';
+            joinBtn.className = 'small-btn';
+            joinBtn.textContent = 'Join';
+            joinBtn.onclick = () => {
+                document.getElementById('contacts-popup').style.display = 'none';
+                this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                this.multiplayerManager.joinGame(id);
+            };
+            const askBtn = document.createElement('button');
+            askBtn.type = 'button';
+            askBtn.className = 'small-btn';
+            askBtn.textContent = 'Ask to play';
+            askBtn.title = 'Notify host to play together';
+            askBtn.onclick = () => this.sendInviteToHost(id);
+            const actions = document.createElement('div');
+            actions.className = 'contact-actions';
+            actions.appendChild(joinBtn);
+            actions.appendChild(askBtn);
+            li.appendChild(dot);
+            li.appendChild(nameInput);
+            li.appendChild(actions);
+            listEl.appendChild(li);
+        });
+    }
+
+    /**
+     * Send "ask to play together" to host (invite request). Host will see notification if they are listening.
+     */
+    async sendInviteToHost(hostId) {
+        try {
+            const peer = new Peer();
+            await new Promise((resolve, reject) => {
+                peer.on('open', () => resolve());
+                peer.on('error', err => reject(err));
+            });
+            const conn = peer.connect(hostId, { reliable: true });
+            const sent = await new Promise((resolve) => {
+                const t = setTimeout(() => resolve(false), 5000);
+                conn.on('open', () => {
+                    conn.send({ type: 'inviteRequest', from: peer.id });
+                    conn.close();
+                    clearTimeout(t);
+                    resolve(true);
+                });
+                conn.on('error', () => {
+                    clearTimeout(t);
+                    resolve(false);
+                });
+            });
+            peer.destroy();
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification(
+                    sent ? 'Invite sent. Host will see it when they open the game.' : 'Could not reach host.',
+                    sent ? 'info' : 'error'
+                );
+            }
+        } catch (_) {
+            if (this.multiplayerManager.game?.hudManager) {
+                this.multiplayerManager.game.hudManager.showNotification('Could not send invite.', 'error');
+            }
+        }
+    }
+
+    /**
+     * Show invite notification: red dot on Menu button and toast. Call when host receives inviteRequest.
+     * @param {string} fromPeerId - Peer ID of the joiner who asked to play
+     */
+    showInviteNotification(fromPeerId) {
+        this._pendingInviteFrom = fromPeerId || null;
+        const dot = document.getElementById('invite-dot');
+        if (dot) dot.style.display = 'block';
+        const label = fromPeerId ? `${String(fromPeerId).slice(0, 8)}… wants to play multiplayer` : 'Someone wants to play multiplayer';
+        if (this.multiplayerManager.game?.hudManager) {
+            this.multiplayerManager.game.hudManager.showNotification(label, 3000, 'info');
+        }
+    }
+
+    /** Clear invite notification (e.g. when user opens game menu or multiplayer). */
+    clearInviteNotification() {
+        this._pendingInviteFrom = null;
+        const dot = document.getElementById('invite-dot');
+        if (dot) dot.style.display = 'none';
     }
 
     /** localStorage key for last host room (enables resume after network issues) */
@@ -1282,6 +1451,8 @@ export class MultiplayerUIManager {
         document.getElementById('join-manual-code-section').style.display = 'none';
         document.getElementById('qr-scan-popup').style.display = 'none';
         document.getElementById('enter-code-popup').style.display = 'none';
+        const contactsPopup = document.getElementById('contacts-popup');
+        if (contactsPopup) contactsPopup.style.display = 'none';
 
         const manualInput = document.getElementById('manual-connection-input');
         if (manualInput) manualInput.value = '';
@@ -1313,6 +1484,12 @@ export class MultiplayerUIManager {
         const enterCodeBtn = document.getElementById('join-enter-code-btn');
         if (enterCodeBtn) {
             enterCodeBtn.onclick = () => this.openEnterCodePopup();
+        }
+
+        // Contacts button: list of hosts with rename, Join, Ask to play
+        const contactsBtn = document.getElementById('join-contacts-btn');
+        if (contactsBtn) {
+            contactsBtn.onclick = () => this.showContactsPopup();
         }
 
         // Manual connect (when manual section is visible)

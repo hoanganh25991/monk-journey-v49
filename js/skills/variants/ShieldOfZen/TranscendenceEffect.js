@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ShieldOfZenEffect } from '../../ShieldOfZenEffect.js';
-import { distanceApprox3D } from '../../../../utils/FastMath.js';
+import { distanceApprox3D } from '../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Shield of Zen - Transcendence variant

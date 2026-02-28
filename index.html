@@ -385,7 +385,10 @@
             <button id="skill-tree-button" class="circle-btn" title="Skill Tree">🌲</button>
             <button id="skill-selection-button" class="circle-btn" title="Skill Selection">✨</button>
 
-            <button id="home-button" class="circle-btn" title="Game Menu">⛩️</button>
+            <span class="home-button-wrap">
+                <button id="home-button" class="circle-btn" title="Game Menu">⛩️</button>
+                <span id="invite-dot" class="invite-dot" style="display: none;" title="Someone wants to play multiplayer"></span>
+            </span>
         </div>
 
         <!-- Mini Map -->
@@ -618,7 +621,23 @@
                 <div class="join-actions-row join-actions-column">
                     <button type="button" id="join-primary-btn" class="settings-button join-primary-btn">QR scan</button>
                     <button type="button" id="join-enter-code-btn" class="settings-button join-enter-code-btn">Enter Code</button>
+                    <button type="button" id="join-contacts-btn" class="settings-button join-contacts-btn">Contacts</button>
                     <button type="button" id="join-retry-all-btn" class="settings-button join-retry-all-btn" style="display: none;">Retry</button>
+                </div>
+            </div>
+            <!-- Contacts popup: list of hosts with rename, status, Join, Ask to play -->
+            <div id="contacts-popup" class="qr-scan-popup" style="display: none;">
+                <div class="qr-scan-popup-backdrop"></div>
+                <div class="qr-scan-popup-box contacts-popup-box">
+                    <div class="qr-scan-popup-header">
+                        <span>Host contacts</span>
+                        <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
+                    </div>
+                    <div class="contacts-popup-body">
+                        <p class="contacts-popup-hint">Join directly or ask host to play together.</p>
+                        <ul id="contacts-list" class="contacts-list"></ul>
+                        <p id="contacts-empty" class="contacts-empty" style="display: none;">No contacts. Join a host first (QR or Enter Code).</p>
+                    </div>
                 </div>
             </div>
             <!-- Manual code section (shown when user chooses Enter Code) -->

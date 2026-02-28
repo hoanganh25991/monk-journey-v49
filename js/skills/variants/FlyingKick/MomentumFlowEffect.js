@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
-import { distanceSq2D, normalize2D, normalize3D, tempVec2, tempVec3 } from '../../../../utils/FastMath.js';
+import { distanceSq2D, normalize2D, normalize3D, tempVec2, tempVec3 } from '../../../utils/FastMath.js';
 
 /**
  * Effect for the Momentum's Flow variant of Flying Kick

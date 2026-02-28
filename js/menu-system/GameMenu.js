@@ -163,7 +163,10 @@ export class GameMenu extends IMenu {
             if (this.game.hudManager) {
                 this.game.hudManager.hideAllUI();
             }
-            
+            // Clear invite notification (host saw the menu)
+            if (this.game.multiplayerManager?.ui) {
+                this.game.multiplayerManager.ui.clearInviteNotification();
+            }
             // Make sure the menu is visible
             this.element.style.display = 'flex';
         }

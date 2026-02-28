@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
-import { distanceSq2D, fastInvSqrt, normalize2D, tempVec2 } from '../../../../utils/FastMath.js';
+import { distanceSq2D, fastInvSqrt, normalize2D, tempVec2 } from '../../../utils/FastMath.js';
 
 /**
  * Effect for the Reaching Rebuke variant of Exploding Palm

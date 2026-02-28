@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
-import { distanceApprox2D } from '../../../../utils/FastMath.js';
+import { distanceApprox2D } from '../../../utils/FastMath.js';
 
 /**
  * Specialized effect for Wave of Light - Lightning Bell variant
