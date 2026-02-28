@@ -305,6 +305,7 @@
     flex-shrink: 0;
 }
 .contact-status-dot.online { background: #2ecc71; }
+.contact-status-dot.hosting { background: #2ecc71; }
 .contact-status-dot.ingame { background: #e74c3c; }
 .contact-status-dot.offline { background: #95a5a6; }
 .contact-status-dot.unknown { background: #7f8c8d; }

@@ -69,7 +69,7 @@ export class MultiplayerUIManager {
     static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
     /** localStorage: contact list of hosts { id, name } (joiners); enables rejoin and rename. */
     static get STORAGE_KEY_HOST_CONTACTS() { return 'monkJourney_hostContacts'; }
-    /** In-memory cache: hostId -> 'online'|'offline'|'ingame' (set after join or status ping); expires after 30s */
+    /** In-memory cache: hostId -> 'hosting'|'ingame'|'offline' (set after join or status ping); expires after 30s */
     _hostStatusCache = {};
     static get HOST_STATUS_TTL_MS() { return 30000; }
     /** Debounce: avoid pinging same host again within this ms */
@@ -202,10 +202,11 @@ export class MultiplayerUIManager {
         }
     }
 
-    /** Status label for display (online / ingame / offline). */
+    /** Status label for display: Hosting (green), In game (red), Offline (gray). */
     _statusLabel(status) {
-        if (status === 'online') return 'Online';
+        if (status === 'hosting') return 'Hosting';
         if (status === 'ingame') return 'In game';
+        if (status === 'online') return 'Hosting'; // legacy join-success
         return 'Offline';
     }
 
@@ -270,7 +271,7 @@ export class MultiplayerUIManager {
             const li = document.createElement('li');
             const dot = document.createElement('span');
             dot.className = 'contact-status-dot ' + (status || 'unknown');
-            dot.title = status === 'online' ? 'Online' : status === 'ingame' ? 'In game' : status === 'offline' ? 'Offline' : 'Unknown';
+            dot.title = status === 'hosting' ? 'Hosting' : status === 'ingame' ? 'In game' : status === 'online' ? 'Hosting' : status === 'offline' ? 'Offline' : 'Unknown';
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'contact-name-input';
@@ -343,7 +344,7 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Ping host (by peer/room id) on the status channel; updates host status cache (online / ingame / offline).
+     * Ping host (by peer/room id) on the status channel; updates host status cache (hosting / ingame / offline).
      * @param {string} hostId - Host peer/room ID (zoomId)
      */
     pingHostStatus(hostId) {

@@ -213,9 +213,9 @@ export class MultiplayerConnectionManager {
         });
     }
 
-    /** Host status for status channel: 'ingame' if game has started (playing single or multi), else 'online'. */
+    /** Host status for status channel: 'ingame' when playing (game started), else 'hosting' (in lobby). No response = gray (offline/menu). */
     _getHostStatusForPing() {
-        return this.multiplayerManager.game?.state?.hasStarted?.() ? 'ingame' : 'online';
+        return this.multiplayerManager.game?.state?.hasStarted?.() ? 'ingame' : 'hosting';
     }
 
     /**
