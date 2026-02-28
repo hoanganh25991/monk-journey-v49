@@ -191,31 +191,11 @@ export class MultiplayerConnectionManager {
 
     /**
      * Handle new connection from a member (host only).
-     * If first message is inviteRequest (ask to play), show notification and close; otherwise add as game joiner.
+     * Add joiner immediately so host sees them and can click Start. If first message is inviteRequest, remove and show notification.
      * @param {DataConnection} conn - The PeerJS connection
      */
     handleNewConnection(conn) {
-        let handled = false;
-        const addJoiner = () => {
-            if (handled) return;
-            handled = true;
-            clearTimeout(timer);
-            this._addJoinerAsPlayer(conn);
-        };
-        const onFirstData = (raw) => {
-            if (handled) return;
-            const data = this.processReceivedData(raw);
-            if (data && data.type === 'inviteRequest') {
-                handled = true;
-                clearTimeout(timer);
-                this.multiplayerManager.ui.showInviteNotification(data.from || conn.peer);
-                conn.close();
-                return;
-            }
-            addJoiner();
-        };
-        const timer = setTimeout(addJoiner, 2500);
-        conn.on('data', onFirstData);
+        this._addJoinerAsPlayer(conn);
     }
 
     /**
@@ -270,6 +250,21 @@ export class MultiplayerConnectionManager {
         if (this.multiplayerManager.game?.state?.isRunning?.()) {
             this.sendToPeer(peerId, { type: 'startGame' });
         }
+    }
+
+    /**
+     * Remove a connection that turned out to be invite-only (host only). Use when we receive inviteRequest from an already-added peer.
+     * @param {string} peerId - The peer ID to remove
+     */
+    _removeJoinerAsInvite(peerId) {
+        const conn = this.peers.get(peerId);
+        if (conn) conn.close();
+        this.peers.delete(peerId);
+        this.multiplayerManager.ui.removePlayerFromList(peerId);
+        this.multiplayerManager.assignedColors.delete(peerId);
+        this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
+        this.multiplayerManager.ui.showInviteNotification(peerId);
+        if (this.peers.size === 0) this.multiplayerManager.ui.setStartButtonEnabled(false);
     }
 
     /**
@@ -423,7 +418,10 @@ export class MultiplayerConnectionManager {
             console.error('[MultiplayerConnectionManager] Received invalid data from member:', peerId);
             return;
         }
-        
+        if (data.type === 'inviteRequest') {
+            this._removeJoinerAsInvite(peerId);
+            return;
+        }
         try {
             switch (data.type) {
                 case 'playerInput':

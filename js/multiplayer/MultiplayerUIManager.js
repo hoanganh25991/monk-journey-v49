@@ -40,6 +40,17 @@ export class MultiplayerUIManager {
         this._detectedHostId = null;
     }
 
+    /**
+     * First segment of room/peer ID for consistent display (player-xxxx naming). Always use full roomId as key in code.
+     * @param {string} roomId - Full Peer/room ID (UUID)
+     * @returns {string} First 8 chars (before first hyphen)
+     */
+    static roomIdPrefix(roomId) {
+        if (!roomId) return '????';
+        const segment = roomId.split('-')[0];
+        return segment && segment.length >= 8 ? segment : roomId.substring(0, 8);
+    }
+
     /** localStorage: last role so we show Resume hosting vs Rejoin correctly */
     static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
     /** localStorage: contact list of hosts { id, name } (joiners); enables rejoin and rename. */
@@ -1348,15 +1359,14 @@ export class MultiplayerUIManager {
             hostColorIndicator.className = 'player-color-indicator';
             hostColorIndicator.style.backgroundColor = hostColor;
             
-            // Create host name span
+            // Create host name span: Player {first part of roomID} for consistent naming
             const hostName = document.createElement('span');
-            hostName.textContent = 'Host';
-            
-            // Add "You" indicator if the user is the host
+            const hostPrefix = MultiplayerUIManager.roomIdPrefix(hostId);
+            hostName.textContent = `Player ${hostPrefix}`;
             if (this.multiplayerManager.connection.isHost) {
                 const youIndicator = document.createElement('span');
                 youIndicator.className = 'you-indicator';
-                youIndicator.textContent = '(You)';
+                youIndicator.textContent = ' (Host)';
                 hostName.appendChild(youIndicator);
             }
             
@@ -1383,15 +1393,13 @@ export class MultiplayerUIManager {
                     colorIndicator.className = 'player-color-indicator';
                     colorIndicator.style.backgroundColor = playerColor;
                     
-                    // Create player name span
+                    // Create player name span: Player {first part of roomID} for consistent naming; ID always full roomId
                     const playerName = document.createElement('span');
-                    playerName.textContent = `Player ${peerId.substring(0, 8)}`;
-                    
-                    // Add "You" indicator if this is the current player
-                    if (peerId === this.multiplayerManager.connection.peer.id) {
+                    playerName.textContent = `Player ${MultiplayerUIManager.roomIdPrefix(peerId)}`;
+                    if (peerId === this.multiplayerManager.connection.peer?.id) {
                         const youIndicator = document.createElement('span');
                         youIndicator.className = 'you-indicator';
-                        youIndicator.textContent = '(You)';
+                        youIndicator.textContent = ' (You)';
                         playerName.appendChild(youIndicator);
                     }
                     
@@ -2200,10 +2208,10 @@ export class MultiplayerUIManager {
         colorIndicator.className = 'player-color-indicator';
         colorIndicator.style.backgroundColor = playerColor;
         
-        // Create player name span
+        // Create player name span: Player {first part of roomID}; data-player-id keeps full roomId
         const playerName = document.createElement('span');
-        playerName.textContent = `Player ${playerId.substring(0, 8)}`;
-        
+        playerName.textContent = `Player ${MultiplayerUIManager.roomIdPrefix(playerId)}`;
+
         // Create kick button (for host only)
         const kickButton = document.createElement('button');
         kickButton.className = 'kick-player-btn';

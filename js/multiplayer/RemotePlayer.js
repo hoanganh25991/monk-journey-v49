@@ -34,7 +34,14 @@ export class RemotePlayer {
         this.group = new THREE.Group();
         (this.game.getWorldGroup?.() || this.game.scene).add(this.group);
     }
-    
+
+    /** First segment of room/peer ID for consistent Player xxxxxxxx naming (same as UI). */
+    getRoomIdPrefix() {
+        if (!this.peerId) return '????';
+        const segment = this.peerId.split('-')[0];
+        return segment && segment.length >= 8 ? segment : this.peerId.substring(0, 8);
+    }
+
     /**
      * Initialize the remote player
      */
@@ -243,8 +250,8 @@ export class RemotePlayer {
         context.font = '24px Arial';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
-        context.fillText(`Player ${this.peerId.substring(0, 8)}`, canvas.width / 2, canvas.height / 2);
-        
+        context.fillText(`Player ${this.getRoomIdPrefix()}`, canvas.width / 2, canvas.height / 2);
+
         // Create texture from canvas
         const texture = new THREE.CanvasTexture(canvas);
         
@@ -392,8 +399,8 @@ export class RemotePlayer {
             context.font = '24px Arial';
             context.textAlign = 'center';
             context.textBaseline = 'middle';
-            context.fillText(`Player ${this.peerId.substring(0, 8)}`, canvas.width / 2, canvas.height / 2);
-            
+            context.fillText(`Player ${this.getRoomIdPrefix()}`, canvas.width / 2, canvas.height / 2);
+
             // Update texture
             this.nameTag.material.map.dispose();
             this.nameTag.material.map = new THREE.CanvasTexture(canvas);
