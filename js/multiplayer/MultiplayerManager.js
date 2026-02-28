@@ -133,6 +133,34 @@ export class MultiplayerManager {
     }
     
     /**
+     * Reconcile joiner's local position with host-authoritative position so host and joiner stay in sync.
+     * Prevents "joiner sees only himself" (host avatar off-screen) when positions diverge from input/network.
+     * @param {Object} hostPos - { x, y, z } from gameState.players[self]
+     * @param {Object} hostRot - rotation from gameState
+     * @param {boolean} fullSync - true on fullSync tick; snap immediately for big correction
+     */
+    _reconcileLocalPosition(hostPos, hostRot, fullSync) {
+        if (!this.game?.player?.movement || !hostPos || typeof hostPos.x !== 'number') return;
+        const pos = this.game.player.getPosition();
+        const dx = hostPos.x - pos.x, dy = (hostPos.y ?? 0) - pos.y, dz = hostPos.z - pos.z;
+        const distSq = dx * dx + dy * dy + dz * dz;
+        const snapThresholdSq = 9; // 3 units: snap if desync is large
+        const doSnap = fullSync || distSq > snapThresholdSq;
+        const x = doSnap ? hostPos.x : pos.x + dx * 0.2;
+        const y = doSnap ? (hostPos.y ?? pos.y) : pos.y + dy * 0.2;
+        const z = doSnap ? hostPos.z : pos.z + dz * 0.2;
+        if (isNaN(x) || isNaN(y) || isNaN(z)) return;
+        this.game.player.setPosition(x, y, z);
+        this.game.player.movement.targetPosition.set(x, y, z);
+        if (hostRot && typeof hostRot.y === 'number' && !isNaN(hostRot.y)) {
+            this.game.player.movement.rotation.y = hostRot.y;
+            if (this.game.player.movement.modelGroup) {
+                this.game.player.movement.modelGroup.rotation.y = hostRot.y;
+            }
+        }
+    }
+
+    /**
      * Update game state (member only)
      * @param {Object} data - The game state data
      */
@@ -147,8 +175,8 @@ export class MultiplayerManager {
                 console.debug('[MultiplayerManager] Updating', Object.keys(data.players).length, 'players');
             }
             
+            const myId = this.connection.peer.id;
             for (const playerId in data.players) {
-                if (playerId === this.connection.peer.id) continue;
                 const playerData = data.players[playerId];
                 if (!playerData?.position || playerData.rotation === undefined) continue;
                 let position = playerData.position;
@@ -156,6 +184,12 @@ export class MultiplayerManager {
                 const rotation = typeof playerData.rotation === 'number'
                     ? BinarySerializer.restoreRotation(playerData.rotation)
                     : { x: 0, y: playerData.rotation?.y ?? 0, z: 0 };
+
+                // Joiner: reconcile our own position from host authority so we don't diverge (host sees us together, we see host)
+                if (playerId === myId) {
+                    this._reconcileLocalPosition(position, rotation, !!data.fullSync);
+                    continue;
+                }
                 this.remotePlayerManager.updatePlayer(
                     playerId, position, rotation,
                     playerData.animation, playerData.modelId, playerData.playerColor

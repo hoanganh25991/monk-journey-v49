@@ -964,6 +964,17 @@ export class MultiplayerConnectionManager {
     }
 
     /**
+     * Request a one-time position sync (member only). Sends current position to host so host's view of this player is updated.
+     * Use e.g. for a "Sync position" button when joiner and host have drifted.
+     */
+    requestPositionSync() {
+        if (!this.isHost && this.isConnected) {
+            this._initialPositionSent = false;
+            this.sendInitialPosition();
+        }
+    }
+
+    /**
      * Send initial position to host once (member only). Called on first sync so host can start input-driven simulation from correct place.
      */
     sendInitialPosition() {
