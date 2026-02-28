@@ -192,11 +192,30 @@ export class MultiplayerConnectionManager {
 
     /**
      * Handle new connection from a member (host only).
-     * Add joiner immediately so host sees them and can click Start. If first message is inviteRequest, remove and show notification.
+     * First message may be statusRequest (ping for rejoin UI) or inviteRequest; otherwise add as game player.
      * @param {DataConnection} conn - The PeerJS connection
      */
     handleNewConnection(conn) {
-        this._addJoinerAsPlayer(conn);
+        conn.once('data', (data) => {
+            const d = this.processReceivedData(data);
+            if (d?.type === 'statusRequest') {
+                conn.send({ type: 'status', status: this._getHostStatusForPing() });
+                conn.close();
+                return;
+            }
+            if (d?.type === 'inviteRequest') {
+                this.multiplayerManager.ui.showInviteNotification(conn.peer);
+                conn.close();
+                return;
+            }
+            this._addJoinerAsPlayer(conn);
+            this.handleDataFromMember(conn.peer, d);
+        });
+    }
+
+    /** Host status for status channel: 'ingame' if game has started (playing single or multi), else 'online'. */
+    _getHostStatusForPing() {
+        return this.multiplayerManager.game?.state?.hasStarted?.() ? 'ingame' : 'online';
     }
 
     /**

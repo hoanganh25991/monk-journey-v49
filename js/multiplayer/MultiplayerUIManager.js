@@ -69,9 +69,12 @@ export class MultiplayerUIManager {
     static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
     /** localStorage: contact list of hosts { id, name } (joiners); enables rejoin and rename. */
     static get STORAGE_KEY_HOST_CONTACTS() { return 'monkJourney_hostContacts'; }
-    /** In-memory cache: hostId -> 'online'|'offline' (set after join attempt); expires after 30s */
+    /** In-memory cache: hostId -> 'online'|'offline'|'ingame' (set after join or status ping); expires after 30s */
     _hostStatusCache = {};
     static get HOST_STATUS_TTL_MS() { return 30000; }
+    /** Debounce: avoid pinging same host again within this ms */
+    static get HOST_STATUS_PING_DEBOUNCE_MS() { return 2000; }
+    _lastStatusPingAt = {};
     /** Pending invite from peer ID (show red dot on Menu until cleared) */
     _pendingInviteFrom = null;
 
@@ -199,6 +202,13 @@ export class MultiplayerUIManager {
         }
     }
 
+    /** Status label for display (online / ingame / offline). */
+    _statusLabel(status) {
+        if (status === 'online') return 'Online';
+        if (status === 'ingame') return 'In game';
+        return 'Offline';
+    }
+
     /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
     updateRejoinHostArea() {
         const area = document.getElementById('join-rejoin-host-area');
@@ -206,10 +216,22 @@ export class MultiplayerUIManager {
         const latestHostId = this.getLatestJoinedHostId();
         if (!area) return;
         if (latestHostId) {
+            this.pingHostStatus(latestHostId);
             area.style.display = 'block';
             if (emptyEl) emptyEl.style.display = 'none';
             const btn = document.getElementById('join-rejoin-host-btn');
             if (btn) {
+                const status = this.getHostStatus(latestHostId);
+                const statusWord = this._statusLabel(status || 'offline');
+                const xxxx = MultiplayerUIManager.roomIdFirst4(latestHostId);
+                const dot = document.createElement('span');
+                dot.className = 'contact-status-dot ' + (status || 'unknown');
+                dot.title = statusWord;
+                const label = document.createElement('span');
+                label.textContent = `Rejoin to last host - ${statusWord} Player-${xxxx}`;
+                btn.innerHTML = '';
+                btn.appendChild(dot);
+                btn.appendChild(label);
                 btn.onclick = () => {
                     this._silentRejoinInProgress = true;
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
@@ -248,7 +270,7 @@ export class MultiplayerUIManager {
             const li = document.createElement('li');
             const dot = document.createElement('span');
             dot.className = 'contact-status-dot ' + (status || 'unknown');
-            dot.title = status === 'online' ? 'Online' : status === 'offline' ? 'Offline' : 'Unknown';
+            dot.title = status === 'online' ? 'Online' : status === 'ingame' ? 'In game' : status === 'offline' ? 'Offline' : 'Unknown';
             const nameInput = document.createElement('input');
             nameInput.type = 'text';
             nameInput.className = 'contact-name-input';
@@ -318,6 +340,41 @@ export class MultiplayerUIManager {
                 this.multiplayerManager.game.hudManager.showNotification('Could not send invite.', 'error');
             }
         }
+    }
+
+    /**
+     * Ping host (by peer/room id) on the status channel; updates host status cache (online / ingame / offline).
+     * @param {string} hostId - Host peer/room ID (zoomId)
+     */
+    pingHostStatus(hostId) {
+        if (!hostId) return;
+        const now = Date.now();
+        if (now - (this._lastStatusPingAt[hostId] || 0) < MultiplayerUIManager.HOST_STATUS_PING_DEBOUNCE_MS) return;
+        this._lastStatusPingAt[hostId] = now;
+        const peer = new Peer();
+        const timeoutMs = 4000;
+        let settled = false;
+        const finish = (status) => {
+            if (settled) return;
+            settled = true;
+            try { peer.destroy(); } catch (_) {}
+            this.setHostStatus(hostId, status);
+            this.updateRejoinHostArea();
+        };
+        peer.on('error', () => finish('offline'));
+        peer.on('open', () => {
+            const conn = peer.connect(hostId, { reliable: true });
+            const t = setTimeout(() => finish('offline'), timeoutMs);
+            conn.on('open', () => conn.send({ type: 'statusRequest' }));
+            conn.on('data', (data) => {
+                if (data?.type === 'status' && data.status) {
+                    clearTimeout(t);
+                    finish(data.status);
+                }
+            });
+            conn.on('error', () => { clearTimeout(t); finish('offline'); });
+            conn.on('close', () => { clearTimeout(t); if (!settled) finish('offline'); });
+        });
     }
 
     /**

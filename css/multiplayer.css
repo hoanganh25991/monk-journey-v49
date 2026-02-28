@@ -262,6 +262,13 @@
 }
 .join-rejoin-btn {
     width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+}
+.join-rejoin-btn .contact-status-dot {
+    flex-shrink: 0;
 }
 
 /* Contacts popup (host list with rename, Join, Ask to play) */
@@ -298,6 +305,7 @@
     flex-shrink: 0;
 }
 .contact-status-dot.online { background: #2ecc71; }
+.contact-status-dot.ingame { background: #e74c3c; }
 .contact-status-dot.offline { background: #95a5a6; }
 .contact-status-dot.unknown { background: #7f8c8d; }
 .contact-name-input {
