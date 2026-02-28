@@ -84,12 +84,13 @@ export function startUltrasoundListen(onConnectionId) {
             return rms > 0.01;
         };
 
-        const decodeBits = (samples) => {
+        const BIT_THRESHOLD = 0.002;
+        const decodeBits = (samples, startOffset = 0) => {
             const bits = [];
-            for (let off = 0; off + samplesPerBit <= samples.length; off += samplesPerBit) {
+            for (let off = startOffset; off + samplesPerBit <= samples.length; off += samplesPerBit) {
                 let e = 0;
                 for (let i = 0; i < samplesPerBit; i++) e += samples[off + i] * samples[off + i];
-                bits.push(Math.sqrt(e / samplesPerBit) > 0.005 ? 1 : 0);
+                bits.push(Math.sqrt(e / samplesPerBit) > BIT_THRESHOLD ? 1 : 0);
             }
             return bits;
         };
@@ -104,26 +105,30 @@ export function startUltrasoundListen(onConnectionId) {
             return bytes;
         };
 
+        const PHASE_STEPS = 8;
         const tryDecode = () => {
             if (buffer.length < samplesPerBit * 20) return;
-            const bits = decodeBits(buffer);
-            if (bits.length < 24) return;
-            for (let start = 0; start + 24 <= bits.length; start++) {
-                const chunk = bits.slice(start, start + 8 * 200);
-                const bytes = bitsToBytes(chunk);
-                const str = new TextDecoder().decode(new Uint8Array(bytes));
-                const idx = str.indexOf(PREFIX);
-                if (idx >= 0) {
-                    const rest = str.slice(idx + PREFIX.length);
-                    const end = rest.indexOf('\0');
-                    const id = (end >= 0 ? rest.slice(0, end) : rest).replace(/[^\x20-\x7E]/g, '').trim();
-                    if (id.length > 0 && id.length < 100) {
-                        if (Date.now() - lastDecode > 2000) {
-                            lastDecode = Date.now();
-                            onConnectionId(id);
+            const step = Math.max(1, Math.floor(samplesPerBit / PHASE_STEPS));
+            for (let phase = 0; phase < samplesPerBit && phase < step * PHASE_STEPS; phase += step) {
+                const bits = decodeBits(buffer, phase);
+                if (bits.length < 24) continue;
+                for (let start = 0; start + 24 <= bits.length; start++) {
+                    const chunk = bits.slice(start, start + 8 * 200);
+                    const bytes = bitsToBytes(chunk);
+                    const str = new TextDecoder().decode(new Uint8Array(bytes));
+                    const idx = str.indexOf(PREFIX);
+                    if (idx >= 0) {
+                        const rest = str.slice(idx + PREFIX.length);
+                        const end = rest.indexOf('\0');
+                        const id = (end >= 0 ? rest.slice(0, end) : rest).replace(/[^\x20-\x7E]/g, '').trim();
+                        if (id.length > 0 && id.length < 100) {
+                            if (Date.now() - lastDecode > 2000) {
+                                lastDecode = Date.now();
+                                onConnectionId(id);
+                            }
+                            buffer = [];
+                            return;
                         }
-                        buffer = [];
-                        return;
                     }
                 }
             }

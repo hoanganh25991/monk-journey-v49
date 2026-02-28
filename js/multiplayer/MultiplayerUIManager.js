@@ -1209,17 +1209,20 @@ export class MultiplayerUIManager {
                     this.showNfcJoinConfirm(connectionId, statusEl, null, () => this.showJoinUI());
                 }).then(ctrl => {
                     this.ultrasoundListenController = ctrl;
-                    this._joinSoundCycleId = window.setTimeout(() => {
-                        this._joinSoundCycleId = undefined;
+                    const scheduleNextRetryTick = () => {
                         if (state.connected) return;
-                        this.stopUltrasoundListen();
-                        state.soundRetries++;
-                        this.updateJoinMethodStatus(
-                            { sound: `Sound: not success (retry ${state.soundRetries})` },
-                            { soundClass: 'status-fail' }
-                        );
-                        startSoundCycle();
-                    }, this._joinSoundCycleMs);
+                        this._joinSoundCycleId = window.setTimeout(() => {
+                            this._joinSoundCycleId = undefined;
+                            if (state.connected) return;
+                            state.soundRetries++;
+                            this.updateJoinMethodStatus(
+                                { sound: `Sound: listening… (retry ${state.soundRetries})` },
+                                { soundClass: 'status-trying' }
+                            );
+                            scheduleNextRetryTick();
+                        }, this._joinSoundCycleMs);
+                    };
+                    scheduleNextRetryTick();
                 }).catch(() => {
                     state.soundRetries++;
                     this.updateJoinMethodStatus(
@@ -1772,9 +1775,14 @@ export class MultiplayerUIManager {
             // Create a complete URL with the connection ID using the helper function
             const fullUrl = this.buildConnectionURL(data);
             
-            // Generate new QR code with the full URL
+            // Generate new QR code with the full URL.
+            // Use explicit size smaller than container content area (256 - 2*border, or 200 - 2*border on small screens)
+            // so the full QR fits inside the square and remains scannable.
+            const qrSize = 220;
             new QRCode(qrContainer, {
                 text: fullUrl,
+                width: qrSize,
+                height: qrSize,
                 colorDark: '#000000',
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
