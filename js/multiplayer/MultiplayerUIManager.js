@@ -40,55 +40,142 @@ export class MultiplayerUIManager {
         this._detectedHostId = null;
     }
 
-    /** localStorage key for last joined room (joiners only); enables rejoin after network issues */
-    static get STORAGE_KEY_LAST_JOINED_ROOM() { return 'monkJourney_lastJoinedRoomId'; }
+    /** localStorage: last role so we show Resume hosting vs Rejoin correctly */
+    static get STORAGE_KEY_LAST_ROLE() { return 'monkJourney_lastRole'; }
+    /** localStorage: list of host room IDs we've joined (joiners); enables rejoin to any. */
+    static get STORAGE_KEY_JOINED_HOST_IDS() { return 'monkJourney_joinedHostIds'; }
 
-    getLastJoinedRoomId() {
+    getLastRole() {
         try {
-            return localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM) || null;
+            return localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_LAST_ROLE) || null;
         } catch (_) { return null; }
     }
 
-    setLastJoinedRoomId(roomId) {
+    setLastRole(role) {
         try {
-            if (roomId) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM, roomId);
-            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_LAST_JOINED_ROOM);
+            if (role) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_LAST_ROLE, role);
+            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_LAST_ROLE);
         } catch (_) {}
     }
 
-    clearLastJoinedRoomId() {
-        this.setLastJoinedRoomId(null);
+    /** Returns array of host IDs we've joined (newest last). */
+    getJoinedHostIds() {
+        try {
+            const raw = localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS);
+            if (!raw) return [];
+            const arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr.filter(Boolean) : [];
+        } catch (_) { return []; }
+    }
+
+    /** Add a host ID to the joined list (when we successfully join). Moves to end if already present. */
+    addJoinedHostId(hostId) {
+        if (!hostId) return;
+        const ids = this.getJoinedHostIds();
+        const filtered = ids.filter(id => id !== hostId);
+        filtered.push(hostId);
+        try {
+            localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS, JSON.stringify(filtered));
+        } catch (_) {}
+    }
+
+    /** Remove a host ID from the joined list (e.g. explicit disconnect or join failed). */
+    removeJoinedHostId(hostId) {
+        if (!hostId) return;
+        const ids = this.getJoinedHostIds().filter(id => id !== hostId);
+        try {
+            if (ids.length) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS, JSON.stringify(ids));
+            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_JOINED_HOST_IDS);
+        } catch (_) {}
+    }
+
+    /** Latest joined host (for "Join to existing host" primary button). */
+    getLatestJoinedHostId() {
+        const ids = this.getJoinedHostIds();
+        return ids.length ? ids[ids.length - 1] : null;
     }
 
     /**
-     * Called when a join attempt fails (host not available). Show message and clear stored roomId so user can set up new connection.
-     * @param {string} _roomId - The room ID that could not be joined
+     * Called when a join attempt fails (host not available). Remove that host from list and update UI.
+     * @param {string} roomId - The host room ID that could not be joined
      */
-    onJoinToHostFailed(_roomId) {
+    onJoinToHostFailed(roomId) {
         this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
-        this.clearLastJoinedRoomId();
+        this.removeJoinedHostId(roomId);
         this.updateRejoinHostArea();
     }
 
-    /** Show or hide "Join to existing host" block based on stored roomId; wire button if visible. */
+    /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
     updateRejoinHostArea() {
         const area = document.getElementById('join-rejoin-host-area');
         const emptyEl = document.getElementById('join-host-empty');
-        const lastRoomId = this.getLastJoinedRoomId();
+        const latestHostId = this.getLatestJoinedHostId();
         if (!area) return;
-        if (lastRoomId) {
+        if (latestHostId) {
             area.style.display = 'block';
             if (emptyEl) emptyEl.style.display = 'none';
             const btn = document.getElementById('join-rejoin-host-btn');
             if (btn) {
                 btn.onclick = () => {
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                    this.multiplayerManager.joinGame(lastRoomId);
+                    this.multiplayerManager.joinGame(latestHostId);
                 };
             }
         } else {
             area.style.display = 'none';
             if (emptyEl) emptyEl.style.display = '';
+        }
+    }
+
+    /** localStorage key for last host room (enables resume after network issues) */
+    static get STORAGE_KEY_LAST_HOST_ROOM() { return 'monkJourney_lastHostRoomId'; }
+
+    getLastHostRoomId() {
+        try {
+            return localStorage.getItem(MultiplayerUIManager.STORAGE_KEY_LAST_HOST_ROOM) || null;
+        } catch (_) { return null; }
+    }
+
+    setLastHostRoomId(roomId) {
+        try {
+            if (roomId) localStorage.setItem(MultiplayerUIManager.STORAGE_KEY_LAST_HOST_ROOM, roomId);
+            else localStorage.removeItem(MultiplayerUIManager.STORAGE_KEY_LAST_HOST_ROOM);
+        } catch (_) {}
+    }
+
+    clearLastHostRoomId() {
+        this.setLastHostRoomId(null);
+    }
+
+    /**
+     * Called when resume hosting fails (e.g. room ID still in use). Clear stored host room so user can Host fresh.
+     * @param {string} _roomId - The room ID that could not be resumed
+     */
+    onResumeHostFailed(_roomId) {
+        this.clearLastHostRoomId();
+        this.updateResumeHostArea();
+        this.updateConnectionStatus('Could not resume. Use HOST to create a new room.', 'multiplayer-initial-status');
+    }
+
+    /** Show "Resume hosting" only when last role was host and we have our stored host room ID. */
+    updateResumeHostArea() {
+        const area = document.getElementById('resume-host-area');
+        const lastRole = this.getLastRole();
+        const myHostRoomId = this.getLastHostRoomId();
+        if (!area) return;
+        if (lastRole === 'host' && myHostRoomId) {
+            area.style.display = 'block';
+            const btn = document.getElementById('resume-host-btn');
+            if (btn) {
+                btn.onclick = async () => {
+                    await this.multiplayerManager.hostGame(myHostRoomId);
+                    this.showConnectionInfoScreen();
+                    this.maybeShowNfcShareOnConnectionScreen();
+                    this.updateResumeHostArea();
+                };
+            }
+        } else {
+            area.style.display = 'none';
         }
     }
 
@@ -354,6 +441,8 @@ export class MultiplayerUIManager {
             // Reset connection status
             const statusElements = document.querySelectorAll('.connection-status');
             statusElements.forEach(el => el.textContent = '');
+            
+            this.updateResumeHostArea();
         }
     }
     

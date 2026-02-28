@@ -65,8 +65,6 @@ const TREE_DATA = {
             'Tidal Force': { description: 'The wave travels further and deals increased damage to enemies at the end.', effects: ['Extended range', 'Increased end damage'], unlockedBy: "Legendary item Ocean's Might" },
             'Shocking Wave': { description: 'Enemies hit are electrified, taking lightning damage over time.', effects: ['Lightning damage over time'], unlockedBy: 'Legendary item Storm Surge' },
             'Freezing Wave': { description: 'The wave chills enemies, reducing movement speed.', effects: ['Chilling effect', 'Movement speed reduction'], unlockedBy: 'Legendary item Frostbite' },
-            'Explosive Wave': { description: 'The wave explodes on impact, dealing area damage.', effects: ['Area damage on impact'], unlockedBy: 'Legendary item Detonation Core' },
-            'Healing Surge': { description: 'Allies hit by the wave are healed for a portion of damage dealt.', effects: ['Healing effect'], unlockedBy: "Legendary item Life's Flow" },
         },
         buffs: {
             'Energy Efficiency': BUFF('Reduces the energy cost of Wave Strike by 20%.', ['Reduced energy cost']),
@@ -123,9 +121,6 @@ const TREE_DATA = {
         variants: {
             'Fire Allies': { description: 'Summon fiery spirit allies that deal fire damage and burn enemies.', effects: ['Fire damage', 'Burning effect'], unlockedBy: 'Legendary item Ember Spirits' },
             'Water Allies': { description: 'Summon water spirit allies that heal you and allies over time.', effects: ['Healing effect'], unlockedBy: 'Legendary item Tidal Companions' },
-            'Earth Allies': { description: 'Summon earth spirit allies that increase defense.', effects: ['Increased defense', 'Damage reduction'], unlockedBy: 'Legendary item Stone Guardians' },
-            'Air Allies': { description: 'Summon air spirit allies that increase movement and attack speed.', effects: ['Increased movement speed', 'Increased attack speed'], unlockedBy: 'Legendary item Wind Walkers' },
-            'Shadow Allies': { description: 'Summon shadow spirit allies that deal increased damage to CC\'d enemies.', effects: ["Increased damage to CC'd enemies"], unlockedBy: 'Legendary item Night Stalkers' },
         },
         buffs: {
             'Extended Duration': BUFF('Increases the duration of Mystic Allies by 20%.', ['Increased duration']),
@@ -180,13 +175,7 @@ const TREE_DATA = {
         },
     },
     'Mystic Strike': {
-        variants: {
-            "Spirit's Reach": { description: 'Increases the dash distance and damage.', effects: ['Increased distance', 'Increased damage'], unlockedBy: "Legendary item Spirit's Extension" },
-            'Phantom Strike': { description: 'Leaves behind a decoy that explodes after a delay.', effects: ['Decoy', 'Explosive damage'], unlockedBy: "Legendary item Phantom's Echo" },
-            'Ethereal Embrace': { description: 'Grants a shield when the spirit returns.', effects: ['Shield', 'Damage absorption'], unlockedBy: 'Legendary item Ethereal Guard' },
-            'Shadow Step': { description: 'Allows you to teleport to the spirit\'s location.', effects: ['Teleportation', 'Increased mobility'], unlockedBy: 'Legendary item Shadow Walker' },
-            'Soul Reaver': { description: 'Drains life from enemies as the spirit returns.', effects: ['Life drain', 'Area of effect'], unlockedBy: "Legendary item Reaver's Grasp" },
-        },
+        variants: {},
         buffs: {
             'Quickened Strikes': BUFF('Reduces the cooldown of Mystic Strike by 1 second.', ['Cooldown reduction']),
             'Empowered Spirit': BUFF('Increases the damage dealt by the returning spirit by 15%.', ['Increased damage']),

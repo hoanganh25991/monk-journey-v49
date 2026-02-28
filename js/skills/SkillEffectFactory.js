@@ -26,10 +26,10 @@ export class SkillEffectFactory {
 
         try {
             // Preload models only for effects that need them (lazy load these too)
-            const { ShieldOfZenEffect } = await import('./ShieldOfZenEffect.js');
+            const { ShieldOfZenEffect } = await import(this._resolveEffectPath('ShieldOfZenEffect.js'));
             await ShieldOfZenEffect.preloadModel();
 
-            const { FlyingDragonEffect } = await import('./FlyingDragonEffect.js');
+            const { FlyingDragonEffect } = await import(this._resolveEffectPath('FlyingDragonEffect.js'));
             await FlyingDragonEffect.preloadModel();
 
             this.initialized = true;
@@ -40,16 +40,26 @@ export class SkillEffectFactory {
     }
 
     /**
+     * Resolve a path relative to this module (js/skills/) for reliable dynamic import.
+     * Uses import.meta.url so resolution works regardless of document base or server root.
+     */
+    static _resolveEffectPath(relativePath) {
+        const base = new URL('./', import.meta.url);
+        return new URL(relativePath.startsWith('./') ? relativePath : `./${relativePath}`, base).href;
+    }
+
+    /**
      * Load a module by path and cache it. Returns the export with the given name.
-     * @param {string} modulePath - Path relative to this file (e.g. './WaveStrikeEffect.js')
+     * @param {string} modulePath - Path relative to js/skills (e.g. 'WaveStrikeEffect.js' or 'variants/WaveStrike/TidalWaveEffect.js')
      * @param {string} exportName - Name of the exported class
      * @returns {Promise<Function>} The effect class constructor
      */
     static async _loadEffectClass(modulePath, exportName) {
-        const cacheKey = modulePath;
+        const fullUrl = this._resolveEffectPath(modulePath);
+        const cacheKey = fullUrl;
         let mod = this._moduleCache.get(cacheKey);
         if (!mod) {
-            mod = await import(/* webpackChunkName: "skill-effect-[request]" */ modulePath);
+            mod = await import(/* webpackChunkName: "skill-effect-[request]" */ fullUrl);
             this._moduleCache.set(cacheKey, mod);
         }
         return mod[exportName];
@@ -73,10 +83,7 @@ export class SkillEffectFactory {
             return null;
         }
 
-        const EffectClass = await this._loadEffectClass(
-            `./${entry.path}`,
-            entry.exportName
-        );
+        const EffectClass = await this._loadEffectClass(entry.path, entry.exportName);
         return new EffectClass(skill);
     }
 
@@ -88,10 +95,7 @@ export class SkillEffectFactory {
     static async _createBaseEffectAsync(skill) {
         const entry = BASE_EFFECT_REGISTRY[skill.name];
         if (entry) {
-            const EffectClass = await this._loadEffectClass(
-                `./${entry.path}`,
-                entry.exportName
-            );
+            const EffectClass = await this._loadEffectClass(entry.path, entry.exportName);
             return new EffectClass(skill);
         }
         return new SkillEffect(skill);
@@ -110,14 +114,14 @@ export class SkillEffectFactory {
             const key = `${skillName}|${skill.variant}`;
             const entry = VARIANT_EFFECT_REGISTRY[key];
             if (entry) {
-                await this._loadEffectClass(`./${entry.path}`, entry.exportName);
+                await this._loadEffectClass(entry.path, entry.exportName);
                 return;
             }
         }
 
         const baseEntry = BASE_EFFECT_REGISTRY[skillName];
         if (baseEntry) {
-            await this._loadEffectClass(`./${baseEntry.path}`, baseEntry.exportName);
+            await this._loadEffectClass(baseEntry.path, baseEntry.exportName);
         }
     }
 

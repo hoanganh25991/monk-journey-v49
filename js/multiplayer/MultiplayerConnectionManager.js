@@ -51,20 +51,25 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Host a new game
-     * Creates a PeerJS instance and waits for connections
+     * Host a new game (or resume with a previous room ID after network issue).
+     * PeerJS allows new Peer(optionalId): with a UUID/string the server assigns that ID if available
+     * (previous peer disconnected and ID released), so the host can use the same room and joiners can rejoin.
+     * @param {string} [previousRoomId] - If set, try to host with this room ID so joiners can rejoin the same room.
      */
-    async hostGame() {
+    async hostGame(previousRoomId) {
+        const isResume = !!previousRoomId;
         try {
-            this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');
+            this.multiplayerManager.ui.updateConnectionStatus(isResume ? 'Resuming host...' : 'Initializing host...');
             
-            // Initialize PeerJS
-            this.peer = new Peer();
+            // PeerJS: new Peer(id) uses that ID if available (e.g. after previous host disconnected)
+            this.peer = previousRoomId ? new Peer(previousRoomId) : new Peer();
             
             // Wait for peer to open
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => {
                     this.roomId = id;
+                    this.multiplayerManager.ui.setLastHostRoomId(id);
+                    this.multiplayerManager.ui.setLastRole('host');
                     resolve();
                 });
                 this.peer.on('error', err => reject(err));
@@ -103,7 +108,11 @@ export class MultiplayerConnectionManager {
             return true;
         } catch (error) {
             console.error('Error hosting game:', error);
-            this.multiplayerManager.ui.updateConnectionStatus('Error hosting game: ' + error.message);
+            if (isResume) {
+                this.multiplayerManager.ui.onResumeHostFailed(previousRoomId);
+            } else {
+                this.multiplayerManager.ui.updateConnectionStatus('Error hosting game: ' + error.message);
+            }
             return false;
         }
     }
@@ -135,8 +144,8 @@ export class MultiplayerConnectionManager {
             // Set up connection
             conn.on('open', () => {
                 this._joinAttemptRoomId = null; // join succeeded
-                // Store roomId so joiner can rejoin after network issues (Multiplayer → Join → Join to existing host)
-                this.multiplayerManager.ui.setLastJoinedRoomId(roomId);
+                this.multiplayerManager.ui.addJoinedHostId(roomId);
+                this.multiplayerManager.ui.setLastRole('joiner');
                 // Add to peers map
                 this.peers.set(roomId, conn);
                 
@@ -260,6 +269,11 @@ export class MultiplayerConnectionManager {
                 `Player joined! Extra EXP active (${totalCount} players).`,
                 'info'
             );
+        }
+
+        // If host is already in a running game, tell the new joiner to start so they join directly (no Start button)
+        if (this.multiplayerManager.game?.state?.isRunning?.()) {
+            this.sendToPeer(conn.peer, { type: 'startGame' });
         }
     }
 

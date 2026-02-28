@@ -63,11 +63,11 @@ export class MultiplayerManager {
     }
 
     /**
-     * Host a new game
-     * Creates a PeerJS instance and waits for connections
+     * Host a new game (or resume with previous room ID after network issue).
+     * @param {string} [previousRoomId] - If set, host with this room ID so joiners can rejoin the same room.
      */
-    async hostGame() {
-        return this.connection.hostGame();
+    async hostGame(previousRoomId) {
+        return this.connection.hostGame(previousRoomId);
     }
 
     /**
@@ -392,29 +392,37 @@ export class MultiplayerManager {
     }
     
     /**
-     * Leave the current multiplayer game
-     * Disconnects from all peers and cleans up resources
+     * Leave the current multiplayer game (explicit disconnect).
+     * Disconnects from all peers and cleans up resources.
+     * Clears stored roomId (host or joiner) so we don't offer Resume / Join to existing host next time.
      */
     leaveGame() {
         console.debug('[MultiplayerManager] Leaving multiplayer game');
-        
+        const wasHost = this.connection.isHost;
+        const hostId = this.connection.hostId; // joiner's current host (capture before dispose)
+
         // Notify other players if we're the host
-        if (this.connection.isHost && this.connection.peers.size > 0) {
+        if (wasHost && this.connection.peers.size > 0) {
             this.connection.broadcast({
                 type: 'hostLeft'
             });
         }
-        
+
         // Clean up connections
         if (this.connection) {
             this.connection.dispose();
         }
-        
+
+        // Explicit disconnect: host clears their room ID; joiner removes this host from joined list.
+        // On network/lag disconnect we do not call leaveGame(), so stored IDs stay for rejoin/resume.
+        if (wasHost) this.ui.clearLastHostRoomId();
+        else if (hostId) this.ui.removeJoinedHostId(hostId);
+
         // Clean up remote players
         if (this.remotePlayerManager) {
             this.remotePlayerManager.removeAllPlayers();
         }
-        
+
         // Reset game state if needed
         if (this.game.state && this.game.state.isRunning()) {
             // Return to main menu
@@ -422,7 +430,7 @@ export class MultiplayerManager {
                 this.game.menuManager.showMainMenu();
             }
         }
-        
+
         // Show notification
         if (this.game.hudManager) {
             this.game.hudManager.showNotification('Disconnected from multiplayer game', 'info');

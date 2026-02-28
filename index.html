@@ -565,10 +565,15 @@
                 <h2>Play Together</h2>
                 <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
             </div>
+            <div id="resume-host-area" class="resume-host-area" style="display: none;">
+                <p class="resume-host-msg">Back after network issue? Host again with the same room so joiners can rejoin.</p>
+                <button type="button" id="resume-host-btn" class="menu-button one-touch-btn resume-host-btn">Resume hosting</button>
+            </div>
             <div class="multiplayer-options one-touch-options">
                 <button id="one-touch-host-btn" class="menu-button one-touch-btn host-btn">HOST</button>
                 <button id="one-touch-join-btn" class="menu-button one-touch-btn join-btn">JOIN</button>
             </div>
+            <div id="multiplayer-initial-status" class="connection-status"></div>
             <p id="nfc-status" class="nfc-status"></p>
         </div>
         
