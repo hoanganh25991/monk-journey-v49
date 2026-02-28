@@ -1366,7 +1366,9 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Update the player list in the connection info screen
+     * Update the player list in the connection info screen.
+     * Host: shows self (host) + all joiners from connection.peers.
+     * Joiner: shows all players from assignedColors (host sends full list via playerColors), so we don't duplicate the host.
      */
     updateConnectionInfoPlayerList() {
         const playersList = document.getElementById('connection-info-players');
@@ -1377,100 +1379,80 @@ export class MultiplayerUIManager {
         
         // Add host entry if we're connected
         if (this.multiplayerManager.connection && this.multiplayerManager.connection.isConnected) {
-            // Get host ID and color
-            let hostId = this.multiplayerManager.connection.isHost ? 
-                this.multiplayerManager.connection.peer.id : 
-                this.multiplayerManager.connection.hostId;
+            const conn = this.multiplayerManager.connection;
+            const isHost = conn.isHost;
+            const myPeerId = conn.peer?.id;
+            const hostId = isHost ? conn.peer.id : conn.hostId;
             
-            // Get host color
-            let hostColor = '#FF5733'; // Default color
-            if (this.multiplayerManager.assignedColors.has(hostId)) {
-                hostColor = this.multiplayerManager.assignedColors.get(hostId);
-            }
-            
-            // Create host entry
-            const hostItem = document.createElement('div');
-            hostItem.className = 'player-item host-player';
-            
-            // Create host color indicator
-            const hostColorIndicator = document.createElement('div');
-            hostColorIndicator.className = 'player-color-indicator';
-            hostColorIndicator.style.backgroundColor = hostColor;
-            
-            // Create host name span: Player {first part of roomID} for consistent naming
-            const hostName = document.createElement('span');
-            const hostPrefix = MultiplayerUIManager.roomIdPrefix(hostId);
-            hostName.textContent = `Player ${hostPrefix}`;
-            if (this.multiplayerManager.connection.isHost) {
-                const youIndicator = document.createElement('span');
-                youIndicator.className = 'you-indicator';
-                youIndicator.textContent = ' (Host)';
-                hostName.appendChild(youIndicator);
-            }
-            
-            // Append elements
-            hostItem.appendChild(hostColorIndicator);
-            hostItem.appendChild(hostName);
-            playersList.appendChild(hostItem);
-            
-            // Add connected players
-            if (this.multiplayerManager.connection.peers) {
-                this.multiplayerManager.connection.peers.forEach((conn, peerId) => {
-                    // Get player color
-                    let playerColor = '#33FF57'; // Default color
-                    if (this.multiplayerManager.assignedColors.has(peerId)) {
-                        playerColor = this.multiplayerManager.assignedColors.get(peerId);
-                    }
-                    
-                    // Create player item
-                    const playerItem = document.createElement('div');
-                    playerItem.className = 'player-item';
-                    
-                    // Create player color indicator
-                    const colorIndicator = document.createElement('div');
-                    colorIndicator.className = 'player-color-indicator';
-                    colorIndicator.style.backgroundColor = playerColor;
-                    
-                    // Create player name span: Player {first part of roomID} for consistent naming; ID always full roomId
-                    const playerName = document.createElement('span');
-                    playerName.textContent = `Player ${MultiplayerUIManager.roomIdPrefix(peerId)}`;
-                    if (peerId === this.multiplayerManager.connection.peer?.id) {
-                        const youIndicator = document.createElement('span');
-                        youIndicator.className = 'you-indicator';
-                        youIndicator.textContent = ' (You)';
-                        playerName.appendChild(youIndicator);
-                    }
-                    
-                    // Create kick button (for host only)
-                    if (this.multiplayerManager.connection.isHost) {
-                        const kickButton = document.createElement('button');
-                        kickButton.className = 'kick-player-btn';
-                        kickButton.textContent = '✕';
-                        kickButton.title = 'Remove player';
-                        kickButton.setAttribute('data-player-id', peerId);
-                        kickButton.addEventListener('click', (event) => {
-                            event.stopPropagation();
-                            const playerId = event.target.getAttribute('data-player-id');
-                            if (playerId && this.multiplayerManager.connection) {
-                                this.multiplayerManager.connection.kickPlayer(playerId);
-                                // Update the UI after kicking
-                                setTimeout(() => this.updateConnectionInfoScreen(), 500);
-                            }
-                        });
-                        
-                        // Append elements
-                        playerItem.appendChild(colorIndicator);
-                        playerItem.appendChild(playerName);
-                        playerItem.appendChild(kickButton);
-                    } else {
-                        // Append elements without kick button for non-hosts
-                        playerItem.appendChild(colorIndicator);
-                        playerItem.appendChild(playerName);
-                    }
-                    
-                    playersList.appendChild(playerItem);
+            // Build ordered list of all player IDs (host first, then others) with unique IDs
+            let allPlayerIds = [];
+            if (isHost) {
+                // Host: host first, then each joiner from connection.peers
+                allPlayerIds.push(hostId);
+                if (conn.peers) {
+                    conn.peers.forEach((_, peerId) => { allPlayerIds.push(peerId); });
+                }
+            } else {
+                // Joiner: use assignedColors (full list from host's playerColors); host first, then rest
+                if (this.multiplayerManager.assignedColors.has(hostId)) {
+                    allPlayerIds.push(hostId);
+                }
+                this.multiplayerManager.assignedColors.forEach((_, playerId) => {
+                    if (playerId !== hostId) allPlayerIds.push(playerId);
                 });
             }
+            
+            allPlayerIds.forEach((playerId, index) => {
+                const isHostEntry = (playerId === hostId);
+                const isYou = (playerId === myPeerId);
+                const color = this.multiplayerManager.assignedColors.get(playerId) || (isHostEntry ? '#FF5733' : '#33FF57');
+                const prefix = MultiplayerUIManager.roomIdPrefix(playerId);
+                
+                const playerItem = document.createElement('div');
+                playerItem.className = isHostEntry ? 'player-item host-player' : 'player-item';
+                
+                const colorIndicator = document.createElement('div');
+                colorIndicator.className = 'player-color-indicator';
+                colorIndicator.style.backgroundColor = color;
+                
+                const playerName = document.createElement('span');
+                playerName.textContent = `Player ${prefix}`;
+                if (isHostEntry) {
+                    const label = document.createElement('span');
+                    label.className = 'you-indicator';
+                    label.textContent = ' (Host)';
+                    playerName.appendChild(label);
+                } else if (isYou) {
+                    const label = document.createElement('span');
+                    label.className = 'you-indicator';
+                    label.textContent = ' (You)';
+                    playerName.appendChild(label);
+                }
+                
+                playerItem.appendChild(colorIndicator);
+                playerItem.appendChild(playerName);
+                
+                if (isHostEntry) {
+                    // Host row: no kick button
+                } else if (isHost) {
+                    const kickButton = document.createElement('button');
+                    kickButton.className = 'kick-player-btn';
+                    kickButton.textContent = '✕';
+                    kickButton.title = 'Remove player';
+                    kickButton.setAttribute('data-player-id', playerId);
+                    kickButton.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        const id = event.target.getAttribute('data-player-id');
+                        if (id && this.multiplayerManager.connection) {
+                            this.multiplayerManager.connection.kickPlayer(id);
+                            setTimeout(() => this.updateConnectionInfoScreen(), 500);
+                        }
+                    });
+                    playerItem.appendChild(kickButton);
+                }
+                
+                playersList.appendChild(playerItem);
+            });
         } else {
             // Not connected
             const noConnectionItem = document.createElement('div');

@@ -136,6 +136,7 @@ export class MultiplayerConnectionManager {
             // Set up connection
             conn.on('open', () => {
                 this._joinAttemptRoomId = null; // join succeeded
+                // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
                 this.multiplayerManager.ui.setLastRole('joiner');
                 this.multiplayerManager.ui.setHostStatus(roomId, 'online');
@@ -277,6 +278,8 @@ export class MultiplayerConnectionManager {
         switch (data.type) {
             case 'welcome':
                 console.debug('Received welcome from host:', data.message);
+                // Ensure host roomID is in Contacts when joiner is connected to host
+                if (this.hostId) this.multiplayerManager.ui.addJoinedHostId(this.hostId);
                 break;
             case 'gameState':
                 this.multiplayerManager.updateGameState(data);
@@ -292,15 +295,19 @@ export class MultiplayerConnectionManager {
                 
                 // Create remote player with the assigned color
                 this.multiplayerManager.remotePlayerManager.createRemotePlayer(data.playerId, data.playerColor);
+                // Keep joiner's Connected Players list in sync with host
+                this.multiplayerManager.ui.updateConnectionInfoPlayerList();
                 break;
             case 'playerLeft':
                 this.multiplayerManager.remotePlayerManager.removePlayer(data.playerId);
                 
                 // Remove color assignment
                 this.multiplayerManager.assignedColors.delete(data.playerId);
+                // Keep joiner's Connected Players list in sync with host
+                this.multiplayerManager.ui.updateConnectionInfoPlayerList();
                 break;
             case 'playerColors':
-                // Update all player colors
+                // Update all player colors (full list from host so joiner sees same list as host)
                 if (data.colors) {
                     Object.entries(data.colors).forEach(([playerId, color]) => {
                         this.multiplayerManager.assignedColors.set(playerId, color);
@@ -312,6 +319,8 @@ export class MultiplayerConnectionManager {
                         }
                     });
                 }
+                // Refresh Connected Players list so joiner sees full list (host + all joiners)
+                this.multiplayerManager.ui.updateConnectionInfoPlayerList();
                 break;
             case 'skillCast':
                 // Handle skill cast from host or forwarded from another member
