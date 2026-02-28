@@ -917,11 +917,11 @@ export class Game {
             this.jumpRequested = false; // clear so we don't jump when resuming
             this.safeRender(this.scene, this.camera);
             const playRevealEl = document.getElementById('play-reveal-overlay');
-            // After 3s if not yet stable, switch to blur (fog-waiting); on low-end blur stays until loaded stable
+            // After 1s if not yet stable, switch to blur (fog-waiting); on low-end blur stays until loaded stable
             if (playRevealEl && this._playRevealStartTime != null) {
                 const elapsed = (Date.now() - this._playRevealStartTime) / 1000;
                 const stillWaiting = this._warmupFramesLeft > 0 || (this._revealStableFramesLeft != null && this._revealStableFramesLeft > 0);
-                if (elapsed >= 3 && stillWaiting) {
+                if (elapsed >= 1 && stillWaiting) {
                     playRevealEl.classList.add('fog-waiting');
                     if (this.gameContainer) {
                         this.gameContainer.style.opacity = '1';
