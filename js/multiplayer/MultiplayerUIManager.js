@@ -624,15 +624,6 @@ export class MultiplayerUIManager {
         dot.className = `player-info-dot ${dotClass}`;
         dot.setAttribute('aria-hidden', 'true');
         el.appendChild(dot);
-        if (isConnected) {
-            const connectedLabel = document.createElement('span');
-            connectedLabel.textContent = 'connected';
-            el.appendChild(connectedLabel);
-            const sep = document.createElement('span');
-            sep.textContent = ' · ';
-            sep.setAttribute('aria-hidden', 'true');
-            el.appendChild(sep);
-        }
         const playerLabel = document.createElement('span');
         playerLabel.textContent = `Player-${xxxx}`;
         el.appendChild(playerLabel);
