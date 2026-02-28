@@ -35,7 +35,7 @@ export class RemotePlayer {
         this.velocityY = 0;
         this.jumpCount = 0;
         this.movementSpeed = 18; // Match default from game-balance
-        this.gravity = 32;
+        this.gravity = 32; // Match PlayerMovement
         this.groundedTolerance = 0.2;
         this.heightOffset = 1.0;
         this.nameTag = null;
@@ -720,12 +720,12 @@ export class RemotePlayer {
             if (this.currentAnimation !== 'idle') this.updateAnimation('idle');
         }
         
-        // Jump (one-shot when jumpRequested)
+        // Jump (one-shot when jumpRequested); match PlayerMovement first jump force (30) for smooth host view
         if (this.jumpRequested) {
             this.jumpRequested = false;
             const groundY = this._getGroundY();
             if (groundY !== null && this.position.y <= groundY + this.groundedTolerance + 0.5) {
-                this.velocityY = 25;
+                this.velocityY = 30;
                 this.jumpCount = 1;
             }
         }

@@ -253,9 +253,14 @@ export class PlayerCombat {
             this.game.hudManager.showDeathScreen();
         }
 
-        // Multiplayer: notify host so enemies stop targeting this player and others can be informed
-        if (this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.isHost) {
-            this.game.multiplayerManager.connection.sendToHost({ type: 'playerDied' });
+        // Multiplayer: joiner notifies host; host broadcasts so joiners show host's tomb and enemies skip host
+        const conn = this.game?.multiplayerManager?.connection;
+        if (conn) {
+            if (!this.game.multiplayerManager.isHost) {
+                conn.sendToHost({ type: 'playerDied' });
+            } else {
+                conn.broadcast({ type: 'playerDied', playerId: conn.peer.id });
+            }
         }
     }
     
@@ -301,9 +306,14 @@ export class PlayerCombat {
             console.debug("Applied 3-second invulnerability after respawn");
         }
 
-        // Multiplayer: notify host so remote avatar is marked alive again and enemies can target
-        if (this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.isHost) {
-            this.game.multiplayerManager.connection.sendToHost({ type: 'playerRevived' });
+        // Multiplayer: joiner notifies host; host broadcasts so joiners show host alive again
+        const connRev = this.game?.multiplayerManager?.connection;
+        if (connRev) {
+            if (!this.game.multiplayerManager.isHost) {
+                connRev.sendToHost({ type: 'playerRevived' });
+            } else {
+                connRev.broadcast({ type: 'playerRevived', playerId: connRev.peer.id });
+            }
         }
     }
 }

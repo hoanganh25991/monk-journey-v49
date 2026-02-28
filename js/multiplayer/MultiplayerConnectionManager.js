@@ -40,8 +40,9 @@ export class MultiplayerConnectionManager {
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
         /** Joiner: Peer used on Join screen to receive inviteFromHost from Host. Destroyed when leaving Join screen or when joining. */
         this._joinListenerPeer = null;
-        /** Joiner: latest gameState from host; applied in update() to avoid mid-frame hitches and FPS drops. */
-        this._pendingGameState = null;
+        /** Joiner: at most one fullSync + one delta; applied one per frame so bursts never apply more than once. */
+        this._pendingFullSync = null;
+        this._pendingDelta = null;
     }
 
     /**
@@ -441,9 +442,12 @@ export class MultiplayerConnectionManager {
                 }
                 break;
             case 'gameState':
-                // Defer to next frame so heavy work (updateEnemiesFromHost, etc.) runs in game loop, not in data callback.
-                // Keeps joiner FPS stable; callback can fire mid-frame and cause hitches.
-                this._pendingGameState = data;
+                // Defer to next frame; cap at latest fullSync + latest delta so we never apply more than one per frame.
+                if (data.fullSync) {
+                    this._pendingFullSync = data;
+                } else {
+                    this._pendingDelta = data;
+                }
                 break;
             case 'startGame':
                 this.multiplayerManager.startGame();
@@ -938,13 +942,15 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Process pending game state (joiner only). Called once per frame at frame start from Game.animate()
-     * so sync never blocks the loop (target 120 FPS, acceptable 110). Latest state wins if multiple arrived.
+     * Process pending game state (joiner only). Called once per frame at frame start from Game.animate().
+     * Applies at most one state per frame: prefer fullSync if present, else latest delta (cap avoids burst perf drops).
      */
     processPendingGameState() {
-        if (this.isHost || !this._pendingGameState) return;
-        const data = this._pendingGameState;
-        this._pendingGameState = null;
+        if (this.isHost) return;
+        const data = this._pendingFullSync ?? this._pendingDelta;
+        if (!data) return;
+        this._pendingFullSync = null;
+        this._pendingDelta = null;
         this.multiplayerManager.updateGameState(data);
     }
 
@@ -1239,6 +1245,7 @@ export class MultiplayerConnectionManager {
         this.isConnected = false;
         this.hostId = null;
         this.roomId = null;
-        this._pendingGameState = null;
+        this._pendingFullSync = null;
+        this._pendingDelta = null;
     }
 }

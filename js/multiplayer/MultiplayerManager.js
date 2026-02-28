@@ -134,28 +134,32 @@ export class MultiplayerManager {
     
     /**
      * Reconcile joiner's local position with host-authoritative position so host and joiner stay in sync.
-     * Prevents "joiner sees only himself" (host avatar off-screen) when positions diverge from input/network.
-     * @param {Object} hostPos - { x, y, z } from gameState.players[self]
-     * @param {Object} hostRot - rotation from gameState
-     * @param {boolean} fullSync - true on fullSync tick; snap immediately for big correction
+     * When joiner is in the air (jumping), only reconcile XZ so jump isn't killed by host's delayed Y.
      */
     _reconcileLocalPosition(hostPos, hostRot, fullSync) {
         if (!this.game?.player?.movement || !hostPos || typeof hostPos.x !== 'number') return;
         const pos = this.game.player.getPosition();
-        const dx = hostPos.x - pos.x, dy = (hostPos.y ?? 0) - pos.y, dz = hostPos.z - pos.z;
-        const distSq = dx * dx + dy * dy + dz * dz;
+        const movement = this.game.player.movement;
+        const inAir = movement.velocityY > 0.1;
+        const dx = hostPos.x - pos.x, dz = hostPos.z - pos.z;
+        const distSqXZ = dx * dx + dz * dz;
         const snapThresholdSq = 9; // 3 units: snap if desync is large
-        const doSnap = fullSync || distSq > snapThresholdSq;
-        const x = doSnap ? hostPos.x : pos.x + dx * 0.2;
-        const y = doSnap ? (hostPos.y ?? pos.y) : pos.y + dy * 0.2;
-        const z = doSnap ? hostPos.z : pos.z + dz * 0.2;
+        const doSnapXZ = fullSync || distSqXZ > snapThresholdSq;
+        const x = doSnapXZ ? hostPos.x : pos.x + dx * 0.25;
+        const z = doSnapXZ ? hostPos.z : pos.z + dz * 0.25;
+        let y = pos.y;
+        if (!inAir) {
+            const dy = (hostPos.y ?? 0) - pos.y;
+            const doSnapY = fullSync || dy * dy > snapThresholdSq;
+            y = doSnapY ? (hostPos.y ?? pos.y) : pos.y + dy * 0.25;
+        }
         if (isNaN(x) || isNaN(y) || isNaN(z)) return;
         this.game.player.setPosition(x, y, z);
-        this.game.player.movement.targetPosition.set(x, y, z);
+        movement.targetPosition.set(x, y, z);
         if (hostRot && typeof hostRot.y === 'number' && !isNaN(hostRot.y)) {
-            this.game.player.movement.rotation.y = hostRot.y;
-            if (this.game.player.movement.modelGroup) {
-                this.game.player.movement.modelGroup.rotation.y = hostRot.y;
+            movement.rotation.y = hostRot.y;
+            if (movement.modelGroup) {
+                movement.modelGroup.rotation.y = hostRot.y;
             }
         }
     }
