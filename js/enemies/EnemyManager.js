@@ -75,6 +75,8 @@ export class EnemyManager {
         
         /** Host only: IDs removed this run (runDropAndQuest). Cleared after broadcast for fast sync. */
         this._recentlyRemovedIds = [];
+        /** Host only: last sent state per enemy for delta sync. id -> { p: [x,y,z], h } */
+        this._lastSentEnemyState = new Map();
         
         // Auto-drop configuration for distant enemies (from game-balance.js)
         this.autoDropDistance = ENEMY_CONFIG.AUTO_DROP.maxDistance;
@@ -424,6 +426,7 @@ export class EnemyManager {
         this.enemiesArrayDirty = true;
         this.processedDrops.delete(id);
         this.enemyLastUpdated.delete(id);
+        this._lastSentEnemyState.delete(id);
     }
     
     /**
@@ -440,23 +443,55 @@ export class EnemyManager {
     }
     
     /**
-     * Get serializable enemy data for network transmission (compact for fast sync).
-     * Format: { [id]: { p: [x,y,z], h: health, t: type, b: isBoss } } - no redundant id in value.
-     * @returns {Object} Object containing serialized enemy data
+     * Get serializable enemy data for network transmission (compact + delta + LOD).
+     * @param {Object} [opts] - Options: { fullSync: boolean, playerPositions: Array<{x,z}> }
+     * @returns {{ data: Object, fullSync: boolean }} Serialized enemies and whether this is a full sync
      */
-    getSerializableEnemyData() {
+    getSerializableEnemyData(opts = {}) {
+        const { fullSync = false, playerPositions = [] } = opts;
         const enemyData = {};
-        this.enemies.forEach((enemy, id) => {
+        const posThresholdSq = 0.15 * 0.15;
+        const healthThreshold = 0.5;
+        const lodFarDist = 40;
+        const lodFarDistSq = lodFarDist * lodFarDist;
+        for (const [id, enemy] of this.enemies) {
             const position = enemy.getPosition();
-            if (isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) return;
-            enemyData[id] = {
-                p: [position.x, position.y, position.z],
-                h: enemy.health,
-                t: enemy.type,
-                b: !!enemy.isBoss
-            };
-        });
-        return enemyData;
+            if (isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) continue;
+            const last = this._lastSentEnemyState.get(id);
+            const dx = position.x - (last?.p?.[0] ?? position.x - 1);
+            const dy = position.y - (last?.p?.[1] ?? position.y - 1);
+            const dz = position.z - (last?.p?.[2] ?? position.z - 1);
+            const healthChanged = last === undefined || Math.abs(enemy.health - (last.h ?? -1)) > healthThreshold;
+            const posChangedSq = dx * dx + dy * dy + dz * dz;
+            const isNew = last === undefined;
+            const include = fullSync || isNew || posChangedSq > posThresholdSq || healthChanged;
+            if (!include) continue;
+            let p;
+            if (playerPositions.length > 0) {
+                let minDistSq = Infinity;
+                for (let i = 0; i < playerPositions.length; i++) {
+                    const px = playerPositions[i].x;
+                    const pz = playerPositions[i].z;
+                    const d = (position.x - px) ** 2 + (position.z - pz) ** 2;
+                    if (d < minDistSq) minDistSq = d;
+                }
+                if (minDistSq > lodFarDistSq) {
+                    p = [Math.round(position.x), Math.round(position.y), Math.round(position.z)];
+                } else {
+                    p = [position.x, position.y, position.z];
+                }
+            } else {
+                p = [position.x, position.y, position.z];
+            }
+            enemyData[id] = { p, h: enemy.health, t: enemy.type, b: !!enemy.isBoss };
+            this._lastSentEnemyState.set(id, { p: p.slice(), h: enemy.health });
+        }
+        if (fullSync) {
+            for (const id of this._lastSentEnemyState.keys()) {
+                if (!this.enemies.has(id)) this._lastSentEnemyState.delete(id);
+            }
+        }
+        return { data: enemyData, fullSync };
     }
     
     /** Host: IDs of enemies just removed (runDropAndQuest). Cleared after broadcast. */
@@ -473,35 +508,31 @@ export class EnemyManager {
      * Update enemies from host data (member only) - simplified
      * @param {Object} enemiesData - Enemy data received from host
      */
-    updateEnemiesFromHost(enemiesData) {
+    updateEnemiesFromHost(enemiesData, fullSync = false) {
         if (!enemiesData) return;
-        
-        // Update the last sync time
         this.lastSyncTime = Date.now();
-        
-        // Clean up local enemies that are no longer in host data BEFORE applying sync.
-        // Otherwise we get "zombie" models (static on ground) because we batch-apply
-        // to existing and never remove obsolete ones in the same frame.
-        const hostEnemyIds = new Set(Object.keys(enemiesData));
-        const idsToRemove = [];
-        for (const [id] of this.enemies.entries()) {
-            if (!hostEnemyIds.has(id)) idsToRemove.push(id);
-        }
-        for (const id of idsToRemove) {
-            const enemy = this.enemies.get(id);
-            if (enemy) {
-                this._removeEnemyFromCaveGroup(enemy);
-                enemy.remove();
-                this.enemies.delete(id);
-                this.enemiesArrayDirty = true;
-                this.processedDrops.delete(id);
-                this.enemyLastUpdated.delete(id);
+        let idsToRemove = [];
+        if (fullSync) {
+            const hostEnemyIds = new Set(Object.keys(enemiesData));
+            for (const [id] of this.enemies.entries()) {
+                if (!hostEnemyIds.has(id)) idsToRemove.push(id);
             }
-            // Don't leave in disposal queue if it was queued (avoid double-remove later)
-            const idx = this.disposalQueue.findIndex(e => e.id === id);
-            if (idx >= 0) this.disposalQueue.splice(idx, 1);
         }
-        
+        if (fullSync && idsToRemove.length > 0) {
+            for (const id of idsToRemove) {
+                const enemy = this.enemies.get(id);
+                if (enemy) {
+                    this._removeEnemyFromCaveGroup(enemy);
+                    enemy.remove();
+                    this.enemies.delete(id);
+                    this.enemiesArrayDirty = true;
+                    this.processedDrops.delete(id);
+                    this.enemyLastUpdated.delete(id);
+                }
+                const idx = this.disposalQueue.findIndex(e => e.id === id);
+                if (idx >= 0) this.disposalQueue.splice(idx, 1);
+            }
+        }
         for (const id in enemiesData) {
             if (!Object.prototype.hasOwnProperty.call(enemiesData, id)) continue;
             const raw = enemiesData[id];

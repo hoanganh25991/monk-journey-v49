@@ -44,6 +44,8 @@ export class MultiplayerUIManager {
         this._silentRejoinFallbackTimeoutId = undefined;
         /** @type {number|undefined} - 10s status refresh while contacts popup is open */
         this._contactsPopupIntervalId = undefined;
+        /** @type {boolean} - true = show Remove buttons; false = show Join buttons */
+        this._contactsManageMode = false;
     }
 
     /**
@@ -139,7 +141,7 @@ export class MultiplayerUIManager {
         } catch (_) {}
     }
 
-    /** Remove a host from contacts (explicit disconnect or join failed). */
+    /** Remove a host from contacts (only when user taps Remove in Manage mode; disconnect does not remove). */
     removeJoinedHostId(hostId) {
         if (!hostId) return;
         const contacts = this.getHostContacts().filter(c => c.id !== hostId);
@@ -175,7 +177,7 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Called when a join attempt fails (host not available). Remove that host from list and update UI.
+     * Called when a join attempt fails (host not available). Keep host in contacts; user can remove via Manage.
      * @param {string} roomId - The host room ID that could not be joined
      */
     onJoinToHostFailed(roomId) {
@@ -183,7 +185,6 @@ export class MultiplayerUIManager {
         this.hideRejoinOverlay();
         this.updateConnectionStatus('Host is no longer available. You can set up a new connection.', 'join-connection-status');
         this.setHostStatus(roomId, 'offline');
-        this.removeJoinedHostId(roomId);
         this.updateRejoinHostArea();
         this.refreshContactsPopupList();
     }
@@ -257,11 +258,13 @@ export class MultiplayerUIManager {
     showContactsPopup() {
         const popup = document.getElementById('contacts-popup');
         const closeBtn = document.getElementById('contacts-popup-close');
+        const manageToggleBtn = document.getElementById('contacts-manage-toggle-btn');
         if (!popup) return;
         if (this._contactsPopupIntervalId !== undefined) {
             clearInterval(this._contactsPopupIntervalId);
             this._contactsPopupIntervalId = undefined;
         }
+        this._contactsManageMode = false;
         popup.style.display = 'flex';
         closeBtn.onclick = () => {
             popup.style.display = 'none';
@@ -270,6 +273,12 @@ export class MultiplayerUIManager {
                 this._contactsPopupIntervalId = undefined;
             }
         };
+        if (manageToggleBtn) {
+            manageToggleBtn.onclick = () => {
+                this._contactsManageMode = !this._contactsManageMode;
+                this.refreshContactsPopupList();
+            };
+        }
         this.refreshContactsPopupList();
         // While popup is open, refresh status every 10s (status channel); keeps list in sync
         const CONTACTS_STATUS_INTERVAL_MS = 10000;
@@ -285,7 +294,19 @@ export class MultiplayerUIManager {
     refreshContactsPopupList() {
         const listEl = document.getElementById('contacts-list');
         const emptyEl = document.getElementById('contacts-empty');
+        const hintEl = document.getElementById('contacts-popup-hint');
+        const manageToggleBtn = document.getElementById('contacts-manage-toggle-btn');
         if (!listEl) return;
+        const manageMode = this._contactsManageMode;
+        if (manageToggleBtn) {
+            manageToggleBtn.textContent = manageMode ? 'Connect' : 'Manage';
+            manageToggleBtn.title = manageMode ? 'Show list to join' : 'Manage contacts';
+        }
+        if (hintEl) {
+            hintEl.textContent = manageMode
+                ? 'Tap Remove to remove a host from contacts.'
+                : 'Pick a host and tap Join to reconnect.';
+        }
         const contacts = this.getHostContacts();
         listEl.innerHTML = '';
         if (contacts.length === 0) {
@@ -303,25 +324,37 @@ export class MultiplayerUIManager {
             const nameSpan = document.createElement('span');
             nameSpan.className = 'contact-name';
             nameSpan.textContent = 'Player-' + MultiplayerUIManager.roomIdFirst4(id);
-            const joinBtn = document.createElement('button');
-            joinBtn.type = 'button';
-            joinBtn.className = 'small-btn contact-join-btn';
-            joinBtn.textContent = 'Join';
-            joinBtn.onclick = () => {
-                const contactsPopup = document.getElementById('contacts-popup');
-                if (contactsPopup) contactsPopup.style.display = 'none';
-                if (this._contactsPopupIntervalId !== undefined) {
-                    clearInterval(this._contactsPopupIntervalId);
-                    this._contactsPopupIntervalId = undefined;
-                }
-                this._silentRejoinInProgress = true;
-                this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                this.showRejoinOverlay('Reconnecting...');
-                this.multiplayerManager.joinGame(id);
-            };
             li.appendChild(dot);
             li.appendChild(nameSpan);
-            li.appendChild(joinBtn);
+            if (manageMode) {
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'small-btn contact-remove-btn';
+                removeBtn.textContent = 'Remove';
+                removeBtn.onclick = () => {
+                    this.removeJoinedHostId(id);
+                    this.refreshContactsPopupList();
+                };
+                li.appendChild(removeBtn);
+            } else {
+                const joinBtn = document.createElement('button');
+                joinBtn.type = 'button';
+                joinBtn.className = 'small-btn contact-join-btn';
+                joinBtn.textContent = 'Join';
+                joinBtn.onclick = () => {
+                    const contactsPopup = document.getElementById('contacts-popup');
+                    if (contactsPopup) contactsPopup.style.display = 'none';
+                    if (this._contactsPopupIntervalId !== undefined) {
+                        clearInterval(this._contactsPopupIntervalId);
+                        this._contactsPopupIntervalId = undefined;
+                    }
+                    this._silentRejoinInProgress = true;
+                    this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                    this.showRejoinOverlay('Reconnecting...');
+                    this.multiplayerManager.joinGame(id);
+                };
+                li.appendChild(joinBtn);
+            }
             listEl.appendChild(li);
         });
     }

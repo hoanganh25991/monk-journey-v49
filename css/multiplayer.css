@@ -317,10 +317,17 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-.contact-join-btn {
+.contact-join-btn,
+.contact-remove-btn {
     flex-shrink: 0;
     padding: 0.25rem 0.5rem;
     font-size: 0.8rem;
+}
+.contact-remove-btn {
+    color: #e74c3c;
+}
+.contacts-manage-toggle-btn {
+    margin-right: 0.25rem;
 }
 .contacts-empty {
     margin: 0.5rem 0;

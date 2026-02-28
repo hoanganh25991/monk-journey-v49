@@ -15,7 +15,9 @@ export class MultiplayerManager {
     constructor(game) {
         this.game = game;
         this.remotePlayerManager = null;
-        this._lastBroadcast = 0; // Timestamp of last state broadcast
+        this._lastBroadcast = 0;
+        /** Host: fixed 33ms interval for broadcast (tick-aligned). */
+        this._broadcastIntervalId = null;
         this._lastUpdateLog = 0; // Timestamp of last update log
         this._lastGameStateLog = 0; // Timestamp of last game state log
         this._lastReceivedGameStateTime = 0; // Member: last time we got gameState (for gap detection)
@@ -155,7 +157,7 @@ export class MultiplayerManager {
             }
         }
         if (data.enemies && this.game.enemyManager) {
-            this.game.enemyManager.updateEnemiesFromHost(data.enemies);
+            this.game.enemyManager.updateEnemiesFromHost(data.enemies, !!data.fullSync);
         }
     }
 
@@ -376,11 +378,22 @@ export class MultiplayerManager {
             }
         }
         
-        // If host, broadcast game state to members (33ms ≈ 30 Hz for fast host-authority sync)
+        // Host: run broadcast on fixed 33ms interval (tick-aligned, not tied to rAF)
         if (this.connection.isHost && this.connection.peers.size > 0) {
-            if (!this._lastBroadcast || Date.now() - this._lastBroadcast >= 33) {
-                this.connection.broadcastGameState();
-                this._lastBroadcast = Date.now();
+            if (!this._broadcastIntervalId) {
+                this._broadcastIntervalId = setInterval(() => {
+                    if (!this.connection?.isHost || this.connection.peers.size === 0) {
+                        if (this._broadcastIntervalId) clearInterval(this._broadcastIntervalId);
+                        this._broadcastIntervalId = null;
+                        return;
+                    }
+                    this.connection.broadcastGameState();
+                }, 33);
+            }
+        } else {
+            if (this._broadcastIntervalId) {
+                clearInterval(this._broadcastIntervalId);
+                this._broadcastIntervalId = null;
             }
         }
         
@@ -413,18 +426,18 @@ export class MultiplayerManager {
             });
         }
 
-        // Clean up connections
+        if (this._broadcastIntervalId) {
+            clearInterval(this._broadcastIntervalId);
+            this._broadcastIntervalId = null;
+        }
         if (this.connection) {
             this.connection.dispose();
         }
 
-        // Explicit disconnect: host clears their room ID; joiner removes this host from joined list.
+        // Explicit disconnect: host clears their room ID. Joiner keeps host in contacts (remove only via Manage > Remove).
         // On network/lag disconnect we do not call leaveGame(), so stored IDs stay for rejoin/resume.
         if (wasHost) this.ui.clearLastHostRoomId();
-        else {
-            if (hostId) this.ui.removeJoinedHostId(hostId);
-            this.ui.clearReconnectRetry();
-        }
+        else this.ui.clearReconnectRetry();
 
         // Clean up remote players
         if (this.remotePlayerManager) {
@@ -449,7 +462,10 @@ export class MultiplayerManager {
      * Clean up resources
      */
     dispose() {
-        // Dispose connection manager
+        if (this._broadcastIntervalId) {
+            clearInterval(this._broadcastIntervalId);
+            this._broadcastIntervalId = null;
+        }
         if (this.connection) {
             this.connection.dispose();
         }

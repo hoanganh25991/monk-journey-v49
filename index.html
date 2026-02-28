@@ -638,10 +638,11 @@
                 <div class="qr-scan-popup-box contacts-popup-box">
                     <div class="qr-scan-popup-header">
                         <span>Host contacts</span>
+                        <button type="button" id="contacts-manage-toggle-btn" class="small-btn contacts-manage-toggle-btn" title="Manage contacts">Manage</button>
                         <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
                     </div>
                     <div class="contacts-popup-body">
-                        <p class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
+                        <p id="contacts-popup-hint" class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
                         <ul id="contacts-list" class="contacts-list"></ul>
                         <p id="contacts-empty" class="contacts-empty" style="display: none;">No contacts. Join a host first (QR or Enter Code).</p>
                     </div>

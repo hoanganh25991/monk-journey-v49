@@ -27,7 +27,7 @@ export const MessageType = {
 // These define the structure and order of fields for each message type
 const SCHEMAS = {
     [MessageType.WELCOME]: ['message'],
-    [MessageType.GAME_STATE]: ['players', 'enemies', 'removedIds'],
+    [MessageType.GAME_STATE]: ['players', 'enemies', 'removedIds', 'fullSync'],
     [MessageType.START_GAME]: [],
     [MessageType.PLAYER_JOINED]: ['playerId', 'playerColor'],
     [MessageType.PLAYER_LEFT]: ['playerId'],

@@ -34,6 +34,8 @@ export class MultiplayerConnectionManager {
         this._initialPositionSent = false;
         /** Member: throttle input send to ~30 Hz to match host tick and reduce load. */
         this._lastInputSend = 0;
+        /** Host: tick count for full-sync every N ticks (delta sync). */
+        this._hostTickCount = 0;
         this.serializer = new BinarySerializer(); // Binary serializer for efficient data transfer
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
     }
@@ -941,14 +943,16 @@ export class MultiplayerConnectionManager {
 
     /**
      * Broadcast game state to all members (host only).
-     * Single packet: removedIds + players + enemies at ~30 Hz (no separate enemiesRemoved message).
+     * Delta sync: only changed enemies; full sync every 90 ticks. LOD: coarse position for far enemies.
      */
     broadcastGameState() {
         if (!this.isHost) return;
         const em = this.multiplayerManager.game?.enemyManager;
         const removedIds = em?.getRecentlyRemovedEnemyIds?.() ?? [];
         if (removedIds.length > 0) em.clearRecentlyRemovedEnemyIds();
-        const players = {};
+        this._hostTickCount = (this._hostTickCount || 0) + 1;
+        const fullSync = this._hostTickCount % 90 === 0;
+        const playerPositions = [];
         const pl = this.multiplayerManager.game?.player;
         if (pl) {
             let pos = null;
@@ -974,6 +978,7 @@ export class MultiplayerConnectionManager {
                     modelId: pl.model?.currentModelId || DEFAULT_CHARACTER_MODEL,
                     playerColor: this.multiplayerManager.assignedColors.get(this.peer.id) || null
                 };
+                playerPositions.push({ x: pos[0], z: pos[2] });
             }
         }
         this.multiplayerManager.remotePlayerManager.getPlayers().forEach((player, peerId) => {
@@ -988,10 +993,16 @@ export class MultiplayerConnectionManager {
                 modelId: player.modelId || DEFAULT_CHARACTER_MODEL,
                 playerColor: this.multiplayerManager.assignedColors.get(peerId) || null
             };
+            playerPositions.push({ x: p.x, z: p.z });
         });
-        const enemies = em && typeof em.getSerializableEnemyData === 'function' ? em.getSerializableEnemyData() : {};
+        let enemies = {};
+        if (em && typeof em.getSerializableEnemyData === 'function') {
+            const result = em.getSerializableEnemyData({ fullSync, playerPositions });
+            enemies = result.data;
+        }
         const gameState = { type: 'gameState', players, enemies };
         if (removedIds.length > 0) gameState.removedIds = removedIds;
+        if (fullSync) gameState.fullSync = true;
         this.broadcast(gameState);
     }
 
