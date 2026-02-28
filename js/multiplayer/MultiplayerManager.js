@@ -88,7 +88,10 @@ export class MultiplayerManager {
             
             // Initialize connection manager
             await this.connection.init();
-            
+            // Start join listener so we can receive "Request" from Host even when not in Multiplayer screen (playing, menu, etc.)
+            if (this.connection.startJoinListener) {
+                this.connection.startJoinListener();
+            }
             console.debug('Multiplayer manager initialized');
             return true;
         } catch (error) {
@@ -458,6 +461,11 @@ export class MultiplayerManager {
         // Show notification
         if (this.game.hudManager) {
             this.game.hudManager.showNotification('Disconnected from multiplayer game', 'info');
+        }
+
+        // Start join listener again so we can receive "Request" from Host (playing, menu, etc.)
+        if (this.connection && this.connection.startJoinListener) {
+            this.connection.startJoinListener();
         }
     }
 

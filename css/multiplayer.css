@@ -1196,6 +1196,45 @@
     text-align: center;
 }
 
+/* Invite from host: centered modal on top of everything (playing, menu, multiplayer). Accept / Decline. */
+.invite-from-host-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.invite-from-host-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+}
+.invite-from-host-box {
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    padding: 1.5rem;
+    background: rgba(30, 30, 30, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    text-align: center;
+}
+.invite-from-host-message {
+    margin: 0 0 1.25rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: #fff;
+}
+.invite-from-host-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
 @media screen {
     /* Centered QR code */
     .centered-qr {

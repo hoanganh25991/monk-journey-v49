@@ -569,24 +569,42 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Joiner: show that Host invited us to join (Host tapped Request). Sets pending invite; banner on Join screen offers one-tap Join.
+     * Joiner: show that Host invited us to join (Host tapped Request). Shows centered modal with Accept/Decline on top of everything.
      * @param {string} hostRoomId - Host's room ID to join
      */
     showInviteFromHostNotification(hostRoomId) {
         this._pendingInviteFromHost = hostRoomId || null;
+        this.showInviteFromHostModal(hostRoomId);
         this.updateJoinPendingInviteBanner();
         if (this.multiplayerManager.game?.hudManager) {
-            this.multiplayerManager.game.hudManager.showNotification('Host invited you to join! Tap Join in the banner above.', 5000);
+            this.multiplayerManager.game.hudManager.showNotification('Host invited you to join!', 4000);
         }
     }
 
-    /** Clear pending invite from host (e.g. after we joined or dismissed). */
+    /** Show the centered invite modal (on top of playing, menu, multiplayer). */
+    showInviteFromHostModal(hostRoomId) {
+        const modal = document.getElementById('invite-from-host-modal');
+        const msgEl = document.getElementById('invite-from-host-message');
+        if (!modal || !msgEl) return;
+        const name = hostRoomId ? 'Player-' + MultiplayerUIManager.roomIdFirst4(hostRoomId) : 'Player-????';
+        msgEl.textContent = `Do you want to join game with ${name} hosting?`;
+        modal.style.display = 'flex';
+    }
+
+    /** Hide the invite-from-host modal. */
+    hideInviteFromHostModal() {
+        const modal = document.getElementById('invite-from-host-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    /** Clear pending invite from host (e.g. after Accept, Decline, or joined). */
     clearPendingInviteFromHost() {
         this._pendingInviteFromHost = null;
+        this.hideInviteFromHostModal();
         this.updateJoinPendingInviteBanner();
     }
 
-    /** Update visibility and action of the "Host invited you - Join" banner on the Join screen. */
+    /** Update visibility and action of the "Host invited you - Join" banner on the Join screen (inside multiplayer modal). */
     updateJoinPendingInviteBanner() {
         const banner = document.getElementById('join-pending-invite-banner');
         const joinBtn = document.getElementById('join-pending-invite-btn');
@@ -596,8 +614,7 @@ export class MultiplayerUIManager {
             if (joinBtn) {
                 joinBtn.onclick = () => {
                     const hostRoomId = this._pendingInviteFromHost;
-                    this._pendingInviteFromHost = null;
-                    banner.style.display = 'none';
+                    this.clearPendingInviteFromHost();
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
                     this.showRejoinOverlay('Reconnecting...');
                     if (hostRoomId) this.multiplayerManager.joinGame(hostRoomId);
@@ -750,6 +767,22 @@ export class MultiplayerUIManager {
      * Set up UI event listeners for multiplayer buttons
      */
     setupUIListeners() {
+        // Invite-from-host modal: Accept / Decline (works on top of playing, menu, multiplayer)
+        const inviteAcceptBtn = document.getElementById('invite-from-host-accept-btn');
+        const inviteDeclineBtn = document.getElementById('invite-from-host-decline-btn');
+        if (inviteAcceptBtn) {
+            inviteAcceptBtn.addEventListener('click', () => {
+                const hostRoomId = this._pendingInviteFromHost;
+                this.clearPendingInviteFromHost();
+                this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                this.showRejoinOverlay('Reconnecting...');
+                if (hostRoomId) this.multiplayerManager.joinGame(hostRoomId);
+            });
+        }
+        if (inviteDeclineBtn) {
+            inviteDeclineBtn.addEventListener('click', () => this.clearPendingInviteFromHost());
+        }
+
         // Multiplayer button (in game menu)
         const multiplayerButton = document.getElementById('multiplayer-button');
         if (multiplayerButton) {
@@ -1122,9 +1155,6 @@ export class MultiplayerUIManager {
      */
     closeMultiplayerModal() {
         this.hideRejoinOverlay();
-        if (this.multiplayerManager.connection?.stopJoinListener) {
-            this.multiplayerManager.connection.stopJoinListener();
-        }
         const modal = document.getElementById('multiplayer-menu');
         if (modal) {
             modal.style.display = 'none';

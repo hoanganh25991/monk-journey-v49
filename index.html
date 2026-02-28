@@ -565,6 +565,18 @@
         <div class="rejoin-overlay-message" id="rejoin-overlay-message">Reconnecting...</div>
     </div>
 
+    <!-- Invite from host: centered modal on top of everything (playing, menu, multiplayer). Accept / Decline. -->
+    <div id="invite-from-host-modal" class="invite-from-host-modal" style="display: none;" aria-live="polite">
+        <div class="invite-from-host-backdrop"></div>
+        <div class="invite-from-host-box">
+            <p id="invite-from-host-message" class="invite-from-host-message">Do you want to join game with Player-???? hosting?</p>
+            <div class="invite-from-host-buttons">
+                <button type="button" id="invite-from-host-accept-btn" class="settings-button">Accept</button>
+                <button type="button" id="invite-from-host-decline-btn" class="settings-button secondary-button">Decline</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Multiplayer Menu -->
     <div id="multiplayer-menu" class="game-menu main-background" style="display: none;">
         <!-- One-touch: HOST or JOIN (touch devices / NFC) -->
