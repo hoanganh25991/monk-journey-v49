@@ -197,7 +197,11 @@ export class MultiplayerConnectionManager {
      */
     handleNewConnection(conn) {
         conn.once('data', (data) => {
-            const d = this.processReceivedData(data);
+            let raw = data;
+            if (typeof raw === 'string') {
+                try { raw = JSON.parse(raw); } catch (_) {}
+            }
+            const d = this.processReceivedData(raw);
             if (d?.type === 'statusRequest') {
                 conn.send({ type: 'status', status: this._getHostStatusForPing() });
                 conn.close();

@@ -368,7 +368,7 @@ export class MultiplayerUIManager {
         if (now - (this._lastStatusPingAt[hostId] || 0) < MultiplayerUIManager.HOST_STATUS_PING_DEBOUNCE_MS) return;
         this._lastStatusPingAt[hostId] = now;
         const peer = new Peer();
-        const timeoutMs = 4000;
+        const timeoutMs = 10000;
         let settled = false;
         const finish = (status) => {
             if (settled) return;
@@ -384,13 +384,14 @@ export class MultiplayerUIManager {
             const t = setTimeout(() => finish('offline'), timeoutMs);
             conn.on('open', () => conn.send({ type: 'statusRequest' }));
             conn.on('data', (data) => {
-                if (data?.type === 'status' && data.status) {
+                const obj = (typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return data; } })() : data) || {};
+                if (obj.type === 'status' && obj.status) {
                     clearTimeout(t);
-                    finish(data.status);
+                    finish(obj.status);
                 }
             });
             conn.on('error', () => { clearTimeout(t); finish('offline'); });
-            conn.on('close', () => { clearTimeout(t); if (!settled) finish('offline'); });
+            conn.on('close', () => clearTimeout(t));
         });
     }
 
