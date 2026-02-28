@@ -74,8 +74,12 @@ export class DeathScreenUI extends UIComponent {
         this.show();
         this.isDeathScreenOpen = true;
         
-        // Pause game
-        this.game.pause(false);
+        // In multiplayer (host or member), do not pause: world keeps running, others keep playing, dead player is a tomb until respawn.
+        // In single player, pause so the player focuses on respawn/quit.
+        const inMultiplayer = this.game.multiplayerManager?.connection && (this.game.multiplayerManager.connection.isHost || this.game.multiplayerManager.connection.isConnected);
+        if (!inMultiplayer) {
+            this.game.pause(false);
+        }
     }
     
     /**
@@ -108,7 +112,7 @@ export class DeathScreenUI extends UIComponent {
         this.hide();
         this.isDeathScreenOpen = false;
         
-        // Resume game
+        // Resume game (no-op if we didn't pause, e.g. in multiplayer)
         this.game.resume(false);
     }
     

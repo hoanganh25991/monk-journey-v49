@@ -210,7 +210,8 @@ export class PlayerCombat {
     }
     
     /**
-     * Handles player death
+     * Handles player death.
+     * Standard (single and multiplayer): replace model with tomb at death position; respawn brings player back and removes tomb.
      */
     die() {
         // Store current position for respawn at same spot
