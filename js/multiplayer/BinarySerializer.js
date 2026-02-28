@@ -21,7 +21,9 @@ export const MessageType = {
     PARTY_BONUS_UPDATE: 12,
     REQUEST_START_GAME: 13,
     ENEMIES_REMOVED: 14,
-    ENEMY_KILLED: 15
+    ENEMY_KILLED: 15,
+    PLAYER_DIED: 16,
+    PLAYER_REVIVED: 17
 };
 
 // Schema definitions for different message types
@@ -42,7 +44,9 @@ const SCHEMAS = {
     [MessageType.PARTY_BONUS_UPDATE]: ['playerCount'],
     [MessageType.REQUEST_START_GAME]: ['persistentId'],
     [MessageType.ENEMIES_REMOVED]: ['ids'],
-    [MessageType.ENEMY_KILLED]: ['enemyId']
+    [MessageType.ENEMY_KILLED]: ['enemyId'],
+    [MessageType.PLAYER_DIED]: ['playerId'],
+    [MessageType.PLAYER_REVIVED]: ['playerId']
 };
 
 export class BinarySerializer {
@@ -252,6 +256,8 @@ export class BinarySerializer {
             case 'requestStartGame': return MessageType.REQUEST_START_GAME;
             case 'enemiesRemoved': return MessageType.ENEMIES_REMOVED;
             case 'enemyKilled': return MessageType.ENEMY_KILLED;
+            case 'playerDied': return MessageType.PLAYER_DIED;
+            case 'playerRevived': return MessageType.PLAYER_REVIVED;
             default: return undefined;
         }
     }
@@ -279,6 +285,8 @@ export class BinarySerializer {
             case MessageType.REQUEST_START_GAME: return 'requestStartGame';
             case MessageType.ENEMIES_REMOVED: return 'enemiesRemoved';
             case MessageType.ENEMY_KILLED: return 'enemyKilled';
+            case MessageType.PLAYER_DIED: return 'playerDied';
+            case MessageType.PLAYER_REVIVED: return 'playerRevived';
             default: return 'unknown';
         }
     }
