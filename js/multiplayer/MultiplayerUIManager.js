@@ -296,7 +296,7 @@ export class MultiplayerUIManager {
             dot.title = status === 'hosting' ? 'Hosting' : status === 'ingame' ? 'In game' : status === 'online' ? 'Hosting' : status === 'offline' ? 'Offline' : 'Unknown';
             const nameSpan = document.createElement('span');
             nameSpan.className = 'contact-name';
-            nameSpan.textContent = name || id.slice(0, 8) + '…';
+            nameSpan.textContent = 'Player-' + MultiplayerUIManager.roomIdFirst4(id);
             const joinBtn = document.createElement('button');
             joinBtn.type = 'button';
             joinBtn.className = 'small-btn contact-join-btn';
@@ -382,12 +382,24 @@ export class MultiplayerUIManager {
         peer.on('open', () => {
             const conn = peer.connect(hostId, { reliable: true });
             const t = setTimeout(() => finish('offline'), timeoutMs);
-            conn.on('open', () => conn.send({ type: 'statusRequest' }));
+            conn.on('open', () => {
+                // Delay so host's data listener is attached first (avoids race when host is busy in-game)
+                setTimeout(() => {
+                    if (!settled) conn.send({ type: 'statusRequest' });
+                }, 300);
+            });
             conn.on('data', (data) => {
+                if (settled) return;
                 const obj = (typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return data; } })() : data) || {};
                 if (obj.type === 'status' && obj.status) {
                     clearTimeout(t);
                     finish(obj.status);
+                    return;
+                }
+                if (obj.type === 'welcome') {
+                    clearTimeout(t);
+                    finish('hosting');
+                    try { conn.close(); } catch (_) {}
                 }
             });
             conn.on('error', () => { clearTimeout(t); finish('offline'); });
