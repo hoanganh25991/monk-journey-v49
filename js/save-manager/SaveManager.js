@@ -3,9 +3,17 @@ import { PlayerSerializer } from './serializers/PlayerSerializer.js';
 import { QuestSerializer } from './serializers/QuestSerializer.js';
 import { SettingsSerializer } from './serializers/SettingsSerializer.js';
 import { InventorySerializer } from './serializers/InventorySerializer.js';
-import { SaveOperationProgress } from './utils/SaveOperationProgress.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import storageService from './StorageService.js';
+
+/** No-op progress: save/load run without UI popup */
+const noOpProgress = {
+    start() {},
+    update() {},
+    complete() {},
+    error() {},
+    get isActive() { return false; }
+};
 
 /**
  * SaveManager implementation using StorageService
@@ -20,9 +28,8 @@ export class SaveManager extends ISaveSystem {
         super();
         this.game = game;
         
-        // Create progress indicators
-        this.saveProgress = new SaveOperationProgress(game, 'save');
-        this.loadProgress = new SaveOperationProgress(game, 'load');
+        this.saveProgress = noOpProgress;
+        this.loadProgress = noOpProgress;
         this.saveKey = STORAGE_KEYS.SAVE_DATA;
         this.chunkSaveKeyPrefix = STORAGE_KEYS.CHUNK_PREFIX;
         this.autoSaveInterval = 60_000; // Auto-save every minute (reduced frequency)

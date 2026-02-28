@@ -38,7 +38,6 @@ import shadowDebugger from '../debug/ShadowDebugger.js';
  * @property {GameState} state - Manages the game state (running, paused, etc.)
  * @property {GameEvents} events - Event system for game-wide event handling
  * @property {THREE.LoadingManager} loadingManager - Manages asset loading and tracks loading progress
- * @property {HTMLElement} loadingScreen - Reference to the loading screen element in the DOM
  * @property {THREE.WebGLRenderer} renderer - WebGL renderer for the game
  * @property {THREE.Scene} scene - The main 3D scene containing all game objects
  * @property {THREE.PerspectiveCamera} camera - The main camera used for rendering the scene
@@ -186,10 +185,7 @@ export class Game {
      */
     async init() {
         try {
-            // Get reference to loading screen if available
-            this.loadingScreen = document.getElementById('loading-screen');
-            
-            // Update loading progress
+            // Update loading progress (log only; loading screen UI removed)
             this.updateLoadingProgress(5, 'Initializing storage...', 'Setting up cloud sync');
             
             // Initialize storage service with timeout to prevent hanging on mobile
@@ -383,6 +379,11 @@ export class Game {
             // Set up event listeners
             this.setupEventListeners();
             
+            // Disable loading progress updates after init so no progress bar appears after user clicks Play
+            if (this.loadingManager) {
+                this.loadingManager.onProgress = () => {};
+            }
+            
             return true;
         } catch (error) {
             console.error('Error initializing game:', error);
@@ -398,25 +399,7 @@ export class Game {
      * @param {string} detail - Detailed information
      */
     updateLoadingProgress(percent, status, detail) {
-        // Update loading bar
-        const loadingBar = document.getElementById('loading-bar');
-        if (loadingBar) {
-            loadingBar.style.width = `${percent}%`;
-        }
-        
-        // Update loading text
-        const loadingText = document.getElementById('loading-text');
-        if (loadingText && status) {
-            loadingText.textContent = status;
-        }
-        
-        // Update loading info
-        const loadingInfo = document.getElementById('loading-info');
-        if (loadingInfo && detail) {
-            loadingInfo.textContent = detail;
-        }
-        
-        // Log progress to console
+        // Log progress only (loading screen UI removed)
         console.debug(`Loading progress: ${percent}% - ${status} - ${detail}`);
     }
     
@@ -705,29 +688,39 @@ export class Game {
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || 'maps/default.json')
             : 'maps/default.json';
 
-        const overlayEl = document.getElementById('mapLoadingOverlay');
-        const loadingTextEl = overlayEl?.querySelector('.loading-text');
-        if (overlayEl) {
-            overlayEl.style.display = 'flex';
-            if (loadingTextEl) loadingTextEl.textContent = 'Loading map...';
+        // Show game container so canvas can render and warmup can complete (was display:none in CSS)
+        if (this.gameContainer) {
+            this.gameContainer.classList.add('game-visible');
+            this.gameContainer.style.display = 'block';
         }
+
+        // Use full-screen cream fog (play-reveal-overlay) instead of mapLoadingOverlay for consistent reveal
+        const playRevealEl = document.getElementById('play-reveal-overlay');
+        const playRevealTextEl = document.getElementById('play-reveal-text');
+        const mapOverlayEl = document.getElementById('mapLoadingOverlay');
+        if (playRevealEl) {
+            playRevealEl.style.display = 'flex';
+            playRevealEl.classList.remove('reveal-circle', 'fog-waiting');
+            if (playRevealTextEl) playRevealTextEl.textContent = 'Loading map...';
+        }
+        if (mapOverlayEl) mapOverlayEl.style.display = 'none';
 
         this.canvas.style.display = 'block';
         this.camera.position.set(0, 10, 20);
         this.camera.lookAt(0, 0, 0);
 
-        // Hide game container until warmup completes (avoids showing janky first frames)
+        // Hide game container visually until warmup completes (avoids showing janky first frames)
         if (this.gameContainer) {
             this.gameContainer.style.opacity = '0';
             this.gameContainer.style.pointerEvents = 'none';
         }
         this._warmupFramesLeft = 8; // show game after 8 frames so first-frame spikes are off-screen
+        this._playRevealStartTime = Date.now(); // for 3s cream fog then blur-grey if not stable
 
         const runAfterMapLoaded = (mapData) => {
-            // Keep overlay visible with "Preparing..." until warmup ends (animate() will hide it)
-            if (overlayEl && loadingTextEl) {
-                loadingTextEl.textContent = 'Preparing your adventure...';
-            }
+            // Keep fog (play-reveal-overlay) visible with "Preparing..." until warmup ends (animate() will run circle fade).
+            // Game stays PAUSED so enemies/player don't run until overlay is removed (fixes low-end devices).
+            if (playRevealTextEl) playRevealTextEl.textContent = 'Preparing your adventure...';
             if (!isLoadedGame && this.player && mapData?.spawn) {
                 const s = mapData.spawn;
                 this.player.setPosition(s.x ?? 0, s.y ?? 1, s.z ?? -13);
@@ -738,22 +731,19 @@ export class Game {
             if (this.enemyManager) {
                 this.enemyManager.removeAllEnemies();
             }
-            this.state.setRunning();
-            this.clock.start();
+            // Do not setRunning() or start clock here; animate() will unpause when overlay is hidden
             this.animate();
-            this.audioManager.playMusic();
             if (requestFullscreenMode) {
                 this.requestFullscreen().then(() => this.adjustRendererSize()).catch(() => this.adjustRendererSize());
             } else {
                 this.adjustRendererSize();
             }
-            this.events.dispatch('gameStateChanged', 'running');
-            console.debug("Game started successfully");
+            console.debug("Game started (paused until overlay hides)");
         };
 
         const handleMapLoadError = (err) => {
             console.error('Failed to load map:', err);
-            if (loadingTextEl) loadingTextEl.textContent = 'Selected map unavailable. Loading Default World for this session...';
+            if (playRevealTextEl) playRevealTextEl.textContent = 'Selected map unavailable. Loading Default World...';
             if (this.hudManager?.showNotification) {
                 this.hudManager.showNotification('Could not load selected map. Using Default World for this session.', 4000);
             }
@@ -767,7 +757,7 @@ export class Game {
                     try {
                         localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, 'maps/default.json');
                     } catch (e) {}
-                    if (loadingTextEl) loadingTextEl.textContent = 'Map unavailable. Reloading...';
+                    if (playRevealTextEl) playRevealTextEl.textContent = 'Map unavailable. Reloading...';
                     setTimeout(() => location.reload(), 2000);
                 });
         };
@@ -920,20 +910,76 @@ export class Game {
             this.controls.update();
         }
         
-        // If game is paused, only render the scene but don't update game logic
+        // If game is paused, only render the scene but don't update game logic.
+        // Still run warmup countdown so we can hide overlay and unpause together when ready.
         if (this.state.isPaused()) {
             this.jumpRequested = false; // clear so we don't jump when resuming
-            // Just render the scene using safe render
             this.safeRender(this.scene, this.camera);
+            const playRevealEl = document.getElementById('play-reveal-overlay');
+            // After 3s if not yet stable, switch to blur grey fog (map visible with opacity)
+            if (playRevealEl && this._playRevealStartTime != null) {
+                const elapsed = (Date.now() - this._playRevealStartTime) / 1000;
+                if (elapsed >= 3 && this._warmupFramesLeft > 0) {
+                    playRevealEl.classList.add('fog-waiting');
+                    // Show game container so map is visible below the semi-transparent blur overlay
+                    if (this.gameContainer) {
+                        this.gameContainer.style.opacity = '1';
+                        this.gameContainer.style.pointerEvents = 'none'; // keep input disabled until reveal
+                    }
+                }
+            }
+            // Warmup: count down even when paused; when done, run fog circle fade then unpause
+            if (this._warmupFramesLeft > 0) {
+                this._warmupFramesLeft--;
+                if (this._warmupFramesLeft === 0) {
+                    this._warmupFramesLeft = -1;
+                    let revealDoneCalled = false;
+                    const onRevealDone = () => {
+                        if (revealDoneCalled) return;
+                        revealDoneCalled = true;
+                        if (this._revealFallbackTimer) {
+                            clearTimeout(this._revealFallbackTimer);
+                            this._revealFallbackTimer = null;
+                        }
+                        if (playRevealEl) {
+                            playRevealEl.removeEventListener('animationend', onRevealDone);
+                            playRevealEl.style.display = 'none';
+                            playRevealEl.classList.remove('reveal-circle', 'fog-waiting');
+                        }
+                        if (this.gameContainer) {
+                            this.gameContainer.style.opacity = '1';
+                            this.gameContainer.style.pointerEvents = '';
+                        }
+                        if (this.hudManager) this.hudManager.showAllUI();
+                        const homeButton = document.getElementById('home-button');
+                        if (homeButton) homeButton.style.display = 'block';
+                        const mapOverlayEl = document.getElementById('mapLoadingOverlay');
+                        if (mapOverlayEl) mapOverlayEl.style.display = 'none';
+                        this.resume();
+                        this.audioManager.playMusic();
+                        console.debug("Game revealed and unpaused");
+                    };
+                    if (playRevealEl) {
+                        playRevealEl.addEventListener('animationend', onRevealDone);
+                        playRevealEl.classList.add('reveal-circle'); // triggers @keyframes fogRevealCircle
+                        // Fallback: some browsers may not fire animationend for clip-path; force reveal after 1.2s
+                        this._revealFallbackTimer = setTimeout(onRevealDone, 1200);
+                    } else {
+                        onRevealDone();
+                    }
+                }
+            }
             return;
         }
         
-        // Warmup: hide game container for first N frames to avoid showing slow first-frame spikes
+        // Warmup: hide map overlay for first N frames (when already running, e.g. loaded game)
         if (this._warmupFramesLeft > 0) {
             this._warmupFramesLeft--;
             if (this._warmupFramesLeft === 0) {
-                const overlayEl = document.getElementById('mapLoadingOverlay');
-                if (overlayEl) overlayEl.style.display = 'none';
+                const mapOverlayEl = document.getElementById('mapLoadingOverlay');
+                if (mapOverlayEl) mapOverlayEl.style.display = 'none';
+                const playRevealEl = document.getElementById('play-reveal-overlay');
+                if (playRevealEl) playRevealEl.style.display = 'none';
                 if (this.gameContainer) {
                     this.gameContainer.style.opacity = '1';
                     this.gameContainer.style.pointerEvents = '';

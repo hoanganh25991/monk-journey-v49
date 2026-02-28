@@ -46,26 +46,6 @@
 
 <body>
     <div id="viewport-rotator">
-    <!-- Loading Screen -->
-    <div id="loading-screen" style="display: none;">
-        <h2>Loading Monk Journey...</h2>
-        <div id="loading-bar-container">
-            <div id="loading-bar"></div>
-        </div>
-        <p id="loading-text">Loading resources...</p>
-        <p id="loading-info">Downloading game assets...</p>
-    </div>
-    
-    <!-- Initial Loading Indicator for Map Generation -->
-    <div id="initial-loading-indicator" class="main-background" style="display: none;">
-        <div class="loading-title">Initializing Map</div>
-        <div class="loading-bar-container">
-            <div class="loading-bar" id="initial-loading-bar"></div>
-        </div>
-        <div class="loading-text" id="initial-loading-text">Generating world...</div>
-        <div class="loading-info" id="initial-loading-info">Please wait while we create your adventure</div>
-    </div>
-    
     <!-- Login Modal -->
     <div id="login-modal" class="login-modal-overlay">
         <div class="login-modal-dialog">
@@ -536,15 +516,6 @@
                 <div class="spiral-ring ring-4"></div>
             </div>
             <div class="spiral-particles"></div>
-        </div>
-    </div>
-
-    <!-- Save Operation Progress -->
-    <div id="save-operation-progress" class="save-operation-progress" style="display: none;">
-        <h3 id="save-operation-title">Saving Game</h3>
-        <div id="save-operation-text" class="progress-text">Initializing...</div>
-        <div class="progress-bar-container">
-            <div id="save-operation-bar" class="progress-bar"></div>
         </div>
     </div>
 
@@ -1255,9 +1226,6 @@
 
     <!-- Orientation Lock -->
     <script src="pwa/orientation-lock.js"></script>
-
-    <!-- Initial loading progress -->
-    <script src="pwa/initial-loading-progress.js"></script>
 
     <!-- Import Three.js from local files (r154, patched) -->
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>

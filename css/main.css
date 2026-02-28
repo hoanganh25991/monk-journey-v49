@@ -12,12 +12,6 @@
 /* Import layout styles */
 @import 'orientation-message.css';
 
-/* Import initial loading styles */
-@import 'initial-loading.css';
-
-/* Import loading screen styles */
-@import 'loading-screen.css';
-
 /* Import inventory styles */
 @import 'inventory.css';
 
@@ -65,9 +59,6 @@
 
 /* Import icons classes */
 @import 'icons.css';
-
-/* Import save operation progress styles */
-@import 'save-operation-progress.css';
 
 /* Import teleport manager styles */
 @import 'teleport-manager.css';

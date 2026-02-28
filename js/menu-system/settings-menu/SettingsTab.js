@@ -4,7 +4,6 @@
  */
 
 import { UIComponent } from '../../UIComponent.js';
-import { SaveOperationProgress } from '../../save-manager/utils/SaveOperationProgress.js';
 import storageService from '../../save-manager/StorageService.js';
 
 export class SettingsTab extends UIComponent {
@@ -118,42 +117,19 @@ export class SettingsTab extends UIComponent {
     }
     
     /**
-     * Show a loading indicator during an async operation
+     * Run an async operation (no progress popup; save/load are fast enough).
      * @param {Function} asyncOperation - The async operation to perform
      * @param {string} operationType - Type of operation ('save' or 'load')
-     * @param {string} message - Message to display during the operation
+     * @param {string} message - Unused; kept for API compatibility
      * @returns {Promise<any>} - The result of the async operation
      */
     async withProgress(asyncOperation, operationType = 'load', message = 'Loading settings...') {
-        // Create progress indicator
-        const progress = new SaveOperationProgress(this.game, operationType);
-        
         try {
-            // Set loading state
             this.setLoading(true);
-            
-            // Start progress indicator
-            progress.start(message);
-            progress.update(message, 30);
-            
-            // Perform the async operation
             const result = await asyncOperation();
-            
-            // Update progress
-            progress.update(operationType === 'save' ? 'Settings saved!' : 'Settings loaded!', 100);
-            
-            // Complete the operation
-            setTimeout(() => {
-                progress.complete();
-                this.setLoading(false);
-            }, 300);
-            
             return result;
-        } catch (error) {
-            // Show error
-            progress.error(`Error ${operationType === 'save' ? 'saving' : 'loading'} settings: ${error.message}`);
+        } finally {
             this.setLoading(false);
-            throw error;
         }
     }
     
