@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { createPlayerTomb } from './PlayerTomb.js';
 
 /**
  * @typedef {Object} PunchSystem
@@ -70,6 +71,12 @@ export class PlayerCombat {
          * @type {THREE.Vector3}
          */
         this.deathPosition = new THREE.Vector3(0, 0, 0);
+
+        /**
+         * Tomb mesh shown at death position when dead (replaces model)
+         * @type {THREE.Group|null}
+         */
+        this.tombGroup = null;
         
         /**
          * Simplified punch system
@@ -220,8 +227,15 @@ export class PlayerCombat {
             this.game.player.statusEffects.clearAllEffects();
         }
         
-        // Visual and sound effects
-        this.playerModel.getModelGroup().rotation.x = Math.PI / 2;
+        // Hide player model and show tomb at death position
+        const modelGroup = this.playerModel.getModelGroup();
+        modelGroup.visible = false;
+        const worldGroup = this.game?.getWorldGroup?.();
+        if (worldGroup) {
+            this.tombGroup = createPlayerTomb();
+            this.tombGroup.position.copy(this.deathPosition);
+            worldGroup.add(this.tombGroup);
+        }
         if (this.game?.audioManager) {
             this.game.audioManager.playSound('playerDeath');
         }
@@ -260,7 +274,13 @@ export class PlayerCombat {
             this.game.player.movement.targetPosition.copy(respawnPos);
         }
         this.playerModel.setPosition(respawnPos.clone());
-        this.playerModel.getModelGroup().rotation.x = 0;
+        const modelGroup = this.playerModel.getModelGroup();
+        modelGroup.visible = true;
+        // Remove tomb from world
+        if (this.tombGroup && this.game?.getWorldGroup) {
+            this.game.getWorldGroup().remove(this.tombGroup);
+            this.tombGroup = null;
+        }
         
         // Hide death screen
         if (this.game?.hudManager) {

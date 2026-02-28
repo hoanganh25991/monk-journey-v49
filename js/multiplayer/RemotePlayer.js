@@ -6,6 +6,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { DEFAULT_CHARACTER_MODEL, CHARACTER_MODELS } from '../config/player-models.js';
+import { createPlayerTomb } from '../player/PlayerTomb.js';
 
 export class RemotePlayer {
     /**
@@ -41,8 +42,10 @@ export class RemotePlayer {
         this.playerColor = playerColor || '#FFFFFF'; // Default to white if no color provided
         this.colorIndicator = null;
         this.modelId = modelId || DEFAULT_CHARACTER_MODEL; // Use default model if none provided
-        /** Whether this remote player is dead (enemies skip as target; show death pose). */
+        /** Whether this remote player is dead (enemies skip as target; show tomb). */
         this.isDead = false;
+        /** Tomb mesh shown when dead (replaces model). */
+        this.tombGroup = null;
 
         // Create a group to hold the player model and name tag
         this.group = new THREE.Group();
@@ -66,13 +69,25 @@ export class RemotePlayer {
 
     /**
      * Set dead state (e.g. when they died on their device and host broadcast playerDied).
-     * When dead: show death pose (lie down), enemies skip as target.
+     * When dead: hide model and show tomb with "bia mộ"; enemies skip as target.
      * @param {boolean} dead
      */
     setDead(dead) {
         this.isDead = !!dead;
         if (!this.group) return;
-        this.group.rotation.x = dead ? Math.PI / 2 : 0;
+        this.group.rotation.x = 0;
+        if (this.model) this.model.visible = !dead;
+        if (this.nameTag) this.nameTag.visible = !dead;
+        if (this.colorIndicator) this.colorIndicator.visible = !dead;
+        if (dead) {
+            if (!this.tombGroup) {
+                this.tombGroup = createPlayerTomb();
+                this.group.add(this.tombGroup);
+            }
+            this.tombGroup.visible = true;
+        } else {
+            if (this.tombGroup) this.tombGroup.visible = false;
+        }
     }
 
     /**
