@@ -1047,6 +1047,11 @@ export class Game {
             }
         }
 
+        // Joiner: apply pending multiplayer sync once at frame start (keeps 120 FPS, avoids sync blocking later in frame)
+        if (this.multiplayerManager?.connection?.processPendingGameState) {
+            this.multiplayerManager.connection.processPendingGameState();
+        }
+
         // Update input handler for continuous skill casting
         this.inputHandler.update(delta);
         

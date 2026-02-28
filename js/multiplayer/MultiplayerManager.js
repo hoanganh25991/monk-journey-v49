@@ -404,6 +404,8 @@ export class MultiplayerManager {
             return;
         }
         
+        // (Pending game state is drained in Game.animate() at frame start so sync never blocks; goal 120 FPS)
+        
         // Log update status occasionally (every 3 seconds)
         const now = Date.now();
         if (!this._lastUpdateLog || now - this._lastUpdateLog > 3000) {

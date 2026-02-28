@@ -40,6 +40,8 @@ export class MultiplayerConnectionManager {
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
         /** Joiner: Peer used on Join screen to receive inviteFromHost from Host. Destroyed when leaving Join screen or when joining. */
         this._joinListenerPeer = null;
+        /** Joiner: latest gameState from host; applied in update() to avoid mid-frame hitches and FPS drops. */
+        this._pendingGameState = null;
     }
 
     /**
@@ -439,7 +441,9 @@ export class MultiplayerConnectionManager {
                 }
                 break;
             case 'gameState':
-                this.multiplayerManager.updateGameState(data);
+                // Defer to next frame so heavy work (updateEnemiesFromHost, etc.) runs in game loop, not in data callback.
+                // Keeps joiner FPS stable; callback can fire mid-frame and cause hitches.
+                this._pendingGameState = data;
                 break;
             case 'startGame':
                 this.multiplayerManager.startGame();
@@ -934,6 +938,17 @@ export class MultiplayerConnectionManager {
     }
 
     /**
+     * Process pending game state (joiner only). Called once per frame at frame start from Game.animate()
+     * so sync never blocks the loop (target 120 FPS, acceptable 110). Latest state wins if multiple arrived.
+     */
+    processPendingGameState() {
+        if (this.isHost || !this._pendingGameState) return;
+        const data = this._pendingGameState;
+        this._pendingGameState = null;
+        this.multiplayerManager.updateGameState(data);
+    }
+
+    /**
      * Send data to host (member only). Used for enemy kills and other member->host messages.
      * @param {Object} data - The data to send (e.g. { type: 'enemyKilled', enemyId: '...' })
      */
@@ -1224,5 +1239,6 @@ export class MultiplayerConnectionManager {
         this.isConnected = false;
         this.hostId = null;
         this.roomId = null;
+        this._pendingGameState = null;
     }
 }

@@ -548,13 +548,9 @@ export class EnemyManager {
             this.enemyLastUpdated.set(id, Date.now());
             if (this.enemies.has(id)) {
                 const enemy = this.enemies.get(id);
-                let newY = enemyData.position.y;
-                if (enemy.world && enemy.allowTerrainHeightUpdates && !enemy.isBoss) {
-                    try {
-                        const terrainHeight = enemy.world.getTerrainHeight(enemyData.position.x, enemyData.position.z);
-                        if (terrainHeight != null && isFinite(terrainHeight)) newY = terrainHeight + enemy.heightOffset;
-                    } catch (_) {}
-                }
+                // Use host Y as-is to avoid 30*N getTerrainHeight/sec on joiner (was major FPS killer).
+                // Host already runs same world; local terrain snap in Enemy.update() handles display.
+                const newY = enemyData.position.y;
                 enemy.setPosition(enemyData.position.x, newY, enemyData.position.z);
                 if (enemyData.health !== undefined) {
                     const changed = Math.abs(enemy.health - enemyData.health) > 0.5;
