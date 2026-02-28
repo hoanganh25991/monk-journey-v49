@@ -19,7 +19,8 @@ export const MessageType = {
     PLAYER_DAMAGE: 10,
     SHARE_EXPERIENCE: 11,
     PARTY_BONUS_UPDATE: 12,
-    REQUEST_START_GAME: 13
+    REQUEST_START_GAME: 13,
+    ENEMIES_REMOVED: 14
 };
 
 // Schema definitions for different message types
@@ -38,7 +39,8 @@ const SCHEMAS = {
     [MessageType.PLAYER_DAMAGE]: ['amount', 'enemyId'],
     [MessageType.SHARE_EXPERIENCE]: ['amount', 'enemyId', 'playerCount'],
     [MessageType.PARTY_BONUS_UPDATE]: ['playerCount'],
-    [MessageType.REQUEST_START_GAME]: ['persistentId']
+    [MessageType.REQUEST_START_GAME]: ['persistentId'],
+    [MessageType.ENEMIES_REMOVED]: ['ids']
 };
 
 export class BinarySerializer {
@@ -246,6 +248,7 @@ export class BinarySerializer {
             case 'shareExperience': return MessageType.SHARE_EXPERIENCE;
             case 'partyBonusUpdate': return MessageType.PARTY_BONUS_UPDATE;
             case 'requestStartGame': return MessageType.REQUEST_START_GAME;
+            case 'enemiesRemoved': return MessageType.ENEMIES_REMOVED;
             default: return undefined;
         }
     }
@@ -271,6 +274,7 @@ export class BinarySerializer {
             case MessageType.SHARE_EXPERIENCE: return 'shareExperience';
             case MessageType.PARTY_BONUS_UPDATE: return 'partyBonusUpdate';
             case MessageType.REQUEST_START_GAME: return 'requestStartGame';
+            case MessageType.ENEMIES_REMOVED: return 'enemiesRemoved';
             default: return 'unknown';
         }
     }

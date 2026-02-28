@@ -679,9 +679,9 @@ export class RemotePlayer {
             this.position.x += (dx / len) * step;
             this.position.z += (dz / len) * step;
             this.targetRotation.y = Math.atan2(dx, dz);
-            this.updateAnimation('walking');
+            if (this.currentAnimation !== 'walking') this.updateAnimation('walking');
         } else {
-            this.updateAnimation('idle');
+            if (this.currentAnimation !== 'idle') this.updateAnimation('idle');
         }
         
         // Jump (one-shot when jumpRequested)

@@ -370,6 +370,11 @@ export class MultiplayerConnectionManager {
                 // Ensure host roomID is in Contacts when joiner is connected to host
                 if (this.hostId) this.multiplayerManager.ui.addJoinedHostId(this.hostId);
                 break;
+            case 'enemiesRemoved':
+                if (data.ids && data.ids.length && this.multiplayerManager.game?.enemyManager) {
+                    this.multiplayerManager.game.enemyManager.removeEnemiesByIds(data.ids);
+                }
+                break;
             case 'gameState':
                 this.multiplayerManager.updateGameState(data);
                 break;
@@ -556,32 +561,19 @@ export class MultiplayerConnectionManager {
                     
                     console.debug(`[MultiplayerConnectionManager] Member ${peerId} cast skill: ${data.skillName}`);
                     
-                    // Get the remote player
                     const remotePlayer = this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
-                    
-                    // If position and rotation are provided, update the remote player first
-                    if (data.position && remotePlayer) {
-                        remotePlayer.updatePosition(data.position);
-                    }
-                    
-                    if (data.rotation && remotePlayer) {
-                        remotePlayer.updateRotation(data.rotation);
-                    }
-                    
-                    // Trigger skill cast animation on remote player
+                    if (data.position && remotePlayer) remotePlayer.updatePosition(data.position);
+                    if (data.rotation && remotePlayer) remotePlayer.updateRotation(data.rotation);
                     this.multiplayerManager.remotePlayerManager.handleSkillCast(peerId, data.skillName, data.variant, data.targetEnemyId);
-                    
-                    // Forward skill cast to other members
+                    // Forward skill cast to other members (no position/rotation; remote position comes from host simulation)
                     this.peers.forEach((conn, id) => {
                         if (id !== peerId) {
                             conn.send({
                                 type: 'skillCast',
                                 skillName: data.skillName,
                                 playerId: peerId,
-                                position: data.position,
-                                rotation: data.rotation,
-                                variant: data.variant, // Include the variant information
-                                targetEnemyId: data.targetEnemyId // Include the target enemy ID
+                                variant: data.variant,
+                                targetEnemyId: data.targetEnemyId
                             });
                         }
                     });
@@ -797,10 +789,6 @@ export class MultiplayerConnectionManager {
             if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
                 // Convert ArrayBuffer to Uint8Array if needed
                 const binaryData = data instanceof ArrayBuffer ? new Uint8Array(data) : data;
-                
-                // Log data size for debugging
-                console.debug(`[MultiplayerConnectionManager] Processing binary data of size: ${binaryData.length} bytes`);
-                
                 // Deserialize binary data
                 const result = this.serializer.deserialize(binaryData);
                 
@@ -929,124 +917,72 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Broadcast game state to all members (host only)
-     * Optimized to focus on enemy data and minimize bandwidth
+     * Broadcast enemy removals immediately (host only). Called when host removes an enemy so members get instant confirm.
+     */
+    broadcastEnemyRemovalsIfAny() {
+        if (!this.isHost || this.peers.size === 0) return;
+        const em = this.multiplayerManager.game?.enemyManager;
+        const ids = em?.getRecentlyRemovedEnemyIds?.() ?? [];
+        if (ids.length === 0) return;
+        em.clearRecentlyRemovedEnemyIds();
+        this.broadcast({ type: 'enemiesRemoved', ids });
+    }
+
+    /**
+     * Broadcast game state to all members (host only).
+     * Fast host-authority: send any remaining enemiesRemoved first, then compact full state at ~30 Hz.
      */
     broadcastGameState() {
-        if (!this.isHost) {
-            return;
+        if (!this.isHost) return;
+        const em = this.multiplayerManager.game?.enemyManager;
+        const removedIds = em?.getRecentlyRemovedEnemyIds?.() ?? [];
+        if (removedIds.length > 0) {
+            em.clearRecentlyRemovedEnemyIds();
+            this.broadcast({ type: 'enemiesRemoved', ids: removedIds });
         }
-        
-        // Only log occasionally to reduce console spam
-        if (Math.random() < 0.05) { // ~5% of broadcasts
-            console.debug('[MultiplayerConnectionManager] Broadcasting game state to', this.peers.size, 'peers');
-        }
-        
-        // Collect player data - simplified to save bandwidth
         const players = {};
-        
-        // Add host player with minimal data
-        if (this.multiplayerManager.game.player) {
-            let hostPosition = null;
-            let hostRotation = null;
-            
-            // Try to get position from movement component first (more reliable)
-            if (this.multiplayerManager.game.player.movement && this.multiplayerManager.game.player.movement.getPosition) {
-                const validPos = this.multiplayerManager.game.player.movement.getPosition();
-                if (validPos && !isNaN(validPos.x) && !isNaN(validPos.y) && !isNaN(validPos.z)) {
-                    // Use optimized vector format if binary serialization is enabled
-                    hostPosition = this.useBinaryFormat 
-                        ? BinarySerializer.optimizeVector(validPos)
-                        : {
-                            x: validPos.x,
-                            y: validPos.y,
-                            z: validPos.z
-                          };
-                }
-                
-                // Get rotation if available
-                if (this.multiplayerManager.game.player.movement.getRotation) {
-                    const validRot = this.multiplayerManager.game.player.movement.getRotation();
-                    if (validRot && !isNaN(validRot.y)) {
-                        // Use optimized rotation format if binary serialization is enabled
-                        hostRotation = this.useBinaryFormat 
-                            ? BinarySerializer.optimizeRotation(validRot)
-                            : { y: validRot.y }; // Only send y rotation (yaw) to save bandwidth
-                    }
-                }
+        const pl = this.multiplayerManager.game?.player;
+        if (pl) {
+            let pos = null;
+            let rotY = null;
+            if (pl.movement?.getPosition) {
+                const p = pl.movement.getPosition();
+                if (p && !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z)) pos = [p.x, p.y, p.z];
             }
-            
-            // Fallback to model position if needed
-            if (!hostPosition && this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.position) {
-                const playerPos = this.multiplayerManager.game.player.model.position;
-                if (!isNaN(playerPos.x) && !isNaN(playerPos.y) && !isNaN(playerPos.z)) {
-                    hostPosition = {
-                        x: playerPos.x,
-                        y: playerPos.y,
-                        z: playerPos.z
-                    };
-                }
+            if (pl.movement?.getRotation) {
+                const r = pl.movement.getRotation();
+                if (r && !isNaN(r.y)) rotY = r.y;
             }
-            
-            // Fallback to model rotation if needed
-            if (!hostRotation && this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.rotation) {
-                const playerRot = this.multiplayerManager.game.player.model.rotation;
-                if (!isNaN(playerRot.y)) {
-                    hostRotation = {
-                        y: playerRot.y
-                    };
-                }
+            if (!pos && pl.model?.position) {
+                const p = pl.model.position;
+                if (!isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z)) pos = [p.x, p.y, p.z];
             }
-            
-            // Only add host player if we have valid position and rotation
-            if (hostPosition && hostRotation) {
-                let hostModelId = DEFAULT_CHARACTER_MODEL;
-                if (this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.currentModelId) {
-                    hostModelId = this.multiplayerManager.game.player.model.currentModelId;
-                }
-                const hostColor = this.multiplayerManager.assignedColors.get(this.peer.id);
+            if (rotY == null && pl.model?.rotation != null) rotY = pl.model.rotation.y;
+            if (pos && rotY != null) {
                 players[this.peer.id] = {
-                    position: hostPosition,
-                    rotation: hostRotation,
-                    animation: this.multiplayerManager.game.player.currentAnimation || 'idle',
-                    modelId: hostModelId,
-                    playerColor: hostColor || null
+                    position: pos,
+                    rotation: rotY,
+                    animation: pl.currentAnimation || 'idle',
+                    modelId: pl.model?.currentModelId || DEFAULT_CHARACTER_MODEL,
+                    playerColor: this.multiplayerManager.assignedColors.get(this.peer.id) || null
                 };
             }
         }
-        
-        // Add remote players: position + rotation + animation + modelId + playerColor
         this.multiplayerManager.remotePlayerManager.getPlayers().forEach((player, peerId) => {
-            if (player && player.group) {
-                const position = player.group.position;
-                if (!isNaN(position.x) && !isNaN(position.y) && !isNaN(position.z)) {
-                    const color = this.multiplayerManager.assignedColors.get(peerId);
-                    players[peerId] = {
-                        position: { x: position.x, y: position.y, z: position.z },
-                        rotation: player.model ? { y: player.model.rotation.y } : { y: 0 },
-                        animation: player.currentAnimation || 'idle',
-                        modelId: player.modelId || DEFAULT_CHARACTER_MODEL,
-                        playerColor: color || null
-                    };
-                }
-            }
+            if (!player?.group) return;
+            const p = player.group.position;
+            if (isNaN(p.x) || isNaN(p.y) || isNaN(p.z)) return;
+            const ry = player.model ? player.model.rotation.y : 0;
+            players[peerId] = {
+                position: [p.x, p.y, p.z],
+                rotation: ry,
+                animation: player.currentAnimation || 'idle',
+                modelId: player.modelId || DEFAULT_CHARACTER_MODEL,
+                playerColor: this.multiplayerManager.assignedColors.get(peerId) || null
+            };
         });
-        
-        // Collect enemy data - this is the primary focus
-        let enemies = {};
-        if (this.multiplayerManager.game.enemyManager && typeof this.multiplayerManager.game.enemyManager.getSerializableEnemyData === 'function') {
-            enemies = this.multiplayerManager.game.enemyManager.getSerializableEnemyData();
-        }
-        
-        // Create optimized game state packet
-        const gameState = {
-            type: 'gameState',
-            players, // Still include players but with minimal data
-            enemies  // Primary focus - enemy data
-        };
-        
-        // Send to all peers
-        this.broadcast(gameState);
+        const enemies = em && typeof em.getSerializableEnemyData === 'function' ? em.getSerializableEnemyData() : {};
+        this.broadcast({ type: 'gameState', players, enemies });
     }
 
 

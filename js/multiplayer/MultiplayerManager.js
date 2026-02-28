@@ -406,9 +406,9 @@ export class MultiplayerManager {
             }
         }
         
-        // If host, broadcast game state to members
+        // If host, broadcast game state to members (33ms ≈ 30 Hz for fast host-authority sync)
         if (this.connection.isHost && this.connection.peers.size > 0) {
-            if (!this._lastBroadcast || Date.now() - this._lastBroadcast > 50) {
+            if (!this._lastBroadcast || Date.now() - this._lastBroadcast >= 33) {
                 this.connection.broadcastGameState();
                 this._lastBroadcast = Date.now();
             }

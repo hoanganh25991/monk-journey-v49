@@ -73,6 +73,9 @@ export class EnemyManager {
         this.spawnTimer = 0;
         this.spawnInterval = 5; // Spawn enemy every 5 seconds
         
+        /** Host only: IDs removed this run (runDropAndQuest). Cleared after broadcast for fast sync. */
+        this._recentlyRemovedIds = [];
+        
         // Auto-drop configuration for distant enemies (from game-balance.js)
         this.autoDropDistance = ENEMY_CONFIG.AUTO_DROP.maxDistance;
         this.autoDropDistanceBoss = ENEMY_CONFIG.AUTO_DROP.bossMaxDistance;
@@ -413,6 +416,7 @@ export class EnemyManager {
             if (this.game?.questManager) this.game.questManager.updateEnemyKill(enemy);
             this.handleEnemyDrop(enemy);
             if (!enemy.isBoss) this.enemyKillCount++;
+            this._recentlyRemovedIds.push(id);
         }
         this._removeEnemyFromCaveGroup(enemy);
         enemy.remove();
@@ -436,31 +440,33 @@ export class EnemyManager {
     }
     
     /**
-     * Get serializable enemy data for network transmission (simplified)
+     * Get serializable enemy data for network transmission (compact for fast sync).
+     * Format: { [id]: { p: [x,y,z], h: health, t: type, b: isBoss } } - no redundant id in value.
      * @returns {Object} Object containing serialized enemy data
      */
     getSerializableEnemyData() {
         const enemyData = {};
-        
         this.enemies.forEach((enemy, id) => {
             const position = enemy.getPosition();
-            
-            // Skip enemies with invalid positions
-            if (isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) {
-                return;
-            }
-            
-            // Simplified enemy data
+            if (isNaN(position.x) || isNaN(position.y) || isNaN(position.z)) return;
             enemyData[id] = {
-                id: id,
-                position: position,
-                health: enemy.health,
-                type: enemy.type,
-                isBoss: enemy.isBoss || false
+                p: [position.x, position.y, position.z],
+                h: enemy.health,
+                t: enemy.type,
+                b: !!enemy.isBoss
             };
         });
-        
         return enemyData;
+    }
+    
+    /** Host: IDs of enemies just removed (runDropAndQuest). Cleared after broadcast. */
+    getRecentlyRemovedEnemyIds() {
+        return this._recentlyRemovedIds;
+    }
+    
+    /** Host: Clear after sending enemiesRemoved. */
+    clearRecentlyRemovedEnemyIds() {
+        this._recentlyRemovedIds = [];
     }
     
     /**
@@ -496,50 +502,57 @@ export class EnemyManager {
             if (idx >= 0) this.disposalQueue.splice(idx, 1);
         }
         
-        // Process enemy updates (create/update to match host)
-        Object.values(enemiesData).forEach(enemyData => {
-            const id = enemyData.id;
-            
-            // Skip if we don't have valid position data
-            if (!enemyData.position || 
-                isNaN(enemyData.position.x) || 
-                isNaN(enemyData.position.y) || 
-                isNaN(enemyData.position.z)) {
-                return;
-            }
-            
-            // Update the last updated timestamp for this enemy
+        // Process enemy updates (create/update to match host). Accept compact {p,h,t,b} or legacy {position,health,type,isBoss,id}.
+        Object.entries(enemiesData).forEach(([id, raw]) => {
+            const pos = raw.p ? { x: raw.p[0], y: raw.p[1], z: raw.p[2] } : raw.position;
+            if (!pos || isNaN(pos.x) || isNaN(pos.y) || isNaN(pos.z)) return;
+            const enemyData = {
+                id,
+                position: pos,
+                health: raw.h !== undefined ? raw.h : raw.health,
+                type: raw.t !== undefined ? raw.t : raw.type,
+                isBoss: raw.b !== undefined ? raw.b : !!raw.isBoss
+            };
             this.enemyLastUpdated.set(id, Date.now());
-            
-            // Check if enemy exists
             if (this.enemies.has(id)) {
-                // Update existing enemy
                 const enemy = this.enemies.get(id);
-                
-                // For multiplayer sync, ensure proper terrain height calculation
                 let newY = enemyData.position.y;
                 if (enemy.world && enemy.allowTerrainHeightUpdates && !enemy.isBoss) {
                     try {
                         const terrainHeight = enemy.world.getTerrainHeight(enemyData.position.x, enemyData.position.z);
-                        if (terrainHeight !== null && terrainHeight !== undefined && isFinite(terrainHeight)) {
-                            newY = terrainHeight + enemy.heightOffset;
-                        }
-                    } catch (error) {
-                        console.debug(`Error getting terrain height for enemy update: ${error.message}`);
-                    }
+                        if (terrainHeight != null && isFinite(terrainHeight)) newY = terrainHeight + enemy.heightOffset;
+                    } catch (_) {}
                 }
-                
                 enemy.setPosition(enemyData.position.x, newY, enemyData.position.z);
-                
                 if (enemyData.health !== undefined) {
                     enemy.health = enemyData.health;
                     enemy.updateHealthBar();
                 }
             } else {
-                // Create new enemy (async - fire and forget)
                 void this.createEnemyFromData(enemyData);
             }
         });
+    }
+    
+    /**
+     * Apply host-authority removals immediately (member). Call when receiving enemiesRemoved.
+     * @param {string[]} ids - Enemy IDs to remove
+     */
+    removeEnemiesByIds(ids) {
+        if (!ids || !ids.length) return;
+        for (const id of ids) {
+            const enemy = this.enemies.get(id);
+            if (enemy) {
+                this._removeEnemyFromCaveGroup(enemy);
+                enemy.remove();
+                this.enemies.delete(id);
+                this.enemiesArrayDirty = true;
+                this.processedDrops.delete(id);
+                this.enemyLastUpdated.delete(id);
+            }
+            const idx = this.disposalQueue.findIndex(e => e.id === id);
+            if (idx >= 0) this.disposalQueue.splice(idx, 1);
+        }
     }
     
     /**
