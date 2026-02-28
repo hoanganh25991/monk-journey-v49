@@ -2,7 +2,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
-import { distanceSq2D, distanceApprox2D, fastAtan2, normalize2D, tempVec2 } from '../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, normalize2D, tempVec2 } from 'utils/FastMath.js';
 
 export class Enemy {
     // Static counter for generating unique IDs

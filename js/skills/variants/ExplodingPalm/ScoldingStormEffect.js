@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
-import { normalize3D, tempVec3 } from '../../../utils/FastMath.js';
+import { normalize3D, tempVec3 } from 'utils/FastMath.js';
 
 /**
  * Effect for the Scolding Storm variant of Exploding Palm

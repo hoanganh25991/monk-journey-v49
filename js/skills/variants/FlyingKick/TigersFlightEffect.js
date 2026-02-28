@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
-import { fastInvSqrt, fastCos, fastSin } from '../../../utils/FastMath.js';
+import { fastInvSqrt, fastCos, fastSin } from 'utils/FastMath.js';
 
 /**
  * Effect for the Tiger's Flight variant of Flying Kick

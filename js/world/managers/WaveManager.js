@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { distanceSq2D } from '../../utils/FastMath.js';
+import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
  * WaveManager - Manages wave-based enemy spawning with consistent enemy counts

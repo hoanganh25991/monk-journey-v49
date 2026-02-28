@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { fastAtan2, fastCos, fastSin, fastInvSqrt } from '../../../utils/FastMath.js';
+import { fastAtan2, fastCos, fastSin, fastInvSqrt } from 'utils/FastMath.js';
 import { ImprisonedFistsEffect } from '../../ImprisonedFistsEffect.js';
 
 /**

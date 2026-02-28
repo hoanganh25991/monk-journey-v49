@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { BreathOfHeavenEffect } from '../../BreathOfHeavenEffect.js';
-import { distanceApprox3D, fastAtan2 } from '../../../utils/FastMath.js';
+import { distanceApprox3D, fastAtan2 } from 'utils/FastMath.js';
 
 /**
  * Effect for the Infused with Light variant of Breath of Heaven

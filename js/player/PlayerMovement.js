@@ -4,7 +4,7 @@
  */
 
 import * as THREE from '../../libs/three/three.module.js';
-import { normalize2D, tempVec2, fastAtan2 } from '../utils/FastMath.js';
+import { normalize2D, tempVec2, fastAtan2 } from 'utils/FastMath.js';
 
 /** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
 const MAX_JUMP_HEIGHT = 50;

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { distanceSq3D } from '../../../utils/FastMath.js';
+import { distanceSq3D } from 'utils/FastMath.js';
 import { WaveStrikeEffect } from '../../WaveStrikeEffect.js';
 
 /**

@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { distanceSq2D, distanceApprox2D, fastAtan2, fastCos, fastSin, fastInvSqrt, normalize2D, tempVec2 } from '../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, fastCos, fastSin, fastInvSqrt, normalize2D, tempVec2 } from 'utils/FastMath.js';
 
 /**
  * PathManager - Creates continuous walkable paths across the terrain

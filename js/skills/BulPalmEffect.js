@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2, distanceApprox3D, fastSin } from '../utils/FastMath.js';
+import { fastAtan2, distanceApprox3D, fastSin } from 'utils/FastMath.js';
 import { SkillEffect } from "./SkillEffect.js";
 
 /**

@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
-import { distanceSq2D, distanceApprox2D, fastAtan2, normalize3D, tempVec3 } from '../../../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, normalize3D, tempVec3 } from 'utils/FastMath.js';
 
 /**
  * Effect for the Grace's Bounty variant of Flying Kick

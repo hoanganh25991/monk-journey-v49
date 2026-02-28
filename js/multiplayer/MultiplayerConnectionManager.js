@@ -51,18 +51,14 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Host a new game (or resume with a previous room ID after network issue).
-     * PeerJS allows new Peer(optionalId): with a UUID/string the server assigns that ID if available
-     * (previous peer disconnected and ID released), so the host can use the same room and joiners can rejoin.
-     * @param {string} [previousRoomId] - If set, try to host with this room ID so joiners can rejoin the same room.
+     * Host a new game. Always uses this device's persistent Peer ID so roomId never changes (resume = same room).
+     * @param {string} [_unused] - Ignored; we always use getMyPersistentPeerId()
      */
-    async hostGame(previousRoomId) {
-        const isResume = !!previousRoomId;
+    async hostGame(_unused) {
+        const myId = this.multiplayerManager.getMyPersistentPeerId();
         try {
-            this.multiplayerManager.ui.updateConnectionStatus(isResume ? 'Resuming host...' : 'Initializing host...');
-            
-            // PeerJS: new Peer(id) uses that ID if available (e.g. after previous host disconnected)
-            this.peer = previousRoomId ? new Peer(previousRoomId) : new Peer();
+            this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');
+            this.peer = new Peer(myId);
             
             // Wait for peer to open
             await new Promise((resolve, reject) => {
@@ -108,11 +104,7 @@ export class MultiplayerConnectionManager {
             return true;
         } catch (error) {
             console.error('Error hosting game:', error);
-            if (isResume) {
-                this.multiplayerManager.ui.onResumeHostFailed(previousRoomId);
-            } else {
-                this.multiplayerManager.ui.updateConnectionStatus('Error hosting game: ' + error.message);
-            }
+            this.multiplayerManager.ui.updateConnectionStatus('Error hosting game: ' + error.message);
             return false;
         }
     }
@@ -125,8 +117,8 @@ export class MultiplayerConnectionManager {
         this._joinAttemptRoomId = roomId; // track so we can detect host-unavailable on error/close
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
-            
-            // Initialize PeerJS
+            // Joiner uses a new random Peer so we never get "ID is taken" (e.g. after hosting or reconnect on same device).
+            // Host keeps persistent room ID; joiners get a new connection ID each time.
             this.peer = new Peer();
             
             // Wait for peer to open
@@ -228,82 +220,55 @@ export class MultiplayerConnectionManager {
 
     /**
      * Add connection as a game player (host only); used after we know it's not an inviteRequest.
+     * Same peerId (persistent device ID) reconnecting = reuse existing remote player, one character.
      * @param {DataConnection} conn - The PeerJS connection
      */
     _addJoinerAsPlayer(conn) {
         conn.removeAllListeners('data');
         this.peers.set(conn.peer, conn);
+        const peerId = conn.peer;
+        const isReconnect = !!this.multiplayerManager.remotePlayerManager.getPlayer(peerId);
 
-        // Assign a color to the player if not already assigned
-        if (!this.multiplayerManager.assignedColors.has(conn.peer)) {
-            // Get next available color
+        // Assign a color only if new (reconnect keeps existing color)
+        if (!this.multiplayerManager.assignedColors.has(peerId)) {
             const usedColors = Array.from(this.multiplayerManager.assignedColors.values());
-            const availableColor = this.multiplayerManager.playerColors.find(color => !usedColors.includes(color)) || 
+            const availableColor = this.multiplayerManager.playerColors.find(color => !usedColors.includes(color)) ||
                                   this.multiplayerManager.playerColors[Math.floor(Math.random() * this.multiplayerManager.playerColors.length)];
-            
-            // Assign the color
-            this.multiplayerManager.assignedColors.set(conn.peer, availableColor);
+            this.multiplayerManager.assignedColors.set(peerId, availableColor);
         }
-        
-        const playerColor = this.multiplayerManager.assignedColors.get(conn.peer);
-        
-        // Update UI
-        this.multiplayerManager.ui.addPlayerToList(conn.peer, playerColor);
-        
-        // Enable start button if at least one player connected
+        const playerColor = this.multiplayerManager.assignedColors.get(peerId);
+
+        this.multiplayerManager.ui.addPlayerToList(peerId, playerColor);
         this.multiplayerManager.ui.setStartButtonEnabled(true);
-        
-        // Set up data handler
-        conn.on('data', data => this.handleDataFromMember(conn.peer, this.processReceivedData(data)));
-        
-        // Set up close handler
-        conn.on('close', () => this.handleDisconnect(conn.peer));
-        
-        // Send welcome message
-        conn.send({
-            type: 'welcome',
-            message: 'Connected to host'
-        });
-        
-        // Send all player colors to the new member
+        conn.on('data', data => this.handleDataFromMember(peerId, this.processReceivedData(data)));
+        conn.on('close', () => this.handleDisconnect(peerId));
+
+        conn.send({ type: 'welcome', message: isReconnect ? 'Reconnected to host' : 'Connected to host' });
         const colors = {};
-        this.multiplayerManager.assignedColors.forEach((color, id) => {
-            colors[id] = color;
-        });
-        
-        conn.send({
-            type: 'playerColors',
-            colors: colors
-        });
-        
-        // Notify other peers about the new player and their color
-        this.peers.forEach((peerConn, peerId) => {
-            if (peerId !== conn.peer) {
-                peerConn.send({
-                    type: 'playerJoined',
-                    playerId: conn.peer,
-                    playerColor: playerColor
-                });
+        this.multiplayerManager.assignedColors.forEach((color, id) => { colors[id] = color; });
+        conn.send({ type: 'playerColors', colors });
+
+        this.peers.forEach((peerConn, id) => {
+            if (id !== peerId) {
+                peerConn.send({ type: 'playerJoined', playerId: peerId, playerColor });
             }
         });
-        
-        // Create remote player with the assigned color
-        this.multiplayerManager.remotePlayerManager.createRemotePlayer(conn.peer, playerColor);
-        
-        // Notify ALL players (including the new joiner) that extra EXP is active with more players
+
+        if (!isReconnect) {
+            this.multiplayerManager.remotePlayerManager.createRemotePlayer(peerId, playerColor);
+        }
+
         const totalCount = 1 + this.peers.size;
         const partyMsg = { type: 'partyBonusUpdate', playerCount: totalCount };
         this.peers.forEach(peerConn => peerConn.send(partyMsg));
         if (this.multiplayerManager.game?.hudManager) {
             this.multiplayerManager.game.hudManager.showNotification(
-                `Player joined! Extra EXP active (${totalCount} players).`,
+                isReconnect ? 'Player reconnected!' : `Player joined! Extra EXP active (${totalCount} players).`,
                 'info'
             );
         }
-
-        // If host is already in a running game, tell the new joiner to start so they join directly (no Start button)
         if (this.multiplayerManager.game?.state?.isRunning?.()) {
-            this.sendToPeer(conn.peer, { type: 'startGame' });
+            this.sendToPeer(peerId, { type: 'startGame' });
         }
     }
 
@@ -618,21 +583,11 @@ export class MultiplayerConnectionManager {
         this.peers.delete(peerId);
         
         if (this.isHost) {
-            // Remove player from list
             this.multiplayerManager.ui.removePlayerFromList(peerId);
-            
-            // Notify other peers that a player left
             this.peers.forEach(conn => {
-                conn.send({
-                    type: 'playerLeft',
-                    playerId: peerId
-                });
+                conn.send({ type: 'playerLeft', playerId: peerId });
             });
-            
-            // Remove remote player
             this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
-            
-            // Disable start button if no players connected
             if (this.peers.size === 0) {
                 this.multiplayerManager.ui.setStartButtonEnabled(false);
             }

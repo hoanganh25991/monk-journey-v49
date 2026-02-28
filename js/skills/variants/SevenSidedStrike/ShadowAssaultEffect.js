@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq3D, fastAtan2 } from '../../../utils/FastMath.js';
+import { distanceSq3D, fastAtan2 } from 'utils/FastMath.js';
 import { SevenSidedStrikeEffect } from '../../SevenSidedStrikeEffect.js';
 
 /**

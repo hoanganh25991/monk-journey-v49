@@ -1,7 +1,7 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { ZONE_DEFINITIONS } from '../../config/density.js';
-import { distanceSq2D } from '../../utils/FastMath.js';
+import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
  * Manages world zones and their properties

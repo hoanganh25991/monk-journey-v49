@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { distanceSq3D, distanceApprox3D } from '../utils/FastMath.js';
+import { distanceSq3D, distanceApprox3D } from 'utils/FastMath.js';
 
 /**
  * A single projectile fired by a ranged enemy (e.g. arrow, orb).

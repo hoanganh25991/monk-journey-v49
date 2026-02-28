@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { distanceApprox3D, fastCos, fastSin } from '../../utils/FastMath.js';
+import { distanceApprox3D, fastCos, fastSin } from 'utils/FastMath.js';
 import { Path } from './Path.js';
 
 /**

@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { distanceSq2D, fastSin, fastCos, fastSqrt } from '../utils/FastMath.js';
+import { distanceSq2D, fastSin, fastCos, fastSqrt } from 'utils/FastMath.js';
 import { Enemy } from './Enemy.js';
 import { EnemyProjectileManager } from './EnemyProjectileManager.js';
 import { 

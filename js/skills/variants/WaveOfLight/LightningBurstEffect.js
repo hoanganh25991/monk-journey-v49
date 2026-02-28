@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { WaveOfLightEffect } from '../../WaveOfLightEffect.js';
-import { distanceSq2D, fastInvSqrt } from '../../../utils/FastMath.js';
+import { distanceSq2D, fastInvSqrt } from 'utils/FastMath.js';
 
 /**
  * Effect for the Lightning Burst variant of Wave of Light

@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { fastSin } from '../../utils/FastMath.js';
+import { fastSin } from 'utils/FastMath.js';
 
 /**
  * Interface for enemy models

@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { ExplodingPalmEffect } from '../../ExplodingPalmEffect.js';
-import { distanceApprox2D, fastAtan2, fastCos, fastSin, normalize3D, tempVec3 } from '../../../utils/FastMath.js';
+import { distanceApprox2D, fastAtan2, fastCos, fastSin, normalize3D, tempVec3 } from 'utils/FastMath.js';
 
 /**
  * Effect for the Breath of Incense variant of Exploding Palm

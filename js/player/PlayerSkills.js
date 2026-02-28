@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from '../utils/FastMath.js';
+import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from 'utils/FastMath.js';
 import { Skill } from '../skills/Skill.js';
 import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';

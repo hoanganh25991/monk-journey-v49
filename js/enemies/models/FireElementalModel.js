@@ -1,6 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { EnemyModel } from './EnemyModel.js';
-import { fastSin, fastCos } from '../../utils/FastMath.js';
+import { fastSin, fastCos } from 'utils/FastMath.js';
 
 /**
  * Model for Fire Elemental enemy type

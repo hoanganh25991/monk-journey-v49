@@ -20,7 +20,7 @@
  * @property {PlayerSkills} skills - Manages player skills and abilities
  * @property {PlayerCombat} combat - Manages player combat interactions
  */
-import { fastAtan2 } from '../utils/FastMath.js';
+import { fastAtan2 } from 'utils/FastMath.js';
 import { PlayerStats } from './PlayerStats.js';
 import { PlayerState } from './PlayerState.js';
 import { PlayerInventory } from './PlayerInventory.js';

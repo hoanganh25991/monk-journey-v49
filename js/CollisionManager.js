@@ -1,5 +1,5 @@
 import * as THREE from '../libs/three/three.module.js';
-import { distanceSq2D, normalize2D, tempVec2 } from './utils/FastMath.js';
+import { distanceSq2D, normalize2D, tempVec2 } from 'utils/FastMath.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {

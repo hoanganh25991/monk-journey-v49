@@ -40,12 +40,17 @@ export class SkillEffectFactory {
     }
 
     /**
-     * Resolve a path relative to this module (js/skills/) for reliable dynamic import.
-     * Uses import.meta.url so resolution works regardless of document base or server root.
+     * Resolve a path relative to js/skills/ for reliable dynamic import.
+     * Builds base from the page location and explicitly appends "js/skills/" so the
+     * effect module loads from .../js/skills/... and its own imports (e.g. ../../../utils/FastMath.js)
+     * resolve to .../js/utils/FastMath.js, not .../utils/FastMath.js.
      */
     static _resolveEffectPath(relativePath) {
-        const base = new URL('./', import.meta.url);
-        return new URL(relativePath.startsWith('./') ? relativePath : `./${relativePath}`, base).href;
+        const pageDir = typeof location !== 'undefined' && location.href
+            ? new URL('.', location.href)
+            : new URL('./', import.meta.url);
+        const skillsBase = new URL('js/skills/', pageDir);
+        return new URL(relativePath.startsWith('./') ? relativePath : `./${relativePath}`, skillsBase).href;
     }
 
     /**

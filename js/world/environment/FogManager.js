@@ -1,6 +1,6 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { FOG_CONFIG } from '../../config/render.js';
-import { distanceSq2D } from '../../utils/FastMath.js';
+import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
  * Manages fog effects in the game world

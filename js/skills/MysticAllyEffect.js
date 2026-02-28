@@ -1,6 +1,6 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
-import { fastAtan2, fastSin, fastCos } from '../utils/FastMath.js';
+import { fastAtan2, fastSin, fastCos } from 'utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 

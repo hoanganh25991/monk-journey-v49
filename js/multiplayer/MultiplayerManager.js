@@ -33,10 +33,37 @@ export class MultiplayerManager {
             '#8333FF'  // Purple
         ];
         this.assignedColors = new Map(); // Map of assigned colors by peer ID
-        
+        /** localStorage key for this device's persistent Peer ID (same forever until clear storage) */
+        this._storageKeyMyPeerId = 'monkJourney_myPeerId';
+
         // Create UI and connection managers
         this.ui = new MultiplayerUIManager(this);
         this.connection = new MultiplayerConnectionManager(this);
+    }
+
+    /**
+     * Get this device's persistent Peer ID for PeerJS. Created once, used forever (host and joiner).
+     * So roomId never changes when resuming host, and host recognizes same joiner on reconnect.
+     * @returns {string} UUID
+     */
+    getMyPersistentPeerId() {
+        try {
+            let id = localStorage.getItem(this._storageKeyMyPeerId);
+            if (!id) {
+                id = typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                        const r = (Math.random() * 16) | 0;
+                        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+                        return v.toString(16);
+                    });
+                localStorage.setItem(this._storageKeyMyPeerId, id);
+            }
+            return id;
+        } catch (_) {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, () =>
+                ((Math.random() * 16) | 0).toString(16));
+        }
     }
 
     /**

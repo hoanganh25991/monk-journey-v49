@@ -1,7 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { INTERACTION_RANGE } from '../config/input.js';
 import { InteractionResultHandler } from '../InteractionResultHandler.js';
-import { distanceSq2D, distanceApprox2D, fastSin, fastCos } from '../utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastSin, fastCos } from 'utils/FastMath.js';
 
 /**
  * Centralized system for handling all interactions in the game

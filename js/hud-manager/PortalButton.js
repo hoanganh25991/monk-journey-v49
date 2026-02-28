@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import { distanceSq2D } from '../utils/FastMath.js';
+import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
  * Portal Button UI component

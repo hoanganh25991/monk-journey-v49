@@ -8,7 +8,7 @@
 
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
-import { distanceApprox3D, fastAtan2, normalize3D, tempVec3 } from '../utils/FastMath.js';
+import { distanceApprox3D, fastAtan2, normalize3D, tempVec3 } from 'utils/FastMath.js';
 
 export class ImprisonedFistsEffect extends SkillEffect {
     constructor(skill) {

@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2 } from '../utils/FastMath.js';
+import { fastAtan2 } from 'utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';

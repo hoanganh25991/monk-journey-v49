@@ -3,7 +3,7 @@ import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
-import { distanceSq2D, fastAtan2, fastSin, fastCos } from '../utils/FastMath.js';
+import { distanceSq2D, fastAtan2, fastSin, fastCos } from 'utils/FastMath.js';
 
 /**
  * Specialized effect for Bul Shadow Clone skill

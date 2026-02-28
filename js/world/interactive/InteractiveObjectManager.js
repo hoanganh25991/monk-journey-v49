@@ -2,7 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';
-import { distanceSq2D } from '../../utils/FastMath.js';
+import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
  * Manages interactive objects in the world

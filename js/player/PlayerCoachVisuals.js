@@ -6,7 +6,7 @@
  */
 
 import * as THREE from '../../libs/three/three.module.js';
-import { fastSin, fastCos } from '../utils/FastMath.js';
+import { fastSin, fastCos } from 'utils/FastMath.js';
 import { getCoachType, getCoachElementFromWeapon, COACH_AURA_ROTATION_SPEED, COACH_SCALE } from '../config/coach.js';
 
 export class PlayerCoachVisuals {

@@ -1,6 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { CycloneStrikeEffect } from '../../CycloneStrikeEffect.js';
-import { distanceApprox2D, fastAtan2 } from '../../../utils/FastMath.js';
+import { distanceApprox2D, fastAtan2 } from 'utils/FastMath.js';
 
 /**
  * Effect for the Storm Spirit variant of Cyclone Strike
