@@ -235,6 +235,13 @@ export class PlayerCombat {
         if (worldGroup) {
             this.tombGroup = createPlayerTomb();
             this.tombGroup.position.copy(this.deathPosition);
+            // Place tomb base on ground surface so it's visible (player position.y is ground + heightOffset, which would float or bury the tomb)
+            const groundY = this.game?.world?.getPlayerGroundHeight
+                ? this.game.world.getPlayerGroundHeight(this.deathPosition.x, this.deathPosition.z)
+                : this.game?.world?.getTerrainHeight?.(this.deathPosition.x, this.deathPosition.z);
+            if (groundY != null && isFinite(groundY)) {
+                this.tombGroup.position.y = groundY + 0.02; // slight offset to avoid z-fighting
+            }
             worldGroup.add(this.tombGroup);
         }
         if (this.game?.audioManager) {

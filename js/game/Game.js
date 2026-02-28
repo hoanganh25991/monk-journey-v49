@@ -437,6 +437,14 @@ export class Game {
      */
     setupShadowDebugger() {
         document.addEventListener('keydown', (event) => {
+            // Host cheat: clear all enemies and sync to joiners (Ctrl+Shift+E)
+            if (event.ctrlKey && event.shiftKey && event.key === 'E') {
+                if (this.multiplayerManager?.isHost && this.multiplayerManager?.requestEnemiesClearAll) {
+                    event.preventDefault();
+                    this.multiplayerManager.requestEnemiesClearAll();
+                }
+                return;
+            }
             // Toggle shadow debugger with Ctrl+Shift+S
             if (event.ctrlKey && event.shiftKey && event.key === 'S') {
                 event.preventDefault();
@@ -818,7 +826,8 @@ export class Game {
      * In multiplayer the game is not paused so the session stays in sync.
      */
     pause(emitEvent = true) {
-        if (this.multiplayerManager?.connection?.isConnected) {
+        // In multiplayer (host or member), never pause so the session stays in sync and e.g. host sees joiners' skills when host is dead.
+        if (this.multiplayerManager?.connection && (this.multiplayerManager.connection.isHost || this.multiplayerManager.connection.isConnected)) {
             return;
         }
         console.debug("Pausing game...");

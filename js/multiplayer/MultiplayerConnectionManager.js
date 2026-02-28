@@ -380,6 +380,7 @@ export class MultiplayerConnectionManager {
         // If game has already been started (running or paused e.g. You Died), send startGame so rejoiner drops in without waiting for host to click Start again
         if (this.multiplayerManager.game?.state?.hasStarted?.()) {
             this.sendToPeer(peerId, { type: 'startGame' });
+            this.sendFullSyncGameStateToPeer(peerId);
         }
     }
 
@@ -429,6 +430,14 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.game.enemyManager.removeEnemiesByIds(data.ids);
                 }
                 break;
+            case 'enemiesClearAll':
+                if (this.multiplayerManager.game?.enemyManager?.removeAllEnemies) {
+                    this.multiplayerManager.game.enemyManager.removeAllEnemies();
+                    if (this.multiplayerManager.game?.hudManager) {
+                        this.multiplayerManager.game.hudManager.showNotification('Enemies cleared (host sync)', 'info');
+                    }
+                }
+                break;
             case 'gameState':
                 this.multiplayerManager.updateGameState(data);
                 break;
@@ -471,9 +480,12 @@ export class MultiplayerConnectionManager {
                 this.multiplayerManager.ui.updateConnectionInfoPlayerList();
                 break;
             case 'skillCast':
-                // When we're paused (e.g. death screen, menu), skip creating skill effects so they don't pile up
-                // and all run at once on resume (which would burst-kill enemies).
-                if (this.multiplayerManager.game?.isPaused) {
+                // When we're paused (e.g. menu), skip creating skill effects so they don't pile up on resume.
+                // In multiplayer when local player is dead we do not pause; if something did pause us, still show others' skills.
+                const inMp = this.multiplayerManager.connection && (this.multiplayerManager.connection.isHost || this.multiplayerManager.connection.isConnected);
+                const localDead = this.multiplayerManager.game?.player?.state?.isDead?.();
+                const skipSkillEffect = this.multiplayerManager.game?.isPaused && !(inMp && localDead);
+                if (skipSkillEffect) {
                     break;
                 }
                 // Handle skill cast from host or forwarded from another member
@@ -605,6 +617,7 @@ export class MultiplayerConnectionManager {
         if (data.type === 'requestStartGame') {
             if (this.multiplayerManager.game?.state?.hasStarted?.()) {
                 this.sendToPeer(peerId, { type: 'startGame' });
+                this.sendFullSyncGameStateToPeer(peerId);
             }
             return;
         }
@@ -1040,6 +1053,22 @@ export class MultiplayerConnectionManager {
     }
 
     /**
+     * Host: clear all enemies locally and broadcast "enemiesClearAll" so all joiners do the same.
+     * Use when you need a clean state everywhere (e.g. after clearing, or via cheat Ctrl+Shift+E).
+     */
+    broadcastEnemiesClearAll() {
+        if (!this.isHost) return;
+        const em = this.multiplayerManager.game?.enemyManager;
+        if (em && typeof em.removeAllEnemies === 'function') {
+            em.removeAllEnemies();
+        }
+        this.broadcast({ type: 'enemiesClearAll' });
+        if (this.multiplayerManager.game?.hudManager) {
+            this.multiplayerManager.game.hudManager.showNotification('Enemies cleared (all players)', 'info');
+        }
+    }
+
+    /**
      * Broadcast game state to all members (host only).
      * Delta sync: only changed enemies; full sync every 90 ticks. LOD: coarse position for far enemies.
      */
@@ -1105,6 +1134,64 @@ export class MultiplayerConnectionManager {
         this.broadcast(gameState);
     }
 
+    /**
+     * Host: send an immediate full-sync game state to a single peer (e.g. joiner/rejoiner).
+     * Ensures the peer gets exact host state (including empty enemies) without waiting for the next periodic fullSync.
+     */
+    sendFullSyncGameStateToPeer(peerId) {
+        if (!this.isHost || !this.peers.has(peerId)) return;
+        const em = this.multiplayerManager.game?.enemyManager;
+        const playerPositions = [];
+        const players = {};
+        const pl = this.multiplayerManager.game?.player;
+        if (pl) {
+            let pos = null;
+            let rotY = null;
+            if (pl.movement?.getPosition) {
+                const p = pl.movement.getPosition();
+                if (p && !isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z)) pos = [p.x, p.y, p.z];
+            }
+            if (pl.movement?.getRotation) {
+                const r = pl.movement.getRotation();
+                if (r && !isNaN(r.y)) rotY = r.y;
+            }
+            if (!pos && pl.model?.position) {
+                const p = pl.model.position;
+                if (!isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z)) pos = [p.x, p.y, p.z];
+            }
+            if (rotY == null && pl.model?.rotation != null) rotY = pl.model.rotation.y;
+            if (pos && rotY != null) {
+                players[this.peer.id] = {
+                    position: pos,
+                    rotation: rotY,
+                    animation: pl.currentAnimation || 'idle',
+                    modelId: pl.model?.currentModelId || DEFAULT_CHARACTER_MODEL,
+                    playerColor: this.multiplayerManager.assignedColors.get(this.peer.id) || null
+                };
+                playerPositions.push({ x: pos[0], z: pos[2] });
+            }
+        }
+        this.multiplayerManager.remotePlayerManager.getPlayers().forEach((player, id) => {
+            if (!player?.group) return;
+            const p = player.group.position;
+            if (isNaN(p.x) || isNaN(p.y) || isNaN(p.z)) return;
+            const ry = player.model ? player.model.rotation.y : 0;
+            players[id] = {
+                position: [p.x, p.y, p.z],
+                rotation: ry,
+                animation: player.currentAnimation || 'idle',
+                modelId: player.modelId || DEFAULT_CHARACTER_MODEL,
+                playerColor: this.multiplayerManager.assignedColors.get(id) || null
+            };
+            playerPositions.push({ x: p.x, z: p.z });
+        });
+        let enemies = {};
+        if (em && typeof em.getSerializableEnemyData === 'function') {
+            const result = em.getSerializableEnemyData({ fullSync: true, playerPositions });
+            enemies = result.data;
+        }
+        this.sendToPeer(peerId, { type: 'gameState', players, enemies, fullSync: true });
+    }
 
     /**
      * Clean up resources

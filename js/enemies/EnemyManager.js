@@ -1335,6 +1335,9 @@ export class EnemyManager {
         this.enemiesArrayDirty = true;
         this.processedDrops.clear();
         this.enemyLastUpdated.clear();
+        // Clear queues so joiners (and host) have no remnants or stale references
+        this.disposalQueue.length = 0;
+        this.enemiesToRemove.length = 0;
     }
     
     onPlayerMovedScreenDistance(playerPosition) {

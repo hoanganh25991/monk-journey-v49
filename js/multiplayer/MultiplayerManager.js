@@ -209,6 +209,15 @@ export class MultiplayerManager {
         if (!this.connection || this.connection.isHost || !enemyId) return;
         this.connection.sendToHost({ type: 'enemyKilled', enemyId });
     }
+
+    /**
+     * Host only: clear all enemies locally and broadcast so all joiners get a clean state.
+     * Call when you need to force-clean (e.g. cheat Ctrl+Shift+E or after clearing).
+     */
+    requestEnemiesClearAll() {
+        if (!this.connection?.isHost) return;
+        this.connection.broadcastEnemiesClearAll();
+    }
     
     /**
      * Check if this client is the host
