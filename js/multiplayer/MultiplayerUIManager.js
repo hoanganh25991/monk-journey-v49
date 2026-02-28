@@ -42,6 +42,8 @@ export class MultiplayerUIManager {
         this._silentRejoinInProgress = false;
         /** @type {number|undefined} */
         this._silentRejoinFallbackTimeoutId = undefined;
+        /** @type {number|undefined} - 10s status refresh while contacts popup is open */
+        this._contactsPopupIntervalId = undefined;
     }
 
     /**
@@ -250,9 +252,28 @@ export class MultiplayerUIManager {
         const popup = document.getElementById('contacts-popup');
         const closeBtn = document.getElementById('contacts-popup-close');
         if (!popup) return;
+        if (this._contactsPopupIntervalId !== undefined) {
+            clearInterval(this._contactsPopupIntervalId);
+            this._contactsPopupIntervalId = undefined;
+        }
         popup.style.display = 'flex';
-        if (closeBtn) closeBtn.onclick = () => { popup.style.display = 'none'; };
+        closeBtn.onclick = () => {
+            popup.style.display = 'none';
+            if (this._contactsPopupIntervalId !== undefined) {
+                clearInterval(this._contactsPopupIntervalId);
+                this._contactsPopupIntervalId = undefined;
+            }
+        };
         this.refreshContactsPopupList();
+        // While popup is open, refresh status every 10s (status channel); keeps list in sync
+        const CONTACTS_STATUS_INTERVAL_MS = 10000;
+        this._contactsPopupIntervalId = window.setInterval(() => {
+            const contacts = this.getHostContacts();
+            contacts.forEach((c) => {
+                this._lastStatusPingAt[c.id] = 0;
+            });
+            contacts.forEach((c) => this.pingHostStatus(c.id));
+        }, CONTACTS_STATUS_INTERVAL_MS);
     }
 
     refreshContactsPopupList() {
@@ -266,41 +287,35 @@ export class MultiplayerUIManager {
             return;
         }
         if (emptyEl) emptyEl.style.display = 'none';
+        contacts.forEach((c) => this.pingHostStatus(c.id));
         contacts.forEach(({ id, name }) => {
             const status = this.getHostStatus(id);
             const li = document.createElement('li');
             const dot = document.createElement('span');
             dot.className = 'contact-status-dot ' + (status || 'unknown');
             dot.title = status === 'hosting' ? 'Hosting' : status === 'ingame' ? 'In game' : status === 'online' ? 'Hosting' : status === 'offline' ? 'Offline' : 'Unknown';
-            const nameInput = document.createElement('input');
-            nameInput.type = 'text';
-            nameInput.className = 'contact-name-input';
-            nameInput.value = name;
-            nameInput.placeholder = 'Name';
-            nameInput.addEventListener('change', () => this.setContactName(id, nameInput.value.trim()));
-            nameInput.addEventListener('blur', () => this.setContactName(id, nameInput.value.trim()));
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'contact-name';
+            nameSpan.textContent = name || id.slice(0, 8) + '…';
             const joinBtn = document.createElement('button');
             joinBtn.type = 'button';
-            joinBtn.className = 'small-btn';
+            joinBtn.className = 'small-btn contact-join-btn';
             joinBtn.textContent = 'Join';
             joinBtn.onclick = () => {
-                document.getElementById('contacts-popup').style.display = 'none';
+                const contactsPopup = document.getElementById('contacts-popup');
+                if (contactsPopup) contactsPopup.style.display = 'none';
+                if (this._contactsPopupIntervalId !== undefined) {
+                    clearInterval(this._contactsPopupIntervalId);
+                    this._contactsPopupIntervalId = undefined;
+                }
+                this._silentRejoinInProgress = true;
                 this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
+                this.showRejoinOverlay('Reconnecting...');
                 this.multiplayerManager.joinGame(id);
             };
-            const askBtn = document.createElement('button');
-            askBtn.type = 'button';
-            askBtn.className = 'small-btn';
-            askBtn.textContent = 'Ask to play';
-            askBtn.title = 'Notify host to play together';
-            askBtn.onclick = () => this.sendInviteToHost(id);
-            const actions = document.createElement('div');
-            actions.className = 'contact-actions';
-            actions.appendChild(joinBtn);
-            actions.appendChild(askBtn);
             li.appendChild(dot);
-            li.appendChild(nameInput);
-            li.appendChild(actions);
+            li.appendChild(nameSpan);
+            li.appendChild(joinBtn);
             listEl.appendChild(li);
         });
     }
@@ -361,6 +376,7 @@ export class MultiplayerUIManager {
             try { peer.destroy(); } catch (_) {}
             this.setHostStatus(hostId, status);
             this.updateRejoinHostArea();
+            this.refreshContactsPopupList();
         };
         peer.on('error', () => finish('offline'));
         peer.on('open', () => {
@@ -1503,6 +1519,9 @@ export class MultiplayerUIManager {
                 });
             }
             
+            const inGame = this.multiplayerManager.game?.state?.hasStarted?.();
+            const connectionStatus = inGame ? 'ingame' : 'hosting';
+            const connectionStatusLabel = this._statusLabel(connectionStatus);
             allPlayerIds.forEach((playerId, index) => {
                 const isHostEntry = (playerId === hostId);
                 const isYou = (playerId === myPeerId);
@@ -1511,6 +1530,18 @@ export class MultiplayerUIManager {
                 
                 const playerItem = document.createElement('div');
                 playerItem.className = isHostEntry ? 'player-item host-player' : 'player-item';
+                
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'player-status-badge';
+                const statusDot = document.createElement('span');
+                statusDot.className = 'contact-status-dot ' + connectionStatus;
+                statusDot.title = connectionStatusLabel;
+                statusDot.setAttribute('aria-hidden', 'true');
+                const statusLabel = document.createElement('span');
+                statusLabel.className = 'player-status-label';
+                statusLabel.textContent = connectionStatusLabel;
+                statusBadge.appendChild(statusDot);
+                statusBadge.appendChild(statusLabel);
                 
                 const colorIndicator = document.createElement('div');
                 colorIndicator.className = 'player-color-indicator';
@@ -1530,6 +1561,7 @@ export class MultiplayerUIManager {
                     playerName.appendChild(label);
                 }
                 
+                playerItem.appendChild(statusBadge);
                 playerItem.appendChild(colorIndicator);
                 playerItem.appendChild(playerName);
                 
@@ -1617,7 +1649,7 @@ export class MultiplayerUIManager {
             enterCodeBtn.onclick = () => this.openEnterCodePopup();
         }
 
-        // Contacts button: list of hosts with rename, Join, Ask to play
+        // Contacts button: list of hosts with status and Join (same flow as Rejoin to last host)
         const contactsBtn = document.getElementById('join-contacts-btn');
         if (contactsBtn) {
             contactsBtn.onclick = () => this.showContactsPopup();

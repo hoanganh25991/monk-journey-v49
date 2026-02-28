@@ -271,7 +271,7 @@
     flex-shrink: 0;
 }
 
-/* Contacts popup (host list with rename, Join, Ask to play) */
+/* Contacts popup (host list with status and Join only; same flow as Rejoin to last host) */
 .contacts-popup-box {
     max-width: 90vw;
     max-height: 80vh;
@@ -309,22 +309,16 @@
 .contact-status-dot.ingame { background: #e74c3c; }
 .contact-status-dot.offline { background: #95a5a6; }
 .contact-status-dot.unknown { background: #7f8c8d; }
-.contact-name-input {
+.contact-name {
     flex: 1;
     min-width: 0;
-    padding: 0.25rem 0.4rem;
     font-size: 0.9rem;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-    color: inherit;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
-.contact-actions {
-    display: flex;
-    gap: 0.3rem;
+.contact-join-btn {
     flex-shrink: 0;
-}
-.contact-actions .small-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.8rem;
 }
@@ -562,6 +556,22 @@
 .player-item:last-child {
     border-bottom: none;
     margin-bottom: 0;
+}
+
+/* Status badge (Hosting / In game) for host and joiners in connection info */
+.player-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-right: var(--margin-small);
+    min-width: 4.5rem;
+}
+.player-status-badge .contact-status-dot {
+    flex-shrink: 0;
+}
+.player-status-label {
+    font-size: 0.75rem;
+    opacity: 0.95;
 }
 
 /* Host player styling */

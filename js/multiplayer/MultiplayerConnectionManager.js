@@ -100,8 +100,8 @@ export class MultiplayerConnectionManager {
             // Update connection status
             this.multiplayerManager.ui.updateConnectionStatus('Waiting for players to join...');
             
-            // Disable start button until at least one player joins
-            this.multiplayerManager.ui.setStartButtonEnabled(false);
+            // Allow host to start with or without joiners (joiner can come at start or later)
+            this.multiplayerManager.ui.setStartButtonEnabled(true);
             
             return true;
         } catch (error) {
@@ -285,7 +285,7 @@ export class MultiplayerConnectionManager {
         this.multiplayerManager.assignedColors.delete(peerId);
         this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
         this.multiplayerManager.ui.showInviteNotification(peerId);
-        if (this.peers.size === 0) this.multiplayerManager.ui.setStartButtonEnabled(false);
+        // Host can still start without joiners; do not disable Start when last joiner leaves
     }
 
     /**
@@ -621,9 +621,7 @@ export class MultiplayerConnectionManager {
                 conn.send({ type: 'playerLeft', playerId: peerId });
             });
             this.multiplayerManager.remotePlayerManager.removePlayer(peerId);
-            if (this.peers.size === 0) {
-                this.multiplayerManager.ui.setStartButtonEnabled(false);
-            }
+            // Host can play alone; do not disable Start when last joiner disconnects
         } else {
             // If host disconnected, handle it with the unified method
             if (peerId === this.hostId) {
