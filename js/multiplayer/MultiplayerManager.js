@@ -109,14 +109,19 @@ export class MultiplayerManager {
     }
 
     /**
-     * Process player input (host only)
+     * Process player input (host only). Applies joystick/movement and jump to remote player simulation.
      * @param {string} peerId - The ID of the peer
-     * @param {Object} data - The input data
+     * @param {Object} data - The input data { moveX, moveZ, jumpPressed }
      */
     processPlayerInput(peerId, data) {
-        // Update player state based on input
-        // This will depend on your game's input system
-        console.debug('Processing input from player', peerId, data);
+        const remotePlayer = this.remotePlayerManager.getPlayer(peerId);
+        if (!remotePlayer) return;
+        const moveX = typeof data.moveX === 'number' ? data.moveX : 0;
+        const moveZ = typeof data.moveZ === 'number' ? data.moveZ : 0;
+        remotePlayer.setMovementInput(moveX, moveZ);
+        if (data.jumpPressed) {
+            remotePlayer.requestJump();
+        }
     }
     
     /**
@@ -387,15 +392,15 @@ export class MultiplayerManager {
             this.remotePlayerManager.update(deltaTime);
         }
         
-        // If connected as member, send player data to host
+        // If connected as member, send initial position once then input every frame (action sync instead of position sync)
         if (!this.connection.isHost && this.connection.isConnected) {
-            // Check if game is running
             if (this.game.state && this.game.state.isRunning()) {
-                this.connection.sendPlayerData();
+                if (!this.connection._initialPositionSent) {
+                    this.connection.sendInitialPosition();
+                }
+                this.connection.sendPlayerInput();
             } else {
-                // Log this issue occasionally
                 if (!this._lastGameStateLog || now - this._lastGameStateLog > 3000) {
-                    console.debug('[MultiplayerManager] Member not sending data because game is not running');
                     this._lastGameStateLog = now;
                 }
             }

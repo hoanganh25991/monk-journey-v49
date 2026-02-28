@@ -32,7 +32,7 @@ const SCHEMAS = {
     [MessageType.PLAYER_LEFT]: ['playerId'],
     [MessageType.PLAYER_COLORS]: ['colors'],
     [MessageType.SKILL_CAST]: ['skillName', 'playerId', 'variant', 'targetEnemyId'],
-    [MessageType.PLAYER_INPUT]: ['input'],
+    [MessageType.PLAYER_INPUT]: ['moveX', 'moveZ', 'jumpPressed'],
     [MessageType.PLAYER_POSITION]: ['position', 'rotation', 'animation', 'modelId'],
     [MessageType.HOST_LEFT]: [],
     [MessageType.PLAYER_DAMAGE]: ['amount', 'enemyId'],

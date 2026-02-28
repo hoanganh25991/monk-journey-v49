@@ -25,6 +25,18 @@ export class RemotePlayer {
         this.targetPosition = new THREE.Vector3();
         this.targetRotation = new THREE.Euler();
         this.interpolationFactor = 0.1; // Smoothing factor for movement
+        // Input-driven movement (host simulates from member input)
+        this._inputDriven = false;
+        this.position = new THREE.Vector3();
+        this.inputMoveX = 0;
+        this.inputMoveZ = 0;
+        this.jumpRequested = false;
+        this.velocityY = 0;
+        this.jumpCount = 0;
+        this.movementSpeed = 18; // Match default from game-balance
+        this.gravity = 32;
+        this.groundedTolerance = 0.2;
+        this.heightOffset = 1.0;
         this.nameTag = null;
         this.playerColor = playerColor || '#FFFFFF'; // Default to white if no color provided
         this.colorIndicator = null;
@@ -283,9 +295,32 @@ export class RemotePlayer {
             return;
         }
         
-        // Set target position
-        console.debug(`[RemotePlayer ${this.peerId}] Setting target position:`, position);
+        // Set target position and keep internal position in sync (for input-driven host and for lerp base)
         this.targetPosition.set(position.x, position.y, position.z);
+        this.position.set(position.x, position.y, position.z);
+    }
+    
+    /**
+     * Set movement input (host only). Enables input-driven simulation for this remote player.
+     * @param {number} moveX - World-space movement X (-1..1)
+     * @param {number} moveZ - World-space movement Z (-1..1)
+     */
+    setMovementInput(moveX, moveZ) {
+        this._inputDriven = true;
+        this.inputMoveX = moveX;
+        this.inputMoveZ = moveZ;
+        // If we had initial position sync before first input, start simulation from there
+        if (this.position.x === 0 && this.position.y === 0 && this.position.z === 0 &&
+            (this.targetPosition.x !== 0 || this.targetPosition.y !== 0 || this.targetPosition.z !== 0)) {
+            this.position.copy(this.targetPosition);
+        }
+    }
+    
+    /**
+     * Request one jump (host only). Called when member sends jumpPressed.
+     */
+    requestJump() {
+        this.jumpRequested = true;
     }
     
     /**
@@ -602,19 +637,20 @@ export class RemotePlayer {
      * @param {number} deltaTime - Time elapsed since the last frame
      */
     update(deltaTime) {
-        // Interpolate position
-        this.group.position.lerp(this.targetPosition, this.interpolationFactor);
+        const safeDelta = Math.min(Math.max(deltaTime || 0.016, 0.001), 0.1);
+        
+        if (this._inputDriven) {
+            this._updateInputDriven(safeDelta);
+        } else {
+            // Interpolate position (member: position sync from host)
+            this.group.position.lerp(this.targetPosition, this.interpolationFactor);
+        }
         
         // Interpolate rotation
         if (this.model) {
-            // Create quaternions for smooth rotation
             const currentQuaternion = new THREE.Quaternion().setFromEuler(this.model.rotation);
             const targetQuaternion = new THREE.Quaternion().setFromEuler(this.targetRotation);
-            
-            // Interpolate quaternions
             currentQuaternion.slerp(targetQuaternion, this.interpolationFactor);
-            
-            // Apply rotation
             this.model.quaternion.copy(currentQuaternion);
         }
         
@@ -627,6 +663,69 @@ export class RemotePlayer {
         if (this.nameTag && this.game.camera) {
             this.nameTag.lookAt(this.game.camera.position);
         }
+    }
+    
+    /**
+     * Apply input-driven movement and jump (host only).
+     * @param {number} delta - Frame delta time
+     */
+    _updateInputDriven(delta) {
+        const dx = this.inputMoveX;
+        const dz = this.inputMoveZ;
+        const lenSq = dx * dx + dz * dz;
+        if (lenSq > 0.01) {
+            const len = Math.sqrt(lenSq);
+            const step = this.movementSpeed * delta;
+            this.position.x += (dx / len) * step;
+            this.position.z += (dz / len) * step;
+            this.targetRotation.y = Math.atan2(dx, dz);
+            this.updateAnimation('walking');
+        } else {
+            this.updateAnimation('idle');
+        }
+        
+        // Jump (one-shot when jumpRequested)
+        if (this.jumpRequested) {
+            this.jumpRequested = false;
+            const groundY = this._getGroundY();
+            if (groundY !== null && this.position.y <= groundY + this.groundedTolerance + 0.5) {
+                this.velocityY = 25;
+                this.jumpCount = 1;
+            }
+        }
+        
+        // Gravity and ground
+        const groundY = this._getGroundY();
+        if (groundY !== null) {
+            const inAir = this.position.y > groundY + this.groundedTolerance || this.velocityY > 0;
+            if (inAir) {
+                this.velocityY -= this.gravity * delta;
+                this.position.y += this.velocityY * delta;
+                if (this.position.y <= groundY + this.groundedTolerance) {
+                    this.position.y = groundY + this.heightOffset;
+                    this.velocityY = 0;
+                    this.jumpCount = 0;
+                }
+            } else {
+                this.position.y = groundY + this.heightOffset;
+                this.velocityY = 0;
+            }
+        }
+        
+        this.group.position.copy(this.position);
+        this.targetPosition.copy(this.position);
+    }
+    
+    /**
+     * Get ground Y at current XZ (for input-driven movement).
+     * @returns {number|null}
+     */
+    _getGroundY() {
+        if (!this.game?.world) return null;
+        const h = this.game.world.getPlayerGroundHeight
+            ? this.game.world.getPlayerGroundHeight(this.position.x, this.position.z)
+            : this.game.world.getTerrainHeight(this.position.x, this.position.z);
+        return h != null && isFinite(h) ? h : null;
     }
     
     /**

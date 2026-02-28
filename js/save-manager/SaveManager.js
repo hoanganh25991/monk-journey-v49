@@ -31,16 +31,21 @@ export class SaveManager extends ISaveSystem {
         this.saveProgress = noOpProgress;
         this.loadProgress = noOpProgress;
         this.saveKey = STORAGE_KEYS.SAVE_DATA;
+        this.quickStateKey = STORAGE_KEYS.PLAYER_QUICK_STATE;
         this.chunkSaveKeyPrefix = STORAGE_KEYS.CHUNK_PREFIX;
         this.autoSaveInterval = 60_000; // Auto-save every minute (reduced frequency)
         this.autoSaveTimer = null;
         this.lastSaveLevel = 0; // Track player level at last save
         this.lastSaveTime = 0; // Track time of last save
         this.minTimeBetweenSaves = 60_000; // Minimum minute between saves
-        
+        /** Set true when loadGame() runs this session so we don't overwrite with quick state on resume */
+        this.fullSaveAppliedThisSession = false;
+        /** Set true after we've applied quick state once this session so we don't apply every frame */
+        this._quickStateAppliedThisSession = false;
+
         // Use the centralized storage service directly
         this.storage = storageService;
-        
+
         // Current save version
         this.currentVersion = '1.1.0';
     }
@@ -326,7 +331,8 @@ export class SaveManager extends ISaveSystem {
             
             // Update last save time
             this.lastSaveTime = Date.now();
-            
+            this.fullSaveAppliedThisSession = true;
+
             this.loadProgress.update('Load complete!', 100);
             await this.delay(10); // Show completion for a moment
             
@@ -563,6 +569,68 @@ export class SaveManager extends ISaveSystem {
         } catch (error) {
             console.error('Error checking if save data exists:', error);
             return false;
+        }
+    }
+
+    /**
+     * Save lightweight player state (health, mana, position) to localStorage for resume-after-reload.
+     * Called periodically from the game loop when running. Uses sync localStorage only.
+     */
+    saveQuickState() {
+        try {
+            if (!this.game?.player) return;
+            const pos = this.game.player.getPosition();
+            const data = {
+                health: this.game.player.getHealth(),
+                mana: this.game.player.getMana(),
+                maxHealth: this.game.player.getMaxHealth(),
+                maxMana: this.game.player.getMaxMana(),
+                position: { x: pos.x, y: pos.y, z: pos.z },
+                timestamp: Date.now()
+            };
+            localStorage.setItem(this.quickStateKey, JSON.stringify(data));
+        } catch (e) {
+            console.debug('Quick state save failed:', e?.message);
+        }
+    }
+
+    /**
+     * Load quick state from localStorage (sync). Returns null if missing or invalid.
+     * @returns {{ health: number, mana: number, maxHealth?: number, maxMana?: number, position: { x: number, y: number, z: number } } | null}
+     */
+    loadQuickState() {
+        try {
+            const raw = localStorage.getItem(this.quickStateKey);
+            if (!raw) return null;
+            const data = JSON.parse(raw);
+            if (!data || typeof data.health !== 'number' || typeof data.mana !== 'number' || !data.position) return null;
+            return data;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * Apply quick state to the player once per session when entering the game without a full load.
+     * Skips if fullSaveAppliedThisSession is true (user clicked Load) or already applied this session.
+     */
+    applyQuickState() {
+        if (this.fullSaveAppliedThisSession || this._quickStateAppliedThisSession) return;
+        const data = this.loadQuickState();
+        if (!data || !this.game?.player) return;
+        try {
+            const p = this.game.player;
+            p.setPosition(
+                Number(data.position.x) || 0,
+                Number(data.position.y) ?? 0,
+                Number(data.position.z) || 0
+            );
+            if (typeof data.health === 'number' && data.health >= 0) p.stats.setHealth(data.health);
+            if (typeof data.mana === 'number' && data.mana >= 0) p.stats.setMana(data.mana);
+            this._quickStateAppliedThisSession = true;
+            console.debug('Player quick state restored (health, mana, position)');
+        } catch (e) {
+            console.debug('Quick state apply failed:', e?.message);
         }
     }
 }

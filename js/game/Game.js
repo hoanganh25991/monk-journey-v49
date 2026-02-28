@@ -1009,7 +1009,18 @@ export class Game {
                 this._warmupFramesLeft = -1;
             }
         }
-        
+
+        // Restore quick state once when entering game without a full load; save periodically for resume-after-reload
+        if (this.saveManager) {
+            this.saveManager.applyQuickState();
+            const QUICK_STATE_INTERVAL_MS = 1500;
+            if (!this._lastQuickStateSave) this._lastQuickStateSave = 0;
+            if (now - this._lastQuickStateSave >= QUICK_STATE_INTERVAL_MS) {
+                this.saveManager.saveQuickState();
+                this._lastQuickStateSave = now;
+            }
+        }
+
         // Update input handler for continuous skill casting
         this.inputHandler.update(delta);
         

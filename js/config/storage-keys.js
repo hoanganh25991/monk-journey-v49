@@ -52,6 +52,8 @@ export const STORAGE_KEYS = {
     // Map selection (path loaded on next game start to avoid in-game swap lag)
     SELECTED_MAP_PATH: 'monk_journey_selected_map_path',
     SAVE_DATA: 'monk_journey_save',
+    /** Lightweight player state (health, mana, position) for resume-after-reload */
+    PLAYER_QUICK_STATE: 'monk_journey_player_quick_state',
     CHUNK_PREFIX: 'monk_journey_chunk_',
     CHUNK_INDEX: 'monk_journey_chunk_index',
     

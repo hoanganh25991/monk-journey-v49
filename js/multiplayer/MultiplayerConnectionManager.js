@@ -30,6 +30,8 @@ export class MultiplayerConnectionManager {
         this.peerIdToPersistentId = new Map();
         /** Joiner: set when host sends hostLeft so we don't auto-retry reconnecting. */
         this._hostLeftIntentional = false;
+        /** Member: send position only once on first sync, then only input. */
+        this._initialPositionSent = false;
         this.serializer = new BinarySerializer(); // Binary serializer for efficient data transfer
         this.useBinaryFormat = false; // Flag to indicate if binary format is enabled
     }
@@ -531,18 +533,18 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.processPlayerInput(peerId, data);
                     break;
                 case 'playerPosition':
-                    // Validate position data before updating
+                    // Initial position sync from member (once); host uses this to start input-driven simulation from correct place
                     if (!data.position || !data.rotation) {
                         console.error('[MultiplayerConnectionManager] Received incomplete position data from member:', peerId);
                         return;
                     }
-                    
-                    // Update remote player position
                     this.multiplayerManager.remotePlayerManager.updatePlayer(
-                        peerId, 
-                        data.position, 
-                        data.rotation, 
-                        data.animation || 'idle'
+                        peerId,
+                        data.position,
+                        data.rotation,
+                        data.animation || 'idle',
+                        data.modelId,
+                        undefined
                     );
                     break;
                 case 'skillCast':
@@ -652,6 +654,8 @@ export class MultiplayerConnectionManager {
         } else {
             this.multiplayerManager.ui.showReconnectingAndRetryJoin();
         }
+
+        this._initialPositionSent = false;
 
         // Remove all remote players
         if (this.multiplayerManager.remotePlayerManager) {
@@ -851,118 +855,76 @@ export class MultiplayerConnectionManager {
     }
 
     /**
-     * Send player data to host (member only)
-     * Optimized to send minimal data
+     * Send initial position to host once (member only). Called on first sync so host can start input-driven simulation from correct place.
      */
-    sendPlayerData() {
-        if (this.isHost || !this.isConnected) {
-            // Silent return for host or not connected
-            return;
-        }
-        
-        if (!this.multiplayerManager.game.player) {
-            console.error('[MultiplayerConnectionManager] Cannot send player data: game.player is null');
-            return;
-        }
-        
+    sendInitialPosition() {
+        if (this.isHost || !this.isConnected || this._initialPositionSent) return;
+        if (!this.multiplayerManager.game?.player) return;
         const hostConn = this.peers.get(this.hostId);
-        if (!hostConn) {
-            console.error('[MultiplayerConnectionManager] Cannot send player data: no connection to host');
-            return;
-        }
-        
+        if (!hostConn) return;
         try {
-            // Get player position from movement component if available (more reliable)
             let position = null;
             let rotation = null;
-            
-            if (this.multiplayerManager.game.player.movement && this.multiplayerManager.game.player.movement.getPosition) {
+            if (this.multiplayerManager.game.player.movement?.getPosition) {
                 const validPos = this.multiplayerManager.game.player.movement.getPosition();
                 if (validPos && !isNaN(validPos.x) && !isNaN(validPos.y) && !isNaN(validPos.z)) {
-                    position = {
-                        x: validPos.x,
-                        y: validPos.y,
-                        z: validPos.z
-                    };
+                    position = { x: validPos.x, y: validPos.y, z: validPos.z };
                 }
-                
-                // Get rotation if available
                 if (this.multiplayerManager.game.player.movement.getRotation) {
                     const validRot = this.multiplayerManager.game.player.movement.getRotation();
-                    if (validRot && !isNaN(validRot.y)) {
-                        rotation = {
-                            y: validRot.y // Only send y rotation (yaw) to save bandwidth
-                        };
-                    }
+                    if (validRot && !isNaN(validRot.y)) rotation = { y: validRot.y };
                 }
             }
-            
-            // Fallback to model position if movement position is not available
-            if (!position && this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.position) {
-                const playerPos = this.multiplayerManager.game.player.model.position;
-                if (!isNaN(playerPos.x) && !isNaN(playerPos.y) && !isNaN(playerPos.z)) {
-                    position = {
-                        x: playerPos.x,
-                        y: playerPos.y,
-                        z: playerPos.z
-                    };
-                }
+            if (!position && this.multiplayerManager.game.player.model?.position) {
+                const p = this.multiplayerManager.game.player.model.position;
+                if (!isNaN(p.x) && !isNaN(p.y) && !isNaN(p.z)) position = { x: p.x, y: p.y, z: p.z };
             }
-            
-            // Fallback to model rotation if movement rotation is not available
-            if (!rotation && this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.rotation) {
-                const playerRot = this.multiplayerManager.game.player.model.rotation;
-                if (!isNaN(playerRot.y)) {
-                    rotation = {
-                        y: playerRot.y // Only send y rotation (yaw) to save bandwidth
-                    };
-                }
+            if (!rotation && this.multiplayerManager.game.player.model?.rotation) {
+                if (!isNaN(this.multiplayerManager.game.player.model.rotation.y)) rotation = { y: this.multiplayerManager.game.player.model.rotation.y };
             }
-            
-            // If we still don't have valid position or rotation, don't send anything
-            if (!position || !rotation) {
-                console.error('[MultiplayerConnectionManager] Cannot send player data: unable to get valid position or rotation');
-                return;
-            }
-            
-            // Get current animation (only if it changed to save bandwidth)
+            if (!position || !rotation) return;
             const animation = this.multiplayerManager.game.player.currentAnimation || 'idle';
-            
-            // Only log occasionally to reduce console spam
-            if (Math.random() < 0.05) { // ~5% of broadcasts
-                console.debug('[MultiplayerConnectionManager] Member sending player data to host:', 
-                        'Position:', position, 
-                        'Animation:', animation);
-            }
-
-            // Get the player's model ID
             let modelId = DEFAULT_CHARACTER_MODEL;
-            if (this.multiplayerManager.game.player.model && this.multiplayerManager.game.player.model.currentModelId) {
-                modelId = this.multiplayerManager.game.player.model.currentModelId;
-            }
-            
-            // Create player position data object
-            const playerData = {
-                type: 'playerPosition',
-                position,
-                rotation,
-                animation,
-                modelId // Include model ID
-            };
-            
-            // Send to host using binary format if enabled
+            if (this.multiplayerManager.game.player.model?.currentModelId) modelId = this.multiplayerManager.game.player.model.currentModelId;
+            const playerData = { type: 'playerPosition', position, rotation, animation, modelId };
             if (this.useBinaryFormat) {
                 const binaryData = this.serializer.serialize(playerData);
-                if (binaryData) {
-                    hostConn.send(binaryData);
-                } else {
-                    hostConn.send(playerData);
-                }
+                if (binaryData) hostConn.send(binaryData);
+                else hostConn.send(playerData);
             } else {
                 hostConn.send(playerData);
             }
+            this._initialPositionSent = true;
+            console.debug('[MultiplayerConnectionManager] Member sent initial position to host');
         } catch (error) {
-            console.error('[MultiplayerConnectionManager] Error sending player data:', error);
+            console.error('[MultiplayerConnectionManager] Error sending initial position:', error);
+        }
+    }
+
+    /**
+     * Send player input (joystick + jump) to host (member only). Called every frame instead of position for smooth, low-lag sync.
+     */
+    sendPlayerInput() {
+        if (this.isHost || !this.isConnected) return;
+        if (!this.multiplayerManager.game?.player) return;
+        const hostConn = this.peers.get(this.hostId);
+        if (!hostConn) return;
+        try {
+            const dir = this.multiplayerManager.game.inputHandler?.getMovementDirection?.();
+            const moveX = dir && !isNaN(dir.x) ? dir.x : 0;
+            const moveZ = dir && !isNaN(dir.z) ? dir.z : 0;
+            const jumpPressed = !!this.multiplayerManager.game.jumpRequested;
+            if (jumpPressed) this.multiplayerManager.game.jumpRequested = false;
+            const inputData = { type: 'playerInput', moveX, moveZ, jumpPressed };
+            if (this.useBinaryFormat) {
+                const binaryData = this.serializer.serialize(inputData);
+                if (binaryData) hostConn.send(binaryData);
+                else hostConn.send(inputData);
+            } else {
+                hostConn.send(inputData);
+            }
+        } catch (error) {
+            console.error('[MultiplayerConnectionManager] Error sending player input:', error);
         }
     }
 
