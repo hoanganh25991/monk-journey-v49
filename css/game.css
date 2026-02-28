@@ -32,13 +32,17 @@
     background-repeat: no-repeat;
 }
 
-/* Play reveal overlay: full-screen warm cream, circular "fog opens" into center when game is ready */
+/* Play reveal overlay: full-screen warm cream, CoC-style "fog burns away"; 3s minimum for full reveal so everyone sees it; low-end keeps blur until stable */
 @keyframes fogRevealCircle {
     from {
         clip-path: circle(150vmax at 50% 50%);
+        -webkit-mask-size: 220% 220%;
+        mask-size: 220% 220%;
     }
     to {
         clip-path: circle(0% at 50% 50%);
+        -webkit-mask-size: 0% 0%;
+        mask-size: 0% 0%;
     }
 }
 
@@ -54,15 +58,23 @@
     justify-content: center;
     align-items: center;
     pointer-events: none;
-    /* Start fully visible; .reveal-circle runs keyframe animation to shrink to center */
+    /* Start fully visible; .reveal-circle runs keyframe to shrink fog into center with soft edge */
     clip-path: circle(150vmax at 50% 50%);
+    /* Soft dissolving edge (CoC-style) as fog burns away */
+    -webkit-mask-image: radial-gradient(circle, black 0%, black 88%, transparent 100%);
+    mask-image: radial-gradient(circle, black 0%, black 88%, transparent 100%);
+    -webkit-mask-size: 220% 220%;
+    mask-size: 220% 220%;
+    -webkit-mask-position: center;
+    mask-position: center;
 }
 
 .play-reveal-overlay.reveal-circle {
-    animation: fogRevealCircle 0.85s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    /* 3s minimum so all devices see the full circle fog reveal */
+    animation: fogRevealCircle 3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* After 3s if load not stable: blur grey fog, map visible below with opacity */
+/* On low-end: after 3s if not stable yet, blur grey fog stays until loaded stable */
 .play-reveal-overlay.fog-waiting {
     background-color: rgba(96, 96, 96, 0.55);
     backdrop-filter: blur(10px);

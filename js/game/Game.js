@@ -715,7 +715,8 @@ export class Game {
             this.gameContainer.style.pointerEvents = 'none';
         }
         this._warmupFramesLeft = 8; // show game after 8 frames so first-frame spikes are off-screen
-        this._playRevealStartTime = Date.now(); // for 3s cream fog then blur-grey if not stable
+        this._playRevealStartTime = Date.now(); // after 3s if not stable, blur (fog-waiting) until stable
+        this._revealStableFramesLeft = null; // when warmup done, count stable frames before starting 3s reveal
 
         const runAfterMapLoaded = (mapData) => {
             // Keep fog (play-reveal-overlay) visible with "Preparing..." until warmup ends (animate() will run circle fade).
@@ -916,23 +917,31 @@ export class Game {
             this.jumpRequested = false; // clear so we don't jump when resuming
             this.safeRender(this.scene, this.camera);
             const playRevealEl = document.getElementById('play-reveal-overlay');
-            // After 3s if not yet stable, switch to blur grey fog (map visible with opacity)
+            // After 3s if not yet stable, switch to blur (fog-waiting); on low-end blur stays until loaded stable
             if (playRevealEl && this._playRevealStartTime != null) {
                 const elapsed = (Date.now() - this._playRevealStartTime) / 1000;
-                if (elapsed >= 3 && this._warmupFramesLeft > 0) {
+                const stillWaiting = this._warmupFramesLeft > 0 || (this._revealStableFramesLeft != null && this._revealStableFramesLeft > 0);
+                if (elapsed >= 3 && stillWaiting) {
                     playRevealEl.classList.add('fog-waiting');
-                    // Show game container so map is visible below the semi-transparent blur overlay
                     if (this.gameContainer) {
                         this.gameContainer.style.opacity = '1';
-                        this.gameContainer.style.pointerEvents = 'none'; // keep input disabled until reveal
+                        this.gameContainer.style.pointerEvents = 'none';
                     }
                 }
             }
-            // Warmup: count down even when paused; when done, run fog circle fade then unpause
+            // Warmup then stable-frames: only start 3s reveal when loaded stable; 100% disappear only after reveal animation
             if (this._warmupFramesLeft > 0) {
                 this._warmupFramesLeft--;
                 if (this._warmupFramesLeft === 0) {
                     this._warmupFramesLeft = -1;
+                    this._revealStableFramesLeft = 8; // ~90% of a short burst: need 8 stable frames before starting reveal
+                }
+            }
+            const STABLE_FRAME_MAX_MS = 80; // count frame as stable if delta under 80ms (~12fps)
+            if (this._revealStableFramesLeft != null && this._revealStableFramesLeft > 0) {
+                if (delta * 1000 < STABLE_FRAME_MAX_MS) this._revealStableFramesLeft--;
+                if (this._revealStableFramesLeft === 0) {
+                    this._revealStableFramesLeft = -1;
                     let revealDoneCalled = false;
                     const onRevealDone = () => {
                         if (revealDoneCalled) return;
@@ -961,9 +970,8 @@ export class Game {
                     };
                     if (playRevealEl) {
                         playRevealEl.addEventListener('animationend', onRevealDone);
-                        playRevealEl.classList.add('reveal-circle'); // triggers @keyframes fogRevealCircle
-                        // Fallback: some browsers may not fire animationend for clip-path; force reveal after 1.2s
-                        this._revealFallbackTimer = setTimeout(onRevealDone, 1200);
+                        playRevealEl.classList.add('reveal-circle'); // 3s minimum fog circle reveal
+                        this._revealFallbackTimer = setTimeout(onRevealDone, 3200);
                     } else {
                         onRevealDone();
                     }
