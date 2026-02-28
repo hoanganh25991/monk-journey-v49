@@ -226,12 +226,15 @@ export class MultiplayerUIManager {
             if (btn) {
                 const status = this.getHostStatus(latestHostId);
                 const xxxx = MultiplayerUIManager.roomIdFirst4(latestHostId);
+                const prefix = document.createElement('span');
+                prefix.textContent = 'Rejoin to last host - ';
                 const dot = document.createElement('span');
                 dot.className = 'contact-status-dot ' + (status || 'unknown');
                 dot.setAttribute('aria-hidden', 'true');
                 const label = document.createElement('span');
-                label.textContent = `Rejoin to last host - Player-${xxxx}`;
+                label.textContent = `Player-${xxxx}`;
                 btn.innerHTML = '';
+                btn.appendChild(prefix);
                 btn.appendChild(dot);
                 btn.appendChild(label);
                 btn.onclick = () => {
