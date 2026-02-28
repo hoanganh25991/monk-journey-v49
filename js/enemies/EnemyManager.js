@@ -77,6 +77,10 @@ export class EnemyManager {
         this._recentlyRemovedIds = [];
         /** Host only: last sent state per enemy for delta sync. id -> { p: [x,y,z], h } */
         this._lastSentEnemyState = new Map();
+        /** Joiner only: queue of enemy data to create; process up to 2 per frame to avoid FPS drops. */
+        this._pendingEnemyCreates = [];
+        /** Joiner only: IDs currently being created (async) so we don't queue duplicates. */
+        this._creatingEnemyIds = new Set();
         
         // Auto-drop configuration for distant enemies (from game-balance.js)
         this.autoDropDistance = ENEMY_CONFIG.AUTO_DROP.maxDistance;
@@ -511,6 +515,17 @@ export class EnemyManager {
     updateEnemiesFromHost(enemiesData, fullSync = false) {
         if (!enemiesData) return;
         this.lastSyncTime = Date.now();
+        const isJoiner = this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.connection.isHost && this.game.multiplayerManager.connection.isConnected;
+        if (isJoiner && this._pendingEnemyCreates.length > 0) {
+            const maxCreatesPerFrame = 2;
+            for (let i = 0; i < maxCreatesPerFrame && this._pendingEnemyCreates.length > 0; i++) {
+                const enemyData = this._pendingEnemyCreates.shift();
+                if (enemyData && !this._creatingEnemyIds.has(enemyData.id)) {
+                    this._creatingEnemyIds.add(enemyData.id);
+                    this.createEnemyFromData(enemyData).then(() => this._creatingEnemyIds.delete(enemyData.id)).catch(() => this._creatingEnemyIds.delete(enemyData.id));
+                }
+            }
+        }
         let idsToRemove = [];
         if (fullSync) {
             const hostEnemyIds = new Set(Object.keys(enemiesData));
@@ -558,7 +573,13 @@ export class EnemyManager {
                     if (changed) enemy.updateHealthBar();
                 }
             } else {
-                void this.createEnemyFromData(enemyData);
+                if (isJoiner) {
+                    const alreadyQueued = this._pendingEnemyCreates.some(e => e.id === id);
+                    const alreadyCreating = this._creatingEnemyIds.has(id);
+                    if (!alreadyQueued && !alreadyCreating) this._pendingEnemyCreates.push(enemyData);
+                } else {
+                    void this.createEnemyFromData(enemyData);
+                }
             }
         }
     }

@@ -321,6 +321,21 @@ export class BinarySerializer {
     }
 
     /**
+     * Peek message type from binary without full decode (MessagePack fixarray 2: 0x92, type_byte).
+     * Used to avoid decoding heavy gameState messages multiple times per frame.
+     * @param {Uint8Array|ArrayBuffer} binaryData - The binary data
+     * @returns {number} MessageType value or -1 if not a known format
+     */
+    peekMessageType(binaryData) {
+        const raw = binaryData instanceof ArrayBuffer ? new Uint8Array(binaryData) : binaryData;
+        if (!raw || raw.length < 2) return -1;
+        if (raw[0] !== 0x92) return -1;
+        const t = raw[1];
+        if (t >= 0 && t <= 18) return t;
+        return -1;
+    }
+
+    /**
      * Create object from binary message
      * @param {number} messageType - The message type
      * @param {Object} data - The binary message data

@@ -908,9 +908,20 @@ export class Game {
     }
     
     /**
+     * Ensure the animation loop is running. Call when joiner connects so deferred binary
+     * (e.g. startGame) can be drained without decoding in the WebRTC callback (keeps joiner FPS).
+     */
+    ensureAnimationLoopRunning() {
+        if (this.animationLoopStarted) return;
+        this.animationLoopStarted = true;
+        this.animate();
+    }
+
+    /**
      * Game animation loop
      */
     animate() {
+        this.animationLoopStarted = true;
         // Always continue the animation loop regardless of pause state
         requestAnimationFrame(() => this.animate());
         
@@ -939,8 +950,11 @@ export class Game {
         if (this.state.isPaused()) {
             this.jumpRequested = false; // clear so we don't jump when resuming
             this.safeRender(this.scene, this.camera);
-            // Host when paused (e.g. dead): keep multiplayer sync so remote players keep moving and broadcast stays current
             const conn = this.multiplayerManager?.connection;
+            if (conn && !conn.isHost && conn.isConnected && conn.drainPendingMessages) {
+                conn.drainPendingMessages();
+            }
+            // Host when paused (e.g. dead): keep multiplayer sync so remote players keep moving and broadcast stays current
             if (this.multiplayerManager && conn?.isHost && conn.peers?.size > 0) {
                 const now = performance.now();
                 const last = this._lastHostPausedMpTime;
@@ -1039,7 +1053,8 @@ export class Game {
         // Restore quick state once when entering game without a full load; save periodically for resume-after-reload
         if (this.saveManager) {
             this.saveManager.applyQuickState();
-            const QUICK_STATE_INTERVAL_MS = 1500;
+            const isJoiner = this.multiplayerManager?.connection && !this.multiplayerManager.connection.isHost && this.multiplayerManager.connection.isConnected;
+            const QUICK_STATE_INTERVAL_MS = isJoiner ? 4500 : 1500;
             if (!this._lastQuickStateSave) this._lastQuickStateSave = 0;
             if (now - this._lastQuickStateSave >= QUICK_STATE_INTERVAL_MS) {
                 this.saveManager.saveQuickState();

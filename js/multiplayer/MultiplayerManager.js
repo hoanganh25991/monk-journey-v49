@@ -134,13 +134,21 @@ export class MultiplayerManager {
     
     /**
      * Reconcile joiner's local position with host-authoritative position so host and joiner stay in sync.
-     * When joiner is in the air (jumping), only reconcile XZ so jump isn't killed by host's delayed Y.
+     * When joiner is in the air (whole jump arc: up or falling), only reconcile XZ so jump stays smooth.
      */
     _reconcileLocalPosition(hostPos, hostRot, fullSync) {
         if (!this.game?.player?.movement || !hostPos || typeof hostPos.x !== 'number') return;
         const pos = this.game.player.getPosition();
         const movement = this.game.player.movement;
-        const inAir = movement.velocityY > 0.1;
+        // In air = going up OR still above ground (whole arc); avoids snap-to-ground while falling
+        let inAir = movement.velocityY > 0.1;
+        if (!inAir && this.game?.world) {
+            const groundH = this.game.world.getPlayerGroundHeight
+                ? this.game.world.getPlayerGroundHeight(pos.x, pos.z)
+                : this.game.world.getTerrainHeight?.(pos.x, pos.z);
+            const groundY = (groundH != null && isFinite(groundH)) ? groundH + (movement.heightOffset ?? 1) : null;
+            inAir = groundY != null && pos.y > groundY + 0.35;
+        }
         const dx = hostPos.x - pos.x, dz = hostPos.z - pos.z;
         const distSqXZ = dx * dx + dz * dz;
         const snapThresholdSq = 9; // 3 units: snap if desync is large

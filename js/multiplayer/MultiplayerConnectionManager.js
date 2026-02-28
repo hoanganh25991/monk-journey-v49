@@ -43,6 +43,12 @@ export class MultiplayerConnectionManager {
         /** Joiner: at most one fullSync + one delta; applied one per frame so bursts never apply more than once. */
         this._pendingFullSync = null;
         this._pendingDelta = null;
+        /** Joiner: queue of raw binary messages; drain at frame start so we don't lose startGame (host sends welcome, playerColors, startGame, then gameState). */
+        this._pendingRawQueue = [];
+        /** Joiner: raw binary gameState buffer; decode+apply only every 2nd frame (~30 Hz) to keep FPS high. */
+        this._pendingRawGameState = null;
+        /** Joiner: frame counter for throttling game-state apply. */
+        this._joinerApplyTick = 0;
     }
 
     /**
@@ -53,7 +59,7 @@ export class MultiplayerConnectionManager {
             // Initialize binary serializer
             const serializerInitialized = await this.serializer.init();
             if (serializerInitialized) {
-                this.useBinaryFormat = true;
+                this.useBinaryFormat = true; // Prefer binary for joiner FPS: no parse in callback, smaller payload, throttle-friendly
                 console.debug('[MultiplayerConnectionManager] Binary serialization enabled');
             } else {
                 console.warn('[MultiplayerConnectionManager] Binary serialization failed to initialize, falling back to JSON');
@@ -159,7 +165,13 @@ export class MultiplayerConnectionManager {
                 this._joinAttemptRoomId = null; // join succeeded
                 this.multiplayerManager.ui.clearReconnectRetry();
                 // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
-                conn.on('data', data => this.handleDataFromHost(this.processReceivedData(data)));
+                conn.on('data', data => {
+                    if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
+                        this._pendingRawQueue.push(data);
+                        return;
+                    }
+                    this.handleDataFromHost(this.processReceivedData(data));
+                });
                 conn.on('close', () => this.handleDisconnect(roomId));
 
                 // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
@@ -181,6 +193,10 @@ export class MultiplayerConnectionManager {
                 
                 // Show the connection info screen (or rejoin overlay if silent rejoin)
                 this.multiplayerManager.ui.showConnectionInfoScreen();
+                // Start game loop so deferred binary decode can run (drainPendingMessages); avoids decoding in callback = better joiner FPS
+                if (this.multiplayerManager.game?.ensureAnimationLoopRunning) {
+                    this.multiplayerManager.game.ensureAnimationLoopRunning();
+                }
                 // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
                 // Send persistentId so host can dedupe one player per device (off->on->off->on = same slot)
                 this.sendToHost({
@@ -942,11 +958,60 @@ export class MultiplayerConnectionManager {
     }
 
     /**
+     * Drain the raw binary queue. Control messages (welcome, startGame, etc.) are decoded and handled.
+     * gameState raw buffer is kept for processPendingGameState to decode+apply at 30 Hz (every 2nd frame) to keep joiner FPS high.
+     * Call from drainPendingMessages (when paused) and from processPendingGameState (when running).
+     */
+    _drainRawQueue() {
+        if (this.isHost || !this._pendingRawQueue.length) return;
+        const GAME_STATE_TYPE = 1;
+        const MAX_DRAIN_PER_FRAME = 10;
+        let lastGameStateRaw = null;
+        let drained = 0;
+        while (this._pendingRawQueue.length > 0 && drained < MAX_DRAIN_PER_FRAME) {
+            drained++;
+            const raw = this._pendingRawQueue.shift();
+            const type = this.serializer?.peekMessageType?.(raw) ?? -1;
+            if (type === GAME_STATE_TYPE) {
+                lastGameStateRaw = raw;
+                continue;
+            }
+            const decoded = this.processReceivedData(raw);
+            if (decoded) this.handleDataFromHost(decoded);
+        }
+        if (lastGameStateRaw) this._pendingRawGameState = lastGameStateRaw;
+        if (this._pendingRawQueue.length > 24) {
+            this._pendingRawQueue.splice(0, this._pendingRawQueue.length - 12);
+        }
+    }
+
+    /**
+     * Drain pending raw binary (joiner only). Call when paused so startGame etc. are handled.
+     */
+    drainPendingMessages() {
+        if (this.isHost) return;
+        this._drainRawQueue();
+    }
+
+    /**
      * Process pending game state (joiner only). Called once per frame at frame start from Game.animate().
-     * Applies at most one state per frame: prefer fullSync if present, else latest delta (cap avoids burst perf drops).
+     * Both binary and JSON paths: apply at most every 2nd frame (~30 Hz) to keep joiner FPS 70–80.
+     * Binary is the better choice: no parse in WebRTC callback (queue raw) and smaller payload.
      */
     processPendingGameState() {
         if (this.isHost) return;
+        this._drainRawQueue();
+        this._joinerApplyTick++;
+        const shouldApply = (this._joinerApplyTick % 2 === 0);
+        if (this._pendingRawGameState) {
+            if (shouldApply) {
+                const decoded = this.processReceivedData(this._pendingRawGameState);
+                this._pendingRawGameState = null;
+                if (decoded?.type === 'gameState') this.multiplayerManager.updateGameState(decoded);
+            }
+            return;
+        }
+        if (!shouldApply) return;
         const data = this._pendingFullSync ?? this._pendingDelta;
         if (!data) return;
         this._pendingFullSync = null;
@@ -1247,5 +1312,8 @@ export class MultiplayerConnectionManager {
         this.roomId = null;
         this._pendingFullSync = null;
         this._pendingDelta = null;
+        this._pendingRawQueue = [];
+        this._pendingRawGameState = null;
+        this._joinerApplyTick = 0;
     }
 }

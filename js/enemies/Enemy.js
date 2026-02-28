@@ -294,6 +294,21 @@ export class Enemy {
             return;
         }
         
+        // Multiplayer client (joiner): position/health come from host; skip full AI to keep joiner FPS close to host
+        const em = this.game?.enemyManager;
+        if (em?.isMultiplayer && !em?.isHost) {
+            if (this.modelGroup) {
+                this.modelGroup.position.copy(this.position);
+                this.modelGroup.rotation.copy(this.rotation);
+            }
+            const profile = this.game?.world?.performanceProfile;
+            if (profile?.lodEnabled && profile?.enemyLod && this.game?.camera && this.updateLOD) {
+                this.updateLOD(this.game.camera);
+            }
+            this.updateAnimations(delta);
+            return;
+        }
+        
         // For bosses, ensure Y position is maintained at all times
         if (this.isBoss && this.initialPositionSet && this.initialYPosition !== null) {
             // Force Y position to always be the initial value
