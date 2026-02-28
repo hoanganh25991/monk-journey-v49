@@ -14,6 +14,11 @@
     z-index: 200; /* Multiplayer Modal */
     overflow: hidden;
     padding: 0;
+    /* Respect safe area on notched/small screens so header isn't clipped */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     box-sizing: border-box;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     color: white;
@@ -50,7 +55,6 @@
     align-items: center;
     padding: var(--padding-small) var(--padding-medium);
     background: rgba(0, 0, 0, 0.5);
-    height: 50px;
     min-height: 50px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -828,14 +832,32 @@
     margin: 0;
 }
 
-/* Connection info screen */
+/* Connection info screen - scrollable so header doesn't cover content on small screens */
 #connection-info-screen {
     display: none;
     flex-direction: column;
     width: 100%;
     height: 100%;
     min-height: 0;
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky header so "Multiplayer Connection" stays visible; content scrolls below it */
+#connection-info-screen .modal-header {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    flex-shrink: 0;
+    /* Opaque background so scrolling content doesn't show through */
+    background: rgba(0, 0, 0, 0.95);
+    padding-top: max(var(--padding-small), env(safe-area-inset-top, 0px));
+}
+
+/* Let main content fill space but grow with content so the screen can scroll when tall */
+#connection-info-screen .host-game-layout {
+    flex: 1 0 auto;
+    min-height: min-content;
 }
 
 /* Connection status box - now in the QR section */
