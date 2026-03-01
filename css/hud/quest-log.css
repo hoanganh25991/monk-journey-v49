@@ -47,7 +47,7 @@
 }
 
 #quest-list .quest-name.main-quest {
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 #quest-list .quest-objective {

@@ -12,7 +12,7 @@
     height: 100%;
     background-color: rgba(0, 0, 0);
     opacity: 1;
-    border: 2px solid #8a6d3b;
+    border: 2px solid var(--theme-amber);
     border-radius: 8px;
     color: #fff;
     z-index: 150; /* Same z-index as skill tree */ /* Hidden by default */
@@ -42,13 +42,13 @@
     align-items: center;
     padding: var(--padding-medium) var(--padding-large);
     background-color: rgba(138, 109, 59, 0.3);
-    border-bottom: 1px solid #8a6d3b;
+    border-bottom: 1px solid var(--theme-amber);
 }
 
 #skill-selection-header h2 {
     font-size: 24px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
 }
 
@@ -59,7 +59,7 @@
 
 #normal-skills-counter {
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 /* Content */
@@ -84,7 +84,7 @@
 #primary-attack-section h3,
 #normal-skills-section h3 {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 15px;
     border-bottom: 1px dashed rgba(255, 204, 0, 0.3);
     padding-bottom: 5px;
@@ -125,7 +125,7 @@
 }
 
 .skill-selection-item.selected {
-    border: 1px solid #ffcc00;
+    border: 1px solid var(--theme-gold);
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
     background-color: rgba(50, 40, 0, 0.3);
 }
@@ -144,7 +144,7 @@
 .skill-info .skill-name {
     font-size: 16px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 5px;
     /* Override any absolute positioning from hud-manager.css */
     position: static;
@@ -173,7 +173,7 @@
 
 #skill-selection-preview h3 {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 15px;
     text-align: center;
 }
@@ -248,7 +248,7 @@
     position: absolute;
     top: 2px;
     font-size: 10px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-align: center;
     width: 100%;
     white-space: nowrap;

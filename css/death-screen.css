@@ -22,14 +22,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2rem;
-    border-radius: 12px;
-    background: var(--theme-bg-dark);
+    padding: var(--padding-x-large);
+    border-radius: var(--modal-content-radius);
+    background: var(--modal-content-bg);
     border: 3px solid var(--theme-gold-border-subtle);
-    box-shadow:
-        0 0 0 1px rgba(var(--theme-gold-rgb), 0.15),
-        0 0 30px rgba(var(--theme-gold-rgb), 0.2),
-        0 8px 32px rgba(0, 0, 0, 0.8);
+    box-shadow: var(--modal-content-shadow);
     max-width: 90%;
     width: 400px;
 }
@@ -37,7 +34,7 @@
 #death-screen h1 {
     color: var(--theme-gold);
     font-size: 48px;
-    margin-bottom: 2rem;
+    margin-bottom: var(--margin-x-large);
     text-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.5);
     animation: pulse 2s infinite;
 }
@@ -52,7 +49,7 @@
 #death-screen .death-message {
     color: rgba(255, 255, 255, 0.9);
     font-size: 18px;
-    margin-bottom: 2rem;
+    margin-bottom: var(--margin-x-large);
     text-align: center;
     line-height: 1.5;
 }
@@ -61,8 +58,8 @@
     background-color: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--theme-gold-border-subtle);
     border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 2rem;
+    padding: var(--padding-medium);
+    margin-bottom: var(--margin-x-large);
     width: 100%;
     color: rgba(255, 255, 255, 0.85);
 }
@@ -110,20 +107,20 @@
 @media (max-height: 600px) {
     #death-screen h1 {
         font-size: 36px;
-        margin-bottom: 1rem;
+        margin-bottom: var(--margin-medium);
     }
     
     #death-screen-content {
-        padding: 1rem;
+        padding: var(--padding-medium);
     }
     
     #death-screen .death-message {
         font-size: 16px;
-        margin-bottom: 1rem;
+        margin-bottom: var(--margin-medium);
     }
     
     #death-screen .death-stats {
-        margin-bottom: 1rem;
-        padding: 0.5rem;
+        margin-bottom: var(--margin-medium);
+        padding: var(--padding-small);
     }
 }

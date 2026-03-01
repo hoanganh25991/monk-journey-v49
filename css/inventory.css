@@ -12,7 +12,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0);
-    border: 2px solid #8a6d3b;
+    border: 2px solid var(--theme-amber);
     border-radius: 8px;
     color: white; /* Will be toggled by JavaScript */
     pointer-events: auto;
@@ -29,20 +29,20 @@
     align-items: center;
     padding: var(--padding-medium) var(--padding-large);
     background-color: rgba(138, 109, 59, 0.3);
-    border-bottom: 1px solid #8a6d3b;
+    border-bottom: 1px solid var(--theme-amber);
     pointer-events: auto; /* Enable touch/click events for buttons */
 }
 
 #inventory-title {
     font-size: 24px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
 }
 
 #inventory-gold {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-align: center;
     flex: 1;
 }
@@ -169,7 +169,7 @@
 
 .equipment-slot:hover {
     background-color: rgba(30, 30, 30, 0.8);
-    border-color: #ffcc00;
+    border-color: var(--theme-gold);
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
 
@@ -193,7 +193,7 @@
 
 #inventory-items h3 {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 10px;
     border-bottom: 1px dashed rgba(255, 204, 0, 0.3);
     padding-bottom: var(--padding-small);
@@ -225,7 +225,7 @@
     background-color: rgba(30, 30, 30, 0.8);
     transform: translateY(-2px);
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-    border-color: #ffcc00;
+    border-color: var(--theme-gold);
 }
 
 .inventory-item:active {
@@ -253,7 +253,7 @@
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 10px;
     padding: 2px 5px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .item-name {
@@ -268,7 +268,7 @@
 
 .item-level {
     font-size: 12px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .item-description {
@@ -285,7 +285,7 @@
 
 .item-stats {
     font-size: 12px;
-    color: #8a6d3b;
+    color: var(--theme-amber);
 }
 
 /* Empty inventory slots */
@@ -380,7 +380,7 @@
 
 #player-stats-container-inventory {
     background-color: rgba(20, 20, 20, 0.9);
-    border: 2px solid #8a6d3b;
+    border: 2px solid var(--theme-amber);
     border-radius: 8px;
     padding: 20px;
     width: 80%;
@@ -391,7 +391,7 @@
 
 #player-stats-container-inventory h3 {
     font-size: 22px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 15px;
     text-align: center;
     border-bottom: 1px solid rgba(138, 109, 59, 0.5);
@@ -422,7 +422,7 @@
 
 .stat-value {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     font-weight: bold;
 }
 
@@ -460,10 +460,10 @@
     align-items: center;
     justify-content: center;
     background-color: rgba(138, 109, 59, 0.5);
-    border: 1px solid #8a6d3b;
+    border: 1px solid var(--theme-amber);
     border-radius: 3px;
     padding: 3px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s ease;

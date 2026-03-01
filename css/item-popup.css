@@ -2,7 +2,7 @@
 .item-popup {
     position: absolute;
     background-color: rgba(30, 30, 30, 0.95);
-    border: 2px solid #ffcc00;
+    border: 2px solid var(--theme-gold);
     border-radius: 8px;
     padding: 5px;
     width: 250px;
@@ -38,7 +38,7 @@
 .item-popup-name {
     margin: 0 0 5px 0;
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .item-popup-type {
@@ -94,8 +94,8 @@
 
 .item-popup-actions button {
     background-color: rgba(50, 50, 50, 0.8);
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-gold);
+    color: var(--theme-gold);
     padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
@@ -123,7 +123,7 @@
 
 .player-stats-container h3 {
     margin: 0 0 10px 0;
-    color: #ffcc00;
+    color: var(--theme-gold);
     font-size: 18px;
     text-align: center;
     border-bottom: 1px solid rgba(255, 204, 0, 0.3);
@@ -166,7 +166,7 @@
 /* Drag and drop styles */
 .inventory-item.drag-over {
     background-color: rgba(255, 204, 0, 0.2);
-    border: 2px dashed #ffcc00;
+    border: 2px dashed var(--theme-gold);
 }
 
 .inventory-item.dragging {

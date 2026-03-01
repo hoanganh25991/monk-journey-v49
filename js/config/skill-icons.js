@@ -14,7 +14,7 @@ export const SKILL_ICONS = {
     "Cyclone Strike": {
         emoji: "🌪️",
         cssClass: "icon-cyclone-strike",
-        color: "#ffcc00"
+        color: "var(--theme-gold)"
     },
     "Exploding Palm": {
         emoji: "💥",

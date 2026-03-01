@@ -165,7 +165,7 @@
 #experience-bar {
     height: 100%;
     width: 0%;
-    background-color: #ffcc00;
+    background-color: var(--theme-gold);
     border-radius: 2px;
     transition: width 0.3s ease;
 }

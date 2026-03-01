@@ -95,7 +95,7 @@ export class PlayerUI extends UIComponent {
         }
         
         // Set experience bar color
-        this.experienceBar.style.backgroundColor = '#ffcc00'; // Gold color
-        this.experienceBar.style.boxShadow = '0 0 5px #ffcc00';
+        this.experienceBar.style.backgroundColor = 'var(--theme-gold)';
+        this.experienceBar.style.boxShadow = '0 0 5px var(--theme-gold)';
     }
 }

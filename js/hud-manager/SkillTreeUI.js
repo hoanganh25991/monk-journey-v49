@@ -1335,7 +1335,7 @@ ${iconData.emoji}
     } else if (remainingPoints < 5) {
       this.elements.skillPointsValue.style.color = "#ffaa33"; // Orange for low
     } else {
-      this.elements.skillPointsValue.style.color = "#ffcc00"; // Default yellow
+      this.elements.skillPointsValue.style.color = "var(--theme-gold)"; // Default theme gold
     }
   }
 }

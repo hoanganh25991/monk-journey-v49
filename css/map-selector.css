@@ -6,7 +6,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: var(--modal-backdrop);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -20,10 +20,10 @@
 }
 
 .map-selector-modal {
-    background-color: rgba(0, 0, 0); /* Match skill-tree background */
-    border: 2px solid #8a6d3b; /* Match skill-tree border */
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.7); /* Match skill-tree shadow */
+    background-color: var(--theme-bg-dark);
+    border: var(--modal-content-border);
+    border-radius: var(--modal-content-radius);
+    box-shadow: var(--modal-content-shadow);
     width: 100vw;
     height: 100vh;
     overflow: hidden;
@@ -41,16 +41,16 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--padding-medium) var(--padding-large);
-    background-color: rgba(138, 109, 59, 0.3); /* Match skill-tree header background */
-    border-bottom: 1px solid #8a6d3b; /* Match skill-tree header border */
+    background-color: rgba(var(--theme-gold-rgb), 0.08);
+    border-bottom: 1px solid var(--theme-amber);
 }
 
 .map-selector-header h2 {
     margin: 0;
-    color: #ffcc00; /* Match skill-tree title color */
+    color: var(--theme-gold);
     font-size: 24px;
     font-weight: bold;
-    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); /* Match skill-tree title shadow */
+    text-shadow: 0 0 5px rgba(var(--theme-gold-rgb), 0.5);
 }
 
 .map-selector-header-left {
@@ -135,7 +135,7 @@
 }
 
 .map-list-item.selected {
-    border: 1px solid #ffcc00; /* Match skill-tree selected item */
+    border: 1px solid var(--theme-gold); /* Match skill-tree selected item */
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.5); /* Match skill-tree selected item glow */
     background-color: rgba(50, 40, 0, 0.3); /* Match skill-selection selected item */
 }
@@ -179,7 +179,7 @@
 /* Return to Procedural Map button */
 .return-to-map-button {
     background-color: rgba(255, 204, 0, 0.7); /* Match settings-button */
-    color: #4a3000; /* Match settings-button */
+    color: var(--theme-gold-text); /* Match settings-button */
     border: 2px solid rgba(255, 230, 150, 0.8); /* Match settings-button */
     padding: 8px 15px;
     border-radius: 15px;
@@ -208,7 +208,7 @@
 /* Generate New Map button styling */
 .generate-new-map-button {
     background-color: rgba(255, 204, 0, 0.7); /* Match settings-button */
-    color: #4a3000; /* Match settings-button */
+    color: var(--theme-gold-text); /* Match settings-button */
     border: 2px solid rgba(255, 230, 150, 0.8); /* Match settings-button */
     padding: 8px 15px;
     border-radius: 15px;
@@ -240,7 +240,7 @@
 
 .generate-new-map-button .map-icon,
 .return-to-map-button .map-icon {
-    color: #4a3000;
+    color: var(--theme-gold-text);
     font-size: 1.2rem;
 }
 
@@ -280,7 +280,7 @@
 }
 
 .current-map-name {
-    color: #ffcc00;
+    color: var(--theme-gold);
     font-weight: 600;
     font-size: 1rem;
 }
@@ -308,7 +308,7 @@
 
 .selected-map-info h3 {
     margin: 0 0 8px 0;
-    color: #ffcc00; /* Match skill-tree title color */
+    color: var(--theme-gold); /* Match skill-tree title color */
     font-size: 1.1rem;
 }
 
@@ -363,7 +363,7 @@
 }
 
 .stat-value {
-    color: #ffcc00; /* Match skill-tree accent color */
+    color: var(--theme-gold); /* Match skill-tree accent color */
     font-weight: 500;
     font-size: 0.9rem;
 }
@@ -395,7 +395,7 @@
 
 .map-name {
     margin: 0;
-    color: #ffcc00; /* Match skill-tree name color */
+    color: var(--theme-gold); /* Match skill-tree name color */
     font-size: 1.1rem;
     font-weight: 600;
 }
@@ -411,7 +411,7 @@
 
 .load-map-button {
     background-color: rgba(255, 204, 0, 0.7); /* Match settings-button */
-    color: #4a3000; /* Match settings-button */
+    color: var(--theme-gold-text); /* Match settings-button */
     border: 2px solid rgba(255, 230, 150, 0.8); /* Match settings-button */
     padding: 10px 16px;
     border-radius: 15px;
@@ -469,7 +469,7 @@
 
 .action-button.primary {
     background-color: rgba(255, 204, 0, 0.7); /* Match settings-button */
-    color: #4a3000; /* Match settings-button */
+    color: var(--theme-gold-text); /* Match settings-button */
     border: 2px solid rgba(255, 230, 150, 0.8); /* Match settings-button */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 -1px 3px rgba(139, 101, 0, 0.2);
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
@@ -489,7 +489,7 @@
 .action-button.secondary {
     background-color: rgba(138, 109, 59, 0.5); /* Match skill-tree button */
     color: #fff;
-    border: 1px solid #8a6d3b;
+    border: 1px solid var(--theme-amber);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 

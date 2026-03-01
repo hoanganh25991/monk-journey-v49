@@ -13,7 +13,8 @@
     --theme-gold-text: #4a3000;
     --theme-orange: #ff6600;
     --theme-bg-dark: rgba(30, 25, 20, 0.95);
-    
+    --theme-amber: #8a6d3b; /* borders and subtle UI (do not hardcode in UI CSS) */
+
     /* Padding variables */
     --padding-small: 5px;
     --padding-medium: 15px;
@@ -28,6 +29,13 @@
     
     /* Breakpoints */
     --breakpoint-mobile: 1024px;
+
+    /* In-game modal pattern: backdrop + content box */
+    --modal-backdrop: rgba(0, 0, 0, 0.85);
+    --modal-content-bg: var(--theme-bg-dark);
+    --modal-content-border: 2px solid var(--theme-gold-border-subtle);
+    --modal-content-radius: 12px;
+    --modal-content-shadow: 0 0 0 1px rgba(var(--theme-gold-rgb), 0.15), 0 0 30px rgba(var(--theme-gold-rgb), 0.2), 0 8px 32px rgba(0, 0, 0, 0.8);
 }
 
 /* Mobile-specific variables */

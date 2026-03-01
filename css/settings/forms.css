@@ -7,7 +7,7 @@
 /* Select boxes in settings */
 .settings-select {
     background-color: rgba(255, 204, 0, 0.7);
-    color: #4a3000;
+    color: var(--theme-gold-text);
     border: 2px solid rgba(255, 230, 150, 0.8);
     padding: var(--padding-small) var(--padding-medium);
     font-size: 14px;
@@ -65,7 +65,7 @@
 .settings-checkbox:checked::after {
     content: '✓';
     position: absolute;
-    color: #4a3000;
+    color: var(--theme-gold-text);
     font-weight: bold;
     font-size: 14px;
     top: 50%;
@@ -137,7 +137,7 @@
 .google-login-button {
     /* Inherit all settings-button styles */
     background-color: rgba(255, 204, 0, 0.7);
-    color: #4a3000;
+    color: var(--theme-gold-text);
     border: 2px solid rgba(255, 230, 150, 0.8);
     padding: 8px 15px;
     margin: 0;

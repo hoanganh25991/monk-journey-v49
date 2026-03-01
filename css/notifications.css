@@ -227,7 +227,7 @@
 }
 
 .level-up-text, .level-up-level {
-    color: #ffcc00;
+    color: var(--theme-gold);
     font-size: 4rem;
     font-weight: bold;
     text-shadow: 0 0 1rem #ff6600;

@@ -9,7 +9,7 @@
     height: 100%;
     background-color: rgba(0, 0, 0);
     opacity: 1;
-    border: 2px solid #8a6d3b;
+    border: 2px solid var(--theme-amber);
     border-radius: 8px;
     color: #fff;
     z-index: 110; /* Dialogs and Menus - Skill Tree */
@@ -26,19 +26,19 @@
     align-items: center;
     padding: var(--padding-medium) var(--padding-large);
     background-color: rgba(138, 109, 59, 0.3);
-    border-bottom: 1px solid #8a6d3b;
+    border-bottom: 1px solid var(--theme-amber);
 }
 
 #skill-tree-title {
     font-size: 24px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
 }
 
 #skill-tree-points {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     text-align: center;
     flex: 1;
 }
@@ -113,7 +113,7 @@
 }
 
 .skill-node.selected {
-    border: 1px solid #ffcc00;
+    border: 1px solid var(--theme-gold);
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
 }
 
@@ -156,7 +156,7 @@
 #skill-detail-name {
     font-size: 22px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 10px;
 }
 
@@ -202,7 +202,7 @@
 #skill-variants-container h3,
 #skill-buffs-container h3 {
     font-size: 18px;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 15px;
     border-bottom: 1px dashed rgba(255, 204, 0, 0.3);
     padding-bottom: var(--padding-small);
@@ -238,7 +238,7 @@
 }
 
 .skill-variant.active {
-    border: 1px solid #ffcc00;
+    border: 1px solid var(--theme-gold);
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
 
@@ -267,7 +267,7 @@
 
 .variant-cost {
     font-size: 14px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .variant-description {
@@ -290,13 +290,13 @@
     border-radius: 4px;
     padding: var(--padding-small) calc(var(--padding-small) + 3px);
     font-size: 12px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .variant-select-btn,
 .buff-select-btn {
     background-color: rgba(138, 109, 59, 0.5);
-    border: 1px solid #8a6d3b;
+    border: 1px solid var(--theme-amber);
     border-radius: 4px;
     color: #fff;
     padding: calc(var(--padding-small) + 3px) var(--padding-medium);
@@ -339,7 +339,7 @@
 }
 
 .skill-buff.active {
-    border: 1px solid #ffcc00;
+    border: 1px solid var(--theme-gold);
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
 
@@ -368,7 +368,7 @@
 
 .buff-cost {
     font-size: 14px;
-    color: #ffcc00;
+    color: var(--theme-gold);
 }
 
 .buff-description {
@@ -403,7 +403,7 @@
 .base-skill-name {
     font-size: 16px;
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-gold);
     margin-bottom: 8px;
 }
 
@@ -422,7 +422,7 @@
 
 .base-skill-btn {
     background-color: rgba(138, 109, 59, 0.5);
-    border: 1px solid #8a6d3b;
+    border: 1px solid var(--theme-amber);
     border-radius: 4px;
     color: #fff;
     padding: calc(var(--padding-small) + 3px) var(--padding-medium);
