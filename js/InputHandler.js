@@ -327,78 +327,21 @@ export class InputHandler {
     isKeyPressed(keyCode) {
         return this.keys[keyCode] === true;
     }
-
-    /**
-     * First-person: combined intent from keys + joystick, then dominant direction.
-     * Same convention as movement: local x = left/right, local z = forward(negative)/back(positive).
-     * @returns {{ lx: number, lz: number, dominant: 'forward'|'back'|'left'|'right'|null }}
-     */
-    _getFirstPersonCombinedIntent() {
-        let lx = 0, lz = 0;
-        if (MOVEMENT_KEYS.FORWARD.some(k => this.isKeyPressed(k))) lz -= 1;
-        if (MOVEMENT_KEYS.BACKWARD.some(k => this.isKeyPressed(k))) lz += 1;
-        if (MOVEMENT_KEYS.LEFT.some(k => this.isKeyPressed(k))) lx += 1;
-        if (MOVEMENT_KEYS.RIGHT.some(k => this.isKeyPressed(k))) lx -= 1;
-        const j = this.game?.hudManager?.getJoystickDirection?.();
-        if (j && (j.x !== 0 || j.y !== 0)) {
-            lx += -j.x;
-            lz += j.y;
-        }
-        const ax = Math.abs(lx), az = Math.abs(lz);
-        let dominant = null;
-        if (ax > 0 || az > 0) {
-            if (az >= ax) dominant = lz < 0 ? 'forward' : 'back';
-            else dominant = lx > 0 ? 'left' : 'right';
-        }
-        return { lx, lz, dominant };
-    }
-
-    /**
-     * First-person turn/back intent for camera: keys or joystick dominant left/right/back.
-     * @returns {{ turnLeft: boolean, turnRight: boolean, turnBack: boolean }}
-     */
-    getFirstPersonTurnIntent() {
-        const keyLeft = MOVEMENT_KEYS.LEFT.some(k => this.isKeyPressed(k));
-        const keyRight = MOVEMENT_KEYS.RIGHT.some(k => this.isKeyPressed(k));
-        const keyBack = MOVEMENT_KEYS.BACKWARD.some(k => this.isKeyPressed(k));
-        const { dominant } = this._getFirstPersonCombinedIntent();
-        return {
-            turnLeft: keyLeft || dominant === 'left',
-            turnRight: keyRight || dominant === 'right',
-            turnBack: keyBack || dominant === 'back'
-        };
-    }
     
     getMovementDirection() {
         const local = this._scratchLocal;
         local.set(0, 0, 0);
 
-        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
-        const isFirstPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.OVER_SHOULDER;
+        if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
+        if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
+        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x -= 1;
+        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x += 1;
 
-        if (isFirstPerson) {
-            // First-person: W = move in look direction (same as attack direction, toward top of screen). Back = opposite.
-            // Local +Z rotated by cameraRotationY gives world direction cameraRotationY; -Z gives cameraRotationY + PI.
-            const { dominant } = this._getFirstPersonCombinedIntent();
-            if (dominant === 'forward') {
-                local.z = 1;
-            } else if (dominant === 'back') {
-                local.z = -1;
-            }
-            // left/right → no movement (camera turn only via getFirstPersonTurnIntent)
-        } else {
-            // Third-person and others: standard W/S/A/D
-            if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
-            if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
-            if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x += 1;
-            if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x -= 1;
-
-            if (this.game?.hudManager?.getJoystickDirection) {
-                const j = this.game.hudManager.getJoystickDirection();
-                if (j && (j.x !== 0 || j.y !== 0)) {
-                    local.x = -j.x;
-                    local.z = j.y;
-                }
+        if (this.game?.hudManager?.getJoystickDirection) {
+            const j = this.game.hudManager.getJoystickDirection();
+            if (j && (j.x !== 0 || j.y !== 0)) {
+                local.x = j.x;
+                local.z = j.y;
             }
         }
 
@@ -409,21 +352,11 @@ export class InputHandler {
 
         local.normalize();
 
-        const isThirdPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.THIRD_PERSON;
-
         let cameraRotationY = 0;
-        if (cameraUI) {
-            // Third person: use static camera angle so W = forward (away from camera), A/D match screen left/right
-            cameraRotationY = isThirdPerson
-                ? (cameraUI._staticAngleInitialized ? cameraUI.staticCameraRotationY : cameraUI.cameraState.rotationY)
-                : cameraUI.cameraState.rotationY;
+        if (this.game?.hudManager?.components?.cameraControlUI) {
+            cameraRotationY = this.game.hudManager.components.cameraControlUI.cameraState.rotationY;
         } else if (this.game?.camera) {
             cameraRotationY = this.game.camera.rotation.y;
-        }
-
-        // Third person with static camera: left/right were reverted relative to view, so flip local X
-        if (isThirdPerson) {
-            local.x = -local.x;
         }
 
         this._scratchMatrix.makeRotationY(cameraRotationY);

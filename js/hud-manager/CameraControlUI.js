@@ -1,6 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2, fastSqrt } from '../utils/FastMath.js';
 
 /**
  * Camera Control UI component
@@ -38,9 +37,6 @@ export class CameraControlUI extends UIComponent {
         
         // Current camera mode
         this.currentCameraMode = this.cameraModes.THIRD_PERSON;
-        // Third-person: fixed camera angle (locked when entering third-person, no drag)
-        this.staticCameraRotationY = 0;
-        this._staticAngleInitialized = false;
         
         // Camera distances for different modes
         this.cameraDistances = {
@@ -62,16 +58,6 @@ export class CameraControlUI extends UIComponent {
             [this.cameraModes.THIRD_PERSON]: 5,      // Default look offset for third-person
             [this.cameraModes.OVER_SHOULDER]: 3      // Look slightly upward in over-shoulder view
         };
-        
-        // Over-shoulder parallax: camera smoothly follows player facing (player moves first, camera eases to match)
-        // Higher = faster catch-up. ~4–6 gives smooth "follow" feel; ~2–3 more cinematic lag.
-        this.cameraFollowSpeed = 5;
-        /** First-person: A/D turn view left/right (radians per second) */
-        this.firstPersonTurnSpeed = 2.5;
-        /** First-person: S = 180° camera turn lerp speed (higher = faster snap to back) */
-        this.firstPersonTurnBackSpeed = 12;
-        /** First-person: target Y for S 180° turn (lerp until reached) */
-        this._firstPersonTurnBackTargetY = null;
         
         // Camera height configuration (can be adjusted for testing)
         this.cameraHeightConfig = {
@@ -522,7 +508,6 @@ export class CameraControlUI extends UIComponent {
         
         const onOverlayTouchStart = (e) => {
             if (!this.cameraState.viewControlModeActive || e.changedTouches.length === 0) return;
-            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
             e.preventDefault();
             e.stopPropagation();
             const touch = e.changedTouches[0];
@@ -539,7 +524,6 @@ export class CameraControlUI extends UIComponent {
         };
         const onOverlayMouseDown = (e) => {
             if (!this.cameraState.viewControlModeActive) return;
-            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
             if (!this.isOnRightHalfOfScreen(e.clientX)) return;
             e.preventDefault();
             e.stopPropagation();
@@ -588,16 +572,10 @@ export class CameraControlUI extends UIComponent {
         
         console.debug('Updating camera mode button UI for mode:', this.currentCameraMode);
         
-        if (this.cameraOverlay) {
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER) {
-                this.cameraOverlay.style.pointerEvents = 'auto';
-            } else {
-                this.cameraOverlay.style.pointerEvents = 'none';
-            }
-        }
+        // Update button appearance based on current mode
         if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER) {
             this.cameraModeButton.classList.add('active');
-            this.cameraModeButton.title = 'Currently: First-person view | Click to switch to third-person (static camera)';
+            this.cameraModeButton.title = 'Currently: Over-shoulder view | Click to switch to third-person view';
             
             // Update icon to indicate current mode
             const iconElement = this.cameraModeButton.querySelector('.camera-mode-icon');
@@ -606,7 +584,7 @@ export class CameraControlUI extends UIComponent {
             }
         } else {
             this.cameraModeButton.classList.remove('active');
-            this.cameraModeButton.title = 'Currently: Third-person (static camera) | Click for first-person view';
+            this.cameraModeButton.title = 'Currently: Third-person view | Click to switch to over-shoulder view';
             
             // Update icon to indicate current mode
             const iconElement = this.cameraModeButton.querySelector('.camera-mode-icon');
@@ -820,10 +798,10 @@ export class CameraControlUI extends UIComponent {
             const cameraPosition = this.game.camera.position;
             const dx = cameraPosition.x;
             const dz = cameraPosition.z;
-            const horizontalAngle = fastAtan2(dx, dz);
-            const horizontalDistance = fastSqrt(dx * dx + dz * dz);
+            const horizontalAngle = Math.atan2(dx, dz);
+            const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
             const dy = cameraPosition.y - 20; // height offset
-            const verticalAngle = fastAtan2(dy, horizontalDistance);
+            const verticalAngle = Math.atan2(dy, horizontalDistance);
             
             // Store both original and current rotation values
             this.cameraState.originalRotationX = verticalAngle;
@@ -1091,7 +1069,6 @@ export class CameraControlUI extends UIComponent {
      */
     handleCameraControlMove(clientX, clientY) {
         if (!this.cameraState.active || !this.game || !this.game.camera) return;
-        if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
         
         // Update current position
         this.cameraState.currentX = clientX;
@@ -1156,12 +1133,19 @@ export class CameraControlUI extends UIComponent {
     updateVisualIndicator(deltaX, deltaY) {
         if (!this.handleElement) return;
         
-        const distSq = deltaX * deltaX + deltaY * deltaY;
-        const distance = fastSqrt(distSq);
+        // Calculate distance
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+        
+        // Maximum distance the handle can move from center (in pixels)
         const maxDistance = 30;
+        
+        // Limit distance
         const limitedDistance = Math.min(distance, maxDistance);
+        
+        // Calculate normalized direction
         let normalizedX = 0;
         let normalizedY = 0;
+        
         if (distance > 0) {
             normalizedX = deltaX / distance;
             normalizedY = deltaY / distance;
@@ -1202,12 +1186,10 @@ export class CameraControlUI extends UIComponent {
                 console.error("Invalid rotation values:", {rotationX, rotationY});
                 return;
             }
-            // Over-shoulder: place camera behind player (theta + PI) so back of model is toward user and enemies are deep (top of screen)
-            const orbitTheta = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? rotationY + Math.PI : rotationY;
             const spherical = new THREE.Spherical(
                 distance,
                 Math.PI/2 - rotationX,
-                orbitTheta
+                rotationY
             );
             const cameraOffset = new THREE.Vector3();
             cameraOffset.setFromSpherical(spherical);
@@ -1255,8 +1237,8 @@ export class CameraControlUI extends UIComponent {
                 console.debug("OrbitControls not available");
             }
             
-            // Update player's view direction only in first-person (in third-person camera is static, player faces movement)
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && this.game.player && typeof this.game.player.setLookDirection === 'function') {
+            // Update player's view direction if needed
+            if (this.game.player && typeof this.game.player.setLookDirection === 'function') {
                 try {
                     // Create a look direction vector directly from the rotation angles
                     // This is more reliable than calculating from positions
@@ -1375,117 +1357,24 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
-     * Lerp angle toward target via shortest path (for smooth camera follow).
-     * @param {number} current - Current angle in radians
-     * @param {number} target - Target angle in radians
-     * @param {number} t - Blend factor (0–1), typically from delta for frame-rate independent follow
-     * @returns {number} New angle in radians
-     */
-    _lerpAngle(current, target, t) {
-        let diff = target - current;
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-        while (diff < -Math.PI) diff += 2 * Math.PI;
-        const blended = current + diff * t;
-        return blended;
-    }
-    
-    /**
      * Update method called every frame
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
-        // Clamp delta to avoid huge jumps after tab focus / lag spikes
-        const safeDelta = Math.min(delta, 0.1);
-        
         // Check if we have a pending camera update from the last frame
         if (this.cameraUpdatePending && this.game && this.game.camera && this.game.player) {
-            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) {
-                if (!this._staticAngleInitialized) {
-                    this.staticCameraRotationY = this.cameraState.rotationY;
-                    this._staticAngleInitialized = true;
-                }
-                this.cameraState.rotationY = this.staticCameraRotationY;
-                this.cameraState.originalRotationY = this.staticCameraRotationY;
-            }
-            // First-person: S = 180° camera to back (fast lerp); A/D = turn camera left/right (lerp); W = only movement (handled in InputHandler). Joystick uses same dominant-direction logic.
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this.game.inputHandler) {
-                const ih = this.game.inputHandler;
-                const turnIntent = ih.getFirstPersonTurnIntent ? ih.getFirstPersonTurnIntent() : {
-                    turnBack: ['KeyS', 'ArrowDown'].some(k => ih.isKeyPressed(k)),
-                    turnLeft: ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k)),
-                    turnRight: ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k))
-                };
-                const turnBack = turnIntent.turnBack;
-                const turnLeft = turnIntent.turnLeft;
-                const turnRight = turnIntent.turnRight;
-
-                // S = move camera to back (180°) with fast lerp
-                if (turnBack && this._firstPersonTurnBackTargetY === null) {
-                    this._firstPersonTurnBackTargetY = this.cameraState.rotationY + Math.PI;
-                    while (this._firstPersonTurnBackTargetY > Math.PI) this._firstPersonTurnBackTargetY -= 2 * Math.PI;
-                    while (this._firstPersonTurnBackTargetY < -Math.PI) this._firstPersonTurnBackTargetY += 2 * Math.PI;
-                }
-                if (this._firstPersonTurnBackTargetY !== null) {
-                    const followT = 1 - Math.exp(-this.firstPersonTurnBackSpeed * safeDelta);
-                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, this._firstPersonTurnBackTargetY, followT);
-                    this.cameraState.originalRotationY = this.cameraState.rotationY;
-                    let angleDiff = this.cameraState.rotationY - this._firstPersonTurnBackTargetY;
-                    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-                    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-                    if (Math.abs(angleDiff) < 0.02) {
-                        this.cameraState.rotationY = this._firstPersonTurnBackTargetY;
-                        this._firstPersonTurnBackTargetY = null;
-                        if (this.game.player && this.game.player.movement) {
-                            this.game.player.movement.rotation.y = this.cameraState.rotationY;
-                            const lookDirection = new THREE.Vector3(Math.sin(this.cameraState.rotationY), 0, Math.cos(this.cameraState.rotationY));
-                            if (typeof this.game.player.setLookDirection === 'function') this.game.player.setLookDirection(lookDirection);
-                            if (this.game.player.model) this.game.player.model.setRotation({ y: this.cameraState.rotationY });
-                        }
-                    }
-                } else {
-                    // A = turn camera left (see left), D = turn camera right (see right) — smooth lerp
-                    let turnApplied = false;
-                    if (turnLeft && !turnRight) {
-                        this.cameraState.rotationY += this.firstPersonTurnSpeed * safeDelta;
-                        turnApplied = true;
-                    } else if (turnRight && !turnLeft) {
-                        this.cameraState.rotationY -= this.firstPersonTurnSpeed * safeDelta;
-                        turnApplied = true;
-                    }
-                    while (this.cameraState.rotationY > Math.PI) this.cameraState.rotationY -= 2 * Math.PI;
-                    while (this.cameraState.rotationY < -Math.PI) this.cameraState.rotationY += 2 * Math.PI;
-                    this.cameraState.originalRotationY = this.cameraState.rotationY;
-                    if (turnApplied && this.game.player && this.game.player.movement) {
-                        this.game.player.movement.rotation.y = this.cameraState.rotationY;
-                        const lookDirection = new THREE.Vector3(Math.sin(this.cameraState.rotationY), 0, Math.cos(this.cameraState.rotationY));
-                        if (typeof this.game.player.setLookDirection === 'function') this.game.player.setLookDirection(lookDirection);
-                        if (this.game.player.model) this.game.player.model.setRotation({ y: this.cameraState.rotationY });
-                    }
-                }
-            }
-            // When not turning with S/A/D or joystick left/right, camera lerps toward player facing (third-person only; first-person keeps current camera to avoid lerp on every attack)
-            if (this.currentCameraMode !== this.cameraModes.OVER_SHOULDER && this.currentCameraMode === this.cameraModes.THIRD_PERSON && !this.cameraState.active && this._firstPersonTurnBackTargetY === null && this.game.player?.movement) {
-                const targetY = this.game.player.movement.rotation.y;
-                if (typeof targetY === 'number' && isFinite(targetY)) {
-                    const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
-                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
-                    this.cameraState.originalRotationY = this.cameraState.rotationY;
-                }
-            }
-
             // Get the current camera state
             const rotationX = this.cameraState.rotationX;
             const rotationY = this.cameraState.rotationY;
-
+            
             // Only update if we have valid rotation values
             if (rotationX !== undefined && rotationY !== undefined) {
                 // World rebasing: player is at (0,0,0) for rendering; orbit camera around origin for clean precision
                 const distance = this.cameraDistance;
-                const orbitTheta = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? rotationY + Math.PI : rotationY;
                 const spherical = new THREE.Spherical(
                     distance,
                     Math.PI/2 - rotationX,
-                    orbitTheta
+                    rotationY
                 );
                 const cameraOffset = new THREE.Vector3();
                 cameraOffset.setFromSpherical(spherical);
@@ -1649,7 +1538,6 @@ export class CameraControlUI extends UIComponent {
                 this.currentCameraMode = this.cameraModes.OVER_SHOULDER;
             } else {
                 this.currentCameraMode = this.cameraModes.THIRD_PERSON;
-                this._firstPersonTurnBackTargetY = null;
             }
             
             console.debug("Camera mode toggled to:", this.currentCameraMode);
@@ -1691,20 +1579,6 @@ export class CameraControlUI extends UIComponent {
                 // Revert to previous mode
                 this.currentCameraMode = previousMode;
                 return;
-            }
-            
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && this.game.player.movement) {
-                const playerFacingY = this.game.player.movement.rotation.y;
-                if (typeof playerFacingY === 'number' && isFinite(playerFacingY)) {
-                    this.cameraState.rotationY = playerFacingY;
-                    this.cameraState.originalRotationY = playerFacingY;
-                }
-            }
-            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) {
-                this.staticCameraRotationY = this.cameraState.rotationY;
-                this._staticAngleInitialized = true;
-            } else {
-                this._staticAngleInitialized = false;
             }
             
             // Update the camera position with error handling
