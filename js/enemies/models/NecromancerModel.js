@@ -132,11 +132,9 @@ export class NecromancerModel extends EnemyModel {
             // Fix head orientation - ensure head stays upright regardless of model group rotation
             const head = this.modelGroup.children[1]; // Head is the 2nd child
             if (head) {
-                // Compensate for model group rotation to keep head upright in world coordinates
-                // Since head rotation is relative to modelGroup, we need to counter-rotate
-                head.rotation.x = -this.modelGroup.rotation.x;
-                head.rotation.y = -this.modelGroup.rotation.y;
-                head.rotation.z = -this.modelGroup.rotation.z;
+                // Use quaternion inverse so head's world rotation stays identity (upright).
+                // Negating Euler angles does not give the inverse rotation in 3D.
+                head.quaternion.copy(this.modelGroup.quaternion).invert();
             }
             
             // Get the staff and orb

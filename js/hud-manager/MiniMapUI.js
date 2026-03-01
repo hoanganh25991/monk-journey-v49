@@ -490,9 +490,14 @@ export class MiniMapUI extends UIComponent {
     }
 
     /**
-     * Draw current zoom level on the minimap (bottom-left corner).
+     * Draw current zoom level on the minimap. Positioned inside the circle (canvas has
+     * border-radius: 50% so corners are clipped); place at bottom-center inside the circle.
      */
     drawZoomLabel() {
+        const centerX = this.mapSize / 2;
+        const centerY = this.mapSize / 2;
+        const radius = this.mapSize / 2 - 2;
+
         const label = this.getZoomLabel();
         const padding = 6;
         const fontSize = Math.max(9, Math.min(12, Math.floor(this.mapSize / 18)));
@@ -500,18 +505,22 @@ export class MiniMapUI extends UIComponent {
         const metrics = this.ctx.measureText(label);
         const textW = metrics.width;
         const textH = fontSize + 2;
-        const x = padding;
-        const y = this.mapSize - padding - textH;
+        const boxW = textW + padding * 2;
+        const boxH = textH + 2;
+        const margin = 8;
+        // Bottom-center, inside the circle (above the "S" cardinal direction)
+        const x = centerX - boxW / 2;
+        const y = centerY + radius - margin - boxH;
 
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.fillRect(x, y, textW + padding * 2, textH + 2);
+        this.ctx.fillRect(x, y, boxW, boxH);
         this.ctx.strokeStyle = 'rgba(150, 150, 220, 0.5)';
         this.ctx.lineWidth = 1;
-        this.ctx.strokeRect(x, y, textW + padding * 2, textH + 2);
+        this.ctx.strokeRect(x, y, boxW, boxH);
         this.ctx.fillStyle = 'rgba(220, 220, 255, 0.95)';
-        this.ctx.textAlign = 'left';
+        this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'top';
-        this.ctx.fillText(label, x + padding, y + 1);
+        this.ctx.fillText(label, centerX, y + 1);
     }
     
     /**
