@@ -117,16 +117,18 @@ export class MiniMapUI extends UIComponent {
         const zoomOutBtn = document.getElementById('mini-map-zoom-out-btn');
         const centerBtn = document.getElementById('mini-map-center-btn');
         
+        // "+" button = zoom in (decrease scale = see less area)
         if (zoomInBtn) {
             zoomInBtn.addEventListener('click', (e) => {
-                this.decreaseScale(); // Zoom in (decrease scale)
+                this.decreaseScale();
                 e.stopPropagation();
             });
         }
         
+        // "−" button = zoom out (increase scale = see more area)
         if (zoomOutBtn) {
             zoomOutBtn.addEventListener('click', (e) => {
-                this.increaseScale(); // Zoom out (increase scale)
+                this.increaseScale();
                 e.stopPropagation();
             });
         }
