@@ -37,6 +37,9 @@ export class CameraControlUI extends UIComponent {
         
         // Current camera mode
         this.currentCameraMode = this.cameraModes.THIRD_PERSON;
+        // Third-person: fixed camera angle (locked when entering third-person, no drag)
+        this.staticCameraRotationY = 0;
+        this._staticAngleInitialized = false;
         
         // Camera distances for different modes
         this.cameraDistances = {
@@ -58,6 +61,10 @@ export class CameraControlUI extends UIComponent {
             [this.cameraModes.THIRD_PERSON]: 5,      // Default look offset for third-person
             [this.cameraModes.OVER_SHOULDER]: 3      // Look slightly upward in over-shoulder view
         };
+        
+        // Over-shoulder parallax: camera smoothly follows player facing (player moves first, camera eases to match)
+        // Higher = faster catch-up. ~4–6 gives smooth "follow" feel; ~2–3 more cinematic lag.
+        this.cameraFollowSpeed = 5;
         
         // Camera height configuration (can be adjusted for testing)
         this.cameraHeightConfig = {
@@ -508,6 +515,7 @@ export class CameraControlUI extends UIComponent {
         
         const onOverlayTouchStart = (e) => {
             if (!this.cameraState.viewControlModeActive || e.changedTouches.length === 0) return;
+            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
             e.preventDefault();
             e.stopPropagation();
             const touch = e.changedTouches[0];
@@ -524,6 +532,7 @@ export class CameraControlUI extends UIComponent {
         };
         const onOverlayMouseDown = (e) => {
             if (!this.cameraState.viewControlModeActive) return;
+            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
             if (!this.isOnRightHalfOfScreen(e.clientX)) return;
             e.preventDefault();
             e.stopPropagation();
@@ -572,10 +581,16 @@ export class CameraControlUI extends UIComponent {
         
         console.debug('Updating camera mode button UI for mode:', this.currentCameraMode);
         
-        // Update button appearance based on current mode
+        if (this.cameraOverlay) {
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER) {
+                this.cameraOverlay.style.pointerEvents = 'auto';
+            } else {
+                this.cameraOverlay.style.pointerEvents = 'none';
+            }
+        }
         if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER) {
             this.cameraModeButton.classList.add('active');
-            this.cameraModeButton.title = 'Currently: Over-shoulder view | Click to switch to third-person view';
+            this.cameraModeButton.title = 'Currently: First-person view | Click to switch to third-person (static camera)';
             
             // Update icon to indicate current mode
             const iconElement = this.cameraModeButton.querySelector('.camera-mode-icon');
@@ -584,7 +599,7 @@ export class CameraControlUI extends UIComponent {
             }
         } else {
             this.cameraModeButton.classList.remove('active');
-            this.cameraModeButton.title = 'Currently: Third-person view | Click to switch to over-shoulder view';
+            this.cameraModeButton.title = 'Currently: Third-person (static camera) | Click for first-person view';
             
             // Update icon to indicate current mode
             const iconElement = this.cameraModeButton.querySelector('.camera-mode-icon');
@@ -1069,6 +1084,7 @@ export class CameraControlUI extends UIComponent {
      */
     handleCameraControlMove(clientX, clientY) {
         if (!this.cameraState.active || !this.game || !this.game.camera) return;
+        if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) return;
         
         // Update current position
         this.cameraState.currentX = clientX;
@@ -1237,8 +1253,8 @@ export class CameraControlUI extends UIComponent {
                 console.debug("OrbitControls not available");
             }
             
-            // Update player's view direction if needed
-            if (this.game.player && typeof this.game.player.setLookDirection === 'function') {
+            // Update player's view direction only in first-person (in third-person camera is static, player faces movement)
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && this.game.player && typeof this.game.player.setLookDirection === 'function') {
                 try {
                     // Create a look direction vector directly from the rotation angles
                     // This is more reliable than calculating from positions
@@ -1357,16 +1373,52 @@ export class CameraControlUI extends UIComponent {
     }
     
     /**
+     * Lerp angle toward target via shortest path (for smooth camera follow).
+     * @param {number} current - Current angle in radians
+     * @param {number} target - Target angle in radians
+     * @param {number} t - Blend factor (0–1), typically from delta for frame-rate independent follow
+     * @returns {number} New angle in radians
+     */
+    _lerpAngle(current, target, t) {
+        let diff = target - current;
+        while (diff > Math.PI) diff -= 2 * Math.PI;
+        while (diff < -Math.PI) diff += 2 * Math.PI;
+        const blended = current + diff * t;
+        return blended;
+    }
+    
+    /**
      * Update method called every frame
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
+        // Clamp delta to avoid huge jumps after tab focus / lag spikes
+        const safeDelta = Math.min(delta, 0.1);
+        
         // Check if we have a pending camera update from the last frame
         if (this.cameraUpdatePending && this.game && this.game.camera && this.game.player) {
+            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) {
+                if (!this._staticAngleInitialized) {
+                    this.staticCameraRotationY = this.cameraState.rotationY;
+                    this._staticAngleInitialized = true;
+                }
+                this.cameraState.rotationY = this.staticCameraRotationY;
+                this.cameraState.originalRotationY = this.staticCameraRotationY;
+            }
+            // Over-shoulder parallax: player moves/turns immediately; camera smoothly eases toward player facing
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this.game.player.movement) {
+                const targetY = this.game.player.movement.rotation.y;
+                if (typeof targetY === 'number' && isFinite(targetY)) {
+                    const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
+                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
+                    this.cameraState.originalRotationY = this.cameraState.rotationY;
+                }
+            }
+
             // Get the current camera state
             const rotationX = this.cameraState.rotationX;
             const rotationY = this.cameraState.rotationY;
-            
+
             // Only update if we have valid rotation values
             if (rotationX !== undefined && rotationY !== undefined) {
                 // World rebasing: player is at (0,0,0) for rendering; orbit camera around origin for clean precision
@@ -1579,6 +1631,20 @@ export class CameraControlUI extends UIComponent {
                 // Revert to previous mode
                 this.currentCameraMode = previousMode;
                 return;
+            }
+            
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && this.game.player.movement) {
+                const playerFacingY = this.game.player.movement.rotation.y;
+                if (typeof playerFacingY === 'number' && isFinite(playerFacingY)) {
+                    this.cameraState.rotationY = playerFacingY;
+                    this.cameraState.originalRotationY = playerFacingY;
+                }
+            }
+            if (this.currentCameraMode === this.cameraModes.THIRD_PERSON) {
+                this.staticCameraRotationY = this.cameraState.rotationY;
+                this._staticAngleInitialized = true;
+            } else {
+                this._staticAngleInitialized = false;
             }
             
             // Update the camera position with error handling

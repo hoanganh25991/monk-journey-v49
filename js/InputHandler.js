@@ -334,13 +334,13 @@ export class InputHandler {
 
         if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
         if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
-        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x -= 1;
-        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x += 1;
+        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x += 1;
+        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x -= 1;
 
         if (this.game?.hudManager?.getJoystickDirection) {
             const j = this.game.hudManager.getJoystickDirection();
             if (j && (j.x !== 0 || j.y !== 0)) {
-                local.x = j.x;
+                local.x = -j.x;
                 local.z = j.y;
             }
         }
@@ -352,11 +352,22 @@ export class InputHandler {
 
         local.normalize();
 
+        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+        const isThirdPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.THIRD_PERSON;
+
         let cameraRotationY = 0;
-        if (this.game?.hudManager?.components?.cameraControlUI) {
-            cameraRotationY = this.game.hudManager.components.cameraControlUI.cameraState.rotationY;
+        if (cameraUI) {
+            // Third person: use static camera angle so W = forward (away from camera), A/D match screen left/right
+            cameraRotationY = isThirdPerson
+                ? (cameraUI._staticAngleInitialized ? cameraUI.staticCameraRotationY : cameraUI.cameraState.rotationY)
+                : cameraUI.cameraState.rotationY;
         } else if (this.game?.camera) {
             cameraRotationY = this.game.camera.rotation.y;
+        }
+
+        // Third person with static camera: left/right were reverted relative to view, so flip local X
+        if (isThirdPerson) {
+            local.x = -local.x;
         }
 
         this._scratchMatrix.makeRotationY(cameraRotationY);

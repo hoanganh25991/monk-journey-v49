@@ -358,7 +358,9 @@ export class PlayerModel {
      */
     setRotation(rotation) {
         if (this.modelGroup) {
-            this.modelGroup.rotation.y = rotation.y;
+            // Third-person: front of model faces movement; first-person/over-shoulder: back faces movement
+            const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+            this.modelGroup.rotation.y = rotation.y + (isThirdPerson ? 0 : Math.PI);
             // console.debug("PlayerModel: Rotation updated to:", this.modelGroup.rotation.y);
         }
     }

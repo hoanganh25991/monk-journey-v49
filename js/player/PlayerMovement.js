@@ -9,6 +9,9 @@ import { normalize2D, tempVec2, fastAtan2 } from 'utils/FastMath.js';
 /** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
 const MAX_JUMP_HEIGHT = 50;
 
+/** Display offset so model shows its back when moving forward (first-person / over-shoulder). Third-person uses 0 so front faces movement. */
+const MODEL_FACING_OFFSET_Y = Math.PI;
+
 export class PlayerMovement {
     /**
      * @param {import('./PlayerInterface.js').IPlayerState} playerState - Player state manager
@@ -46,6 +49,9 @@ export class PlayerMovement {
         
         // When false (e.g. freeze from frost_titan), position must not be changed by movement or moveTo
         this.canMove = true;
+        
+        // First-person: one 180° turn per backward press (avoid spinning if held)
+        this._backwardHeldLastFrame = false;
         
         // Game reference
         this.game = game;
@@ -139,7 +145,8 @@ export class PlayerMovement {
                 // Update rotation to face movement direction
                 this.rotation.y = fastAtan2(tempVec2.x, tempVec2.z);
                 if (this.modelGroup) {
-                    this.modelGroup.rotation.y = this.rotation.y;
+                    const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
                 }
             } else {
                 // Reached target
@@ -244,6 +251,35 @@ export class PlayerMovement {
         
         // If there's keyboard input, move the player
         if (direction.length() > 0) {
+            const isFirstPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'over-shoulder';
+            const playerForwardX = Math.sin(this.rotation.y);
+            const playerForwardZ = Math.cos(this.rotation.y);
+            const dot = direction.x * playerForwardX + direction.z * playerForwardZ;
+
+            // First-person: "backward" = quick 180° turn so view stays "forward" (no walking backward)
+            const isBackward = isFirstPerson && dot < -0.5;
+            if (isBackward && !this._backwardHeldLastFrame) {
+                this.rotation.y += Math.PI;
+                while (this.rotation.y > Math.PI) this.rotation.y -= 2 * Math.PI;
+                while (this.rotation.y < -Math.PI) this.rotation.y += 2 * Math.PI;
+                if (this.modelGroup) {
+                    const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+                }
+                const lookDirection = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
+                if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
+                    this.game.player.setLookDirection(lookDirection);
+                }
+                const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+                if (cameraUI) {
+                    cameraUI.cameraState.rotationY = this.rotation.y;
+                    cameraUI.cameraState.originalRotationY = this.rotation.y;
+                }
+                this.playerState.setMoving(false);
+            }
+            this._backwardHeldLastFrame = isBackward;
+            if (isBackward) return;
+
             // Calculate movement step
             const step = this.playerStats.getMovementSpeed() * delta;
             
@@ -266,7 +302,8 @@ export class PlayerMovement {
             // Update rotation to face movement direction
             this.rotation.y = fastAtan2(direction.x, direction.z);
             if (this.modelGroup) {
-                this.modelGroup.rotation.y = this.rotation.y;
+                const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+                this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
             }
             
             // Set moving state

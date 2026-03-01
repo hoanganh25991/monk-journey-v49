@@ -181,7 +181,7 @@ export class MultiplayerManager {
         if (hostRot && typeof hostRot.y === 'number' && !isNaN(hostRot.y)) {
             movement.rotation.y = hostRot.y;
             if (movement.modelGroup) {
-                movement.modelGroup.rotation.y = hostRot.y;
+                movement.modelGroup.rotation.y = hostRot.y + Math.PI; // Display: back faces forward
             }
         }
     }
