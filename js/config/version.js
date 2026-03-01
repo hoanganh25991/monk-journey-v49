@@ -7,7 +7,7 @@
  */
 
 /** @type {string|null} Override with build-time value, or null for runtime */
-export const SOURCE_VERSION = '20260301T214503';
+export const SOURCE_VERSION = '20260301T225600';
 
 /**
  * Get the current source code version in YYYYMMDDTHHMMSS format.
