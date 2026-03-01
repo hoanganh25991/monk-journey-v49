@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingKickEffect } from '../../FlyingKickEffect.js';
+import { fastInvSqrt } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Mantle of the Crane variant of Flying Kick
@@ -424,12 +425,11 @@ export class MantleOfTheCraneEffect extends FlyingKickEffect {
                 const dy = positions[i * 3 + 1] - position.y - 0.5;
                 const dz = positions[i * 3 + 2] - position.z;
                 
-                // Normalize direction
-                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-                const dirX = length > 0 ? dx / length : Math.random() - 0.5;
-                const dirY = length > 0 ? dy / length : Math.random() + 0.5; // Mostly upward
-                const dirZ = length > 0 ? dz / length : Math.random() - 0.5;
-                
+                const lengthSq = dx * dx + dy * dy + dz * dz;
+                const invLength = lengthSq > 0 ? fastInvSqrt(lengthSq) : 0;
+                const dirX = invLength > 0 ? dx * invLength : Math.random() - 0.5;
+                const dirY = invLength > 0 ? dy * invLength : Math.random() + 0.5;
+                const dirZ = invLength > 0 ? dz * invLength : Math.random() - 0.5;
                 // Move outward
                 const speed = 1.5;
                 positions[i * 3] += dirX * speed * (this.skill.game.deltaTime || 0.016);

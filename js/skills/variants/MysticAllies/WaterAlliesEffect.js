@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq2D, fastAtan2 } from 'utils/FastMath.js';
+import { distanceSq2D, fastAtan2, fastSqrt, fastSin, fastCos } from 'utils/FastMath.js';
 import { MysticAllyEffect } from '../../MysticAllyEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -360,18 +360,12 @@ export class WaterAlliesEffect extends MysticAllyEffect {
                     const y0 = initialPositions[i * 3 + 1];
                     const z0 = initialPositions[i * 3 + 2];
                     
-                    // Calculate distance from center
-                    const distance = Math.sqrt(x0 * x0 + z0 * z0);
-                    
-                    // Flowing movement for water
+                    const distSq = x0 * x0 + z0 * z0;
+                    const distance = fastSqrt(distSq);
                     const angle = fastAtan2(z0, x0) + delta * (0.3 + distance * 0.2);
-                    
-                    // Update position with flowing motion
-                    positions[i * 3] = Math.cos(angle) * distance;
-                    positions[i * 3 + 2] = Math.sin(angle) * distance;
-                    
-                    // Gentle vertical movement
-                    positions[i * 3 + 1] = y0 + Math.sin(this.elapsedTime + i * 0.1) * delta * 0.5;
+                    positions[i * 3] = fastCos(angle) * distance;
+                    positions[i * 3 + 2] = fastSin(angle) * distance;
+                    positions[i * 3 + 1] = y0 + fastSin(this.elapsedTime + i * 0.1) * delta * 0.5;
                     
                     // Keep particles within bounds
                     if (positions[i * 3 + 1] < 0) positions[i * 3 + 1] = 0;

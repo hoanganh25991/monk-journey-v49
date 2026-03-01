@@ -163,8 +163,8 @@ export class CircularPath extends Path {
             const angle = (i / markerCount) * Math.PI * 2;
             
             // Position at perimeter
-            const x = center.x + radius * Math.cos(angle);
-            const z = center.z + radius * Math.sin(angle);
+            const x = center.x + radius * fastCos(angle);
+            const z = center.z + radius * fastSin(angle);
             const position = new THREE.Vector3(x, 0, z);
             
             // Create a marker stone

@@ -3,6 +3,7 @@ import { MULTIPLIER_PORTALS, RETURN_PORTAL, DESTINATION_TERRAINS } from '../../c
 import { ZONE_ENEMIES } from '../../config/game-balance.js';
 import { PortalModelFactory } from './PortalModelFactory.js';
 import { WaveManager } from '../managers/WaveManager.js';
+import { distanceSq2D, distanceApprox2D, fastSqrt } from '../../utils/FastMath.js';
 
 /**
  * TeleportManager - Manages teleport portals in the game world
@@ -130,14 +131,10 @@ export class TeleportManager {
                 try {
                     const playerPos = this.game.player.getPosition();
                     const portalPos = this.activePortal.sourcePosition;
-                    const distance = Math.sqrt(
-                        Math.pow(playerPos.x - portalPos.x, 2) + 
-                        Math.pow(playerPos.z - portalPos.z, 2)
-                    );
-                    
-                    if (distance < closestDistance) {
+                    const distSq = distanceSq2D(playerPos.x, playerPos.z, portalPos.x, portalPos.z);
+                    if (distSq < closestDistance * closestDistance) {
                         closestPlayer = this.game.player;
-                        closestDistance = distance;
+                        closestDistance = fastSqrt(distSq);
                     }
                 } catch (error) {
                     console.warn("Error checking local player position:", error);
@@ -150,14 +147,10 @@ export class TeleportManager {
                     try {
                         const playerPos = remotePlayer.getPosition();
                         const portalPos = this.activePortal.sourcePosition;
-                        const distance = Math.sqrt(
-                            Math.pow(playerPos.x - portalPos.x, 2) + 
-                            Math.pow(playerPos.z - portalPos.z, 2)
-                        );
-                        
-                        if (distance < closestDistance) {
+                        const distSq = distanceSq2D(playerPos.x, playerPos.z, portalPos.x, portalPos.z);
+                        if (distSq < closestDistance * closestDistance) {
                             closestPlayer = remotePlayer;
-                            closestDistance = distance;
+                            closestDistance = fastSqrt(distSq);
                         }
                     } catch (error) {
                         console.warn(`Error checking remote player ${peerId} position:`, error);
@@ -611,10 +604,10 @@ export class TeleportManager {
             // Calculate distance to portal
             const dx = portal.sourcePosition.x - playerPosition.x;
             const dz = portal.sourcePosition.z - playerPosition.z;
-            const distance = Math.sqrt(dx * dx + dz * dz);
-            
-            // Check if player is within interaction radius
-            if (distance <= this.interactionRadius) {
+            const distSq = dx * dx + dz * dz;
+            const radiusSq = this.interactionRadius * this.interactionRadius;
+            // Check if player is within interaction radius (squared compare avoids sqrt in hot path)
+            if (distSq <= radiusSq) {
                 // Check cooldown
                 const currentTime = Date.now();
                 if (currentTime - this.lastTeleportTime < this.teleportCooldown) {
@@ -825,7 +818,7 @@ export class TeleportManager {
                 // Calculate zoom factor based on distance
                 const sp = portal.sourcePosition, tp = portal.targetPosition;
                 const dx = tp.x - sp.x, dz = tp.z - sp.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
+                const distance = distanceApprox2D(sp.x, sp.z, tp.x, tp.z);
                 const zoomFactor = Math.min(10, Math.max(3, Math.floor(distance / 500)));
                 
                 console.debug(`Teleport distance: ${distance.toFixed(2)}, using zoom factor: ${zoomFactor}`);
@@ -996,10 +989,10 @@ export class TeleportManager {
                     const chunkCenterZ = (z + 0.5) * chunkSize;
                     const distX = chunkCenterX - position.x;
                     const distZ = chunkCenterZ - position.z;
-                    const distance = Math.sqrt(distX * distX + distZ * distZ);
-                    
-                    // Only modify chunks within the radius
-                    if (distance <= modificationRadius) {
+                    const distSq = distX * distX + distZ * distZ;
+                    const modRadiusSq = modificationRadius * modificationRadius;
+                    // Only modify chunks within the radius (squared compare avoids sqrt)
+                    if (distSq <= modRadiusSq) {
                         // Apply custom coloring to this chunk
                         this.applyDangerTerrainColor(chunk, terrainType);
                         modifiedChunks++;
@@ -1139,10 +1132,9 @@ export class TeleportManager {
         // Skip if no game or player
         if (!this.game || !this.game.player) return;
         
-        // Calculate distance to determine effect intensity
+        // Calculate distance to determine effect intensity (approximate distance, no sqrt)
         const sp = portal.sourcePosition, tp = portal.targetPosition;
-        const dx = tp.x - sp.x, dz = tp.z - sp.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
+        const distance = distanceApprox2D(sp.x, sp.z, tp.x, tp.z);
         const isLongDistance = distance > 1000;
         const isExtremeDistance = distance > 5000;
         

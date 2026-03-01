@@ -3,7 +3,7 @@ import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { SkillEffect } from './SkillEffect.js';
 import { CHARACTER_MODELS } from '../config/player-models.js';
 import * as AnimationUtils from '../utils/AnimationUtils.js';
-import { distanceSq2D, fastAtan2, fastSin, fastCos } from 'utils/FastMath.js';
+import { distanceSq2D, fastAtan2, fastSin, fastCos, fastInvSqrt } from 'utils/FastMath.js';
 
 /**
  * Specialized effect for Bul Shadow Clone skill
@@ -664,7 +664,7 @@ export class BulShadowCloneEffect extends SkillEffect {
                 const distanceSq = dx * dx + dz * dz;
                 
                 if (distanceSq > 0.01) { // 0.1 * 0.1
-                    const invDistance = 1.0 / Math.sqrt(distanceSq); // Only one sqrt needed
+                    const invDistance = fastInvSqrt(distanceSq);
                     clone.group.position.x += dx * invDistance * moveSpeed;
                     clone.group.position.z += dz * invDistance * moveSpeed;
                     
@@ -748,9 +748,9 @@ export class BulShadowCloneEffect extends SkillEffect {
             return;
         }
         
-        // Move towards target (only compute sqrt once when needed)
+        // Move towards target (fastInvSqrt in hot path)
         const moveSpeed = this.cloneSpeed * delta;
-        const invDistance = 1.0 / Math.sqrt(distanceSq);
+        const invDistance = fastInvSqrt(distanceSq);
         clone.group.position.x += dx * invDistance * moveSpeed;
         clone.group.position.z += dz * invDistance * moveSpeed;
         

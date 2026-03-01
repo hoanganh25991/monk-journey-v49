@@ -1,5 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
 import { JOYSTICK } from '../config/input.js';
+import { fastSqrt } from '../utils/FastMath.js';
 
 /**
  * Virtual Joystick UI component
@@ -291,9 +292,8 @@ export class VirtualJoystickUI extends UIComponent {
         const deltaX = clientX - this.joystickState.centerX;
         const deltaY = clientY - this.joystickState.centerY;
         
-        // Calculate distance
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        
+        const distSq = deltaX * deltaX + deltaY * deltaY;
+        const distance = fastSqrt(distSq);
         // Get joystick visual area radius
         const rect = (this.joystickVisualWrapper || this.container).getBoundingClientRect();
         const radius = rect.width / 2;

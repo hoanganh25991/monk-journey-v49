@@ -1,5 +1,5 @@
 import * as THREE from '../../../../libs/three/three.module.js';
-import { distanceSq2D, fastAtan2 } from 'utils/FastMath.js';
+import { distanceSq2D, fastAtan2, fastSqrt, fastSin, fastCos } from 'utils/FastMath.js';
 import { InnerSanctuaryEffect } from '../../InnerSanctuaryEffect.js';
 import { BleedingEffect } from '../../BleedingEffect.js';
 
@@ -300,19 +300,14 @@ export class SanctifiedGroundEffect extends InnerSanctuaryEffect {
                 const y0 = initialPositions[i * 3 + 1];
                 const z0 = initialPositions[i * 3 + 2];
                 
-                // Calculate distance from center
-                const distance = Math.sqrt(x0 * x0 + z0 * z0);
-                
-                // Spiral movement
+                // Calculate distance from center (fastSqrt in hot path)
+                const distSq = x0 * x0 + z0 * z0;
+                const distance = fastSqrt(distSq);
                 const angle = fastAtan2(z0, x0) + delta * (0.2 + distance * 0.1);
                 const radius = distance;
-                
-                // Update position
-                positions[i * 3] = Math.cos(angle) * radius;
-                positions[i * 3 + 2] = Math.sin(angle) * radius;
-                
-                // Rising movement
-                positions[i * 3 + 1] = y0 + Math.sin(this.elapsedTime + i * 0.1) * 0.2;
+                positions[i * 3] = fastCos(angle) * radius;
+                positions[i * 3 + 2] = fastSin(angle) * radius;
+                positions[i * 3 + 1] = y0 + fastSin(this.elapsedTime + i * 0.1) * 0.2;
                 
                 // Reset particles that rise too high
                 if (positions[i * 3 + 1] > 3.0) {

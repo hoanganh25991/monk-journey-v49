@@ -1,5 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2 } from 'utils/FastMath.js';
+import { fastAtan2, fastSqrt, fastSin, fastCos } from 'utils/FastMath.js';
 import { SkillEffect } from './SkillEffect.js';
 
 /**
@@ -342,7 +342,7 @@ export class WaveOfLightEffect extends SkillEffect {
         switch (this.bellState.phase) {
             case 'descending':
                 // Bell descends from the sky
-                const descentSpeed = 15 * Math.sqrt(config.bellSizeMultiplier); // Scale speed with bell size
+                const descentSpeed = 15 * fastSqrt(config.bellSizeMultiplier); // Scale speed with bell size
                 bellGroup.position.y -= descentSpeed * delta;
                 
                 // Update effect group position to match current terrain height
@@ -386,7 +386,7 @@ export class WaveOfLightEffect extends SkillEffect {
                 this.bellState.impactTime += delta;
                 
                 // Expand impact area - scale with bell size
-                const expansionSpeed = 5 * Math.sqrt(config.bellSizeMultiplier);
+                const expansionSpeed = 5 * fastSqrt(config.bellSizeMultiplier);
                 const maxScale = 1.5 * config.bellSizeMultiplier;
                 const currentScale = Math.min(this.bellState.impactTime * expansionSpeed, maxScale);
                 impactArea.scale.set(currentScale, currentScale, currentScale);
@@ -396,8 +396,8 @@ export class WaveOfLightEffect extends SkillEffect {
                 
                 // Bell vibrates during impact
                 const vibrationAmount = 0.1 * config.bellSizeMultiplier;
-                bellGroup.position.x = Math.sin(this.bellState.impactTime * 30) * vibrationAmount;
-                bellGroup.position.z = Math.cos(this.bellState.impactTime * 25) * vibrationAmount;
+                bellGroup.position.x = fastSin(this.bellState.impactTime * 30) * vibrationAmount;
+                bellGroup.position.z = fastCos(this.bellState.impactTime * 25) * vibrationAmount;
                 
                 // After impact time, switch to ascending phase
                 if (this.bellState.impactTime > 1.0) {
@@ -407,7 +407,7 @@ export class WaveOfLightEffect extends SkillEffect {
                 
             case 'ascending':
                 // Bell ascends back to the sky
-                const ascentSpeed = 10 * Math.sqrt(config.bellSizeMultiplier); // Scale speed with bell size
+                const ascentSpeed = 10 * fastSqrt(config.bellSizeMultiplier); // Scale speed with bell size
                 bellGroup.position.y += ascentSpeed * delta;
                 
                 // Fade out bell as it ascends
@@ -476,11 +476,9 @@ export class WaveOfLightEffect extends SkillEffect {
                         child.position.y = Math.abs(Math.sin(this.bellState.impactTime * 5 + i)) * 0.5;
                     }
                     
-                    // Fade particles based on distance from center
-                    const distanceFromCenter = Math.sqrt(
-                        child.position.x * child.position.x + 
-                        child.position.z * child.position.z
-                    );
+                    // Fade particles based on distance from center (fastSqrt in hot path)
+                    const dxc = child.position.x, dzc = child.position.z;
+                    const distanceFromCenter = fastSqrt(dxc * dxc + dzc * dzc);
                     
                     // Ensure radius is valid (same as in createWaveEffect method)
                     const safeRadius = isNaN(this.radius) || this.radius <= 0 ? 2.0 : this.radius;

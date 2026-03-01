@@ -1,5 +1,6 @@
 import * as THREE from '../../../../libs/three/three.module.js';
 import { FlyingDragonEffect } from '../../FlyingDragonEffect.js';
+import { fastSqrt, fastCos, fastSin } from '../../../../utils/FastMath.js';
 
 /**
  * Effect for the Thunder Dragon variant of Flying Dragon
@@ -243,21 +244,16 @@ export class ThunderDragonEffect extends FlyingDragonEffect {
                     positions[i * 3 + 1] += (Math.random() - 0.5) * 0.1;
                     positions[i * 3 + 2] += (Math.random() - 0.5) * 0.1;
                     
-                    // Keep particles within bounds
-                    const distance = Math.sqrt(
-                        positions[i * 3] * positions[i * 3] +
-                        positions[i * 3 + 2] * positions[i * 3 + 2]
-                    );
-                    
-                    if (distance > 1.2 || positions[i * 3 + 1] < 0 || positions[i * 3 + 1] > 2) {
-                        // Reset position
+                    const px = positions[i * 3], pz = positions[i * 3 + 2];
+                    const distSq = px * px + pz * pz;
+                    const boundSq = 1.2 * 1.2;
+                    if (distSq > boundSq || positions[i * 3 + 1] < 0 || positions[i * 3 + 1] > 2) {
                         const angle = Math.random() * Math.PI * 2;
                         const radius = Math.random() * 1;
                         const height = Math.random() * 1.5;
-                        
-                        positions[i * 3] = Math.cos(angle) * radius;
+                        positions[i * 3] = fastCos(angle) * radius;
                         positions[i * 3 + 1] = height;
-                        positions[i * 3 + 2] = Math.sin(angle) * radius;
+                        positions[i * 3 + 2] = fastSin(angle) * radius;
                     }
                 }
                 

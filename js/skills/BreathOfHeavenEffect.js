@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffect } from './SkillEffect.js';
 import { BleedingEffect } from './BleedingEffect.js';
+import { fastInvSqrt } from '../utils/FastMath.js';
 
 /**
  * Effect for the Breath of Heaven skill
@@ -128,20 +129,19 @@ export class BreathOfHeavenEffect extends SkillEffect {
                     const x = positions[i * 3];
                     const y = positions[i * 3 + 1];
                     const z = positions[i * 3 + 2];
-                    
-                    const length = Math.sqrt(x * x + y * y + z * z);
+                    const lengthSq = x * x + y * y + z * z;
                     const speed = 0.2 * delta;
-                    
-                    // If particle is near the edge, reset it to the center
-                    if (length > this.skill.radius * 0.9) {
+                    const edge = this.skill.radius * 0.9;
+                    const edgeSq = edge * edge;
+                    if (lengthSq > edgeSq) {
                         positions[i * 3] = (Math.random() - 0.5) * 0.5;
                         positions[i * 3 + 1] = (Math.random() - 0.5) * 0.5;
                         positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
                     } else {
-                        // Move outward
-                        positions[i * 3] += (x / length) * speed;
-                        positions[i * 3 + 1] += (y / length) * speed;
-                        positions[i * 3 + 2] += (z / length) * speed;
+                        const invLength = fastInvSqrt(lengthSq);
+                        positions[i * 3] += (x * invLength) * speed;
+                        positions[i * 3 + 1] += (y * invLength) * speed;
+                        positions[i * 3 + 2] += (z * invLength) * speed;
                     }
                 }
                 

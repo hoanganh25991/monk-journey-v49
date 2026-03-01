@@ -1,5 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
 import * as THREE from '../../libs/three/three.module.js';
+import { fastAtan2, fastSqrt } from '../utils/FastMath.js';
 
 /**
  * Camera Control UI component
@@ -819,10 +820,10 @@ export class CameraControlUI extends UIComponent {
             const cameraPosition = this.game.camera.position;
             const dx = cameraPosition.x;
             const dz = cameraPosition.z;
-            const horizontalAngle = Math.atan2(dx, dz);
-            const horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+            const horizontalAngle = fastAtan2(dx, dz);
+            const horizontalDistance = fastSqrt(dx * dx + dz * dz);
             const dy = cameraPosition.y - 20; // height offset
-            const verticalAngle = Math.atan2(dy, horizontalDistance);
+            const verticalAngle = fastAtan2(dy, horizontalDistance);
             
             // Store both original and current rotation values
             this.cameraState.originalRotationX = verticalAngle;
@@ -1155,19 +1156,12 @@ export class CameraControlUI extends UIComponent {
     updateVisualIndicator(deltaX, deltaY) {
         if (!this.handleElement) return;
         
-        // Calculate distance
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-        
-        // Maximum distance the handle can move from center (in pixels)
+        const distSq = deltaX * deltaX + deltaY * deltaY;
+        const distance = fastSqrt(distSq);
         const maxDistance = 30;
-        
-        // Limit distance
         const limitedDistance = Math.min(distance, maxDistance);
-        
-        // Calculate normalized direction
         let normalizedX = 0;
         let normalizedY = 0;
-        
         if (distance > 0) {
             normalizedX = deltaX / distance;
             normalizedY = deltaY / distance;
