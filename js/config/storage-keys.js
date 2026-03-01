@@ -47,6 +47,7 @@ export const STORAGE_KEYS = {
     CAMERA_HEIGHT: 'monk_journey_camera_height',
     CAMERA_LOOK_OFFSET: 'monk_journey_camera_look_offset',
     SHOW_MINIMAP: 'monk_journey_show_minimap',
+    MINIMAP_ZOOM: 'monk_journey_minimap_zoom',
     // MATERIAL_QUALITY key removed - using QUALITY_LEVEL instead
 
     // Map selection (path loaded on next game start to avoid in-game swap lag)

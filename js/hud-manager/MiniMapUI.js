@@ -152,6 +152,9 @@ export class MiniMapUI extends UIComponent {
             e.preventDefault();
         });
         
+        // Restore saved zoom from localStorage (async read is already done at init time)
+        this.loadSavedZoom();
+
         // Set exact dimensions for both container and canvas (auto-fit to avoid skills overlap)
         this.recalculateAndUpdateMapSize();
         
@@ -402,9 +405,13 @@ export class MiniMapUI extends UIComponent {
         if (!player) return;
         
         const playerX = player.getPosition().x;
-        const playerY = player.getPosition().z; // Using z as y for top-down view
+        const playerZ = player.getPosition().z; // Using z as y for top-down view
         
-        // Center of the mini map
+        // Virtual center: when map is dragged, the view pans so this world position is at the center of the circle
+        const centerWorldX = playerX - this.mapOffsetX / this.scale;
+        const centerWorldZ = playerZ - this.mapOffsetY / this.scale;
+        
+        // Center of the mini map (screen)
         const centerX = this.mapSize / 2;
         const centerY = this.mapSize / 2;
         const radius = this.mapSize / 2 - 2; // Slightly smaller than half the canvas
@@ -422,24 +429,16 @@ export class MiniMapUI extends UIComponent {
         // Draw grid lines
         this.drawGrid(centerX, centerY, radius);
         
-        // Draw large structures (towers, villages)
-        this.drawStructures(playerX, playerY, centerX, centerY);
-
-        // Draw cave markers (distinct from other structures)
-        this.drawCaves(playerX, playerY, centerX, centerY);
-
-        // Draw teleport portals
-        this.drawTeleportPortals(playerX, playerY, centerX, centerY);
+        // Draw content relative to virtual center (so drag pans the view correctly)
+        this.drawStructures(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawCaves(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawTeleportPortals(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawEnemies(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawRemotePlayers(centerWorldX, centerWorldZ, centerX, centerY);
         
-        // Draw enemies
-        this.drawEnemies(playerX, playerY, centerX, centerY);
-        
-        // Draw remote players
-        this.drawRemotePlayers(playerX, playerY, centerX, centerY);
-        
-        // Apply map offset for player position
-        const offsetCenterX = centerX + this.mapOffsetX;
-        const offsetCenterY = centerY + this.mapOffsetY;
+        // Player marker at position relative to virtual center (so it moves when you drag)
+        const offsetCenterX = centerX + (playerX - centerWorldX) * this.scale;
+        const offsetCenterY = centerY + (playerZ - centerWorldZ) * this.scale;
         
         // Draw player (always in center unless map is dragged)
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
@@ -591,12 +590,12 @@ export class MiniMapUI extends UIComponent {
     
     /**
      * Draw large structures (towers, villages, teleports) on the mini map
-     * @param {number} playerX - Player's X position in the world
-     * @param {number} playerY - Player's Y position in the world (Z in 3D space)
-     * @param {number} centerX - Center X of the mini map
-     * @param {number} centerY - Center Y of the mini map
+     * @param {number} centerWorldX - World X at the center of the view (virtual center when dragged)
+     * @param {number} centerWorldZ - World Z at the center of the view (virtual center when dragged)
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
      */
-    drawStructures(playerX, playerY, centerX, centerY) {
+    drawStructures(centerWorldX, centerWorldZ, centerX, centerY) {
         // Get structures from the structure manager
         const structures = this.game.world.structureManager.structures;
         if (!structures || structures.length === 0) return;
@@ -637,39 +636,6 @@ export class MiniMapUI extends UIComponent {
             return map;
         }, {});
         
-        // Define shape categories
-        const shapeCategories = {
-            building: 'square',     // Buildings are squares
-            landmark: 'circle',     // Landmarks are circles
-            tall: 'triangle',       // Tall structures are triangles
-            religious: 'square',    // Religious buildings are squares
-            ancient: 'square'       // Ancient structures are squares
-        };
-        
-        // Map structure types to shape categories
-        const structureShapeCategories = {
-            [STRUCTURE_OBJECTS.HOUSE]: 'building',
-            [STRUCTURE_OBJECTS.VILLAGE]: 'landmark',
-            [STRUCTURE_OBJECTS.TOWER]: 'tall',
-            [STRUCTURE_OBJECTS.TEMPLE]: 'religious',
-            [STRUCTURE_OBJECTS.FORTRESS]: 'building',
-            [STRUCTURE_OBJECTS.RUINS]: 'ancient',
-            [STRUCTURE_OBJECTS.DARK_SANCTUM]: 'tall',
-            [STRUCTURE_OBJECTS.MOUNTAIN]: 'tall',
-            [STRUCTURE_OBJECTS.TAVERN]: 'building',
-            [STRUCTURE_OBJECTS.SHOP]: 'building',
-            [STRUCTURE_OBJECTS.ALTAR]: 'religious',
-            [STRUCTURE_OBJECTS.BRIDGE]: 'landmark'
-        };
-        
-        // Generate shape map dynamically
-        const structureShapeMap = Object.keys(STRUCTURE_OBJECTS).reduce((map, key) => {
-            const structureType = STRUCTURE_OBJECTS[key].toLowerCase();
-            const category = structureShapeCategories[STRUCTURE_OBJECTS[key]] || 'building';
-            map[structureType] = shapeCategories[category];
-            return map;
-        }, {});
-        
         // Generate size map dynamically based on structure properties
         const structureSizeMap = Object.keys(STRUCTURE_OBJECTS).reduce((map, key) => {
             const structureType = STRUCTURE_OBJECTS[key].toLowerCase();
@@ -706,56 +672,23 @@ export class MiniMapUI extends UIComponent {
             return `rgba(${r}, ${g}, ${b}, 0.75)`;
         };
         
-        // Helper function to draw a structure at a given position
-        const drawStructure = (position, type, size = 10, shape = 'square') => {
-            // Calculate position relative to player
-            const relX = (position.x - playerX) * this.scale;
-            const relY = (position.z - playerY) * this.scale;
-            
-            // Apply map offset
-            const screenX = centerX + relX + this.mapOffsetX;
-            const screenY = centerY + relY + this.mapOffsetY;
+        // Helper function to draw a structure at a given position (always as square)
+        const drawStructure = (position, type, size = 10) => {
+            const relX = (position.x - centerWorldX) * this.scale;
+            const relY = (position.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
             
             // Get color based on type (use predefined if available, otherwise generate)
             const color = structureColorMap[type] || generateColorFromString(type);
             
-            // Set fill style
             this.ctx.fillStyle = color;
-            
-            // Draw the shape based on type
-            if (shape === 'square') {
-                // Square for buildings
-                this.ctx.fillRect(screenX - size/2, screenY - size/2, size, size);
-            } else if (shape === 'triangle') {
-                // Triangle for towers
-                this.ctx.beginPath();
-                this.ctx.moveTo(screenX, screenY - size);
-                this.ctx.lineTo(screenX + size, screenY + size/2);
-                this.ctx.lineTo(screenX - size, screenY + size/2);
-                this.ctx.closePath();
-                this.ctx.fill();
-            } else if (shape === 'circle') {
-                // Circle for villages
-                this.ctx.beginPath();
-                this.ctx.arc(screenX, screenY, size, 0, Math.PI * 2);
-                this.ctx.fill();
-            } else if (shape === 'diamond') {
-                // Diamond for caves
-                this.ctx.beginPath();
-                this.ctx.moveTo(screenX, screenY - size);
-                this.ctx.lineTo(screenX + size, screenY);
-                this.ctx.lineTo(screenX, screenY + size);
-                this.ctx.lineTo(screenX - size, screenY);
-                this.ctx.closePath();
-                this.ctx.fill();
-            }
+            this.ctx.fillRect(screenX - size/2, screenY - size/2, size, size);
         };
         
         // Add cave to categories for when caves are in structure manager
         structureCategories[STRUCTURE_OBJECTS.CAVE] = 'natural';
         structureColorMap['cave'] = 'rgba(60, 45, 35, 0.9)';
-        structureShapeCategories[STRUCTURE_OBJECTS.CAVE] = 'natural';
-        structureShapeMap['cave'] = 'diamond';
         structureSizeMap['cave'] = 8;
 
         // Visible world radius for current zoom (zoom out = smaller scale = larger radius = more objects)
@@ -764,38 +697,37 @@ export class MiniMapUI extends UIComponent {
         // Draw structures within visible radius so zoom-out shows more objects
         structures.forEach(structure => {
             if (!structure || !structure.position) return;
-            const dx = structure.position.x - playerX;
-            const dz = structure.position.z - playerY;
+            const dx = structure.position.x - centerWorldX;
+            const dz = structure.position.z - centerWorldZ;
             if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
 
             const type = (structure.type || '').toLowerCase();
-            const shape = structureShapeMap[type] || 'square';
             const size = structureSizeMap[type] || 6;
-            drawStructure(structure.position, type, size, shape);
+            drawStructure(structure.position, type, size);
         });
     }
 
     /**
      * Draw cave markers on the mini map (from map data - always visible)
-     * @param {number} playerX - Player's X position in the world
-     * @param {number} playerY - Player's Z position in the world
-     * @param {number} centerX - Center X of the mini map
-     * @param {number} centerY - Center Y of the mini map
+     * @param {number} centerWorldX - World X at the center of the view
+     * @param {number} centerWorldZ - World Z at the center of the view
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
      */
-    drawCaves(playerX, playerY, centerX, centerY) {
+    drawCaves(centerWorldX, centerWorldZ, centerX, centerY) {
         const cavePositions = this.game.world?.getCavePositions?.() || [];
         if (cavePositions.length === 0) return;
 
         const visibleWorldRadius = this.getVisibleWorldRadius();
         cavePositions.forEach(pos => {
-            const dx = pos.x - playerX;
-            const dz = pos.z - playerY;
+            const dx = pos.x - centerWorldX;
+            const dz = pos.z - centerWorldZ;
             if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
 
-            const relX = (pos.x - playerX) * this.scale;
-            const relY = (pos.z - playerY) * this.scale;
-            const screenX = centerX + relX + this.mapOffsetX;
-            const screenY = centerY + relY + this.mapOffsetY;
+            const relX = (pos.x - centerWorldX) * this.scale;
+            const relY = (pos.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
 
             const distFromCenter = Math.sqrt(
                 Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
@@ -832,24 +764,24 @@ export class MiniMapUI extends UIComponent {
     
     /**
      * Draw teleport portals on the mini map
-     * @param {number} playerX - Player's X position in the world
-     * @param {number} playerY - Player's Y position in the world (Z in 3D space)
-     * @param {number} centerX - Center X of the mini map
-     * @param {number} centerY - Center Y of the mini map
+     * @param {number} centerWorldX - World X at the center of the view
+     * @param {number} centerWorldZ - World Z at the center of the view
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
      */
-    drawTeleportPortals(playerX, playerY, centerX, centerY) {
+    drawTeleportPortals(centerWorldX, centerWorldZ, centerX, centerY) {
         const portals = this.game.world.teleportManager.getPortals();
         const visibleWorldRadius = this.getVisibleWorldRadius();
         if (portals.length > 0) {
             portals.forEach(portal => {
-                const dx = portal.position.x - playerX;
-                const dz = portal.position.z - playerY;
+                const dx = portal.position.x - centerWorldX;
+                const dz = portal.position.z - centerWorldZ;
                 if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
 
-                const relX = (portal.position.x - playerX) * this.scale;
-                const relY = (portal.position.z - playerY) * this.scale;
-                const screenX = centerX + relX + this.mapOffsetX;
-                const screenY = centerY + relY + this.mapOffsetY;
+                const relX = (portal.position.x - centerWorldX) * this.scale;
+                const relY = (portal.position.z - centerWorldZ) * this.scale;
+                const screenX = centerX + relX;
+                const screenY = centerY + relY;
                 const distFromCenter = Math.sqrt(
                     Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
                 );
@@ -878,12 +810,12 @@ export class MiniMapUI extends UIComponent {
      * Draw enemies on the mini map
      * Boss enemies are displayed as larger red circles with pulsing effects and white outlines
      * Normal enemies are displayed as smaller orange circles with orange outlines
-     * @param {number} playerX - Player's X position in the world
-     * @param {number} playerY - Player's Y position in the world (Z in 3D space)
-     * @param {number} centerX - Center X of the mini map
-     * @param {number} centerY - Center Y of the mini map
+     * @param {number} centerWorldX - World X at the center of the view
+     * @param {number} centerWorldZ - World Z at the center of the view
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
      */
-    drawEnemies(playerX, playerY, centerX, centerY) {
+    drawEnemies(centerWorldX, centerWorldZ, centerX, centerY) {
         if (!this.game.enemyManager) return;
         const enemiesMap = this.game.enemyManager.enemies;
         const visibleWorldRadius = this.getVisibleWorldRadius();
@@ -892,14 +824,14 @@ export class MiniMapUI extends UIComponent {
             for (const [id, enemy] of enemiesMap.entries()) {
                 if (!enemy.getPosition) continue;
                 const pos = enemy.getPosition();
-                const dx = pos.x - playerX;
-                const dz = pos.z - playerY;
+                const dx = pos.x - centerWorldX;
+                const dz = pos.z - centerWorldZ;
                 if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) continue;
 
-                const relX = (pos.x - playerX) * this.scale;
-                const relY = (pos.z - playerY) * this.scale;
-                const screenX = centerX + relX + this.mapOffsetX;
-                const screenY = centerY + relY + this.mapOffsetY;
+                const relX = (pos.x - centerWorldX) * this.scale;
+                const relY = (pos.z - centerWorldZ) * this.scale;
+                const screenX = centerX + relX;
+                const screenY = centerY + relY;
                 const distFromCenter = Math.sqrt(
                     Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
                 );
@@ -948,12 +880,12 @@ export class MiniMapUI extends UIComponent {
     
     /**
      * Draw remote players on the mini map
-     * @param {number} playerX - Player's X position in the world
-     * @param {number} playerY - Player's Y position in the world (Z in 3D space)
-     * @param {number} centerX - Center X of the mini map
-     * @param {number} centerY - Center Y of the mini map
+     * @param {number} centerWorldX - World X at the center of the view
+     * @param {number} centerWorldZ - World Z at the center of the view
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
      */
-    drawRemotePlayers(playerX, playerY, centerX, centerY) {
+    drawRemotePlayers(centerWorldX, centerWorldZ, centerX, centerY) {
         // Check if we have a multiplayer manager with remote players
         if (!this.game.multiplayerManager || !this.game.multiplayerManager.remotePlayerManager) {
             return;
@@ -968,14 +900,14 @@ export class MiniMapUI extends UIComponent {
         for (const [peerId, remotePlayer] of remotePlayers.entries()) {
             if (!remotePlayer.group) continue;
             const position = remotePlayer.group.position;
-            const dx = position.x - playerX;
-            const dz = position.z - playerY;
+            const dx = position.x - centerWorldX;
+            const dz = position.z - centerWorldZ;
             if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) continue;
 
-            const relX = (position.x - playerX) * this.scale;
-            const relY = (position.z - playerY) * this.scale;
-            const screenX = centerX + relX + this.mapOffsetX;
-            const screenY = centerY + relY + this.mapOffsetY;
+            const relX = (position.x - centerWorldX) * this.scale;
+            const relY = (position.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
             const distFromCenter = Math.sqrt(
                 Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
             );
@@ -1014,6 +946,41 @@ export class MiniMapUI extends UIComponent {
     }
     
     /**
+     * Load saved zoom (scale) from localStorage and apply if valid.
+     */
+    loadSavedZoom() {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEYS.MINIMAP_ZOOM);
+            if (saved === null) return;
+            const value = parseFloat(saved, 10);
+            if (Number.isFinite(value) && value >= this.minScale && value <= this.maxScale) {
+                this.scale = value;
+            }
+        } catch (e) {
+            console.debug('MiniMapUI: Could not load saved zoom', e);
+        }
+    }
+
+    /**
+     * Persist current zoom to localStorage asynchronously (non-blocking).
+     */
+    persistZoomAsync() {
+        const scale = this.scale;
+        const run = () => {
+            try {
+                localStorage.setItem(STORAGE_KEYS.MINIMAP_ZOOM, String(scale));
+            } catch (e) {
+                console.debug('MiniMapUI: Could not save zoom', e);
+            }
+        };
+        if (typeof requestIdleCallback !== 'undefined') {
+            requestIdleCallback(run, { timeout: 500 });
+        } else {
+            setTimeout(run, 0);
+        }
+    }
+
+    /**
      * Set the scale factor for the mini map
      * @param {number} scale - New scale factor
      */
@@ -1023,7 +990,8 @@ export class MiniMapUI extends UIComponent {
         if (scale > this.maxScale) scale = this.maxScale;
         
         this.scale = scale;
-        
+        this.persistZoomAsync();
+
         // Force a redraw of the minimap
         this.renderMiniMap();
         
