@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260301T181515';
+const CACHE_VERSION = '20260301T214503';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -19,6 +19,7 @@ const ASSETS_TO_CACHE =   [
     "js/PerformanceManager.js",
     "js/QuestManager.js",
     "js/UIComponent.js",
+    "js/config/camera-modes.js",
     "js/config/coach.js",
     "js/config/colors.js",
     "js/config/consumable-skills.js",

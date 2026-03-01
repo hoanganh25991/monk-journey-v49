@@ -6,6 +6,9 @@ import { InventorySerializer } from './serializers/InventorySerializer.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import storageService from './StorageService.js';
 
+/** Effect types that must never persist across save/load (e.g. Frost Titan freeze). */
+const TRANSIENT_MOVEMENT_EFFECTS = ['freeze', 'slow', 'stun'];
+
 /** No-op progress: save/load run without UI popup */
 const noOpProgress = {
     start() {},
@@ -266,6 +269,7 @@ export class SaveManager extends ISaveSystem {
             if (saveData.player) {
                 console.debug('Loading player data...');
                 PlayerSerializer.deserialize(this.game.player, saveData.player);
+                this._clearTransientMovementEffects();
             } else {
                 console.debug('No player data found in save', 'warn');
                 this.loadProgress.update('Warning: No player data found', 50);
@@ -575,16 +579,23 @@ export class SaveManager extends ISaveSystem {
     /**
      * Save lightweight player state (health, mana, position) to localStorage for resume-after-reload.
      * Called periodically from the game loop when running. Uses sync localStorage only.
+     * Does not save while player has transient effects (freeze, slow, stun) so those never persist.
      */
     saveQuickState() {
         try {
             if (!this.game?.player) return;
-            const pos = this.game.player.getPosition();
+            const p = this.game.player;
+            if (p.statusEffects) {
+                for (const effectType of TRANSIENT_MOVEMENT_EFFECTS) {
+                    if (p.statusEffects.hasEffect(effectType)) return;
+                }
+            }
+            const pos = p.getPosition();
             const data = {
-                health: this.game.player.getHealth(),
-                mana: this.game.player.getMana(),
-                maxHealth: this.game.player.getMaxHealth(),
-                maxMana: this.game.player.getMaxMana(),
+                health: p.getHealth(),
+                mana: p.getMana(),
+                maxHealth: p.getMaxHealth(),
+                maxMana: p.getMaxMana(),
                 position: { x: pos.x, y: pos.y, z: pos.z },
                 timestamp: Date.now()
             };
@@ -611,8 +622,24 @@ export class SaveManager extends ISaveSystem {
     }
 
     /**
+     * Clear transient movement effects (freeze, slow, stun) and re-enable movement.
+     * Call after applying any saved state so Frost Titan freeze etc. never persist after reload.
+     */
+    _clearTransientMovementEffects() {
+        const p = this.game?.player;
+        if (!p) return;
+        if (p.statusEffects) {
+            for (const effectType of TRANSIENT_MOVEMENT_EFFECTS) {
+                p.statusEffects.removeEffect(effectType);
+            }
+        }
+        if (p.movement) p.movement.canMove = true;
+    }
+
+    /**
      * Apply quick state to the player once per session when entering the game without a full load.
      * Skips if fullSaveAppliedThisSession is true (user clicked Load) or already applied this session.
+     * Clears transient effects (freeze, slow, stun) so player is never stuck after reload.
      */
     applyQuickState() {
         if (this.fullSaveAppliedThisSession || this._quickStateAppliedThisSession) return;
@@ -627,6 +654,7 @@ export class SaveManager extends ISaveSystem {
             );
             if (typeof data.health === 'number' && data.health >= 0) p.stats.setHealth(data.health);
             if (typeof data.mana === 'number' && data.mana >= 0) p.stats.setMana(data.mana);
+            this._clearTransientMovementEffects();
             this._quickStateAppliedThisSession = true;
             console.debug('Player quick state restored (health, mana, position)');
         } catch (e) {
