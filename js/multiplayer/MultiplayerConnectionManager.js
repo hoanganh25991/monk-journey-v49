@@ -995,14 +995,17 @@ export class MultiplayerConnectionManager {
 
     /**
      * Process pending game state (joiner only). Called once per frame at frame start from Game.animate().
-     * Both binary and JSON paths: apply at most every 2nd frame (~30 Hz) to keep joiner FPS 70–80.
-     * Binary is the better choice: no parse in WebRTC callback (queue raw) and smaller payload.
+     * Apply at most every 2nd frame (~30 Hz) normally; when FPS is low (delta > 50ms) apply every 4th frame
+     * so the game keeps rendering smoothly (local-first: play and render on device even when sync is slow).
+     * @param {number} [frameDeltaSec] - Last frame time in seconds; when > 0.05 we throttle more to save CPU.
      */
-    processPendingGameState() {
+    processPendingGameState(frameDeltaSec = 0) {
         if (this.isHost) return;
         this._drainRawQueue();
         this._joinerApplyTick++;
-        const shouldApply = (this._joinerApplyTick % 2 === 0);
+        const underLoad = frameDeltaSec > 0.05; // Low FPS: throttle sync to keep render responsive
+        const period = underLoad ? 4 : 2;      // Every 4th frame when laggy, else every 2nd
+        const shouldApply = (this._joinerApplyTick % period === 0);
         if (this._pendingRawGameState) {
             if (shouldApply) {
                 const decoded = this.processReceivedData(this._pendingRawGameState);

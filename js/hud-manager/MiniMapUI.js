@@ -30,7 +30,7 @@ export class MiniMapUI extends UIComponent {
         // Adjust map size based on device
         this.mapSize = this.mobile ? 140 : 200; // Smaller size on mobile
         this.canvasSize = this.mapSize; // Canvas size matches map size
-        this.scale = 1; // Scale factor for world coverage
+        this.scale = 0.2; // Scale factor for world coverage (0.2 = 5x more area than 1.0)
         this.lastRenderTime = 0;
         this.renderInterval = 250; // Render every 250ms for better performance
         
@@ -42,10 +42,10 @@ export class MiniMapUI extends UIComponent {
         this.mapOffsetY = 0;
         this.maxMapOffset = 100; // Maximum map offset in any direction
         
-        // For map zooming
-        this.minScale = 0.5; // Minimum zoom level
-        this.maxScale = 3.0; // Maximum zoom level
-        this.defaultScale = 1.0; // Default zoom level
+        // For map zooming (default 0.2 shows ~5x more area; lower = more area, higher = more zoomed in)
+        this.minScale = 0.05; // Maximum zoom out (see most area)
+        this.maxScale = 1.0; // Maximum zoom in (can return to old default view)
+        this.defaultScale = 0.2; // Default zoom level = 5x more area than previous default
         
         // Auto-fit sizing to avoid overlap with bottom-right skills
         this.MIN_MAP_SIZE = 80;

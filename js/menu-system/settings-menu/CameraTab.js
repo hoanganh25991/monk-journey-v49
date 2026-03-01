@@ -34,7 +34,7 @@ export class CameraTab extends SettingsTab {
 
         this.cameraZoomSlider.min = 0.1;
         this.cameraZoomSlider.max = 100;
-        this.cameraZoomSlider.step = 0.1;
+        this.cameraZoomSlider.step = 1.0;
 
         const defaultZoom = 10;
         const storedZoom = this.loadSettingSync(STORAGE_KEYS.CAMERA_ZOOM, defaultZoom);

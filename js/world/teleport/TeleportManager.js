@@ -783,6 +783,10 @@ export class TeleportManager {
             const isLocalPlayer = targetPlayer === this.game.player;
             
             if (isLocalPlayer) {
+                // Multiplayer (joiner): tell host our new position so we don't get snapped back by sync
+                if (this.game.multiplayerManager?.connection && !this.game.multiplayerManager.connection.isHost && this.game.multiplayerManager.connection.isConnected) {
+                    this.game.multiplayerManager.notifyLocalTeleport();
+                }
                 // Force an immediate camera update if the player has a movement component
                 if (targetPlayer.movement && typeof targetPlayer.movement.updateCamera === 'function') {
                     targetPlayer.movement.updateCamera();

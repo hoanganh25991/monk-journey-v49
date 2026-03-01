@@ -77,10 +77,14 @@ export class EnemyManager {
         this._recentlyRemovedIds = [];
         /** Host only: last sent state per enemy for delta sync. id -> { p: [x,y,z], h } */
         this._lastSentEnemyState = new Map();
-        /** Joiner only: queue of enemy data to create; process up to 2 per frame to avoid FPS drops. */
+        /** Joiner only: queue of enemy data to create; process a few per frame so sync stays fast. */
         this._pendingEnemyCreates = [];
+        /** Joiner only: IDs in _pendingEnemyCreates for O(1) duplicate check. */
+        this._pendingEnemyCreateIds = new Set();
         /** Joiner only: IDs currently being created (async) so we don't queue duplicates. */
         this._creatingEnemyIds = new Set();
+        /** Joiner only: max position/health updates per sync apply so local stays fast (sync = actions, not frame spike). */
+        this._maxEnemyUpdatesPerApply = 52;
         
         // Auto-drop configuration for distant enemies (from game-balance.js)
         this.autoDropDistance = ENEMY_CONFIG.AUTO_DROP.maxDistance;
@@ -468,7 +472,9 @@ export class EnemyManager {
             const healthChanged = last === undefined || Math.abs(enemy.health - (last.h ?? -1)) > healthThreshold;
             const posChangedSq = dx * dx + dy * dy + dz * dz;
             const isNew = last === undefined;
-            const include = fullSync || isNew || posChangedSq > posThresholdSq || healthChanged;
+            const isBoss = !!enemy.isBoss;
+            // Always include new enemies and bosses so joiners see bosses on minimap
+            const include = fullSync || isNew || isBoss || posChangedSq > posThresholdSq || healthChanged;
             if (!include) continue;
             let p;
             if (playerPositions.length > 0) {
@@ -516,16 +522,20 @@ export class EnemyManager {
         if (!enemiesData) return;
         this.lastSyncTime = Date.now();
         const isJoiner = this.game?.multiplayerManager?.connection && !this.game.multiplayerManager.connection.isHost && this.game.multiplayerManager.connection.isConnected;
+
+        // Joiner: drain pending creates (local-first: spawns appear fast; 3 when queue small, else 2)
         if (isJoiner && this._pendingEnemyCreates.length > 0) {
-            const maxCreatesPerFrame = 2;
-            for (let i = 0; i < maxCreatesPerFrame && this._pendingEnemyCreates.length > 0; i++) {
+            const maxCreates = this._pendingEnemyCreates.length <= 4 ? 3 : 2;
+            for (let i = 0; i < maxCreates && this._pendingEnemyCreates.length > 0; i++) {
                 const enemyData = this._pendingEnemyCreates.shift();
+                this._pendingEnemyCreateIds.delete(enemyData?.id);
                 if (enemyData && !this._creatingEnemyIds.has(enemyData.id)) {
                     this._creatingEnemyIds.add(enemyData.id);
                     this.createEnemyFromData(enemyData).then(() => this._creatingEnemyIds.delete(enemyData.id)).catch(() => this._creatingEnemyIds.delete(enemyData.id));
                 }
             }
         }
+
         let idsToRemove = [];
         if (fullSync) {
             const hostEnemyIds = new Set(Object.keys(enemiesData));
@@ -548,6 +558,11 @@ export class EnemyManager {
                 if (idx >= 0) this.disposalQueue.splice(idx, 1);
             }
         }
+
+        // Build updates for existing enemies; joiner caps to nearest N per apply so local stays fast
+        const playerPos = isJoiner && this._maxEnemyUpdatesPerApply > 0 && this.game?.player?.movement?.getPosition?.();
+        const updates = []; // { id, enemyData, distSq } for existing only
+
         for (const id in enemiesData) {
             if (!Object.prototype.hasOwnProperty.call(enemiesData, id)) continue;
             const raw = enemiesData[id];
@@ -560,27 +575,44 @@ export class EnemyManager {
                 type: raw.t !== undefined ? raw.t : raw.type,
                 isBoss: raw.b !== undefined ? raw.b : !!raw.isBoss
             };
-            this.enemyLastUpdated.set(id, Date.now());
             if (this.enemies.has(id)) {
-                const enemy = this.enemies.get(id);
-                // Use host Y as-is to avoid 30*N getTerrainHeight/sec on joiner (was major FPS killer).
-                // Host already runs same world; local terrain snap in Enemy.update() handles display.
-                const newY = enemyData.position.y;
-                enemy.setPosition(enemyData.position.x, newY, enemyData.position.z);
-                if (enemyData.health !== undefined) {
-                    const changed = Math.abs(enemy.health - enemyData.health) > 0.5;
-                    enemy.health = enemyData.health;
-                    if (changed) enemy.updateHealthBar();
+                let distSq = 0;
+                if (playerPos && !enemyData.isBoss) {
+                    const dx = pos.x - playerPos.x, dz = pos.z - playerPos.z;
+                    distSq = dx * dx + dz * dz;
                 }
+                updates.push({ id, enemyData, distSq, isBoss: !!enemyData.isBoss });
             } else {
+                this.enemyLastUpdated.set(id, Date.now());
                 if (isJoiner) {
-                    const alreadyQueued = this._pendingEnemyCreates.some(e => e.id === id);
-                    const alreadyCreating = this._creatingEnemyIds.has(id);
-                    if (!alreadyQueued && !alreadyCreating) this._pendingEnemyCreates.push(enemyData);
+                    if (!this._pendingEnemyCreateIds.has(id) && !this._creatingEnemyIds.has(id)) {
+                        this._pendingEnemyCreateIds.add(id);
+                        this._pendingEnemyCreates.push(enemyData);
+                    }
                 } else {
                     void this.createEnemyFromData(enemyData);
                 }
             }
+        }
+
+        // Apply updates: joiner = nearest N (bosses first), host = all
+        const maxApply = isJoiner && this._maxEnemyUpdatesPerApply > 0 ? this._maxEnemyUpdatesPerApply : updates.length;
+        if (isJoiner && updates.length > maxApply) {
+            updates.sort((a, b) => (a.isBoss ? 0 : a.distSq) - (b.isBoss ? 0 : b.distSq));
+        }
+        const toApply = updates.slice(0, maxApply);
+        for (const { enemyData } of toApply) {
+            this.enemyLastUpdated.set(enemyData.id, Date.now());
+            const enemy = this.enemies.get(enemyData.id);
+            if (!enemy) continue;
+            const newY = enemyData.position.y;
+            enemy.setPosition(enemyData.position.x, newY, enemyData.position.z);
+            if (enemyData.health !== undefined) {
+                const changed = Math.abs(enemy.health - enemyData.health) > 0.5;
+                enemy.health = enemyData.health;
+                if (changed) enemy.updateHealthBar();
+            }
+            if (enemyData.isBoss !== undefined) enemy.isBoss = enemyData.isBoss;
         }
     }
     
@@ -611,8 +643,9 @@ export class EnemyManager {
      * @returns {Promise<Enemy>} The created enemy
      */
     async createEnemyFromData(enemyData) {
-        // Find enemy type
-        let enemyType = this.enemyTypes.find(t => t.type === enemyData.type);
+        // Find enemy type in both regular and boss types (joiners must resolve boss types for minimap/sync)
+        let enemyType = this.enemyTypes.find(t => t.type === enemyData.type) ||
+                        this.bossTypes.find(t => t.type === enemyData.type);
         
         // If not found, use a default type
         if (!enemyType) {
@@ -1355,6 +1388,9 @@ export class EnemyManager {
         // Clear queues so joiners (and host) have no remnants or stale references
         this.disposalQueue.length = 0;
         this.enemiesToRemove.length = 0;
+        this._pendingEnemyCreates.length = 0;
+        this._pendingEnemyCreateIds.clear();
+        this._creatingEnemyIds.clear();
     }
     
     onPlayerMovedScreenDistance(playerPosition) {

@@ -25,6 +25,8 @@ export class MultiplayerManager {
         this._lastGameStateLog = 0; // Timestamp of last game state log
         this._lastReceivedGameStateTime = 0; // Member: last time we got gameState (for gap detection)
         this._slowGapNotified = false; // Member: only notify once per gap
+        /** Joiner: skip reconciling to a far host position for this many ms after local teleport (avoids snap-back). */
+        this._teleportGraceUntil = 0;
         
         // Player colors for multiplayer
         this.playerColors = [
@@ -133,12 +135,20 @@ export class MultiplayerManager {
     }
     
     /**
-     * Reconcile joiner's local position with host-authoritative position so host and joiner stay in sync.
-     * When joiner is in the air (whole jump arc: up or falling), only reconcile XZ so jump stays smooth.
+     * Reconcile joiner's local position with host-authoritative position (local-first: game plays and renders
+     * on device; sync corrects gently so 4G/latency doesn't rubber-band or stall the game).
+     * When joiner is in the air (whole jump arc), only reconcile XZ so jump stays smooth.
+     * After a local teleport, skip reconciling to a far host position for a short grace period.
      */
     _reconcileLocalPosition(hostPos, hostRot, fullSync) {
         if (!this.game?.player?.movement || !hostPos || typeof hostPos.x !== 'number') return;
         const pos = this.game.player.getPosition();
+        // Grace after teleport: host may still send 1–2 states with pre-teleport position; don't snap back
+        const now = Date.now();
+        if (now < this._teleportGraceUntil) {
+            const distXZ = Math.hypot(hostPos.x - pos.x, (hostPos.z ?? 0) - pos.z);
+            if (distXZ > 4) return; // host position is far = stale; keep our teleported position
+        }
         const movement = this.game.player.movement;
         // In air = going up OR still above ground (whole arc); avoids snap-to-ground while falling
         let inAir = movement.velocityY > 0.1;
@@ -151,15 +161,19 @@ export class MultiplayerManager {
         }
         const dx = hostPos.x - pos.x, dz = hostPos.z - pos.z;
         const distSqXZ = dx * dx + dz * dz;
-        const snapThresholdSq = 9; // 3 units: snap if desync is large
-        const doSnapXZ = fullSync || distSqXZ > snapThresholdSq;
-        const x = doSnapXZ ? hostPos.x : pos.x + dx * 0.25;
-        const z = doSnapXZ ? hostPos.z : pos.z + dz * 0.25;
+        // Local-first: snap only when desync is large so 4G/latency doesn't rubber-band; otherwise lerp smoothly
+        const snapThresholdSq = 25;   // 5 units: snap only on large desync
+        const hugeDesyncSq = 100;     // 10 units: always snap (e.g. teleport/respawn)
+        const doSnapXZ = fullSync ? distSqXZ > snapThresholdSq : distSqXZ > hugeDesyncSq;
+        const lerp = 0.18; // Gentle correction so delayed packets don't yank the player
+        const x = doSnapXZ ? hostPos.x : pos.x + dx * lerp;
+        const z = doSnapXZ ? hostPos.z : pos.z + dz * lerp;
         let y = pos.y;
         if (!inAir) {
             const dy = (hostPos.y ?? 0) - pos.y;
-            const doSnapY = fullSync || dy * dy > snapThresholdSq;
-            y = doSnapY ? (hostPos.y ?? pos.y) : pos.y + dy * 0.25;
+            const dySq = dy * dy;
+            const doSnapY = fullSync ? dySq > snapThresholdSq : dySq > hugeDesyncSq;
+            y = doSnapY ? (hostPos.y ?? pos.y) : pos.y + dy * lerp;
         }
         if (isNaN(x) || isNaN(y) || isNaN(z)) return;
         this.game.player.setPosition(x, y, z);
@@ -170,6 +184,16 @@ export class MultiplayerManager {
                 movement.modelGroup.rotation.y = hostRot.y;
             }
         }
+    }
+
+    /**
+     * Notify that the local player (joiner) just teleported. Sends position to host and sets a short grace
+     * period so reconciliation doesn't snap us back to the pre-teleport position. Call from TeleportManager.
+     */
+    notifyLocalTeleport() {
+        if (!this.connection || this.connection.isHost || !this.connection.isConnected) return;
+        this._teleportGraceUntil = Date.now() + 500;
+        this.connection.requestPositionSync();
     }
 
     /**
