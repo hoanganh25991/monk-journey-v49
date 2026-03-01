@@ -41,6 +41,9 @@ export class GameplayTab extends SettingsTab {
         this.updateToLatestButton = document.getElementById('update-to-latest-button');
         this.currentVersionSpan = document.getElementById('current-version');
         
+        // Auto version check (production only): reload when server has newer version
+        this._versionCheckInterval = null;
+        
         // Initialize settings immediately
         this.init();
         
@@ -287,9 +290,9 @@ export class GameplayTab extends SettingsTab {
      * @private
      */
     initializeReleaseSettings() {
-        // Display current version (YYYYMMDDTHHMMSS format)
+        const currentVersion = getSourceVersion();
         if (this.currentVersionSpan) {
-            this.currentVersionSpan.textContent = getSourceVersion();
+            this.currentVersionSpan.textContent = currentVersion;
         }
         
         // Set up update button: unregister SW, clear caches, then reload to get latest
@@ -316,6 +319,44 @@ export class GameplayTab extends SettingsTab {
                 }
             });
         }
+        
+        // Auto version check: only in production (skip when localhost / dev mode)
+        if (typeof window.isPwaDevelopment === 'function' && !window.isPwaDevelopment()) {
+            this.startVersionCheck();
+        }
+    }
+    
+    /**
+     * Start periodic check for server version. If server has newer version, reload to load new one.
+     * @private
+     */
+    startVersionCheck() {
+        const check = async () => {
+            try {
+                const url = new URL('js/config/version.js', window.location.origin);
+                url.searchParams.set('t', Date.now());
+                const res = await fetch(url.toString(), { cache: 'no-store' });
+                if (!res.ok) return;
+                const text = await res.text();
+                const m = text.match(/SOURCE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+                if (!m) return;
+                const serverVersion = m[1];
+                const localVersion = getSourceVersion();
+                if (serverVersion > localVersion) {
+                    window.location.reload();
+                }
+            } catch (_) {
+                // ignore network errors
+            }
+        };
+        // Check when tab becomes visible and every 5 minutes
+        const onVisibility = () => {
+            if (document.visibilityState === 'visible') check();
+        };
+        document.addEventListener('visibilitychange', onVisibility);
+        this._versionCheckInterval = setInterval(check, 5 * 60 * 1000);
+        // Optional: one check after a short delay on load
+        setTimeout(check, 30 * 1000);
     }
     
     /**
