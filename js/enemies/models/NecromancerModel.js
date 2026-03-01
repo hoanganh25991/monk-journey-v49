@@ -10,60 +10,89 @@ export class NecromancerModel extends EnemyModel {
     }
     
     createModel() {
-        // Create body (robed figure)
-        const bodyGeometry = new THREE.CylinderGeometry(0.4, 0.6, 1.8, 8);
-        const bodyMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x330033,
-            roughness: 0.9,
-            metalness: 0.1
+        // Body: dark purple truncated cone (frustum), wider at octagonal base, matte
+        const bodyGeometry = new THREE.CylinderGeometry(0.38, 0.62, 1.7, 8);
+        const bodyMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3d1a3d,
+            roughness: 0.95,
+            metalness: 0.05
         });
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-        body.position.y = 0.9;
+        body.position.y = 0.85;
         body.castShadow = true;
-        
+
         this.modelGroup.add(body);
-        
-        // Create head (pointed cone, purple like the robe)
-        const headGeometry = new THREE.ConeGeometry(0.35, 0.5, 8);
-        const headMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x330033,
+
+        // Head (old style): white sphere + dark purple inverted frustum (wide-brimmed hat)
+        const headGroup = new THREE.Group();
+        headGroup.position.y = 1.65;
+
+        const headSphereGeometry = new THREE.SphereGeometry(0.28, 12, 12);
+        const headSphereMaterial = new THREE.MeshStandardMaterial({
+            color: 0xeeeeee,
             roughness: 0.9,
+            metalness: 0.05
+        });
+        const headSphere = new THREE.Mesh(headSphereGeometry, headSphereMaterial);
+        headSphere.position.y = 0.28;
+        headSphere.castShadow = true;
+        headGroup.add(headSphere);
+
+        const hatGeometry = new THREE.CylinderGeometry(0.36, 0.22, 0.4, 8);
+        const hatMaterial = new THREE.MeshStandardMaterial({
+            color: 0x3d1a3d,
+            roughness: 0.95,
+            metalness: 0.05
+        });
+        const hat = new THREE.Mesh(hatGeometry, hatMaterial);
+        hat.position.y = 0.56;
+        hat.castShadow = true;
+        headGroup.add(hat);
+
+        this.modelGroup.add(headGroup);
+
+        // Staff: slender brown wooden rod leaning to the right
+        const staffGeometry = new THREE.CylinderGeometry(0.04, 0.045, 1.9, 8);
+        const staffMaterial = new THREE.MeshStandardMaterial({
+            color: 0x6b4423,
+            roughness: 0.85,
             metalness: 0.1
         });
-        const head = new THREE.Mesh(headGeometry, headMaterial);
-        head.position.y = 1.9; // cone center: point ends up at ~2.15
-        head.castShadow = true;
-        
-        this.modelGroup.add(head);
-        
-        // Create staff
-        const staffGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
-        const staffMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x553311,
-            roughness: 0.8,
-            metalness: 0.2
-        });
         const staff = new THREE.Mesh(staffGeometry, staffMaterial);
-        staff.position.set(0.6, 1.0, 0);
+        staff.position.set(0.55, 0.95, 0);
         staff.rotation.z = Math.PI / 12;
         staff.castShadow = true;
-        
+
         this.modelGroup.add(staff);
-        
-        // Create staff orb
+
+        // Staff orb: glowing purple sphere with two pink/magenta points inside
         const orbGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-        const orbMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x9900cc,
-            roughness: 0.2,
-            metalness: 0.8,
-            emissive: 0x330066,
-            emissiveIntensity: 0.5
+        const orbMaterial = new THREE.MeshStandardMaterial({
+            color: 0x6633aa,
+            roughness: 0.15,
+            metalness: 0.3,
+            emissive: 0x442288,
+            emissiveIntensity: 0.6
         });
         const orb = new THREE.Mesh(orbGeometry, orbMaterial);
-        orb.position.set(0.6, 2.0, 0);
+        orb.position.set(0.55, 1.95, 0);
         orb.castShadow = true;
-        
+
         this.modelGroup.add(orb);
+
+        // Two glowing pink/magenta points inside the orb (eyes / runes)
+        const innerGlowGeometry = new THREE.SphereGeometry(0.06, 8, 8);
+        const innerGlowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff66cc,
+            transparent: true,
+            opacity: 0.95
+        });
+        const glow1 = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial.clone());
+        glow1.position.set(0.08, 0.06, 0.1);
+        orb.add(glow1);
+        const glow2 = new THREE.Mesh(innerGlowGeometry, innerGlowMaterial.clone());
+        glow2.position.set(-0.07, 0.05, 0.12);
+        orb.add(glow2);
         
         // Add necromancer lord specific elements
         if (this.enemy.type === 'necromancer_lord') {
@@ -124,7 +153,7 @@ export class NecromancerModel extends EnemyModel {
         this.modelGroup.getWorldQuaternion(_worldQuat);
         _worldQuat.invert();
 
-        // Keep cone head upright in world space
+        // Keep head (sphere + hat group) upright in world space
         const head = root.children[1];
         if (head) head.quaternion.copy(_worldQuat);
 
