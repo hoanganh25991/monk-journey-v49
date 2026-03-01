@@ -174,12 +174,63 @@ export function fastFloor(x) {
 }
 
 /**
- * Fast absolute value using bitwise operations
- * @param {number} x - Number
+ * Fast absolute value using bitwise operations (integers only; use abs() for floats)
+ * @param {number} x - Number (converted to 32-bit int)
  * @returns {number} Absolute value
  */
 export function fastAbs(x) {
     return (x ^ (x >> 31)) - (x >> 31);
+}
+
+/** Float-safe absolute value (use for coordinates, deltas) */
+const DEG2RAD = Math.PI / 180;
+const RAD2DEG = 180 / Math.PI;
+
+/**
+ * Absolute value for floats (coordinates, deltas). Use fastAbs for integers only.
+ * @param {number} x - Number
+ * @returns {number} Absolute value
+ */
+export function abs(x) {
+    return x < 0 ? -x : x;
+}
+
+/**
+ * Degrees to radians
+ * @param {number} deg - Angle in degrees
+ * @returns {number} Angle in radians
+ */
+export function degToRad(deg) {
+    return deg * DEG2RAD;
+}
+
+/**
+ * Radians to degrees
+ * @param {number} rad - Angle in radians
+ * @returns {number} Angle in degrees
+ */
+export function radToDeg(rad) {
+    return rad * RAD2DEG;
+}
+
+/**
+ * Minimum of two numbers (no allocation)
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
+export function fastMin(a, b) {
+    return a < b ? a : b;
+}
+
+/**
+ * Maximum of two numbers (no allocation)
+ * @param {number} a
+ * @param {number} b
+ * @returns {number}
+ */
+export function fastMax(a, b) {
+    return a > b ? a : b;
 }
 
 /**
