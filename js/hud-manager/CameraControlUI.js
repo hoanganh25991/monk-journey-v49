@@ -1411,12 +1411,17 @@ export class CameraControlUI extends UIComponent {
                 this.cameraState.rotationY = this.staticCameraRotationY;
                 this.cameraState.originalRotationY = this.staticCameraRotationY;
             }
-            // First-person: S = 180° camera to back (fast lerp); A/D = turn camera left/right (lerp); W = only movement (handled in InputHandler)
+            // First-person: S = 180° camera to back (fast lerp); A/D = turn camera left/right (lerp); W = only movement (handled in InputHandler). Joystick uses same dominant-direction logic.
             if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this.game.inputHandler) {
                 const ih = this.game.inputHandler;
-                const turnBack = ['KeyS', 'ArrowDown'].some(k => ih.isKeyPressed(k));
-                const turnLeft = ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k));
-                const turnRight = ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k));
+                const turnIntent = ih.getFirstPersonTurnIntent ? ih.getFirstPersonTurnIntent() : {
+                    turnBack: ['KeyS', 'ArrowDown'].some(k => ih.isKeyPressed(k)),
+                    turnLeft: ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k)),
+                    turnRight: ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k))
+                };
+                const turnBack = turnIntent.turnBack;
+                const turnLeft = turnIntent.turnLeft;
+                const turnRight = turnIntent.turnRight;
 
                 // S = move camera to back (180°) with fast lerp
                 if (turnBack && this._firstPersonTurnBackTargetY === null) {
@@ -1462,12 +1467,11 @@ export class CameraControlUI extends UIComponent {
                     }
                 }
             }
-            // When not turning with S/A/D, camera lerps toward player facing
+            // When not turning with S/A/D or joystick left/right, camera lerps toward player facing
             if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this._firstPersonTurnBackTargetY === null && this.game.player?.movement) {
                 const ih = this.game.inputHandler;
-                const turnLeft = ih && ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k));
-                const turnRight = ih && ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k));
-                if (!turnLeft && !turnRight) {
+                const turnIntent = ih && ih.getFirstPersonTurnIntent ? ih.getFirstPersonTurnIntent() : { turnLeft: false, turnRight: false };
+                if (!turnIntent.turnLeft && !turnIntent.turnRight) {
                     const targetY = this.game.player.movement.rotation.y;
                     if (typeof targetY === 'number' && isFinite(targetY)) {
                         const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
