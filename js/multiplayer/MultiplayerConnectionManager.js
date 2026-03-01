@@ -682,16 +682,19 @@ export class MultiplayerConnectionManager {
                     if (data.position && remotePlayer) remotePlayer.updatePosition(data.position);
                     if (data.rotation && remotePlayer) remotePlayer.updateRotation(data.rotation);
                     this.multiplayerManager.remotePlayerManager.handleSkillCast(peerId, data.skillName, data.variant, data.targetEnemyId);
-                    // Forward skill cast to other members (no position/rotation; remote position comes from host simulation)
+                    // Forward skill cast to other members (include position/rotation when present for fast local render, e.g. Fist of Thunder)
+                    const forwardPayload = {
+                        type: 'skillCast',
+                        skillName: data.skillName,
+                        playerId: peerId,
+                        variant: data.variant,
+                        targetEnemyId: data.targetEnemyId
+                    };
+                    if (data.position) forwardPayload.position = data.position;
+                    if (data.rotation) forwardPayload.rotation = data.rotation;
                     this.peers.forEach((conn, id) => {
                         if (id !== peerId) {
-                            conn.send({
-                                type: 'skillCast',
-                                skillName: data.skillName,
-                                playerId: peerId,
-                                variant: data.variant,
-                                targetEnemyId: data.targetEnemyId
-                            });
+                            conn.send(forwardPayload);
                         }
                     });
                     break;

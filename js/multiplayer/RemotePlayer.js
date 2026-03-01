@@ -7,6 +7,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { DEFAULT_CHARACTER_MODEL, CHARACTER_MODELS } from '../config/player-models.js';
 import { createPlayerTomb } from '../player/PlayerTomb.js';
+import { normalize2D, tempVec2, fastAtan2 } from 'utils/FastMath.js';
 
 export class RemotePlayer {
     /**
@@ -46,6 +47,9 @@ export class RemotePlayer {
         this.isDead = false;
         /** Tomb mesh shown when dead (replaces model). */
         this.tombGroup = null;
+        /** Reused for rotation interpolation (avoid per-frame alloc). */
+        this._quatCurrent = new THREE.Quaternion();
+        this._quatTarget = new THREE.Quaternion();
 
         // Create a group to hold the player model and name tag
         this.group = new THREE.Group();
@@ -334,6 +338,8 @@ export class RemotePlayer {
         // Set target position and keep internal position in sync (for input-driven host and for lerp base)
         this.targetPosition.set(position.x, position.y, position.z);
         this.position.set(position.x, position.y, position.z);
+        // Apply to group immediately so skill effects and visuals use correct position (fast local render, e.g. Fist of Thunder)
+        this.group.position.set(position.x, position.y, position.z);
     }
     
     /**
@@ -381,6 +387,8 @@ export class RemotePlayer {
                 const x = (rotation.x !== undefined && !isNaN(rotation.x)) ? rotation.x : 0;
                 const z = (rotation.z !== undefined && !isNaN(rotation.z)) ? rotation.z : 0;
                 this.targetRotation.set(x, rotation.y, z);
+                // Apply to model immediately so skill effects face correct direction (fast local render)
+                if (this.model) this.model.rotation.y = rotation.y;
             } else {
                 console.debug(`[RemotePlayer ${this.peerId}] Received invalid rotation object:`, rotation);
                 return;
@@ -682,12 +690,12 @@ export class RemotePlayer {
             this.group.position.lerp(this.targetPosition, this.interpolationFactor);
         }
         
-        // Interpolate rotation
+        // Interpolate rotation (reuse quaternions to avoid per-frame alloc)
         if (this.model) {
-            const currentQuaternion = new THREE.Quaternion().setFromEuler(this.model.rotation);
-            const targetQuaternion = new THREE.Quaternion().setFromEuler(this.targetRotation);
-            currentQuaternion.slerp(targetQuaternion, this.interpolationFactor);
-            this.model.quaternion.copy(currentQuaternion);
+            this._quatCurrent.setFromEuler(this.model.rotation);
+            this._quatTarget.setFromEuler(this.targetRotation);
+            this._quatCurrent.slerp(this._quatTarget, this.interpolationFactor);
+            this.model.quaternion.copy(this._quatCurrent);
         }
         
         // Update animation mixer
@@ -710,11 +718,11 @@ export class RemotePlayer {
         const dz = this.inputMoveZ;
         const lenSq = dx * dx + dz * dz;
         if (lenSq > 0.01) {
-            const len = Math.sqrt(lenSq);
+            normalize2D(tempVec2, dx, dz);
             const step = this.movementSpeed * delta;
-            this.position.x += (dx / len) * step;
-            this.position.z += (dz / len) * step;
-            this.targetRotation.y = Math.atan2(dx, dz);
+            this.position.x += tempVec2.x * step;
+            this.position.z += tempVec2.z * step;
+            this.targetRotation.y = fastAtan2(dx, dz);
             if (this.currentAnimation !== 'walking') this.updateAnimation('walking');
         } else {
             if (this.currentAnimation !== 'idle') this.updateAnimation('idle');

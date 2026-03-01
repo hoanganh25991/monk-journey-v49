@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { distanceApprox3D } from 'utils/FastMath.js';
+import { distanceApprox3D, distanceSq2D, fastSqrt } from 'utils/FastMath.js';
 import { Tree } from './Tree.js';
 import { LOD } from '../../../libs/three/three.module.js';
 
@@ -275,17 +275,15 @@ export class TreeCluster {
         if (this.treePositions.length === 0) {
             return 0;
         }
-        
-        let maxDistance = 0;
-        this.treePositions.forEach(pos => {
-            const distance = Math.sqrt(
-                Math.pow(pos.x - this.centerPosition.x, 2) +
-                Math.pow(pos.z - this.centerPosition.z, 2)
-            );
-            maxDistance = Math.max(maxDistance, distance);
-        });
-        
-        return maxDistance;
+        const cx = this.centerPosition.x;
+        const cz = this.centerPosition.z;
+        let maxDistanceSq = 0;
+        for (let i = 0; i < this.treePositions.length; i++) {
+            const pos = this.treePositions[i];
+            const dSq = distanceSq2D(cx, cz, pos.x, pos.z);
+            if (dSq > maxDistanceSq) maxDistanceSq = dSq;
+        }
+        return fastSqrt(maxDistanceSq);
     }
     
     /**

@@ -728,11 +728,9 @@ export class MiniMapUI extends UIComponent {
             const relY = (pos.z - centerWorldZ) * this.scale;
             const screenX = centerX + relX;
             const screenY = centerY + relY;
-
-            const distFromCenter = Math.sqrt(
-                Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
-            );
-            if (distFromCenter > (this.mapSize / 2 - 2)) return;
+            const margin = this.mapSize / 2 - 2;
+            const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+            if (distSq > margin * margin) return;
 
             const size = 8;
             // Dark outer (cave entrance)
@@ -782,10 +780,9 @@ export class MiniMapUI extends UIComponent {
                 const relY = (portal.position.z - centerWorldZ) * this.scale;
                 const screenX = centerX + relX;
                 const screenY = centerY + relY;
-                const distFromCenter = Math.sqrt(
-                    Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
-                );
-                if (distFromCenter <= (this.mapSize / 2 - 2)) {
+                const margin = this.mapSize / 2 - 2;
+                const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+                if (distSq <= margin * margin) {
                     // Simple portal representation as a circle
                     const size = 5;
                     
@@ -832,10 +829,9 @@ export class MiniMapUI extends UIComponent {
                 const relY = (pos.z - centerWorldZ) * this.scale;
                 const screenX = centerX + relX;
                 const screenY = centerY + relY;
-                const distFromCenter = Math.sqrt(
-                    Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
-                );
-                if (distFromCenter <= (this.mapSize / 2 - 2)) {
+                const margin = this.mapSize / 2 - 2;
+                const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+                if (distSq <= margin * margin) {
                     // Determine if this is a boss enemy (check both isBoss property and enemy type)
                     const isBoss = enemy.isBoss || ENEMY_CATEGORIES.BOSSES.includes(enemy.type);
                     
@@ -908,10 +904,9 @@ export class MiniMapUI extends UIComponent {
             const relY = (position.z - centerWorldZ) * this.scale;
             const screenX = centerX + relX;
             const screenY = centerY + relY;
-            const distFromCenter = Math.sqrt(
-                Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
-            );
-            if (distFromCenter <= (this.mapSize / 2 - 2)) {
+            const margin = this.mapSize / 2 - 2;
+            const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+            if (distSq <= margin * margin) {
                 // Get player color from remote player
                 const playerColor = remotePlayer.playerColor || '#FFFFFF';
                 
