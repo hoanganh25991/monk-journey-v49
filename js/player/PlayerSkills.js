@@ -1,5 +1,4 @@
-import * as THREE from '../../libs/three/three.module.js';
-import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from 'utils/FastMath.js';
+import * as THREE from 'three';
 import { Skill } from '../skills/Skill.js';
 import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
@@ -57,68 +56,25 @@ export class PlayerSkills {
         // Game reference
         this.game = game;
         
-        // All skills (including custom) are always enabled
-        this.customSkillsEnabled = true;
+        // Custom skills flag (default to true)
+        const customSkillsValue = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS);
+        this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === 'true';
     }
     
     // setGame method removed - game is now passed in constructor
     
-    /**
-     * Trigger attack animation on player model (hand/staff swing)
-     * @param {number} [durationMs=500] - How long to show attack pose
-     */
-    triggerAttackAnimation(durationMs = 500) {
-        if (this.game?.player?.state) {
-            this.game.player.state.setAttacking(true);
-            setTimeout(() => {
-                if (this.game?.player?.state) {
-                    this.game.player.state.setAttacking(false);
-                }
-            }, durationMs);
-        }
-    }
-
-    /** Min angle difference (radians) before updating camera/rotation on attack — avoids repeated lerp on each click when already facing. */
-    static get APPLY_FACING_ANGLE_THRESHOLD() { return 0.05; }
-
-    /**
-     * Apply attack facing. In first-person: back of model toward camera (user), front toward enemy.
-     * Model faces rotation.y (no offset), so set modelGroup.rotation.y = attackAngle so front faces enemy and back faces camera.
-     * Only updates when angle change is above threshold so repeated attacks don't retrigger lerp.
-     * @param {number} attackAngle - World angle (radians) toward the attack target (enemy / deep)
-     * @returns {Object} Rotation object to pass to skill createEffect (so the skill fires toward the target)
-     */
-    applyAttackFacing(attackAngle) {
-        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
-        const isFirstPerson = cameraUI?.currentCameraMode === 'over-shoulder';
-        if (isFirstPerson && cameraUI) {
-            const currentLookY = cameraUI.cameraState.rotationY;
-            let diff = attackAngle - currentLookY;
-            while (diff > Math.PI) diff -= 2 * Math.PI;
-            while (diff < -Math.PI) diff += 2 * Math.PI;
-            const alreadyFacing = Math.abs(diff) < PlayerSkills.APPLY_FACING_ANGLE_THRESHOLD;
-            if (!alreadyFacing) {
-                this.playerRotation.y = attackAngle;
-                cameraUI.cameraState.rotationY = attackAngle;
-                cameraUI.cameraState.originalRotationY = attackAngle;
-                cameraUI._firstPersonTurnBackTargetY = null;
-                const movement = this.game?.player?.movement;
-                const modelGroup = movement?.modelGroup;
-                if (modelGroup) modelGroup.rotation.y = attackAngle;
-            }
-            return { x: 0, y: attackAngle, z: 0 };
-        }
-        this.playerRotation.y = attackAngle;
-        return this.playerRotation;
-    }
-
     /**
      * Updates custom skills visibility based on the flag in localStorage
      * Reloads skills and updates UI components accordingly
      * @returns {void}
      */
     updateCustomSkillsVisibility() {
-        // All skills always enabled; reload to refresh UI
+        // Update the flag (default to true)
+        const customSkillsValue = localStorage.getItem(STORAGE_KEYS.CUSTOM_SKILLS);
+        this.customSkillsEnabled = customSkillsValue === null ? true : customSkillsValue === 'true';
+        console.debug(`Custom skills ${this.customSkillsEnabled ? 'enabled' : 'disabled'}`);
+        
+        // Reload skills to apply the filter
         this.initializeSkills();
         
         // Notify UI components to update
@@ -426,30 +382,20 @@ export class PlayerSkills {
         if (this.game && this.game.enemyManager) {
             // Always try to find the nearest enemy for targeting
             // Use skill range for targeting, or a default range if skill has no range
-            // Auto-targeting range is 2x the skill's base range
-            const baseRange = skillTemplate.range > 0 ? skillTemplate.range : 15;
-            const targetRange = baseRange * 2;
-            
-            // Use player's ground position for targeting (X, Z only, ignore height)
-            // This creates a circular targeting area on the ground regardless of player's height
-            const groundPosition = new THREE.Vector3(
-                this.playerPosition.x,
-                0, // Use ground level for targeting circle
-                this.playerPosition.z
-            );
-            
-            targetEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, targetRange);
+            const targetRange = skillTemplate.range > 0 ? skillTemplate.range : 15;
+            targetEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, targetRange);
             
             if (targetEnemy) {
                 // Get enemy position
                 const enemyPosition = targetEnemy.getPosition();
                 
-                // Calculate direction to enemy (horizontal only)
+                // Calculate direction to enemy
                 targetDirection = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                 
-                // Update player rotation to face enemy (first-person: model front faces target; skill uses correct direction)
-                const attackAngle = fastAtan2(targetDirection.x, targetDirection.z);
-                console.debug(`Auto-targeting enemy for skill ${skillTemplate.name}, facing direction: ${attackAngle}`);
+                // Update player rotation to face enemy
+                this.playerRotation.y = Math.atan2(targetDirection.x, targetDirection.z);
+                
+                console.debug(`Auto-targeting enemy for skill ${skillTemplate.name}, facing direction: ${this.playerRotation.y}`);
                 
                 // Store target enemy in the skill instance for potential use by the effect
                 skillTemplate.targetEnemy = targetEnemy;
@@ -502,11 +448,9 @@ export class PlayerSkills {
             newSkillInstance.targetEnemy = targetEnemy;
         }
         
-        // Rotation for skill effect: first-person uses applyAttackFacing so model front faces target and skill fires correctly
-        let rotationForEffect = this.playerRotation;
+        // First priority: If there's a target enemy, face that direction (already handled above)
         if (targetEnemy) {
-            const attackAngle = fastAtan2(targetDirection.x, targetDirection.z);
-            rotationForEffect = this.applyAttackFacing(attackAngle);
+            // Direction already set in the code above
             console.debug("Using enemy direction for skill cast");
             
             // For skills with stationaryAttack flag, we don't move the player
@@ -517,35 +461,30 @@ export class PlayerSkills {
                 console.debug(`Skill ${skillTemplate.name} has stationaryAttack flag or is Deadly Reach, player will not move`);
             }
         } 
-        // Second priority: If player is moving, use movement direction; else use current facing
+        // Second priority: If player is moving, use movement direction
         else if (this.game && this.game.inputHandler) {
             const moveDir = this.game.inputHandler.getMovementDirection();
             
             if (moveDir.length() > 0) {
-                const attackAngle = fastAtan2(moveDir.x, moveDir.z);
-                rotationForEffect = this.applyAttackFacing(attackAngle);
+                // Player is actively moving - use that direction
+                this.playerRotation.y = Math.atan2(moveDir.x, moveDir.z);
                 console.debug(`Using movement direction for skill: ${moveDir.x.toFixed(2)}, ${moveDir.z.toFixed(2)}`);
             } else {
-                const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
-                const isFirstPerson = cameraUI?.currentCameraMode === 'over-shoulder';
-                const attackAngle = isFirstPerson && cameraUI
-                    ? cameraUI.cameraState.rotationY
-                    : this.playerRotation.y;
-                rotationForEffect = this.applyAttackFacing(attackAngle);
-                console.debug(`Using current facing direction: ${Math.sin(attackAngle).toFixed(2)}, ${Math.cos(attackAngle).toFixed(2)}`);
+                // Player is not moving - use current facing direction
+                console.debug(`Using current facing direction: ${Math.sin(this.playerRotation.y).toFixed(2)}, ${Math.cos(this.playerRotation.y).toFixed(2)}`);
             }
         }
         
         // Log the final direction that will be used
-        console.debug(`Final rotation for skill cast: ${rotationForEffect.y.toFixed(2)} radians`);
+        console.debug(`Final rotation for skill cast: ${this.playerRotation.y.toFixed(2)} radians`);
         
         // Create the skill effect (async - lazy-loads effect module on first use)
-        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, rotationForEffect);
+        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
         
         // Add skill effect to scene
         if (skillEffect) {
             console.debug(`Adding ${skillTemplate.name} effect to scene`);
-            (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+            this.scene.add(skillEffect);
         } else {
             console.error(`Failed to create effect for ${skillTemplate.name}`);
         }
@@ -558,48 +497,10 @@ export class PlayerSkills {
         }
 
         // Sound is now handled by the skill itself in createEffect method
-        this.triggerAttackAnimation(500);
         // Add to active skills
         this.activeSkills.push(newSkillInstance);
         
         return true;
-    }
-
-    /**
-     * Cast a skill at a specific world position (e.g. from a skill consumable pickup).
-     * Does not consume mana or trigger cooldown. Used when player picks up a skill consumable.
-     * @param {string} skillName - Name of the skill (must exist in SKILLS)
-     * @param {THREE.Vector3} worldPosition - Position to cast the skill at (e.g. drop position)
-     * @returns {Promise<boolean>} - True if the skill was cast, false otherwise
-     */
-    async castSkillAtPosition(skillName, worldPosition) {
-        if (!this.game || !worldPosition) return false;
-        const skillConfig = SKILLS.find(c => c.name === skillName);
-        if (!skillConfig) {
-            console.warn(`castSkillAtPosition: skill not found: ${skillName}`);
-            return false;
-        }
-        const copy = { ...skillConfig };
-        if (typeof copy.color === 'string' && copy.color.startsWith('#')) {
-            copy.color = parseInt(copy.color.slice(1), 16);
-        } else if (copy.color == null) {
-            copy.color = 0xffffff;
-        }
-        if (this.skillTreeData && this.skillTreeData[skillName]) {
-            const entry = this.skillTreeData[skillName];
-            if (entry.activeVariant) copy.variant = entry.activeVariant;
-            if (entry.buffs && Object.keys(entry.buffs).length > 0) copy.buffs = entry.buffs;
-        }
-        const skillInstance = new Skill(copy, this.game);
-        skillInstance.game = this.game;
-        const rotation = { y: 0 };
-        const skillEffect = await skillInstance.createEffect(worldPosition.clone(), rotation);
-        if (skillEffect) {
-            (this.game.getWorldGroup?.() || this.scene).add(skillEffect);
-            this.activeSkills.push(skillInstance);
-            return true;
-        }
-        return false;
     }
     
     /**
@@ -635,15 +536,8 @@ export class PlayerSkills {
             const minTeleportRange = 4.0; // Minimum distance required for teleport
             const maxTeleportRange = skillTemplate.range || 15.0; // Maximum teleport range
             
-            // Use player's ground position for targeting (creates circular area on ground)
-            const groundPosition = new THREE.Vector3(
-                this.playerPosition.x,
-                0,
-                this.playerPosition.z
-            );
-            
             // First check if there's an enemy in melee range
-            const meleeEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, meleeRange);
+            const meleeEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, meleeRange);
             
             if (meleeEnemy) {
                 // Enemy is in melee range, use normal attack (no teleport)
@@ -674,21 +568,20 @@ export class PlayerSkills {
                 // Calculate direction to enemy
                 const direction = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                 
-                const attackAngle = fastAtan2(direction.x, direction.z);
-                const rotationForEffect = this.applyAttackFacing(attackAngle);
+                // Update player rotation to face enemy
+                this.playerRotation.y = Math.atan2(direction.x, direction.z);
                 
                 // Create skill effect at the current position (async - lazy-loads effect module)
-                const skillEffect = await newSkillInstance.createEffect(this.playerPosition, rotationForEffect);
+                const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                 
                 // Add skill effect to scene
-                (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+                this.scene.add(skillEffect);
                 
                 // Play sound
                 if (this.game && this.game.audioManager) {
                     this.game.audioManager.playSound('playerAttack');
                 }
                 
-                this.triggerAttackAnimation(500);
                 // Add to active skills
                 this.activeSkills.push(newSkillInstance);
                 
@@ -696,23 +589,22 @@ export class PlayerSkills {
             } else {
                 // No enemy in melee range, check for enemies in teleport range
                 // First look for enemies between min and max teleport range
-                const teleportRangeEnemy = this.game.enemyManager.findNearestEnemy(groundPosition, maxTeleportRange);
+                const teleportRangeEnemy = this.game.enemyManager.findNearestEnemy(this.playerPosition, maxTeleportRange);
+                this.broadcastSkillCast(skillTemplate.name, teleportRangeEnemy);
                 
                 if (teleportRangeEnemy) {
                     console.debug({teleportRangeEnemy})
                     // Get enemy position
                     const enemyPosition = teleportRangeEnemy.getPosition();
                     
-                    // Distance to enemy (squared for threshold; approximate for teleport math)
-                    const distSq = distanceSq2D(this.playerPosition.x, this.playerPosition.z, enemyPosition.x, enemyPosition.z);
-                    const minTeleportRangeSq = minTeleportRange * minTeleportRange;
-                    const distanceToEnemy = distanceApprox2D(this.playerPosition.x, this.playerPosition.z, enemyPosition.x, enemyPosition.z);
+                    // Calculate distance to enemy
+                    const distanceToEnemy = this.playerPosition.distanceTo(enemyPosition);
                     
                     // Calculate direction to enemy
                     const direction = new THREE.Vector3().subVectors(enemyPosition, this.playerPosition).normalize();
                     
-                    const attackAngle = fastAtan2(direction.x, direction.z);
-                    const rotationForEffect = this.applyAttackFacing(attackAngle);
+                    // Update player rotation to face enemy
+                    this.playerRotation.y = Math.atan2(direction.x, direction.z);
                     
                     // Use mana
                     this.playerStats.setMana(this.playerStats.getMana() - skillTemplate.manaCost);
@@ -727,23 +619,22 @@ export class PlayerSkills {
                     // Pass game reference to the new skill instance
                     newSkillInstance.game = this.game;
                     
-                    // Check if this is a stationary attack skill or if enemy is too close for teleport (squared compare)
+                    // Check if this is a stationary attack skill or if enemy is too close for teleport
                     if (skillTemplate.stationaryAttack || 
                         skillTemplate.name === "Deadly Reach" || 
-                        distSq < minTeleportRangeSq) {
+                        distanceToEnemy < minTeleportRange) {
                         
-                        if (distSq < minTeleportRangeSq) {
+                        if (distanceToEnemy < minTeleportRange) {
                             console.debug(`Enemy at distance ${distanceToEnemy.toFixed(2)} is too close for teleport (min: ${minTeleportRange}), using ranged attack`);
                         } else {
                             console.debug(`Primary attack ${skillTemplate.name} has stationaryAttack flag or is Deadly Reach, player will not move`);
                         }
                         
-                        this.broadcastSkillCast(skillTemplate.name, teleportRangeEnemy);
                         // Create skill effect at the current position (async - lazy-loads effect module)
-                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, rotationForEffect);
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+                        this.scene.add(skillEffect);
                     } else {
                         // Enemy is beyond minimum teleport range, teleport to the enemy
                         console.debug(`Enemy at distance ${distanceToEnemy.toFixed(2)} is beyond minimum teleport range (${minTeleportRange}), teleporting`);
@@ -758,14 +649,12 @@ export class PlayerSkills {
                         
                         // Teleport player
                         this.playerPosition.copy(teleportPosition);
-                        this.game.multiplayerManager?.notifyLocalTeleport?.();
-                        this.broadcastSkillCast(skillTemplate.name, teleportRangeEnemy, this.playerPosition, this.playerRotation);
                         
                         // Create skill effect at the new position (async - lazy-loads effect module)
-                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, rotationForEffect);
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+                        this.scene.add(skillEffect);
                     }
                     
                     // Play sound
@@ -773,7 +662,6 @@ export class PlayerSkills {
                         this.game.audioManager.playSound('playerAttack');
                     }
                     
-                    this.triggerAttackAnimation(500);
                     // Add to active skills
                     this.activeSkills.push(newSkillInstance);
                     
@@ -796,23 +684,17 @@ export class PlayerSkills {
                         newSkillInstance.game = this.game;
                         newSkillInstance.targetEnemy = null; // Fire in player direction
                         
-                        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
-                        const isFirstPerson = cameraUI?.currentCameraMode === 'over-shoulder';
-                        const attackAngle = isFirstPerson && cameraUI ? cameraUI.cameraState.rotationY : this.playerRotation.y;
-                        const rotationForEffect = this.applyAttackFacing(attackAngle);
-                        
                         // Create skill effect at current position with player rotation
-                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, rotationForEffect);
+                        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
                         
                         // Add skill effect to scene
-                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+                        this.scene.add(skillEffect);
                         
                         // Play sound
                         if (this.game && this.game.audioManager) {
                             this.game.audioManager.playSound('playerAttack');
                         }
                         
-                        this.triggerAttackAnimation(500);
                         // Add to active skills
                         this.activeSkills.push(newSkillInstance);
                         
@@ -821,11 +703,11 @@ export class PlayerSkills {
                     
                     // For Fist of Thunder (teleport skill), dash forward in player direction
                     if (skillTemplate.name === "Fist of Thunder") {
-                        const dashDistance = skillTemplate.range || 25; // Distance to teleport when no enemy (matches skill range)
+                        const dashDistance = 8; // Distance to teleport when no enemy
                         const direction = new THREE.Vector3(
-                            fastSin(this.playerRotation.y),
+                            Math.sin(this.playerRotation.y),
                             0,
-                            fastCos(this.playerRotation.y)
+                            Math.cos(this.playerRotation.y)
                         );
                         const teleportPosition = new THREE.Vector3(
                             this.playerPosition.x + direction.x * dashDistance,
@@ -834,6 +716,7 @@ export class PlayerSkills {
                         );
                         
                         console.debug('No enemy in range, dashing forward with Fist of Thunder');
+                        this.broadcastSkillCast(skillTemplate.name, null);
                         
                         this.playerStats.setMana(this.playerStats.getMana() - skillTemplate.manaCost);
                         skillTemplate.startCooldown();
@@ -844,15 +727,12 @@ export class PlayerSkills {
                         newSkillInstance.targetEnemy = null;
                         
                         this.playerPosition.copy(teleportPosition);
-                        this.game.multiplayerManager?.notifyLocalTeleport?.();
-                        this.broadcastSkillCast(skillTemplate.name, null, this.playerPosition, this.playerRotation);
                         const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
-                        (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
+                        this.scene.add(skillEffect);
                         
                         if (this.game && this.game.audioManager) {
                             this.game.audioManager.playSound('playerAttack');
                         }
-                        this.triggerAttackAnimation(500);
                         this.activeSkills.push(newSkillInstance);
                         return true;
                     }
@@ -927,14 +807,11 @@ export class PlayerSkills {
     }
     
     /**
-     * Broadcasts a skill cast to other players in multiplayer mode.
-     * For skills that move the player (e.g. Fist of Thunder), pass position/rotation so remotes render at the correct place (fast local render).
+     * Broadcasts a skill cast to other players in multiplayer mode
      * @param {string} skillName - The name of the skill being cast
      * @param {Object} [targetEnemy] - The target enemy of the skill (optional)
-     * @param {THREE.Vector3|{x:number,y:number,z:number}} [position] - Optional position after cast (e.g. post-teleport) for immediate sync
-     * @param {{y:number}} [rotation] - Optional rotation after cast for immediate sync
      */
-    broadcastSkillCast(skillName, targetEnemy, position, rotation) {
+    broadcastSkillCast(skillName, targetEnemy) {
         // Check if game and multiplayer manager exist
         if (!this.game || !this.game.multiplayerManager || !this.game.multiplayerManager.connection) {
             return;
@@ -963,26 +840,15 @@ export class PlayerSkills {
             console.debug(`[PlayerSkills] Broadcasting skill with target enemy ID: ${targetEnemyId} for skill: ${skillName}`);
         }
         
-        const pos = position && typeof position.x === 'number' && !isNaN(position.x)
-            ? { x: position.x, y: position.y ?? 0, z: position.z ?? 0 }
-            : undefined;
-        const rot = rotation && typeof rotation.y === 'number' && !isNaN(rotation.y)
-            ? { y: rotation.y }
-            : undefined;
-        
-        const payload = {
-            type: 'skillCast',
-            skillName: skillName,
-            playerId: this.game.multiplayerManager.connection.peer.id,
-            variant: variant,
-            targetEnemyId: targetEnemyId
-        };
-        if (pos) payload.position = pos;
-        if (rot) payload.rotation = rot;
-        
         // If player is host, broadcast to all members
         if (this.game.multiplayerManager.connection.isHost) {
-            this.game.multiplayerManager.connection.broadcast(payload);
+            this.game.multiplayerManager.connection.broadcast({
+                type: 'skillCast',
+                skillName: skillName,
+                playerId: this.game.multiplayerManager.connection.peer.id,
+                variant: variant, // Include the variant information
+                targetEnemyId: targetEnemyId // Include the target enemy ID
+            });
         } 
         // If player is member, send to host
         else {
@@ -991,7 +857,13 @@ export class PlayerSkills {
             );
             
             if (hostConn) {
-                hostConn.send(payload);
+                hostConn.send({
+                    type: 'skillCast',
+                    playerId: this.game.multiplayerManager.connection.peer.id,
+                    skillName: skillName,
+                    variant: variant, // Include the variant information
+                    targetEnemyId: targetEnemyId // Include the target enemy ID
+                });
             }
         }
     }

@@ -43,6 +43,7 @@ export const STORAGE_KEYS = {
     AUTO_EQUIP_ITEMS: 'monk_journey_auto_equip_items',
     CUSTOM_SKILLS: 'monk_journey_custom_skills',
     CAMERA_ZOOM: 'monk_journey_camera_zoom',
+    /** Value = CAMERA_MODES.THIRD_PERSON | CAMERA_MODES.OVER_SHOULDER (see camera-modes.js) */
     CAMERA_MODE: 'monk_journey_camera_mode',
     CAMERA_HEIGHT: 'monk_journey_camera_height',
     CAMERA_LOOK_OFFSET: 'monk_journey_camera_look_offset',
