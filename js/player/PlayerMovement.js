@@ -287,9 +287,9 @@ export class PlayerMovement {
             this._backwardHeldLastFrame = anyBackwardIntent;
             if (anyBackwardIntent) return;
 
-            // First-person: getMovementDirection returns "camera forward" = toward player; we need "player forward" = away from camera, so negate
-            const moveX = isFirstPerson ? -direction.x : direction.x;
-            const moveZ = isFirstPerson ? -direction.z : direction.z;
+            // First-person: use direction as-is so W = move forward into the scene (away from player seat). Third-person: same.
+            const moveX = direction.x;
+            const moveZ = direction.z;
 
             // Calculate movement step
             const step = this.playerStats.getMovementSpeed() * delta;
@@ -310,11 +310,26 @@ export class PlayerMovement {
                 this.modelGroup.position.set(0, 0, 0);
             }
             
-            // Update rotation to face movement direction
-            this.rotation.y = fastAtan2(moveX, moveZ);
-            if (this.modelGroup) {
-                const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
-                this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+            // Rotation and look: first-person = camera drives facing (avoid 180° flip vs movement direction); third-person = face movement
+            if (isFirstPerson && cameraUI) {
+                this.rotation.y = cameraUI.cameraState.rotationY;
+                if (this.modelGroup) {
+                    this.modelGroup.rotation.y = this.rotation.y + MODEL_FACING_OFFSET_Y;
+                }
+                if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
+                    const lookDirection = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
+                    this.game.player.setLookDirection(lookDirection);
+                }
+            } else {
+                this.rotation.y = fastAtan2(moveX, moveZ);
+                if (this.modelGroup) {
+                    const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+                }
+                if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
+                    const lookDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
+                    this.game.player.setLookDirection(lookDirection);
+                }
             }
             
             // Set moving state
@@ -322,12 +337,6 @@ export class PlayerMovement {
             
             // Update target position to current position to prevent mouse movement overriding
             this.targetPosition.copy(this.position);
-            
-            // If the game has a player reference with setLookDirection method, update it
-            if (this.game && this.game.player && typeof this.game.player.setLookDirection === 'function') {
-                const lookDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
-                this.game.player.setLookDirection(lookDirection);
-            }
         }
     }
     
