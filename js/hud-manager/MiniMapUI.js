@@ -337,6 +337,26 @@ export class MiniMapUI extends UIComponent {
     }
     
     /**
+     * Get current zoom level as a display string (e.g. "1.0x" at default, "1.5x" when zoomed out).
+     * @returns {string}
+     */
+    getZoomLabel() {
+        const ratio = this.defaultScale / this.scale;
+        return ratio.toFixed(1) + 'x';
+    }
+
+    /**
+     * Get visible world radius for current zoom (scale).
+     * Used to include all objects within the minimap circle when zoomed out.
+     * Smaller scale (zoom out) = larger radius = more objects drawn.
+     * @returns {number} World-space radius from player; objects within this distance are drawn
+     */
+    getVisibleWorldRadius() {
+        const pixelRadius = this.mapSize / 2 - 2;
+        return (pixelRadius / this.scale) * 1.05; // small margin so edge objects aren't clipped
+    }
+
+    /**
      * Get the effective look direction for the minimap
      * Always use player rotation - it's updated by both joystick/arrows AND camera control (setLookDirection)
      * @returns {{ angle: number, fromCamera: boolean }} Rotation for direction indicator (fromCamera=false uses sin/cos formula)
@@ -464,6 +484,34 @@ export class MiniMapUI extends UIComponent {
         
         // Draw cardinal directions
         this.drawCardinalDirections(centerX, centerY, radius);
+
+        // Draw zoom level label (bottom-left, inside circle)
+        this.drawZoomLabel();
+    }
+
+    /**
+     * Draw current zoom level on the minimap (bottom-left corner).
+     */
+    drawZoomLabel() {
+        const label = this.getZoomLabel();
+        const padding = 6;
+        const fontSize = Math.max(9, Math.min(12, Math.floor(this.mapSize / 18)));
+        this.ctx.font = `${fontSize}px sans-serif`;
+        const metrics = this.ctx.measureText(label);
+        const textW = metrics.width;
+        const textH = fontSize + 2;
+        const x = padding;
+        const y = this.mapSize - padding - textH;
+
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.fillRect(x, y, textW + padding * 2, textH + 2);
+        this.ctx.strokeStyle = 'rgba(150, 150, 220, 0.5)';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x, y, textW + padding * 2, textH + 2);
+        this.ctx.fillStyle = 'rgba(220, 220, 255, 0.95)';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+        this.ctx.fillText(label, x + padding, y + 1);
     }
     
     /**
@@ -701,19 +749,20 @@ export class MiniMapUI extends UIComponent {
         structureShapeMap['cave'] = 'diamond';
         structureSizeMap['cave'] = 8;
 
-        // Draw all structures from the structure manager
+        // Visible world radius for current zoom (zoom out = smaller scale = larger radius = more objects)
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+
+        // Draw structures within visible radius so zoom-out shows more objects
         structures.forEach(structure => {
-            if (structure && structure.position) {
-                // Get the structure type (normalize to lowercase for consistency)
-                const type = (structure.type || '').toLowerCase();
-                
-                // Get shape and size based on type
-                const shape = structureShapeMap[type] || 'square';
-                const size = structureSizeMap[type] || 6;
-                
-                // Draw the structure
-                drawStructure(structure.position, type, size, shape);
-            }
+            if (!structure || !structure.position) return;
+            const dx = structure.position.x - playerX;
+            const dz = structure.position.z - playerY;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
+            const type = (structure.type || '').toLowerCase();
+            const shape = structureShapeMap[type] || 'square';
+            const size = structureSizeMap[type] || 6;
+            drawStructure(structure.position, type, size, shape);
         });
     }
 
@@ -728,7 +777,12 @@ export class MiniMapUI extends UIComponent {
         const cavePositions = this.game.world?.getCavePositions?.() || [];
         if (cavePositions.length === 0) return;
 
+        const visibleWorldRadius = this.getVisibleWorldRadius();
         cavePositions.forEach(pos => {
+            const dx = pos.x - playerX;
+            const dz = pos.z - playerY;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
             const relX = (pos.x - playerX) * this.scale;
             const relY = (pos.z - playerY) * this.scale;
             const screenX = centerX + relX + this.mapOffsetX;
@@ -776,23 +830,20 @@ export class MiniMapUI extends UIComponent {
      */
     drawTeleportPortals(playerX, playerY, centerX, centerY) {
         const portals = this.game.world.teleportManager.getPortals();
+        const visibleWorldRadius = this.getVisibleWorldRadius();
         if (portals.length > 0) {
             portals.forEach(portal => {
-                // Calculate position relative to player
+                const dx = portal.position.x - playerX;
+                const dz = portal.position.z - playerY;
+                if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
                 const relX = (portal.position.x - playerX) * this.scale;
                 const relY = (portal.position.z - playerY) * this.scale;
-                
-                // Apply map offset
                 const screenX = centerX + relX + this.mapOffsetX;
                 const screenY = centerY + relY + this.mapOffsetY;
-                
-                // Calculate distance from center (for circular bounds check)
                 const distFromCenter = Math.sqrt(
-                    Math.pow(screenX - centerX, 2) + 
-                    Math.pow(screenY - centerY, 2)
+                    Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
                 );
-                
-                // Only draw if within circular mini map bounds
                 if (distFromCenter <= (this.mapSize / 2 - 2)) {
                     // Simple portal representation as a circle
                     const size = 5;
@@ -824,33 +875,25 @@ export class MiniMapUI extends UIComponent {
      * @param {number} centerY - Center Y of the mini map
      */
     drawEnemies(playerX, playerY, centerX, centerY) {
-        // Check if enemyManager exists
         if (!this.game.enemyManager) return;
-        
-        // Get enemies from the Map
         const enemiesMap = this.game.enemyManager.enemies;
-        
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+
         if (enemiesMap.size > 0) {
-            // Iterate through the Map entries
             for (const [id, enemy] of enemiesMap.entries()) {
-                // Skip entities without position
                 if (!enemy.getPosition) continue;
-                
-                // Calculate position relative to player
-                const relX = (enemy.getPosition().x - playerX) * this.scale;
-                const relY = (enemy.getPosition().z - playerY) * this.scale;
-                
-                // Apply map offset
+                const pos = enemy.getPosition();
+                const dx = pos.x - playerX;
+                const dz = pos.z - playerY;
+                if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) continue;
+
+                const relX = (pos.x - playerX) * this.scale;
+                const relY = (pos.z - playerY) * this.scale;
                 const screenX = centerX + relX + this.mapOffsetX;
                 const screenY = centerY + relY + this.mapOffsetY;
-                
-                // Calculate distance from center (for circular bounds check)
                 const distFromCenter = Math.sqrt(
-                    Math.pow(screenX - centerX, 2) + 
-                    Math.pow(screenY - centerY, 2)
+                    Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
                 );
-                
-                // Only draw if within circular mini map bounds
                 if (distFromCenter <= (this.mapSize / 2 - 2)) {
                     // Determine if this is a boss enemy (check both isBoss property and enemy type)
                     const isBoss = enemy.isBoss || ENEMY_CATEGORIES.BOSSES.includes(enemy.type);
@@ -909,35 +952,24 @@ export class MiniMapUI extends UIComponent {
         
         const remotePlayerManager = this.game.multiplayerManager.remotePlayerManager;
         const remotePlayers = remotePlayerManager.getPlayers();
-        
-        // Skip if no remote players
-        if (!remotePlayers || remotePlayers.size === 0) {
-            return;
-        }
-        
-        // Draw each remote player
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+
+        if (!remotePlayers || remotePlayers.size === 0) return;
+
         for (const [peerId, remotePlayer] of remotePlayers.entries()) {
-            // Skip if player doesn't have a position
             if (!remotePlayer.group) continue;
-            
-            // Get position from the group
             const position = remotePlayer.group.position;
-            
-            // Calculate position relative to player
+            const dx = position.x - playerX;
+            const dz = position.z - playerY;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) continue;
+
             const relX = (position.x - playerX) * this.scale;
             const relY = (position.z - playerY) * this.scale;
-            
-            // Apply map offset
             const screenX = centerX + relX + this.mapOffsetX;
             const screenY = centerY + relY + this.mapOffsetY;
-            
-            // Calculate distance from center (for circular bounds check)
             const distFromCenter = Math.sqrt(
-                Math.pow(screenX - centerX, 2) + 
-                Math.pow(screenY - centerY, 2)
+                Math.pow(screenX - centerX, 2) + Math.pow(screenY - centerY, 2)
             );
-            
-            // Only draw if within circular mini map bounds
             if (distFromCenter <= (this.mapSize / 2 - 2)) {
                 // Get player color from remote player
                 const playerColor = remotePlayer.playerColor || '#FFFFFF';
