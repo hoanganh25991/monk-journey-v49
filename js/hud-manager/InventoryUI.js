@@ -1406,6 +1406,7 @@ export class InventoryUI extends UIComponent {
 
         // Teleport player to origin
         this.game.player.setPosition(0, 0, 0);
+        this.game.player.clearTransientMovementEffects();
 
         // Show notification
         if (this.game.hudManager) {
@@ -1429,6 +1430,7 @@ export class InventoryUI extends UIComponent {
 
         // Force teleport player to origin (0, 0, 0)
         this.game.player.setPosition(0, 0, 0);
+        this.game.player.clearTransientMovementEffects();
 
         // Show success notification
         if (this.game.hudManager) {

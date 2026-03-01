@@ -626,14 +626,7 @@ export class SaveManager extends ISaveSystem {
      * Call after applying any saved state so Frost Titan freeze etc. never persist after reload.
      */
     _clearTransientMovementEffects() {
-        const p = this.game?.player;
-        if (!p) return;
-        if (p.statusEffects) {
-            for (const effectType of TRANSIENT_MOVEMENT_EFFECTS) {
-                p.statusEffects.removeEffect(effectType);
-            }
-        }
-        if (p.movement) p.movement.canMove = true;
+        this.game?.player?.clearTransientMovementEffects();
     }
 
     /**

@@ -569,6 +569,20 @@ export class Player {
         
         return this.statusEffects.getAllEffects();
     }
+
+    /**
+     * Clear transient movement effects (freeze, slow, stun) and re-enable movement.
+     * Call after teleport / load so Frost Titan freeze etc. never leave the player stuck.
+     */
+    clearTransientMovementEffects() {
+        const transient = ['freeze', 'slow', 'stun'];
+        if (this.statusEffects) {
+            for (const effectType of transient) {
+                this.statusEffects.removeEffect(effectType);
+            }
+        }
+        if (this.movement) this.movement.canMove = true;
+    }
     
     // Skills getters - delegate to PlayerSkills
     /**

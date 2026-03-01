@@ -758,6 +758,9 @@ export class TeleportManager {
                         portal.targetPosition.z
                     );
                 }
+                if (typeof targetPlayer.clearTransientMovementEffects === 'function') {
+                    targetPlayer.clearTransientMovementEffects();
+                }
                 
                 // Also update the player's model position directly if available
                 if (targetPlayer.model && typeof targetPlayer.model.setPosition === 'function') {
