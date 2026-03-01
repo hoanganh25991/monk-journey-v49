@@ -4,23 +4,25 @@ import { distanceSq3D, distanceApprox3D } from 'utils/FastMath.js';
 /**
  * A single projectile fired by a ranged enemy (e.g. arrow, orb).
  * Flies toward the target (direct or curved), applies damage on hit, then is removed.
+ * Mesh is added to parent (worldGroup or scene) so it moves with the world under origin shifting.
  */
 export class EnemyProjectile {
     /**
-     * @param {THREE.Scene} scene
+     * @param {THREE.Object3D} parent - Parent to add mesh to (worldGroup or scene)
      * @param {Object} options
      * @param {THREE.Vector3} options.sourcePosition - Where the projectile spawns (enemy position + height)
      * @param {Object} options.target - Target with getPosition() (e.g. player)
      * @param {number} options.damage - Damage to apply on hit
-     * @param {string} [options.projectileType='arrow'] - 'arrow' | 'orb' | 'bolt'
+     * @param {string} [options.projectileType='arrow'] - 'arrow' | 'orb' | 'bolt' | 'stone'
      * @param {string} [options.flightStyle='direct'] - 'direct' | 'curve'
      * @param {number} [options.speed=14] - Units per second
      * @param {number} [options.hitRadius=0.8] - Distance to target to count as hit
      * @param {number} [options.maxLifetime=3] - Seconds before projectile is removed if no hit
      * @param {number} [options.color=0xddccbb] - Tint for projectile mesh
      */
-    constructor(scene, options = {}) {
-        this.scene = scene;
+    constructor(parent, options = {}) {
+        /** @type {THREE.Object3D} - Parent (worldGroup or scene) for the mesh */
+        this.parent = parent;
         this.sourcePosition = options.sourcePosition.clone();
         this.target = options.target;
         this.damage = options.damage ?? 10;
@@ -56,7 +58,7 @@ export class EnemyProjectile {
 
         this._createMesh();
         this.mesh.position.copy(this.sourcePosition);
-        this.scene.add(this.mesh);
+        this.parent.add(this.mesh);
     }
 
     _updateTargetPosition() {
@@ -93,6 +95,17 @@ export class EnemyProjectile {
             });
             const orb = new THREE.Mesh(geometry, material);
             group.add(orb);
+        } else if (this.projectileType === 'stone') {
+            // Stone: irregular rocky sphere (like a thrown rock)
+            const geometry = new THREE.SphereGeometry(0.1, 8, 6);
+            const material = new THREE.MeshStandardMaterial({
+                color: this.color || 0x6b5b4f,
+                roughness: 0.9,
+                metalness: 0.1
+            });
+            const stone = new THREE.Mesh(geometry, material);
+            stone.scale.set(1.1, 0.9, 1.05); // Slightly irregular
+            group.add(stone);
         } else {
             // bolt / generic
             const geometry = new THREE.CylinderGeometry(0.04, 0.06, 0.35, 8);
@@ -108,6 +121,13 @@ export class EnemyProjectile {
 
         this.mesh = group;
         this.mesh.userData.enemyProjectile = true;
+        this.mesh.visible = true;
+        this.mesh.traverse((o) => {
+            if (o.isMesh) {
+                o.castShadow = true;
+                o.receiveShadow = true;
+            }
+        });
     }
 
     /**
@@ -189,8 +209,8 @@ export class EnemyProjectile {
 
     dispose() {
         this.isActive = false;
-        if (this.mesh && this.scene) {
-            this.scene.remove(this.mesh);
+        if (this.mesh && this.parent) {
+            this.parent.remove(this.mesh);
             this.mesh.traverse((o) => {
                 if (o.geometry) o.geometry.dispose();
                 if (o.material) {

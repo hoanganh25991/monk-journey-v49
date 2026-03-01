@@ -423,6 +423,8 @@ export const ENEMY_CONFIG = {
             color: 0x66aa66,
             behavior: 'ranged',
             zone: 'swamp',
+            projectileType: 'stone',
+            projectileFlightStyle: 'curve',
             abilities: ['poison_spit', 'toxic_cloud']
         },
         {

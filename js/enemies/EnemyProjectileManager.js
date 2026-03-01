@@ -2,13 +2,17 @@ import { EnemyProjectile } from './EnemyProjectile.js';
 
 /**
  * Manages projectiles fired by ranged enemies. Spawns, updates, and removes them.
+ * Projectiles are added to worldGroup (when provided) so they move with the world under origin shifting.
  */
 export class EnemyProjectileManager {
     /**
-     * @param {THREE.Scene} scene
+     * @param {THREE.Scene} scene - Root scene (for reference)
+     * @param {THREE.Group} [worldGroup] - If set, projectiles are added here so they move with the world; otherwise scene
      */
-    constructor(scene) {
+    constructor(scene, worldGroup = null) {
         this.scene = scene;
+        /** @type {THREE.Group|THREE.Scene} - Parent for projectile meshes (worldGroup so they stay visible with origin shifting) */
+        this.projectileRoot = worldGroup || scene;
         this.projectiles = [];
         this.maxProjectiles = 80;
     }
@@ -29,7 +33,7 @@ export class EnemyProjectileManager {
         const flightStyle = overrides.flightStyle ?? enemy.projectileFlightStyle ?? 'direct';
         const speed = overrides.speed ?? (flightStyle === 'curve' ? 12 : 14);
 
-        const projectile = new EnemyProjectile(this.scene, {
+        const projectile = new EnemyProjectile(this.projectileRoot, {
             sourcePosition,
             target: enemy.targetPlayer,
             damage: enemy.damage,

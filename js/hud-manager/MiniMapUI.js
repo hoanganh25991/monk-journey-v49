@@ -40,7 +40,7 @@ export class MiniMapUI extends UIComponent {
         this.dragStartY = 0;
         this.mapOffsetX = 0;
         this.mapOffsetY = 0;
-        this.maxMapOffset = 100; // Maximum map offset in any direction
+        this.maxMapOffset = 200; // Maximum map offset in any direction (drag range)
         
         // For map zooming (default 0.2 shows ~5x more area; lower = more area, higher = more zoomed in)
         this.minScale = 0.05; // Maximum zoom out (see most area)

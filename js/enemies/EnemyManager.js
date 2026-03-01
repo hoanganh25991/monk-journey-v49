@@ -155,8 +155,9 @@ export class EnemyManager {
         this.caveSpawnCheckInterval = 2; // Check every 2 seconds
         this.lastCaveSpawnCheck = 0;
 
-        // Ranged enemy projectiles (arrows, orbs, etc.)
-        this.projectileManager = new EnemyProjectileManager(scene);
+        // Ranged enemy projectiles (arrows, orbs, etc.) - add to worldGroup so they move with the world (origin shifting)
+        const worldGroup = game?.getWorldGroup?.() || scene;
+        this.projectileManager = new EnemyProjectileManager(scene, worldGroup);
     }
     
     /**

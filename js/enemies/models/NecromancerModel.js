@@ -4,9 +4,6 @@ import { EnemyModel } from './EnemyModel.js';
 
 export class NecromancerModel extends EnemyModel {
     static _worldQuat = new THREE.Quaternion();
-    static _hoodUp = new THREE.Quaternion();
-    static _eulerPI = new THREE.Euler(Math.PI, 0, 0, 'XYZ');
-    static _eulerWobble = new THREE.Euler(Math.PI, 0, 0, 'XYZ');
 
     constructor(enemy, modelGroup) {
         super(enemy, modelGroup);
@@ -26,32 +23,18 @@ export class NecromancerModel extends EnemyModel {
         
         this.modelGroup.add(body);
         
-        // Create head (skull-like)
-        const headGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        // Create head (pointed cone, purple like the robe)
+        const headGeometry = new THREE.ConeGeometry(0.35, 0.5, 8);
         const headMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xdddddd,
-            roughness: 0.8,
-            metalness: 0.2
-        });
-        const head = new THREE.Mesh(headGeometry, headMaterial);
-        head.position.y = 1.9;
-        head.castShadow = true;
-        
-        this.modelGroup.add(head);
-        
-        // Create hood
-        const hoodGeometry = new THREE.ConeGeometry(0.4, 0.5, 8);
-        const hoodMaterial = new THREE.MeshStandardMaterial({ 
             color: 0x330033,
             roughness: 0.9,
             metalness: 0.1
         });
-        const hood = new THREE.Mesh(hoodGeometry, hoodMaterial);
-        hood.position.y = 2.1;
-        hood.rotation.x = Math.PI;
-        hood.castShadow = true;
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        head.position.y = 1.9; // cone center: point ends up at ~2.15
+        head.castShadow = true;
         
-        this.modelGroup.add(hood);
+        this.modelGroup.add(head);
         
         // Create staff
         const staffGeometry = new THREE.CylinderGeometry(0.05, 0.05, 2, 8);
@@ -133,7 +116,7 @@ export class NecromancerModel extends EnemyModel {
         // Necromancer specific animations
         const time = Date.now() * 0.001; // Convert to seconds
         const root = this.getAnimationRoot();
-        if (!root || root.children.length < 5) return;
+        if (!root || root.children.length < 4) return;
 
         // Use model group world rotation so we work with LOD (root may be fullDetailGroup)
         this.modelGroup.updateMatrixWorld(true);
@@ -141,24 +124,12 @@ export class NecromancerModel extends EnemyModel {
         this.modelGroup.getWorldQuaternion(_worldQuat);
         _worldQuat.invert();
 
-        // Keep head upright in world space (white sphere on top of body)
+        // Keep cone head upright in world space
         const head = root.children[1];
         if (head) head.quaternion.copy(_worldQuat);
 
-        // Keep hood/hat upright in world space (pointed hat = 180° around X in world)
-        const hood = root.children[2];
-        if (hood) {
-            hood.quaternion.copy(_worldQuat);
-            NecromancerModel._hoodUp.setFromEuler(NecromancerModel._eulerPI);
-            if (this.enemy.state.isAttacking) {
-                NecromancerModel._eulerWobble.set(Math.PI + fastSin(time * 8.0) * 0.1, 0, 0);
-                NecromancerModel._hoodUp.setFromEuler(NecromancerModel._eulerWobble);
-            }
-            hood.quaternion.multiply(NecromancerModel._hoodUp);
-        }
-
-        const staff = root.children[3];
-        const orb = root.children[4];
+        const staff = root.children[2];
+        const orb = root.children[3];
 
         // Animate the orb pulsing
         if (orb) {
@@ -177,10 +148,10 @@ export class NecromancerModel extends EnemyModel {
 
         // Animate floating skulls for necromancer lord
         if (this.enemy.type === 'necromancer_lord') {
-            for (let i = 5; i < 8; i++) {
+            for (let i = 4; i < 7; i++) {
                 const skull = root.children[i];
                 if (skull) {
-                    const baseAngle = ((i - 5) / 3) * Math.PI * 2;
+                    const baseAngle = ((i - 4) / 3) * Math.PI * 2;
                     const angle = baseAngle + time * 0.5;
                     skull.position.x = fastCos(angle) * 0.8;
                     skull.position.z = fastSin(angle) * 0.8;
