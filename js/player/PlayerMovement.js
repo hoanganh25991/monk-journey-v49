@@ -5,6 +5,7 @@
 
 import * as THREE from '../../libs/three/three.module.js';
 import { normalize2D, tempVec2, fastAtan2 } from 'utils/FastMath.js';
+import { MOVEMENT_KEYS } from '../config/input.js';
 
 /** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
 const MAX_JUMP_HEIGHT = 50;
@@ -251,43 +252,53 @@ export class PlayerMovement {
         
         // If there's keyboard input, move the player
         if (direction.length() > 0) {
-            const isFirstPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'over-shoulder';
-            const playerForwardX = Math.sin(this.rotation.y);
-            const playerForwardZ = Math.cos(this.rotation.y);
-            const dot = direction.x * playerForwardX + direction.z * playerForwardZ;
-
-            // First-person: "backward" = quick 180° turn so view stays "forward" (no walking backward)
-            const isBackward = isFirstPerson && dot < -0.5;
-            if (isBackward && !this._backwardHeldLastFrame) {
+            const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+            const isFirstPerson = cameraUI?.currentCameraMode === 'over-shoulder';
+            const isThirdPerson = cameraUI?.currentCameraMode === 'third-person';
+            const ih = this.game?.inputHandler;
+            const backwardKeyOnly = ih && MOVEMENT_KEYS.BACKWARD.some(k => ih.isKeyPressed(k)) &&
+                !MOVEMENT_KEYS.FORWARD.some(k => ih.isKeyPressed(k)) &&
+                !MOVEMENT_KEYS.LEFT.some(k => ih.isKeyPressed(k)) &&
+                !MOVEMENT_KEYS.RIGHT.some(k => ih.isKeyPressed(k));
+            // Third-person only: S only = 180° turn (no movement). First-person: only W produces direction, so never treat as backward.
+            const isBackwardThird = isThirdPerson && backwardKeyOnly;
+            const isBackward = isBackwardThird && !this._backwardHeldLastFrame;
+            if (isBackward) {
                 this.rotation.y += Math.PI;
                 while (this.rotation.y > Math.PI) this.rotation.y -= 2 * Math.PI;
                 while (this.rotation.y < -Math.PI) this.rotation.y += 2 * Math.PI;
                 if (this.modelGroup) {
-                    const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
                     this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
                 }
                 const lookDirection = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
                 if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
                     this.game.player.setLookDirection(lookDirection);
                 }
-                const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
                 if (cameraUI) {
                     cameraUI.cameraState.rotationY = this.rotation.y;
                     cameraUI.cameraState.originalRotationY = this.rotation.y;
+                    if (isThirdPerson) {
+                        cameraUI.staticCameraRotationY = this.rotation.y;
+                    }
                 }
                 this.playerState.setMoving(false);
             }
-            this._backwardHeldLastFrame = isBackward;
-            if (isBackward) return;
+            const anyBackwardIntent = isBackwardThird;
+            this._backwardHeldLastFrame = anyBackwardIntent;
+            if (anyBackwardIntent) return;
+
+            // First-person: getMovementDirection returns "camera forward" = toward player; we need "player forward" = away from camera, so negate
+            const moveX = isFirstPerson ? -direction.x : direction.x;
+            const moveZ = isFirstPerson ? -direction.z : direction.z;
 
             // Calculate movement step
             const step = this.playerStats.getMovementSpeed() * delta;
             
             // Calculate new position (only update X and Z)
             const newPosition = new THREE.Vector3(
-                this.position.x + direction.x * step,
+                this.position.x + moveX * step,
                 this.position.y,
-                this.position.z + direction.z * step
+                this.position.z + moveZ * step
             );
             
             // Update position
@@ -300,7 +311,7 @@ export class PlayerMovement {
             }
             
             // Update rotation to face movement direction
-            this.rotation.y = fastAtan2(direction.x, direction.z);
+            this.rotation.y = fastAtan2(moveX, moveZ);
             if (this.modelGroup) {
                 const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
                 this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
@@ -313,10 +324,8 @@ export class PlayerMovement {
             this.targetPosition.copy(this.position);
             
             // If the game has a player reference with setLookDirection method, update it
-            // This ensures the player's look direction is synchronized with movement
             if (this.game && this.game.player && typeof this.game.player.setLookDirection === 'function') {
-                // Create a normalized direction vector for the look direction
-                const lookDirection = new THREE.Vector3(direction.x, 0, direction.z).normalize();
+                const lookDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();
                 this.game.player.setLookDirection(lookDirection);
             }
         }

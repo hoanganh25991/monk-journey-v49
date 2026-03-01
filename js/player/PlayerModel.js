@@ -89,7 +89,7 @@ export class PlayerModel {
         // We'll use the game's clock instead of creating our own
         
         // Create the attack effect handler
-        this.attackEffect = new PlayerAttackEffect(scene);
+        this.attackEffect = new PlayerAttackEffect(scene, game);
         
         // Create equipment visuals handler
         this.equipmentVisuals = new PlayerEquipmentVisuals(scene, this, game);

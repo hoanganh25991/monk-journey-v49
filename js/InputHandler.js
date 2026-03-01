@@ -332,16 +332,25 @@ export class InputHandler {
         const local = this._scratchLocal;
         local.set(0, 0, 0);
 
-        if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
-        if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
-        if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x += 1;
-        if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x -= 1;
+        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+        const isFirstPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.OVER_SHOULDER;
 
-        if (this.game?.hudManager?.getJoystickDirection) {
-            const j = this.game.hudManager.getJoystickDirection();
-            if (j && (j.x !== 0 || j.y !== 0)) {
-                local.x = -j.x;
-                local.z = j.y;
+        if (isFirstPerson) {
+            // First-person: ONLY W = movement. S = move camera to back (180° in CameraControlUI). A/D = turn camera (no strafe).
+            if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;   // W = forward only
+        } else {
+            // Third-person and others: standard W/S/A/D
+            if (MOVEMENT_KEYS.FORWARD.some(key => this.isKeyPressed(key))) local.z -= 1;
+            if (MOVEMENT_KEYS.BACKWARD.some(key => this.isKeyPressed(key))) local.z += 1;
+            if (MOVEMENT_KEYS.LEFT.some(key => this.isKeyPressed(key))) local.x += 1;
+            if (MOVEMENT_KEYS.RIGHT.some(key => this.isKeyPressed(key))) local.x -= 1;
+
+            if (this.game?.hudManager?.getJoystickDirection) {
+                const j = this.game.hudManager.getJoystickDirection();
+                if (j && (j.x !== 0 || j.y !== 0)) {
+                    local.x = -j.x;
+                    local.z = j.y;
+                }
             }
         }
 
@@ -352,7 +361,6 @@ export class InputHandler {
 
         local.normalize();
 
-        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
         const isThirdPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.THIRD_PERSON;
 
         let cameraRotationY = 0;

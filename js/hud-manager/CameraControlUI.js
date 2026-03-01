@@ -65,6 +65,12 @@ export class CameraControlUI extends UIComponent {
         // Over-shoulder parallax: camera smoothly follows player facing (player moves first, camera eases to match)
         // Higher = faster catch-up. ~4–6 gives smooth "follow" feel; ~2–3 more cinematic lag.
         this.cameraFollowSpeed = 5;
+        /** First-person: A/D turn view left/right (radians per second) */
+        this.firstPersonTurnSpeed = 2.5;
+        /** First-person: S = 180° camera turn lerp speed (higher = faster snap to back) */
+        this.firstPersonTurnBackSpeed = 12;
+        /** First-person: target Y for S 180° turn (lerp until reached) */
+        this._firstPersonTurnBackTargetY = null;
         
         // Camera height configuration (can be adjusted for testing)
         this.cameraHeightConfig = {
@@ -1405,13 +1411,69 @@ export class CameraControlUI extends UIComponent {
                 this.cameraState.rotationY = this.staticCameraRotationY;
                 this.cameraState.originalRotationY = this.staticCameraRotationY;
             }
-            // Over-shoulder parallax: player moves/turns immediately; camera smoothly eases toward player facing
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this.game.player.movement) {
-                const targetY = this.game.player.movement.rotation.y;
-                if (typeof targetY === 'number' && isFinite(targetY)) {
-                    const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
-                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
+            // First-person: S = 180° camera to back (fast lerp); A/D = turn camera left/right (lerp); W = only movement (handled in InputHandler)
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this.game.inputHandler) {
+                const ih = this.game.inputHandler;
+                const turnBack = ['KeyS', 'ArrowDown'].some(k => ih.isKeyPressed(k));
+                const turnLeft = ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k));
+                const turnRight = ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k));
+
+                // S = move camera to back (180°) with fast lerp
+                if (turnBack && this._firstPersonTurnBackTargetY === null) {
+                    this._firstPersonTurnBackTargetY = this.cameraState.rotationY + Math.PI;
+                    while (this._firstPersonTurnBackTargetY > Math.PI) this._firstPersonTurnBackTargetY -= 2 * Math.PI;
+                    while (this._firstPersonTurnBackTargetY < -Math.PI) this._firstPersonTurnBackTargetY += 2 * Math.PI;
+                }
+                if (this._firstPersonTurnBackTargetY !== null) {
+                    const followT = 1 - Math.exp(-this.firstPersonTurnBackSpeed * safeDelta);
+                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, this._firstPersonTurnBackTargetY, followT);
                     this.cameraState.originalRotationY = this.cameraState.rotationY;
+                    let angleDiff = this.cameraState.rotationY - this._firstPersonTurnBackTargetY;
+                    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+                    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+                    if (Math.abs(angleDiff) < 0.02) {
+                        this.cameraState.rotationY = this._firstPersonTurnBackTargetY;
+                        this._firstPersonTurnBackTargetY = null;
+                        if (this.game.player && this.game.player.movement) {
+                            this.game.player.movement.rotation.y = this.cameraState.rotationY;
+                            const lookDirection = new THREE.Vector3(Math.sin(this.cameraState.rotationY), 0, Math.cos(this.cameraState.rotationY));
+                            if (typeof this.game.player.setLookDirection === 'function') this.game.player.setLookDirection(lookDirection);
+                            if (this.game.player.model) this.game.player.model.setRotation({ y: this.cameraState.rotationY });
+                        }
+                    }
+                } else {
+                    // A = turn camera left (see left), D = turn camera right (see right) — smooth lerp
+                    let turnApplied = false;
+                    if (turnLeft && !turnRight) {
+                        this.cameraState.rotationY += this.firstPersonTurnSpeed * safeDelta;
+                        turnApplied = true;
+                    } else if (turnRight && !turnLeft) {
+                        this.cameraState.rotationY -= this.firstPersonTurnSpeed * safeDelta;
+                        turnApplied = true;
+                    }
+                    while (this.cameraState.rotationY > Math.PI) this.cameraState.rotationY -= 2 * Math.PI;
+                    while (this.cameraState.rotationY < -Math.PI) this.cameraState.rotationY += 2 * Math.PI;
+                    this.cameraState.originalRotationY = this.cameraState.rotationY;
+                    if (turnApplied && this.game.player && this.game.player.movement) {
+                        this.game.player.movement.rotation.y = this.cameraState.rotationY;
+                        const lookDirection = new THREE.Vector3(Math.sin(this.cameraState.rotationY), 0, Math.cos(this.cameraState.rotationY));
+                        if (typeof this.game.player.setLookDirection === 'function') this.game.player.setLookDirection(lookDirection);
+                        if (this.game.player.model) this.game.player.model.setRotation({ y: this.cameraState.rotationY });
+                    }
+                }
+            }
+            // When not turning with S/A/D, camera lerps toward player facing
+            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this._firstPersonTurnBackTargetY === null && this.game.player?.movement) {
+                const ih = this.game.inputHandler;
+                const turnLeft = ih && ['KeyA', 'ArrowLeft'].some(k => ih.isKeyPressed(k));
+                const turnRight = ih && ['KeyD', 'ArrowRight'].some(k => ih.isKeyPressed(k));
+                if (!turnLeft && !turnRight) {
+                    const targetY = this.game.player.movement.rotation.y;
+                    if (typeof targetY === 'number' && isFinite(targetY)) {
+                        const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
+                        this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
+                        this.cameraState.originalRotationY = this.cameraState.rotationY;
+                    }
                 }
             }
 
@@ -1590,6 +1652,7 @@ export class CameraControlUI extends UIComponent {
                 this.currentCameraMode = this.cameraModes.OVER_SHOULDER;
             } else {
                 this.currentCameraMode = this.cameraModes.THIRD_PERSON;
+                this._firstPersonTurnBackTargetY = null;
             }
             
             console.debug("Camera mode toggled to:", this.currentCameraMode);

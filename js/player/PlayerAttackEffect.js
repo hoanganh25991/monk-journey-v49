@@ -6,14 +6,19 @@
 import * as THREE from '../../libs/three/three.module.js';
 import GeometryFactory from '../utils/GeometryFactory.js';
 
-/** Model displays with +PI so back faces forward; use this for attack/facing direction. */
-function getLogicFacingY(modelGroup) {
-    return modelGroup.rotation.y - Math.PI;
-}
-
 export class PlayerAttackEffect {
-    constructor(scene) {
+    constructor(scene, game = null) {
         this.scene = scene;
+        this.game = game;
+    }
+
+    /**
+     * Logic facing Y for attack/skill direction.
+     * Third-person: model front faces movement (rotation.y = facing). First-person: back faces movement (rotation.y - PI = facing).
+     */
+    getLogicFacingY(modelGroup) {
+        const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
+        return isThirdPerson ? modelGroup.rotation.y : modelGroup.rotation.y - Math.PI;
     }
 
     // Left jab - quick straight punch with left hand
@@ -124,7 +129,7 @@ export class PlayerAttackEffect {
     // Standard punch effect for normal punches
     createPunchEffect(modelGroup, hand, color) {
         // Calculate position in front of the player based on hand (use logic facing for attack direction)
-        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, getLogicFacingY(modelGroup), 0));
+        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, this.getLogicFacingY(modelGroup), 0));
         let sideOffset = 0;
         
         // Adjust position based on which hand is punching
@@ -185,7 +190,7 @@ export class PlayerAttackEffect {
                 Math.cos(angle),
                 Math.sin(angle),
                 0
-            ).applyEuler(new THREE.Euler(0, getLogicFacingY(modelGroup), 0));
+            ).applyEuler(new THREE.Euler(0, this.getLogicFacingY(modelGroup), 0));
             
             const lineGeometry = GeometryFactory.createCylinderGeometry(0.03, 0.03, 0.4, 4);
             const lineMaterial = new THREE.MeshBasicMaterial({
@@ -270,7 +275,7 @@ export class PlayerAttackEffect {
     // Special effect for the heavy uppercut (combo finisher)
     createHeavyPunchEffect(modelGroup) {
         // Calculate position in front of the player (use logic facing)
-        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, getLogicFacingY(modelGroup), 0));
+        const direction = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(0, this.getLogicFacingY(modelGroup), 0));
         const punchPosition = new THREE.Vector3(
             modelGroup.position.x + direction.x * 1.3 + (direction.z * 0.3),
             modelGroup.position.y + 0.8, // Slightly higher for uppercut
@@ -393,7 +398,7 @@ export class PlayerAttackEffect {
                 Math.cos(angle),
                 Math.sin(angle),
                 0
-            ).applyEuler(new THREE.Euler(0, getLogicFacingY(modelGroup), 0));
+            ).applyEuler(new THREE.Euler(0, this.getLogicFacingY(modelGroup), 0));
             
             const lineGeometry = GeometryFactory.createCylinderGeometry(0.04, 0.04, 0.6, 4);
             const lineMaterial = new THREE.MeshBasicMaterial({
@@ -530,7 +535,7 @@ export class PlayerAttackEffect {
         attackMesh.position.copy(modelGroup.position);
         attackMesh.position.y += 1;
         attackMesh.rotation.x = Math.PI / 2;
-        attackMesh.rotation.y = getLogicFacingY(modelGroup);
+        attackMesh.rotation.y = this.getLogicFacingY(modelGroup);
         
         // Move attack effect forward
         attackMesh.position.x += direction.x * 1.5;
