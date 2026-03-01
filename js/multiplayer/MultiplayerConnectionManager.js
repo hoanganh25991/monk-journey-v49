@@ -45,6 +45,8 @@ export class MultiplayerConnectionManager {
         this._pendingDelta = null;
         /** Joiner: queue of raw binary messages; drain at frame start so we don't lose startGame (host sends welcome, playerColors, startGame, then gameState). */
         this._pendingRawQueue = [];
+        /** Joiner: queue of decoded JSON messages; drain at frame start so we never run heavy logic inside PeerJS callback. */
+        this._pendingJsonQueue = [];
         /** Joiner: raw binary gameState buffer; decode+apply only every 2nd frame (~30 Hz) to keep FPS high. */
         this._pendingRawGameState = null;
         /** Joiner: frame counter for throttling game-state apply. */
@@ -170,7 +172,9 @@ export class MultiplayerConnectionManager {
                         this._pendingRawQueue.push(data);
                         return;
                     }
-                    this.handleDataFromHost(this.processReceivedData(data));
+                    // Enqueue JSON so we never run heavy logic inside PeerJS callback; drain at frame start
+                    const decoded = this.processReceivedData(data);
+                    if (decoded) this._pendingJsonQueue.push(decoded);
                 });
                 conn.on('close', () => this.handleDisconnect(roomId));
 
@@ -966,7 +970,7 @@ export class MultiplayerConnectionManager {
      * Call from drainPendingMessages (when paused) and from processPendingGameState (when running).
      */
     _drainRawQueue() {
-        if (this.isHost || !this._pendingRawQueue.length) return;
+        if (this.isHost) return;
         const GAME_STATE_TYPE = 1;
         const MAX_DRAIN_PER_FRAME = 10;
         let lastGameStateRaw = null;
@@ -985,6 +989,15 @@ export class MultiplayerConnectionManager {
         if (lastGameStateRaw) this._pendingRawGameState = lastGameStateRaw;
         if (this._pendingRawQueue.length > 24) {
             this._pendingRawQueue.splice(0, this._pendingRawQueue.length - 12);
+        }
+        // Drain pending JSON messages (enqueued when not using binary) so callback never runs heavy logic
+        while (this._pendingJsonQueue.length > 0 && drained < MAX_DRAIN_PER_FRAME) {
+            drained++;
+            const decoded = this._pendingJsonQueue.shift();
+            if (decoded) this.handleDataFromHost(decoded);
+        }
+        if (this._pendingJsonQueue.length > 24) {
+            this._pendingJsonQueue.splice(0, this._pendingJsonQueue.length - 12);
         }
     }
 
@@ -1319,6 +1332,7 @@ export class MultiplayerConnectionManager {
         this._pendingFullSync = null;
         this._pendingDelta = null;
         this._pendingRawQueue = [];
+        this._pendingJsonQueue = [];
         this._pendingRawGameState = null;
         this._joinerApplyTick = 0;
     }
