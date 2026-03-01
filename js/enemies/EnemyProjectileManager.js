@@ -40,7 +40,7 @@ export class EnemyProjectileManager {
             projectileType,
             flightStyle,
             speed,
-            color: enemy.color ?? 0xddccbb
+            color: overrides.color ?? enemy.projectileColor ?? enemy.color ?? 0xddccbb
         });
 
         this.projectiles.push(projectile);

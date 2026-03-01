@@ -293,7 +293,8 @@ export const ENEMY_CONFIG = {
             behavior: 'caster',
             zone: 'ruins',
             projectileType: 'orb',
-            projectileFlightStyle: 'curve'
+            projectileFlightStyle: 'curve',
+            projectileColor: 0xcc2222
         },
         {
             type: 'shadow_beast',
@@ -756,6 +757,9 @@ export const ENEMY_CONFIG = {
             isBoss: true,
             behavior: 'boss',
             zone: 'dark_sanctum',
+            projectileType: 'orb',
+            projectileFlightStyle: 'curve',
+            projectileColor: 0xcc2222,
             abilities: ['summon_undead', 'death_nova', 'life_drain']
         },
         

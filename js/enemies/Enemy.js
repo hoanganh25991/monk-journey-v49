@@ -39,6 +39,8 @@ export class Enemy {
         // Thrown projectile appearance and trajectory (for ranged enemies)
         this.projectileType = config.projectileType ?? (this.isRanged ? 'arrow' : null);
         this.projectileFlightStyle = config.projectileFlightStyle ?? 'direct';
+        /** @type {number|undefined} - Optional projectile color (e.g. red orb); falls back to enemy color */
+        this.projectileColor = config.projectileColor ?? this.color;
         this.isActive = true;
         /** @type {import("./EnemyProjectileManager.js").EnemyProjectileManager|null} */
         this.projectileManager = null;
