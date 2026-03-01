@@ -117,18 +117,18 @@ export class MiniMapUI extends UIComponent {
         const zoomOutBtn = document.getElementById('mini-map-zoom-out-btn');
         const centerBtn = document.getElementById('mini-map-center-btn');
         
-        // "+" button = zoom in (decrease scale = see less area)
+        // "+" / zoom-in button = see less area (increase scale)
         if (zoomInBtn) {
             zoomInBtn.addEventListener('click', (e) => {
-                this.decreaseScale();
+                this.increaseScale();
                 e.stopPropagation();
             });
         }
         
-        // "−" button = zoom out (increase scale = see more area)
+        // "−" / zoom-out button = see more area (decrease scale) so more objects render on bigger map
         if (zoomOutBtn) {
             zoomOutBtn.addEventListener('click', (e) => {
-                this.increaseScale();
+                this.decreaseScale();
                 e.stopPropagation();
             });
         }
@@ -143,11 +143,11 @@ export class MiniMapUI extends UIComponent {
         // Add wheel event for zooming
         this.canvas.addEventListener('wheel', (e) => {
             if (e.deltaY < 0) {
-                // Scroll up - zoom in
-                this.decreaseScale();
-            } else {
-                // Scroll down - zoom out
+                // Scroll up - zoom in (see less area)
                 this.increaseScale();
+            } else {
+                // Scroll down - zoom out (see more area, more objects on map)
+                this.decreaseScale();
             }
             e.preventDefault();
         });
@@ -986,25 +986,24 @@ export class MiniMapUI extends UIComponent {
         // Force a redraw of the minimap
         this.renderMiniMap();
         
-        // Show notification if scale changed significantly
+        // Show notification if scale changed significantly (smaller scale = more area = zoomed out)
         if (this.game && this.game.hudManager && Math.abs(this.defaultScale - scale) > 0.3) {
-            const zoomLevel = scale < this.defaultScale ? 
-                `Zoomed in (${(this.defaultScale/scale).toFixed(1)}x)` : 
-                `Zoomed out (${(scale/this.defaultScale).toFixed(1)}x)`;
-            
+            const zoomLevel = scale < this.defaultScale
+                ? `Zoomed out (${(this.defaultScale / scale).toFixed(1)}x)`
+                : `Zoomed in (${(scale / this.defaultScale).toFixed(1)}x)`;
             this.game.hudManager.showNotification(zoomLevel, 1500);
         }
     }
     
     /**
-     * Increase the scale factor (zoom out)
+     * Increase the scale factor (zoom in = see less area, fewer objects)
      */
     increaseScale() {
         this.setScale(this.scale * 1.2);
     }
     
     /**
-     * Decrease the scale factor (zoom in)
+     * Decrease the scale factor (zoom out = see more area, render more objects on bigger map)
      */
     decreaseScale() {
         this.setScale(this.scale / 1.2);

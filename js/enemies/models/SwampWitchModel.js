@@ -238,15 +238,16 @@ export class SwampWitchModel extends EnemyModel {
         // Call the base class animations
         super.updateAnimations(delta);
         
-        // Implement witch-specific animations
+        // Implement witch-specific animations (use animation root so LOD works)
         const time = Date.now() * 0.001; // Convert to seconds
+        const root = this.getAnimationRoot();
         
-        if (this.modelGroup) {
+        if (root) {
             // IMPORTANT: Do not modify this.modelGroup.position.y!
             // The Y position is managed by the Enemy class for proper terrain positioning.
             // Apply hovering motion to the torso instead of the whole model
             const hoveringMotion = fastSin(time * 1.5) * 0.05;
-            const torso = this.modelGroup.children[0]; // Torso is first child
+            const torso = root.children[0]; // Torso is first child
             if (torso && torso.userData.originalY === undefined) {
                 torso.userData.originalY = torso.position.y;
             }
@@ -255,10 +256,10 @@ export class SwampWitchModel extends EnemyModel {
             }
             
             // Get references to important parts
-            const staff = this.modelGroup.children[6]; // Staff is the 7th child
-            const orb = this.modelGroup.children[7]; // Staff orb is the 8th child
-            const rightArm = this.modelGroup.children[3]; // Right arm is the 4th child
-            const rightHand = this.modelGroup.children[5]; // Right hand is the 6th child
+            const staff = root.children[6]; // Staff is the 7th child
+            const orb = root.children[7]; // Staff orb is the 8th child
+            const rightArm = root.children[3]; // Right arm is the 4th child
+            const rightHand = root.children[5]; // Right hand is the 6th child
             
             // Animate the staff orb
             if (orb) {
@@ -296,8 +297,8 @@ export class SwampWitchModel extends EnemyModel {
                 }
                 
                 // Make particles move more aggressively during attack
-                for (let i = 8; i < this.modelGroup.children.length; i++) {
-                    const particle = this.modelGroup.children[i];
+                for (let i = 8; i < root.children.length; i++) {
+                    const particle = root.children[i];
                     if (particle && particle.userData && particle.userData.angle !== undefined) {
                         // During attack, particles move outward as if being cast
                         const attackAngle = particle.userData.angle + time * 2.0;
@@ -322,8 +323,8 @@ export class SwampWitchModel extends EnemyModel {
                 }
             } else {
                 // Normal idle animations for particles
-                for (let i = 8; i < this.modelGroup.children.length; i++) {
-                    const particle = this.modelGroup.children[i];
+                for (let i = 8; i < root.children.length; i++) {
+                    const particle = root.children[i];
                     if (particle && particle.userData && particle.userData.angle !== undefined) {
                         // Rotate the particles around the witch
                         const angle = particle.userData.angle + time * 0.5;

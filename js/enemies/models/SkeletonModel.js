@@ -92,14 +92,15 @@ export class SkeletonModel extends EnemyModel {
         super.updateAnimations(delta);
         
         const time = Date.now() * 0.001; // Convert to seconds
+        const root = this.getAnimationRoot();
         
         // Add some additional skeleton-specific animations
-        if (this.modelGroup) {
-            const body = this.modelGroup.children[0]; // Body is the first child
+        if (root) {
+            const body = root.children[0]; // Body is the first child
             
             // Idle animation - slight swaying when not moving or attacking
             // Note: Y rotation (facing direction) is handled by the Enemy class
-            if (!this.enemy.state.isMoving && !this.enemy.state.isAttacking && this.modelGroup.children.length > 0) {
+            if (!this.enemy.state.isMoving && !this.enemy.state.isAttacking && root.children.length > 0) {
                 const idleSpeed = 1.5;
                 const idleAmplitude = 0.03;
                 
@@ -117,8 +118,8 @@ export class SkeletonModel extends EnemyModel {
             // Skeleton King attack animation with sword
             if (this.enemy.type === 'skeleton_king' && this.enemy.state.isAttacking) {
                 // Get the sword (should be the last child for skeleton king)
-                const sword = this.modelGroup.children[this.modelGroup.children.length - 1];
-                const rightArm = this.modelGroup.children[3]; // Right arm is the 4th child
+                const sword = root.children[root.children.length - 1];
+                const rightArm = root.children[3]; // Right arm is the 4th child
                 
                 if (sword) {
                     // Calculate attack cycle (0 to 2π)
@@ -163,8 +164,8 @@ export class SkeletonModel extends EnemyModel {
                 }
             } else if (this.enemy.type === 'skeleton_king') {
                 // Reset Skeleton King sword and arm positions when not attacking
-                const sword = this.modelGroup.children[this.modelGroup.children.length - 1];
-                const rightArm = this.modelGroup.children[3];
+                const sword = root.children[root.children.length - 1];
+                const rightArm = root.children[3];
                 
                 if (sword) {
                     sword.position.set(0.6, 0.6, 0);
@@ -178,7 +179,7 @@ export class SkeletonModel extends EnemyModel {
             } else if (this.enemy.state.isAttacking) {
                 // Regular skeleton attack animation (without sword)
                 // Get the right arm for attack animation
-                const rightArm = this.modelGroup.children[3]; // Right arm is the 4th child
+                const rightArm = root.children[3]; // Right arm is the 4th child
                 
                 if (rightArm) {
                     // Simple punching motion
@@ -187,7 +188,7 @@ export class SkeletonModel extends EnemyModel {
                 }
             } else {
                 // Reset regular skeleton arm position when not attacking
-                const rightArm = this.modelGroup.children[3];
+                const rightArm = root.children[3];
                 if (rightArm) {
                     rightArm.position.set(0.4, 0.6, 0);
                     rightArm.rotation.set(0, 0, -Math.PI / 4);

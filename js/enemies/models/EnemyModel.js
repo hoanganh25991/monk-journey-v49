@@ -42,6 +42,17 @@ export class EnemyModel {
     }
     
     /**
+     * Group whose children are the mesh parts to animate. When enemy uses LOD,
+     * mesh children live in the LOD's first level; use this so animations hit the correct nodes.
+     * @returns {THREE.Group}
+     */
+    getAnimationRoot() {
+        return (this.enemy && typeof this.enemy.getAnimationRoot === 'function')
+            ? this.enemy.getAnimationRoot()
+            : this.modelGroup;
+    }
+    
+    /**
      * Update model animations
      * @param {number} delta - Time since last update in seconds
      * 
@@ -68,9 +79,10 @@ export class EnemyModel {
      * Subtle idle animation - always visible when not moving/attacking
      */
     animateIdle(delta) {
-        if (!this.modelGroup || this.modelGroup.children.length < 2) return;
+        const root = this.getAnimationRoot();
+        if (!root || root.children.length < 2) return;
         const time = Date.now() * 0.001;
-        const body = this.modelGroup.children[0];
+        const body = root.children[0];
         if (body && body.scale) {
             const breath = 1.0 + fastSin(time * 2) * 0.03;
             body.scale.set(breath, breath, breath);
@@ -81,21 +93,22 @@ export class EnemyModel {
      * Animate enemy movement - more pronounced for visibility
      */
     animateMovement(delta) {
-        if (!this.modelGroup) return;
+        const root = this.getAnimationRoot();
+        if (!root) return;
         const time = Date.now() * 0.001;
         const walkSpeed = 6;
         const walkAmplitude = 0.25;
         const armSwing = 0.55;
         
-        if (this.modelGroup.children.length >= 6) {
-            const leftLeg = this.modelGroup.children[4];
-            const rightLeg = this.modelGroup.children[5];
+        if (root.children.length >= 6) {
+            const leftLeg = root.children[4];
+            const rightLeg = root.children[5];
             if (leftLeg?.position) leftLeg.position.z = fastSin(time * walkSpeed) * walkAmplitude;
             if (rightLeg?.position) rightLeg.position.z = -fastSin(time * walkSpeed) * walkAmplitude;
         }
-        if (this.modelGroup.children.length >= 4) {
-            const leftArm = this.modelGroup.children[2];
-            const rightArm = this.modelGroup.children[3];
+        if (root.children.length >= 4) {
+            const leftArm = root.children[2];
+            const rightArm = root.children[3];
             if (leftArm?.rotation) leftArm.rotation.x = fastSin(time * walkSpeed) * armSwing;
             if (rightArm?.rotation) rightArm.rotation.x = -fastSin(time * walkSpeed) * armSwing;
         }
@@ -105,9 +118,10 @@ export class EnemyModel {
      * Animate enemy attack - more dramatic swing
      */
     animateAttack(delta) {
-        if (!this.modelGroup || this.modelGroup.children.length < 4) return;
+        const root = this.getAnimationRoot();
+        if (!root || root.children.length < 4) return;
         const time = Date.now() * 0.001;
-        const rightArm = this.modelGroup.children[3];
+        const rightArm = root.children[3];
         if (rightArm?.rotation) {
             rightArm.rotation.x = -0.8 - fastSin(time * 12) * 0.6;
         }

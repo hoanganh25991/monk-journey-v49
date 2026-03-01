@@ -75,16 +75,17 @@ export class SkeletonArcherModel extends SkeletonModel {
         // Call the base class animations
         super.updateAnimations(delta);
         
-        // Implement skeleton archer specific animations
+        // Implement skeleton archer specific animations (use animation root so LOD works)
         const time = Date.now() * 0.001; // Convert to seconds
+        const root = this.getAnimationRoot();
         
-        if (this.modelGroup) {
+        if (root) {
             // Get references to important parts
-            const leftArm = this.modelGroup.children[2]; // Left arm is the third child
-            const bow = this.modelGroup.children[8]; // Bow is the 9th child
-            const bowstring = this.modelGroup.children[9]; // Bowstring is the 10th child
-            const arrowShaft = this.modelGroup.children[10]; // Arrow shaft is the 11th child
-            const arrowhead = this.modelGroup.children[11]; // Arrowhead is the 12th child
+            const leftArm = root.children[2]; // Left arm is the third child
+            const bow = root.children[8]; // Bow is the 9th child
+            const bowstring = root.children[9]; // Bowstring is the 10th child
+            const arrowShaft = root.children[10]; // Arrow shaft is the 11th child
+            const arrowhead = root.children[11]; // Arrowhead is the 12th child
             
             // Normal aiming animation
             if (leftArm) {

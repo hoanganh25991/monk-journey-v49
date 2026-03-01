@@ -206,6 +206,19 @@ export class Enemy {
         this.lodObject.update(camera);
     }
     
+    /**
+     * Group that contains the actual mesh children for animation. When LOD is used,
+     * mesh children live in the LOD's first level; otherwise they are on modelGroup.
+     * Use this so ranged (throw/bow) and other animations target the correct nodes.
+     * @returns {THREE.Group}
+     */
+    getAnimationRoot() {
+        if (this.lodObject && this.modelGroup.children.length > 0) {
+            return this.lodObject.getObjectForDistance(0) || this.modelGroup;
+        }
+        return this.modelGroup;
+    }
+    
     updateAnimations(delta) {
         // Use the model's updateAnimations method
         if (this.model && typeof this.model.updateAnimations === 'function') {
