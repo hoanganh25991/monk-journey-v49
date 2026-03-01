@@ -377,12 +377,13 @@ export class InputHandler {
         const isFirstPerson = cameraUI && cameraUI.currentCameraMode === cameraUI.cameraModes.OVER_SHOULDER;
 
         if (isFirstPerson) {
-            // First-person: dominant direction from keys + joystick. Forward/back = move; left/right = turn only (no strafe).
+            // First-person: W = move in look direction (same as attack direction, toward top of screen). Back = opposite.
+            // Local +Z rotated by cameraRotationY gives world direction cameraRotationY; -Z gives cameraRotationY + PI.
             const { dominant } = this._getFirstPersonCombinedIntent();
             if (dominant === 'forward') {
-                local.z = -1;
-            } else if (dominant === 'back') {
                 local.z = 1;
+            } else if (dominant === 'back') {
+                local.z = -1;
             }
             // left/right → no movement (camera turn only via getFirstPersonTurnIntent)
         } else {

@@ -1208,10 +1208,12 @@ export class CameraControlUI extends UIComponent {
                 console.error("Invalid rotation values:", {rotationX, rotationY});
                 return;
             }
+            // Over-shoulder: place camera behind player (theta + PI) so back of model is toward user and enemies are deep (top of screen)
+            const orbitTheta = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? rotationY + Math.PI : rotationY;
             const spherical = new THREE.Spherical(
                 distance,
                 Math.PI/2 - rotationX,
-                rotationY
+                orbitTheta
             );
             const cameraOffset = new THREE.Vector3();
             cameraOffset.setFromSpherical(spherical);
@@ -1467,17 +1469,13 @@ export class CameraControlUI extends UIComponent {
                     }
                 }
             }
-            // When not turning with S/A/D or joystick left/right, camera lerps toward player facing
-            if (this.currentCameraMode === this.cameraModes.OVER_SHOULDER && !this.cameraState.active && this._firstPersonTurnBackTargetY === null && this.game.player?.movement) {
-                const ih = this.game.inputHandler;
-                const turnIntent = ih && ih.getFirstPersonTurnIntent ? ih.getFirstPersonTurnIntent() : { turnLeft: false, turnRight: false };
-                if (!turnIntent.turnLeft && !turnIntent.turnRight) {
-                    const targetY = this.game.player.movement.rotation.y;
-                    if (typeof targetY === 'number' && isFinite(targetY)) {
-                        const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
-                        this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
-                        this.cameraState.originalRotationY = this.cameraState.rotationY;
-                    }
+            // When not turning with S/A/D or joystick left/right, camera lerps toward player facing (third-person only; first-person keeps current camera to avoid lerp on every attack)
+            if (this.currentCameraMode !== this.cameraModes.OVER_SHOULDER && this.currentCameraMode === this.cameraModes.THIRD_PERSON && !this.cameraState.active && this._firstPersonTurnBackTargetY === null && this.game.player?.movement) {
+                const targetY = this.game.player.movement.rotation.y;
+                if (typeof targetY === 'number' && isFinite(targetY)) {
+                    const followT = 1 - Math.exp(-this.cameraFollowSpeed * safeDelta);
+                    this.cameraState.rotationY = this._lerpAngle(this.cameraState.rotationY, targetY, followT);
+                    this.cameraState.originalRotationY = this.cameraState.rotationY;
                 }
             }
 
@@ -1489,10 +1487,11 @@ export class CameraControlUI extends UIComponent {
             if (rotationX !== undefined && rotationY !== undefined) {
                 // World rebasing: player is at (0,0,0) for rendering; orbit camera around origin for clean precision
                 const distance = this.cameraDistance;
+                const orbitTheta = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? rotationY + Math.PI : rotationY;
                 const spherical = new THREE.Spherical(
                     distance,
                     Math.PI/2 - rotationX,
-                    rotationY
+                    orbitTheta
                 );
                 const cameraOffset = new THREE.Vector3();
                 cameraOffset.setFromSpherical(spherical);

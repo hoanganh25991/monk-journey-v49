@@ -1,6 +1,7 @@
 /**
  * HUDGuide.js - Step-by-step HUD introduction overlay
  * Guides users through all UI elements: top-left, top-right, bottom-left, bottom-right, minimap
+ * Skips hidden elements (e.g. joystick on desktop, minimap when toggled off). Desktop gets different copy.
  * Adapted from game-gof/src/ui/guide.js
  */
 
@@ -12,6 +13,23 @@ function isTouchDevice() {
   );
 }
 
+/** True when using pointer + hover (desktop). Joystick is hidden in CSS for this. */
+function isDesktop() {
+  return typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
+/**
+ * @param {Element | null} el
+ * @returns {boolean} True if el exists and is visible (not display:none, not visibility:hidden, has size).
+ */
+function isElementVisible(el) {
+  if (!el || !el.getBoundingClientRect) return false;
+  const s = window.getComputedStyle(el);
+  if (s.display === 'none' || s.visibility === 'hidden') return false;
+  const r = el.getBoundingClientRect();
+  return r.width > 0 && r.height > 0;
+}
+
 /**
  * Start the HUD instruction guide overlay
  */
@@ -19,7 +37,7 @@ export function startHUDGuide() {
   if (typeof document === 'undefined') return;
   if (window.__guideState && window.__guideState.active) return;
 
-  const steps = [
+  const allSteps = [
     {
       key: 'playerStats',
       get el() {
@@ -89,8 +107,10 @@ export function startHUDGuide() {
       get el() {
         return document.getElementById('camera-control-button') || document.getElementById('camera-controls');
       },
-      title: 'Camera Toggle (Bottom-Right)',
-      desc: 'Switch between orbit (third-person) and free camera modes.',
+      title: 'Camera (Bottom-Right)',
+      desc: 'Drag the right side of the screen to orbit the camera. Tap 🎥 to reset view.',
+      desktopTitle: 'Camera & Jump (Bottom-Right)',
+      desktopDesc: 'Right-click and drag or use mouse to orbit. 🎥 resets view. Use 🚀 or Space to jump. Move with WASD or arrow keys.',
     },
     {
       key: 'firstPerson',
@@ -99,6 +119,8 @@ export function startHUDGuide() {
       },
       title: 'First Person View',
       desc: 'Tap the eye button to enter first-person view. Tap again to return to orbit camera.',
+      desktopTitle: 'First Person View',
+      desktopDesc: 'Click the eye button to switch to first-person. Use A/D or mouse to look around.',
     },
     {
       key: 'teleport',
@@ -121,7 +143,7 @@ export function startHUDGuide() {
         );
       },
       title: 'Joystick & Jump (Bottom-Left)',
-      desc: 'Drag to move your character. Tap the 🚀 button or press Space to jump (up to 3 times). On desktop, use WASD to move.',
+      desc: 'Drag to move. Tap 🚀 or press Space to jump (up to 3 times).',
     },
     {
       key: 'skills',
@@ -130,8 +152,16 @@ export function startHUDGuide() {
       },
       title: 'Skills (Bottom-Right)',
       desc: 'Tap skills to use them in combat. Cooldowns show on each skill.',
+      desktopTitle: 'Skills (Bottom-Right)',
+      desktopDesc: 'Click skills or use number keys to use them in combat. Cooldowns show on each skill.',
     },
-  ].filter((s) => s.el);
+  ];
+
+  // Skip steps whose target element is hidden (e.g. joystick on desktop, minimap when toggled off)
+  const steps = allSteps.filter((s) => {
+    const el = s.el;
+    return el && isElementVisible(el);
+  });
 
   if (!steps.length) return;
 
@@ -208,6 +238,13 @@ export function startHUDGuide() {
     tip.style.visibility = 'visible';
   }
 
+  function getStepTitle(s) {
+    return (isDesktop() && s.desktopTitle) ? s.desktopTitle : (s.title || '');
+  }
+  function getStepDesc(s) {
+    return (isDesktop() && s.desktopDesc) ? s.desktopDesc : (s.desc || '');
+  }
+
   function setStep(idx) {
     window.__guideState.index = idx;
     const s = steps[idx];
@@ -219,8 +256,8 @@ export function startHUDGuide() {
     placeFocus(rect);
     placeHand(rect);
 
-    tipTitle.textContent = s.title || '';
-    tipBody.textContent = s.desc || '';
+    tipTitle.textContent = getStepTitle(s);
+    tipBody.textContent = getStepDesc(s);
 
     placeTip(rect);
 
@@ -260,6 +297,9 @@ export function startHUDGuide() {
     window.removeEventListener('resize', onResize);
     window.removeEventListener('orientationchange', onResize);
     try {
+      window.__guideOnClose?.();
+    } catch (_) {}
+    try {
       overlay.classList.add('hidden');
     } catch (_) {}
     window.__guideState = null;
@@ -277,6 +317,9 @@ export function startHUDGuide() {
 
   try {
     window.__guideClose = close;
+  } catch (_) {}
+  try {
+    window.__guideOnOpen?.();
   } catch (_) {}
 }
 

@@ -78,6 +78,9 @@ export class Game {
         /** Set to true when Space or jump button is pressed; processed in game loop */
         this.jumpRequested = false;
         
+        /** Single-player only: when true, guide overlay is open; simulation frozen but HUD and scene visible */
+        this.guideFreezeActive = false;
+        
         // Default difficulty (will be updated in init)
         this.difficulty = 'medium';
         
@@ -908,6 +911,32 @@ export class Game {
     }
     
     /**
+     * Single-player only: freeze or unfreeze the game for the HUD guide overlay.
+     * When frozen: game and HUD stay visible, but player and enemies do not move (no simulation updates).
+     * In multiplayer this is a no-op; freeze is never applied.
+     * @param {boolean} active - True when guide is open and simulation should freeze
+     */
+    setGuideFreeze(active) {
+        const inMultiplayer = this.multiplayerManager?.connection &&
+            (this.multiplayerManager.connection.isHost || this.multiplayerManager.connection.isConnected);
+        if (inMultiplayer) {
+            this.guideFreezeActive = false;
+            return;
+        }
+        const wasActive = this.guideFreezeActive;
+        this.guideFreezeActive = !!active;
+        if (this.guideFreezeActive && !wasActive) {
+            if (this.player?.model?.mixer) this.player.model.mixer.timeScale = 0;
+            if (this.enemyManager) this.enemyManager.pause();
+            if (this.effectsManager) this.effectsManager.pause();
+        } else if (!this.guideFreezeActive && wasActive) {
+            if (this.player?.model?.mixer) this.player.model.mixer.timeScale = 1;
+            if (this.enemyManager) this.enemyManager.resume();
+            if (this.effectsManager) this.effectsManager.resume();
+        }
+    }
+    
+    /**
      * Ensure the animation loop is running. Call when joiner connects so deferred binary
      * (e.g. startGame) can be drained without decoding in the WebRTC callback (keeps joiner FPS).
      */
@@ -936,6 +965,8 @@ export class Game {
         }
         
         const delta = this.clock.getDelta();
+        // Single-player guide overlay: freeze simulation (player/enemies don't move) but keep scene and HUD visible
+        const simDelta = this.guideFreezeActive ? 0 : delta;
         
         // Update performance manager first
         this.performanceManager.update(delta);
@@ -1068,10 +1099,10 @@ export class Game {
         }
 
         // Update input handler for continuous skill casting
-        this.inputHandler.update(delta);
+        this.inputHandler.update(simDelta);
         
         // Update player
-        this.player.update(delta);
+        this.player.update(simDelta);
         
         // Rebase world so player is at origin for rendering (avoids float precision blur far from 0,0,0)
         if (this.worldGroup && this.player?.movement?.getPosition) {
@@ -1079,7 +1110,7 @@ export class Game {
         }
         
         // Update world based on player position
-        this.world.update(this.player.getPosition(), delta);
+        this.world.update(this.player.getPosition(), simDelta);
         
         // Boundary loop: wrap player when hitting map bounds for endless feel
         const bounds = this.world.getMapBounds();
@@ -1095,11 +1126,11 @@ export class Game {
         }
         
         // Update enemies
-        this.enemyManager.update(delta);
+        this.enemyManager.update(simDelta);
         
         // Update item drops
         if (this.itemDropManager) {
-            this.itemDropManager.update(delta);
+            this.itemDropManager.update(simDelta);
         }
         
         // Check collisions
@@ -1107,14 +1138,14 @@ export class Game {
         
         // Update interaction system
         if (this.interactionSystem) {
-            this.interactionSystem.update(delta);
+            this.interactionSystem.update(simDelta);
         }
         
         // Update UI
         this.hudManager.update(delta);
         
         // Update effects
-        this.effectsManager.update(delta);
+        this.effectsManager.update(simDelta);
         
         // Update multiplayer
         if (this.multiplayerManager) {

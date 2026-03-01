@@ -13,12 +13,10 @@ export class PlayerAttackEffect {
     }
 
     /**
-     * Logic facing Y for attack/skill direction.
-     * Third-person: model front faces movement (rotation.y = facing). First-person: back faces movement (rotation.y - PI = facing).
+     * Logic facing Y for attack/skill direction. Model faces rotation.y in both camera modes.
      */
     getLogicFacingY(modelGroup) {
-        const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
-        return isThirdPerson ? modelGroup.rotation.y : modelGroup.rotation.y - Math.PI;
+        return modelGroup.rotation.y;
     }
 
     // Left jab - quick straight punch with left hand

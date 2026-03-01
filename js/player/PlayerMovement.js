@@ -10,8 +10,7 @@ import { MOVEMENT_KEYS } from '../config/input.js';
 /** Max height above ground the player can reach (3 jumps). World units (terrain scale ~0–10, camera ~15–20). */
 const MAX_JUMP_HEIGHT = 50;
 
-/** Display offset so model shows its back when moving forward (first-person / over-shoulder). Third-person uses 0 so front faces movement. */
-const MODEL_FACING_OFFSET_Y = Math.PI;
+/** No offset: model faces rotation.y so first-person back faces camera, third-person front faces movement. */
 
 export class PlayerMovement {
     /**
@@ -147,7 +146,7 @@ export class PlayerMovement {
                 this.rotation.y = fastAtan2(tempVec2.x, tempVec2.z);
                 if (this.modelGroup) {
                     const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
-                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+                    this.modelGroup.rotation.y = this.rotation.y;
                 }
             } else {
                 // Reached target
@@ -268,7 +267,7 @@ export class PlayerMovement {
                 while (this.rotation.y > Math.PI) this.rotation.y -= 2 * Math.PI;
                 while (this.rotation.y < -Math.PI) this.rotation.y += 2 * Math.PI;
                 if (this.modelGroup) {
-                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+                    this.modelGroup.rotation.y = this.rotation.y;
                 }
                 const lookDirection = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
                 if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
@@ -314,7 +313,7 @@ export class PlayerMovement {
             if (isFirstPerson && cameraUI) {
                 this.rotation.y = cameraUI.cameraState.rotationY;
                 if (this.modelGroup) {
-                    this.modelGroup.rotation.y = this.rotation.y + MODEL_FACING_OFFSET_Y;
+                    this.modelGroup.rotation.y = this.rotation.y;
                 }
                 if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
                     const lookDirection = new THREE.Vector3(Math.sin(this.rotation.y), 0, Math.cos(this.rotation.y));
@@ -324,7 +323,7 @@ export class PlayerMovement {
                 this.rotation.y = fastAtan2(moveX, moveZ);
                 if (this.modelGroup) {
                     const isThirdPerson = this.game?.hudManager?.components?.cameraControlUI?.currentCameraMode === 'third-person';
-                    this.modelGroup.rotation.y = this.rotation.y + (isThirdPerson ? 0 : MODEL_FACING_OFFSET_Y);
+                    this.modelGroup.rotation.y = this.rotation.y;
                 }
                 if (this.game?.player && typeof this.game.player.setLookDirection === 'function') {
                     const lookDirection = new THREE.Vector3(moveX, 0, moveZ).normalize();

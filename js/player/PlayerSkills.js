@@ -78,23 +78,34 @@ export class PlayerSkills {
         }
     }
 
+    /** Min angle difference (radians) before updating camera/rotation on attack — avoids repeated lerp on each click when already facing. */
+    static get APPLY_FACING_ANGLE_THRESHOLD() { return 0.05; }
+
     /**
-     * Apply attack facing: in first-person the model uses rotation.y + PI, so we set rotation.y = attackAngle - PI
-     * so the front of the model faces the target; also sync camera and return the rotation to pass to createEffect.
-     * @param {number} attackAngle - World angle (radians) toward the attack target
+     * Apply attack facing. In first-person: back of model toward camera (user), front toward enemy.
+     * Model faces rotation.y (no offset), so set modelGroup.rotation.y = attackAngle so front faces enemy and back faces camera.
+     * Only updates when angle change is above threshold so repeated attacks don't retrigger lerp.
+     * @param {number} attackAngle - World angle (radians) toward the attack target (enemy / deep)
      * @returns {Object} Rotation object to pass to skill createEffect (so the skill fires toward the target)
      */
     applyAttackFacing(attackAngle) {
         const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
         const isFirstPerson = cameraUI?.currentCameraMode === 'over-shoulder';
         if (isFirstPerson && cameraUI) {
-            this.playerRotation.y = attackAngle - Math.PI;
-            cameraUI.cameraState.rotationY = attackAngle;
-            cameraUI.cameraState.originalRotationY = attackAngle;
-            cameraUI._firstPersonTurnBackTargetY = null;
-            const movement = this.game?.player?.movement;
-            const modelGroup = movement?.modelGroup;
-            if (modelGroup) modelGroup.rotation.y = attackAngle;
+            const currentLookY = cameraUI.cameraState.rotationY;
+            let diff = attackAngle - currentLookY;
+            while (diff > Math.PI) diff -= 2 * Math.PI;
+            while (diff < -Math.PI) diff += 2 * Math.PI;
+            const alreadyFacing = Math.abs(diff) < PlayerSkills.APPLY_FACING_ANGLE_THRESHOLD;
+            if (!alreadyFacing) {
+                this.playerRotation.y = attackAngle;
+                cameraUI.cameraState.rotationY = attackAngle;
+                cameraUI.cameraState.originalRotationY = attackAngle;
+                cameraUI._firstPersonTurnBackTargetY = null;
+                const movement = this.game?.player?.movement;
+                const modelGroup = movement?.modelGroup;
+                if (modelGroup) modelGroup.rotation.y = attackAngle;
+            }
             return { x: 0, y: attackAngle, z: 0 };
         }
         this.playerRotation.y = attackAngle;

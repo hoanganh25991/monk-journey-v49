@@ -50,12 +50,31 @@ export class HUDManager {
         // Create UI components
         this.createUIComponents();
         
+        // Single mode: when Info (HUD Guide) opens, freeze simulation so guide can explain HUD while game stays visible
+        this.setupGuideFreezeHooks();
+        
         // Initially hide UI if game is not running
         if (!this.game.isRunning) {
             this.hideAllUI();
         }
         
         return true;
+    }
+    
+    /**
+     * Register hooks so that when the HUD Guide opens (single mode only), the game freezes
+     * simulation (player and enemies don't move) but the scene and HUD stay visible for the tour.
+     * When the guide closes, simulation resumes. Multiplayer is never frozen.
+     */
+    setupGuideFreezeHooks() {
+        window.__guideOnOpen = () => {
+            if (this.game.isRunning) {
+                this.game.setGuideFreeze(true);
+            }
+        };
+        window.__guideOnClose = () => {
+            this.game.setGuideFreeze(false);
+        };
     }
     
     /**
