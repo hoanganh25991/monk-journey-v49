@@ -2,6 +2,10 @@
  * PlayerStatusEffects.js
  * Manages status effects applied to the player
  */
+
+/** Max duration (seconds) for any effect applied to the player (e.g. by enemies). Each apply/refresh is capped; update(delta) removes when duration <= 0. */
+const MAX_EFFECT_DURATION = 5;
+
 export class PlayerStatusEffects {
     /**
      * Creates a new PlayerStatusEffects instance
@@ -219,11 +223,7 @@ export class PlayerStatusEffects {
             return false;
         }
 
-        // Cap freeze/slow at 5s so they never persist indefinitely (e.g. Frost Titan death cleanup edge cases)
-        const MAX_FREEZE_SLOW_DURATION = 5;
-        if ((effectType === 'freeze' || effectType === 'slow') && duration > MAX_FREEZE_SLOW_DURATION) {
-            duration = MAX_FREEZE_SLOW_DURATION;
-        }
+        duration = Math.min(duration, MAX_EFFECT_DURATION);
         
         // Get effect definition
         const effectDef = this.effectDefinitions[effectType];
@@ -246,8 +246,8 @@ export class PlayerStatusEffects {
                 existingEffect.intensity = intensity;
                 existingEffect.originalValue = originalValue;
             } else {
-                // Just extend duration if new effect is not stronger
-                existingEffect.duration = Math.max(existingEffect.duration, duration);
+                // Just extend duration if new effect is not stronger; cap so next cast never exceeds max
+                existingEffect.duration = Math.min(MAX_EFFECT_DURATION, Math.max(existingEffect.duration, duration));
             }
         } else {
             // Apply new effect
