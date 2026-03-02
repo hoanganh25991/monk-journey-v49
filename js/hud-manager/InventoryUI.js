@@ -1072,8 +1072,10 @@ export class InventoryUI extends UIComponent {
                     
                     // Remove any click events by replacing with clone
                     const newSlotElement = slotElement.cloneNode(true);
-                    slotElement.parentNode.replaceChild(newSlotElement, slotElement);
-                    slotMap[slot] = newSlotElement; // Update the reference in the map
+                    if (slotElement.parentNode) {
+                        slotElement.parentNode.replaceChild(newSlotElement, slotElement);
+                        slotMap[domSlot] = newSlotElement; // Update by DOM key so shared slots (e.g. accessory) stay in sync
+                    }
                 }
             }
         });
