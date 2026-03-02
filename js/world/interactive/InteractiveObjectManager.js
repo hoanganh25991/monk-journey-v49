@@ -162,6 +162,7 @@ export class InteractiveObjectManager {
                         type: 'treasure',
                         item: {
                             name: 'Gold',
+                            type: 'currency',
                             amount: Math.floor(Math.random() * 100) + 50
                         }
                     };

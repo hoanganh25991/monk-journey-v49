@@ -79,31 +79,38 @@ export class PlayerInventory {
     }
     
     // Equipment management
+    // Logical slots (10): weapon, armor, helmet, boots, gloves, belt, shoulder, accessory1, accessory2, talisman
+    // UI has 8 DOM slots: head, shoulders, chest, hands, weapon, legs, feet, accessory (InventoryUI maps logical → DOM)
     equipItem(item) {
-        // Check if item is equippable
         if (!item.type) {
             return false;
         }
-        
+        // Normalize legacy/old items: type "ring" or "amulet" → accessory with subType (so they map to the 8-slot UI)
+        let type = item.type;
+        let subType = item.subType;
+        if (type === 'ring' || type === 'amulet') {
+            type = 'accessory';
+            subType = subType || item.type;
+        }
         // Determine the correct equipment slot
-        let slot = item.type;
-        
-        // Handle armor subtypes -> specific slots (helmet, boots, gloves, belt, shoulder)
-        if (item.type === 'armor' && item.subType) {
+        let slot = type;
+        // Handle armor subtypes → specific slots (all must map to: helmet, boots, gloves, belt, shoulder, armor/chest)
+        if (type === 'armor' && subType) {
             const armorSlotMap = {
                 helmet: 'helmet',
                 boots: 'boots',
                 gloves: 'gloves',
                 belt: 'belt',
                 shoulders: 'shoulder',
-                robe: 'armor'
+                robe: 'armor',
+                arms: 'armor',
+                legs: 'armor'
             };
-            slot = armorSlotMap[item.subType] || 'armor';
+            slot = armorSlotMap[subType] || 'armor';
         }
-        
-        // Handle special cases for accessories
-        if (item.type === 'accessory') {
-            if (item.subType === 'talisman') {
+        // Handle accessories (ring, amulet, talisman) → accessory1, accessory2, or talisman (all show in 1 "accessory" DOM slot)
+        if (type === 'accessory') {
+            if (subType === 'talisman') {
                 slot = 'talisman';
             } else if (!this.equipment.accessory1) {
                 slot = 'accessory1';

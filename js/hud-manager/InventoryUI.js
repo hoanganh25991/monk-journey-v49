@@ -505,7 +505,8 @@ export class InventoryUI extends UIComponent {
         
         // Set name and type
         nameElement.textContent = item.name;
-        typeElement.textContent = item.type || 'Consumable';
+        const displayType = item.type === 'currency' ? 'CURRENCY' : (item.type ? item.type.toUpperCase() : 'CONSUMABLE');
+        typeElement.textContent = displayType;
         
         // Set stats if available
         if (item.stats) {
@@ -526,9 +527,13 @@ export class InventoryUI extends UIComponent {
         // Set description
         descElement.textContent = item.description || `A ${item.name.toLowerCase()}.`;
         
-        // Show Use/Consume for consumables; show Equip only for gear (weapon, armor, accessory)
-        const isConsumable = item.type === 'consumable' || item.consumable === true;
-        if (isConsumable || item.name.includes('Potion') || !item.type) {
+        // Show Use/Consume for consumables; show Equip for gear; hide both for currency (e.g. Gold)
+        const isCurrency = item.type === 'currency' || item.name === 'Gold';
+        const isConsumable = !isCurrency && (item.type === 'consumable' || item.consumable === true || item.name.includes('Potion') || !item.type);
+        if (isCurrency) {
+            useButton.style.display = 'none';
+            equipButton.style.display = 'none';
+        } else if (isConsumable) {
             useButton.style.display = 'block';
             equipButton.style.display = 'none';
         } else {
@@ -666,6 +671,10 @@ export class InventoryUI extends UIComponent {
      * @param {Object} item - Item to consume
      */
     useItem(item) {
+        if (item.type === 'currency' || item.name === 'Gold') {
+            this.game.hudManager.showNotification(`${item.name} is currency, not something you can use.`);
+            return;
+        }
         switch (item.type) {
             case 'weapon':
                 // Weapons should be equipped, not used
