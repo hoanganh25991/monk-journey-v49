@@ -2,11 +2,10 @@
  * PlayerTomb.js
  * Chinese-style tomb (墓) for Monk Journey: horizontal base (body) + vertical stele (碑).
  * Shown when a player dies; static, no animation.
+ * Label on stele shows player name (e.g. "Player-xxxx").
  */
 
 import * as THREE from '../../libs/three/three.module.js';
-
-const TOMB_LABEL = '圓寂'; // "Yuán jì" – passing of a monk (Chinese Buddhist term)
 
 const stoneDark = 0x2a2520;
 const stoneMid = 0x3d3630;
@@ -15,9 +14,10 @@ const inkColor = '#e8e0d5';
 
 /**
  * Creates a Chinese-style tomb: large horizontal body (base) + vertical stele with label.
+ * @param {string} [label='Player'] - Text shown on the stele (e.g. "Player-xxxx").
  * @returns {THREE.Group} Group centered at base; origin at ground under center of body.
  */
-export function createPlayerTomb() {
+export function createPlayerTomb(label = 'Player') {
     const group = new THREE.Group();
 
     // —— Horizontal body (base) – long, low platform like a sarcophagus base ——
@@ -68,7 +68,7 @@ export function createPlayerTomb() {
     stele.position.y = bodyHeight + capHeight + steleHeight / 2;
     group.add(stele);
 
-    // Label "圓寂" on a canvas texture, on a plane in front of the stele
+    // Label (e.g. "Player-xxxx") on a canvas texture, on a plane in front of the stele
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = 256;
@@ -76,10 +76,10 @@ export function createPlayerTomb() {
     ctx.fillStyle = '#1e1a17';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = inkColor;
-    ctx.font = 'bold 120px serif';
+    ctx.font = 'bold 72px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(TOMB_LABEL, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(String(label), canvas.width / 2, canvas.height / 2);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.needsUpdate = true;
