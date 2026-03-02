@@ -727,23 +727,26 @@
 }
 .qr-scan-popup-body {
     position: relative;
-    min-height: 280px;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Keep scanner area square: body width = 100%, height = width */
+    width: 100%;
+    aspect-ratio: 1 / 1;
 }
 .qr-scan-popup-body #qr-scanner-view {
     width: 100%;
-    max-height: 60vh;
-    aspect-ratio: 1 / 1;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    position: relative;
 }
 
 @media (max-height: 600px) {
     .qr-scan-popup-box {
         max-height: 85vh;
-    }
-    .qr-scan-popup-body {
-        min-height: 200px;
     }
     .qr-scan-popup-header {
         padding: var(--padding-small) var(--padding-medium);
@@ -753,6 +756,7 @@
 .enter-code-popup-body {
     padding: var(--padding-large);
     min-height: 140px;
+    aspect-ratio: auto; /* override square so this popup stays rectangular */
 }
 .enter-code-popup-body .manual-input-section {
     width: 100%;
