@@ -2,17 +2,24 @@
  * NFC helper for one-touch multiplayer: exchange connection ID via Web NFC.
  * When two devices touch, Host writes the room ID; Joiner scans and receives it.
  * Requires HTTPS and Chrome for Android 89+ (Web NFC).
+ *
+ * @deprecated NFC join/share is disabled. Join via QR Scan or Contacts only.
+ * This file is kept for reference; isNfcSupported() always returns false so
+ * no NFC permission or hardware is required. To re-enable, remove the
+ * deprecation and restore the original isNfcSupported() implementation.
  */
 
 const MONK_JOURNEY_PREFIX = 'monkjourney:';
 
 /**
  * Check if Web NFC is available (secure context + NDEFReader).
+ * @deprecated Always returns false; NFC is disabled. Use QR Scan or Contacts to join.
  * @returns {boolean}
  */
 export function isNfcSupported() {
-    if (typeof window === 'undefined' || !window.isSecureContext) return false;
-    return typeof NDEFReader === 'function';
+    return false; // Deprecated: NFC disabled; join via QR Scan or Contacts
+    // if (typeof window === 'undefined' || !window.isSecureContext) return false;
+    // return typeof NDEFReader === 'function';
 }
 
 /**

@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260301T225600';
+const CACHE_VERSION = '20260302T121251';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [

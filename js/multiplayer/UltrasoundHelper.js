@@ -2,6 +2,11 @@
  * Ultrasound helper: send/receive connection ID via inaudible sound (data-over-sound).
  * Uses ~19 kHz so most adults won't hear it. Requires mic permission to receive.
  * Uses AudioWorklet (no deprecated ScriptProcessor). 2026-ready.
+ *
+ * @deprecated Sound join/share is disabled. Join via QR Scan or Contacts only.
+ * This file is kept for reference; isUltrasoundSupported() always returns false so
+ * no microphone or sound is required. To re-enable, remove the deprecation and
+ * restore the original isUltrasoundSupported() implementation.
  */
 
 const PREFIX = 'monkjourney:';
@@ -87,19 +92,21 @@ registerProcessor('ultrasound-receive', UltrasoundReceiveProcessor);
 `;
 
 /**
+ * @deprecated Always returns false; ultrasound/sound join is disabled. Use QR Scan or Contacts to join.
  * @returns {boolean} True if audio context and mic API are supported (receive needs getUserMedia).
  */
 export function isUltrasoundSupported() {
-    if (typeof window === 'undefined') return false;
-    const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContextCtor) return false;
-    if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') return false;
-    try {
-        if (!AudioContextCtor?.prototype?.audioWorklet) return false;
-    } catch (_) {
-        return false;
-    }
-    return true;
+    return false; // Deprecated: Sound disabled; join via QR Scan or Contacts
+    // if (typeof window === 'undefined') return false;
+    // const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+    // if (!AudioContextCtor) return false;
+    // if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== 'function') return false;
+    // try {
+    //     if (!AudioContextCtor?.prototype?.audioWorklet) return false;
+    // } catch (_) {
+    //     return false;
+    // }
+    // return true;
 }
 
 /**
