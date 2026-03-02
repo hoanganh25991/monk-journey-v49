@@ -829,8 +829,8 @@ export class Game {
      * In multiplayer the game is not paused so the session stays in sync.
      */
     pause(emitEvent = true) {
-        // In multiplayer (host or member), never pause so the session stays in sync and e.g. host sees joiners' skills when host is dead.
-        if (this.multiplayerManager?.connection && (this.multiplayerManager.connection.isHost || this.multiplayerManager.connection.isConnected)) {
+        // In multiplayer (confirmed: host started game, we're connected), never pause so the session stays in sync.
+        if (this.multiplayerManager?.isInLiveMultiplayerGame?.()) {
             return;
         }
         console.debug("Pausing game...");
@@ -917,8 +917,7 @@ export class Game {
      * @param {boolean} active - True when guide is open and simulation should freeze
      */
     setGuideFreeze(active) {
-        const inMultiplayer = this.multiplayerManager?.connection &&
-            (this.multiplayerManager.connection.isHost || this.multiplayerManager.connection.isConnected);
+        const inMultiplayer = this.multiplayerManager?.isInLiveMultiplayerGame?.();
         if (inMultiplayer) {
             this.guideFreezeActive = false;
             return;

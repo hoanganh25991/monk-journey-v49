@@ -24,7 +24,9 @@ export const MessageType = {
     ENEMY_KILLED: 15,
     PLAYER_DIED: 16,
     PLAYER_REVIVED: 17,
-    ENEMIES_CLEAR_ALL: 18
+    ENEMIES_CLEAR_ALL: 18,
+    PING: 19,
+    PONG: 20
 };
 
 // Schema definitions for different message types
@@ -48,7 +50,9 @@ const SCHEMAS = {
     [MessageType.ENEMY_KILLED]: ['enemyId'],
     [MessageType.PLAYER_DIED]: ['playerId'],
     [MessageType.PLAYER_REVIVED]: ['playerId'],
-    [MessageType.ENEMIES_CLEAR_ALL]: []
+    [MessageType.ENEMIES_CLEAR_ALL]: [],
+    [MessageType.PING]: ['t'],
+    [MessageType.PONG]: ['t']
 };
 
 export class BinarySerializer {
@@ -261,6 +265,8 @@ export class BinarySerializer {
             case 'playerDied': return MessageType.PLAYER_DIED;
             case 'playerRevived': return MessageType.PLAYER_REVIVED;
             case 'enemiesClearAll': return MessageType.ENEMIES_CLEAR_ALL;
+            case 'ping': return MessageType.PING;
+            case 'pong': return MessageType.PONG;
             default: return undefined;
         }
     }
@@ -291,6 +297,8 @@ export class BinarySerializer {
             case MessageType.PLAYER_DIED: return 'playerDied';
             case MessageType.PLAYER_REVIVED: return 'playerRevived';
             case MessageType.ENEMIES_CLEAR_ALL: return 'enemiesClearAll';
+            case MessageType.PING: return 'ping';
+            case MessageType.PONG: return 'pong';
             default: return 'unknown';
         }
     }

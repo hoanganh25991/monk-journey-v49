@@ -214,9 +214,24 @@ export class MultiplayerUIManager {
         if (msgEl) msgEl.textContent = message;
     }
 
+    /** Non-blocking "connection lost" notice; game stays playable until reconnected. */
+    showReconnectingBanner(message = 'Connection lost. Reconnecting...') {
+        const el = document.getElementById('reconnecting-banner');
+        if (el) {
+            el.textContent = message;
+            el.style.display = 'block';
+        }
+    }
+
+    hideReconnectingBanner() {
+        const el = document.getElementById('reconnecting-banner');
+        if (el) el.style.display = 'none';
+    }
+
     hideRejoinOverlay() {
         const el = document.getElementById('rejoin-overlay');
         if (el) el.style.display = 'none';
+        this.hideReconnectingBanner();
         if (this._silentRejoinFallbackTimeoutId !== undefined) {
             clearTimeout(this._silentRejoinFallbackTimeoutId);
             this._silentRejoinFallbackTimeoutId = undefined;
@@ -330,7 +345,7 @@ export class MultiplayerUIManager {
                 btn.appendChild(label);
                 btn.onclick = () => {
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                    this.showRejoinOverlay('Reconnecting...');
+                    this.showReconnectingBanner();
                     this.multiplayerManager.joinGame(latestHostId);
                 };
             }
@@ -479,7 +494,7 @@ export class MultiplayerUIManager {
                         this._contactsPopupIntervalId = undefined;
                     }
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                    this.showRejoinOverlay('Reconnecting...');
+                    this.showReconnectingBanner();
                     this.multiplayerManager.joinGame(id);
                 };
                 li.appendChild(joinBtn);
@@ -689,7 +704,7 @@ export class MultiplayerUIManager {
                     const hostRoomId = this._pendingInviteFromHost;
                     this.clearPendingInviteFromHost();
                     this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                    this.showRejoinOverlay('Reconnecting...');
+                    this.showReconnectingBanner();
                     if (hostRoomId) this.multiplayerManager.joinGame(hostRoomId);
                 };
             }
@@ -746,7 +761,7 @@ export class MultiplayerUIManager {
 
     /** Joiner: show "Reconnecting..." and retry join to last host until connected or user leaves. */
     showReconnectingAndRetryJoin() {
-        this.showRejoinOverlay('Reconnecting...');
+        this.showReconnectingBanner();
         this.updateConnectionStatus('Waiting for host to come back...', 'connection-info-status-bar');
         const RECONNECT_INTERVAL_MS = 5000;
         if (this._reconnectRetryIntervalId !== undefined) {
@@ -848,7 +863,7 @@ export class MultiplayerUIManager {
                 const hostRoomId = this._pendingInviteFromHost;
                 this.clearPendingInviteFromHost();
                 this.updateConnectionStatus('Connecting to host...', 'join-connection-status');
-                this.showRejoinOverlay('Reconnecting...');
+                this.showReconnectingBanner();
                 if (hostRoomId) this.multiplayerManager.joinGame(hostRoomId);
             });
         }
@@ -1151,7 +1166,17 @@ export class MultiplayerUIManager {
                         }
                     });
                 }
-                
+                const rehostBtn = document.getElementById('rehost-btn');
+                if (rehostBtn) {
+                    rehostBtn.addEventListener('click', () => {
+                        console.debug('[MultiplayerUIManager] Re-host: disconnecting and returning to Host/Join screen');
+                        this.multiplayerManager.leaveGame();
+                        this.updateMultiplayerButton(false);
+                        this.resetInviteButtons();
+                        this.closeMultiplayerModal();
+                        this.showMultiplayerModal();
+                    });
+                }
                 const closeBtn = document.getElementById('close-connection-info-btn');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => this.closeMultiplayerModal());
@@ -1179,8 +1204,54 @@ export class MultiplayerUIManager {
             // Update connection info
             this.updateConnectionInfoScreen();
             this.updateHeaderPlayerInfo('connection-info-player-info');
+            // Refresh ping display every 1.5s while connection screen is open (joiner only)
+            this._clearConnectionInfoPingInterval();
+            const conn = this.multiplayerManager.connection;
+            if (conn && conn.isConnected) {
+                this._connectionInfoPingIntervalId = setInterval(() => {
+                    this._updateConnectionInfoPingOnly();
+                    this.updateConnectionInfoPlayerList();
+                }, 1500);
+            }
             // Ensure Sound 📤 / NFC 📤 are shown for host/player whenever connection screen is visible
             this.maybeShowNfcShareOnConnectionScreen();
+        }
+    }
+
+    _clearConnectionInfoPingInterval() {
+        if (this._connectionInfoPingIntervalId !== undefined) {
+            clearInterval(this._connectionInfoPingIntervalId);
+            this._connectionInfoPingIntervalId = undefined;
+        }
+    }
+
+    /** Update only the ping line (for live refresh while connection screen is open). */
+    _updateConnectionInfoPingOnly() {
+        const pingEl = document.getElementById('connection-info-ping');
+        if (!pingEl) return;
+        const conn = this.multiplayerManager.connection;
+        if (!conn || !conn.isConnected) {
+            pingEl.textContent = '';
+            pingEl.style.display = 'none';
+            return;
+        }
+        if (conn.isHost) {
+            pingEl.textContent = 'Ping: — (Host)';
+            pingEl.className = 'connection-ping';
+            pingEl.style.display = '';
+            return;
+        }
+        const ms = conn.lastPingMs;
+        if (ms != null && typeof ms === 'number') {
+            pingEl.textContent = `Ping: ${ms} ms`;
+            pingEl.className = 'connection-ping ' + (
+                ms < 80 ? 'connection-ping-good' : ms <= 150 ? 'connection-ping-ok' : 'connection-ping-bad'
+            );
+            pingEl.style.display = '';
+        } else {
+            pingEl.textContent = 'Ping: — ms';
+            pingEl.className = 'connection-ping';
+            pingEl.style.display = '';
         }
     }
 
@@ -1234,6 +1305,7 @@ export class MultiplayerUIManager {
             if (connectionInfoScreen) {
                 connectionInfoScreen.style.display = 'none';
             }
+            this._clearConnectionInfoPingInterval();
         }
     }
     
@@ -1777,16 +1849,44 @@ export class MultiplayerUIManager {
                 roleElement.textContent = '';
             }
         }
-        
-        // Update start game button visibility based on host status
-        const startGameBtn = document.getElementById('start-game-btn');
-        if (startGameBtn) {
-            if (this.multiplayerManager.connection && this.multiplayerManager.connection.isHost) {
-                startGameBtn.style.display = 'block';
+
+        // Update ping / connection quality: joiner = RTT to host (green/yellow/orange); host = "— (Host)"
+        const pingEl = document.getElementById('connection-info-ping');
+        if (pingEl) {
+            const conn = this.multiplayerManager.connection;
+            if (conn && conn.isConnected) {
+                if (conn.isHost) {
+                    pingEl.textContent = 'Ping: — (Host)';
+                    pingEl.className = 'connection-ping';
+                    pingEl.style.display = '';
+                } else {
+                    const ms = conn.lastPingMs;
+                    if (ms != null && typeof ms === 'number') {
+                        pingEl.textContent = `Ping: ${ms} ms`;
+                        pingEl.className = 'connection-ping ' + (
+                            ms < 80 ? 'connection-ping-good' : ms <= 150 ? 'connection-ping-ok' : 'connection-ping-bad'
+                        );
+                        pingEl.style.display = '';
+                    } else {
+                        pingEl.textContent = 'Ping: — ms';
+                        pingEl.className = 'connection-ping';
+                        pingEl.style.display = '';
+                    }
+                }
             } else {
-                startGameBtn.style.display = 'none';
+                pingEl.textContent = '';
+                pingEl.style.display = 'none';
             }
         }
+        
+        // Update start game / Re-host / Disconnect visibility: host sees Start Game + Re-host + Disconnect; joiner sees Disconnect only
+        const startGameBtn = document.getElementById('start-game-btn');
+        const rehostBtn = document.getElementById('rehost-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const isHost = this.multiplayerManager.connection?.isHost;
+        if (startGameBtn) startGameBtn.style.display = isHost ? 'block' : 'none';
+        if (rehostBtn) rehostBtn.style.display = isHost ? 'block' : 'none';
+        if (disconnectBtn) disconnectBtn.style.display = (this.multiplayerManager.connection?.isConnected) ? '' : 'none';
         
         // Update player list
         this.updateConnectionInfoPlayerList();
@@ -1897,7 +1997,17 @@ export class MultiplayerUIManager {
                     label.textContent = ' (You)';
                     playerName.appendChild(label);
                 }
-                
+                // Show ping for joiners (host view) or for self (joiner view)
+                const pingMs = isHost ? conn.peerIdToPingMs?.get(playerId) : (isYou ? conn.lastPingMs : null);
+                if (pingMs != null && typeof pingMs === 'number') {
+                    const pingSpan = document.createElement('span');
+                    pingSpan.className = 'player-ping ' + (
+                        pingMs < 80 ? 'connection-ping-good' : pingMs <= 150 ? 'connection-ping-ok' : 'connection-ping-bad'
+                    );
+                    pingSpan.textContent = ` — ${pingMs} ms`;
+                    playerName.appendChild(pingSpan);
+                }
+
                 playerItem.appendChild(statusBadge);
                 playerItem.appendChild(colorIndicator);
                 playerItem.appendChild(playerName);

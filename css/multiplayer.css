@@ -1192,6 +1192,26 @@
     font-weight: bold;
 }
 
+/* Ping / connection quality on multiplayer screen */
+.connection-ping {
+    margin-top: 0.35em;
+    font-size: 0.95em;
+}
+.connection-ping-good {
+    color: #4CAF50;
+}
+.connection-ping-ok {
+    color: #FFC107;
+}
+.connection-ping-bad {
+    color: #FF9800;
+}
+
+.player-ping {
+    margin-left: 0.25em;
+    font-size: 0.9em;
+}
+
 .no-connection-message {
     text-align: center;
     padding: var(--padding-medium);
@@ -1248,6 +1268,22 @@
     font-size: 1.1rem;
     padding: 1rem 1.5rem;
     text-align: center;
+}
+
+/* Non-blocking reconnection banner: does not block input; game stays playable until host is back */
+.reconnecting-banner {
+    position: fixed;
+    top: env(safe-area-inset-top, 0);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 220;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.85);
+    color: #ffcc00;
+    font-size: 0.95rem;
+    border-radius: 0 0 8px 8px;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Invite from host: centered modal on top of everything (playing, menu, multiplayer). Accept / Decline. */

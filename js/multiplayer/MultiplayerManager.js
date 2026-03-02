@@ -2,6 +2,7 @@ import { RemotePlayerManager } from './RemotePlayerManager.js';
 import { MultiplayerUIManager } from './MultiplayerUIManager.js';
 import { MultiplayerConnectionManager } from './MultiplayerConnectionManager.js';
 import { BinarySerializer } from './BinarySerializer.js';
+import { STORAGE_KEYS } from '../config/storage-keys.js';
 
 /** Set to true to log game state updates (debug). */
 const shouldLog = false;
@@ -296,13 +297,53 @@ export class MultiplayerManager {
     get isHost() {
         return this.connection && this.connection.isHost;
     }
+
+    /**
+     * Set multiplayer session as confirmed (Start Game) or cleared (Disconnect).
+     * Persisted in localStorage so after reload/offline, mode stays "multiplayer" until explicit Disconnect.
+     */
+    setMultiplayerSessionConfirmed(active) {
+        try {
+            if (active) {
+                localStorage.setItem(STORAGE_KEYS.MULTIPLAYER_SESSION_ACTIVE, 'true');
+            } else {
+                localStorage.removeItem(STORAGE_KEYS.MULTIPLAYER_SESSION_ACTIVE);
+            }
+        } catch (_) {}
+    }
+
+    /**
+     * Whether we are in a confirmed multiplayer session: host clicked Start Game (or joiner received startGame),
+     * and we have not explicitly Disconnected. Uses localStorage so after reload/re-host the mode stays "multiplayer".
+     * Use this for "multiplayer mode" behavior instead of only checking connection.isHost/isConnected.
+     */
+    isMultiplayerSessionConfirmed() {
+        const conn = this.connection;
+        const liveAndStarted = conn && (conn.isHost || conn.isConnected) && this.game?.state?.hasStarted?.();
+        if (liveAndStarted) return true;
+        try {
+            return localStorage.getItem(STORAGE_KEYS.MULTIPLAYER_SESSION_ACTIVE) === 'true';
+        } catch (_) {
+            return false;
+        }
+    }
+
+    /**
+     * Whether we are currently in a live multiplayer game (host started game, we're connected).
+     * Use this for game behavior (e.g. don't pause); controlled by confirmed action (Start Game).
+     */
+    isInLiveMultiplayerGame() {
+        const conn = this.connection;
+        return !!(conn && (conn.isHost || conn.isConnected) && this.game?.state?.hasStarted?.());
+    }
     
     /**
-     * Start multiplayer game (host only)
+     * Start multiplayer game (host only).
+     * Confirmed action: sets multiplayer session active in localStorage so mode stays "multiplayer" until explicit Disconnect.
      */
     startMultiplayerGame() {
         if (!this.connection.isHost) return;
-        
+        this.setMultiplayerSessionConfirmed(true);
         // Notify all peers that game is starting
         this.connection.broadcast({
             type: 'startGame'
@@ -361,7 +402,7 @@ export class MultiplayerManager {
      */
     startGame() {
         console.debug('[MultiplayerManager] Starting game...');
-        
+        this.setMultiplayerSessionConfirmed(true);
         // Close multiplayer modal if it's open
         this.ui.closeMultiplayerModal();
         
@@ -506,6 +547,7 @@ export class MultiplayerManager {
      */
     leaveGame() {
         console.debug('[MultiplayerManager] Leaving multiplayer game');
+        this.setMultiplayerSessionConfirmed(false);
         const wasHost = this.connection.isHost;
         const hostId = this.connection.hostId; // joiner's current host (capture before dispose)
 

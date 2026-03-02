@@ -62,4 +62,7 @@ export const STORAGE_KEYS = {
     // Google authentication keys
     GOOGLE_AUTO_LOGIN: 'monk_journey_google_auto_login',
     GOOGLE_LAST_LOGIN: 'monk_journey_google_last_login',
+
+    /** Multiplayer: set when host clicks Start Game or joiner receives startGame; cleared only on explicit Disconnect. Mode stays "multiplayer" until leaveGame (e.g. after reload, re-host). */
+    MULTIPLAYER_SESSION_ACTIVE: 'monk_journey_multiplayer_session_active',
 };

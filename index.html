@@ -565,6 +565,9 @@
         <div class="rejoin-overlay-message" id="rejoin-overlay-message">Reconnecting...</div>
     </div>
 
+    <!-- Non-blocking reconnection notice: shown when connection is lost; game stays playable, no full-screen overlay -->
+    <div id="reconnecting-banner" class="reconnecting-banner" style="display: none;" aria-live="polite">Connection lost. Reconnecting...</div>
+
     <!-- Invite from host: centered modal on top of everything (playing, menu, multiplayer). Accept / Decline. -->
     <div id="invite-from-host-modal" class="invite-from-host-modal" style="display: none;" aria-live="polite">
         <div class="invite-from-host-backdrop"></div>
@@ -740,6 +743,7 @@
                     <div class="connection-status-box">
                         <p id="connection-info-status">Connected</p>
                         <p id="connection-role-info"></p>
+                        <p id="connection-info-ping" class="connection-ping" aria-live="polite"></p>
                     </div>
                 </div>
                 <div class="players-section">
@@ -751,6 +755,7 @@
                         <!-- Host-specific controls will be shown here when user is host -->
                         <button type="button" id="host-contacts-btn" class="settings-button join-contacts-btn" title="Ask contacts to join your game">👥 Contacts</button>
                         <button id="start-game-btn" class="settings-button">Start Game</button>
+                        <button id="rehost-btn" class="settings-button" title="Disconnect and host again (e.g. if laggy)">Re-host</button>
                         <button id="disconnect-btn" class="settings-button danger-button">Disconnect</button>
                     </div>
                 </div>

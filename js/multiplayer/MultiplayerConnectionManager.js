@@ -51,6 +51,14 @@ export class MultiplayerConnectionManager {
         this._pendingRawGameState = null;
         /** Joiner: frame counter for throttling game-state apply. */
         this._joinerApplyTick = 0;
+        /** Joiner: last RTT in ms (from ping/pong). Exposed for UI (connection quality). */
+        this.lastPingMs = null;
+        /** Joiner: interval id for periodic ping; cleared on dispose. */
+        this._pingIntervalId = null;
+        /** Host: peerId -> last RTT ms (from host→joiner ping/pong). Exposed for UI. */
+        this.peerIdToPingMs = new Map();
+        /** Host: interval id for pinging all joiners; cleared on dispose. */
+        this._hostPingIntervalId = null;
     }
 
     /**
@@ -158,6 +166,7 @@ export class MultiplayerConnectionManager {
             
             // Connect to host
             this.hostId = roomId;
+            console.warn(`[P2P] Joiner → signaling server → Host (${roomId.substring(0, 8)}…). Establishing connection...`);
             const conn = this.peer.connect(roomId, {
                 reliable: true
             });
@@ -165,6 +174,7 @@ export class MultiplayerConnectionManager {
             // Set up connection
             conn.on('open', () => {
                 this._joinAttemptRoomId = null; // join succeeded
+                console.warn('[P2P] Path established: Joiner ↔ Host. Connection open.');
                 this.multiplayerManager.ui.clearReconnectRetry();
                 // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
                 conn.on('data', data => {
@@ -201,6 +211,8 @@ export class MultiplayerConnectionManager {
                 if (this.multiplayerManager.game?.ensureAnimationLoopRunning) {
                     this.multiplayerManager.game.ensureAnimationLoopRunning();
                 }
+                // Start periodic ping (joiner only) for RTT and connection quality UI
+                this._startPingInterval();
                 // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
                 // Send persistentId so host can dedupe one player per device (off->on->off->on = same slot)
                 this.sendToHost({
@@ -308,6 +320,45 @@ export class MultiplayerConnectionManager {
         return this.multiplayerManager.game?.state?.hasStarted?.() ? 'ingame' : 'hosting';
     }
 
+    /** Joiner: start sending ping every 1.5s to measure RTT. */
+    _startPingInterval() {
+        this._stopPingInterval();
+        this._pingIntervalId = setInterval(() => {
+            if (!this.isConnected || this.isHost || !this.hostId) return;
+            const t = Date.now();
+            this.sendToHost({ type: 'ping', t });
+        }, 1500);
+    }
+
+    /** Joiner: stop ping interval. */
+    _stopPingInterval() {
+        if (this._pingIntervalId) {
+            clearInterval(this._pingIntervalId);
+            this._pingIntervalId = null;
+        }
+    }
+
+    /** Host: start pinging all joiners every 1.5s to measure RTT per peer. */
+    _startHostPingInterval() {
+        this._stopHostPingInterval();
+        this._hostPingIntervalId = setInterval(() => {
+            if (!this.isHost || this.peers.size === 0) return;
+            const t = Date.now();
+            this.peers.forEach((conn, peerId) => {
+                this.sendToPeer(peerId, { type: 'ping', t });
+            });
+        }, 1500);
+    }
+
+    /** Host: stop ping interval. */
+    _stopHostPingInterval() {
+        if (this._hostPingIntervalId) {
+            clearInterval(this._hostPingIntervalId);
+            this._hostPingIntervalId = null;
+        }
+        this.peerIdToPingMs.clear();
+    }
+
     /**
      * Add connection as a game player (host only); used after we know it's not an inviteRequest.
      * Same persistentId (joiner device) reconnecting = one slot only; replace old connection.
@@ -328,6 +379,7 @@ export class MultiplayerConnectionManager {
                 oldConn.close();
             }
             this.peers.delete(oldPeerId);
+            this.peerIdToPingMs.delete(oldPeerId);
             this.multiplayerManager.ui.removePlayerFromList(oldPeerId);
             this.multiplayerManager.remotePlayerManager.removePlayer(oldPeerId);
             this.multiplayerManager.assignedColors.delete(oldPeerId);
@@ -342,6 +394,7 @@ export class MultiplayerConnectionManager {
             }
         }
 
+        console.warn(`[P2P] Host detected joiner: ${conn.peer} (path: Joiner → Signaling → Host).`);
         conn.removeAllListeners('data');
         this.peers.set(conn.peer, conn);
         const peerId = conn.peer;
@@ -390,6 +443,7 @@ export class MultiplayerConnectionManager {
         }
 
         this._snapHostJoinersList();
+        this._startHostPingInterval();
 
         const totalCount = 1 + this.peers.size;
         const partyMsg = { type: 'partyBonusUpdate', playerCount: totalCount };
@@ -595,6 +649,16 @@ export class MultiplayerConnectionManager {
                     }
                 }
                 break;
+            case 'ping':
+                this.sendToHost({ type: 'pong', t: data.t });
+                break;
+            case 'pong':
+                if (typeof data.t === 'number') {
+                    const rtt = Math.round(Date.now() - data.t);
+                    this.lastPingMs = rtt;
+                    console.warn(`[P2P] Ping: ${rtt} ms (path: Joiner ↔ Host direct).`);
+                }
+                break;
             case 'partyBonusUpdate':
                 if (data.playerCount != null && this.multiplayerManager.game?.hudManager) {
                     const n = data.playerCount;
@@ -646,6 +710,17 @@ export class MultiplayerConnectionManager {
             if (this.multiplayerManager.game?.state?.hasStarted?.()) {
                 this.sendToPeer(peerId, { type: 'startGame' });
                 this.sendFullSyncGameStateToPeer(peerId);
+            }
+            return;
+        }
+        if (data.type === 'ping') {
+            this.sendToPeer(peerId, { type: 'pong', t: data.t });
+            return;
+        }
+        if (data.type === 'pong') {
+            if (typeof data.t === 'number') {
+                const rtt = Math.round(Date.now() - data.t);
+                this.peerIdToPingMs.set(peerId, rtt);
             }
             return;
         }
@@ -789,6 +864,8 @@ export class MultiplayerConnectionManager {
 
         this._initialPositionSent = false;
         this._lastInputSend = 0;
+        this.lastPingMs = null;
+        this._stopPingInterval();
 
         // Remove all remote players
         if (this.multiplayerManager.remotePlayerManager) {
@@ -814,7 +891,9 @@ export class MultiplayerConnectionManager {
     handleDisconnect(peerId) {
         // Remove from peers map
         this.peers.delete(peerId);
-        
+        if (this.isHost) this.peerIdToPingMs.delete(peerId);
+        if (this.isHost && this.peers.size === 0) this._stopHostPingInterval();
+
         if (this.isHost) {
             const persistentId = this.peerIdToPersistentId.get(peerId);
             if (persistentId) {
@@ -895,11 +974,21 @@ export class MultiplayerConnectionManager {
         }
     }
 
+    /** Throttle broadcast log by type (avoid flooding for gameState). */
+    _lastBroadcastLogByType = {};
+    _BROADCAST_LOG_THROTTLE_MS = 3000;
+
     /**
      * Broadcast data to all peers
      * @param {Object} data - The data to broadcast
      */
     broadcast(data) {
+        const type = data?.type || 'unknown';
+        const now = Date.now();
+        if (!this._lastBroadcastLogByType[type] || now - this._lastBroadcastLogByType[type] > this._BROADCAST_LOG_THROTTLE_MS) {
+            this._lastBroadcastLogByType[type] = now;
+            console.warn(`[P2P] Broadcast: type=${type} to ${this.peers.size} peer(s).`);
+        }
         if (this.useBinaryFormat) {
             // Serialize once for all peers
             const binaryData = this.serializer.serialize(data);
@@ -1335,5 +1424,8 @@ export class MultiplayerConnectionManager {
         this._pendingJsonQueue = [];
         this._pendingRawGameState = null;
         this._joinerApplyTick = 0;
+        this.lastPingMs = null;
+        this._stopPingInterval();
+        this._stopHostPingInterval();
     }
 }
