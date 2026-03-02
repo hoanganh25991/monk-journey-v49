@@ -1140,6 +1140,15 @@ export class InventoryUI extends UIComponent {
             }
         }
         
+        // If item is equipped, unequip it first (moves it back to inventory)
+        const equipment = this.game.player.getEquipment();
+        for (const [slot, equippedItem] of Object.entries(equipment)) {
+            if (equippedItem && equippedItem.name === item.name) {
+                this.game.player.unequipItem(slot);
+                break;
+            }
+        }
+        
         // Remove item from inventory
         const success = this.game.player.removeFromInventory(item.name, 1);
         
@@ -1147,8 +1156,10 @@ export class InventoryUI extends UIComponent {
             // Show notification
             this.game.hudManager.showNotification(`Dropped ${item.name}`);
             
-            // Update inventory
+            // Update inventory and equipment display
             this.updateInventoryItems();
+            this.updateEquipmentSlots();
+            this.updatePlayerStats();
         } else {
             this.game.hudManager.showNotification(`Failed to drop ${item.name}`);
         }
