@@ -441,8 +441,12 @@ export class QuestManager {
         // Award items
         if (quest.reward.items) {
             quest.reward.items.forEach(item => {
-                this.game.player.addToInventory(item);
-                this.game.hudManager.showNotification(`Received ${item.name} x${item.amount}`);
+                const equipResult = this.game.player.addToInventory(item);
+                if (equipResult === 'equipped') {
+                    this.game.hudManager.showNotification(`Equipped ${item.name}`, 'equip', { item });
+                } else {
+                    this.game.hudManager.showNotification(`Received ${item.name} x${item.amount}`);
+                }
             });
         }
     }

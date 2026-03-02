@@ -715,22 +715,34 @@ export class InventoryUI extends UIComponent {
     }
     
     /**
-     * Helper method to use consumable items
+     * Helper method to use consumable items.
+     * Skill consumables: cast the skill at position without mana/cooldown, optionally multiple times (baseStats.casts).
      * @param {Object} item - Consumable item to use
+     * @param {Object} [options] - castPosition for skill consumables
+     * @returns {Promise<void>}
      * @private
      */
-    useConsumableItem(item, options = {}) {
+    async useConsumableItem(item, options = {}) {
         let effectsApplied = false;
         let effectsDescription = [];
         
         // Check for baseStats properties (from item-templates.js)
         if (item.baseStats) {
-            // Handle skill consumables: cast the skill at pickup point (or player position)
+            // Handle skill consumables: cast the skill at position without mana or cooldown (no need to have learned it)
             if (item.baseStats.effectType === 'skill' && item.baseStats.skillName && this.game?.player?.skills) {
                 const castPosition = options.castPosition ?? this.game.player.getPosition().clone();
-                this.game.player.skills.castSkillAtPosition(item.baseStats.skillName, castPosition);
+                const casts = Math.max(1, Math.min(Number(item.baseStats.casts) || 1, 50));
+                for (let i = 0; i < casts; i++) {
+                    const ok = await this.game.player.skills.castSkillAtPosition(item.baseStats.skillName, castPosition.clone());
+                    // Small delay between multiple casts so effects don't overlap awkwardly
+                    if (i < casts - 1) await new Promise(r => setTimeout(r, 150));
+                    if (!ok && i === 0) {
+                        this.game.hudManager?.showNotification(`Skill ${item.baseStats.skillName} could not be cast`);
+                        return;
+                    }
+                }
                 effectsApplied = true;
-                effectsDescription.push(`Cast ${item.baseStats.skillName}`);
+                effectsDescription.push(casts > 1 ? `Cast ${item.baseStats.skillName} ${casts}×` : `Cast ${item.baseStats.skillName}`);
             }
 
             // Handle health restoration
@@ -1139,16 +1151,6 @@ export class InventoryUI extends UIComponent {
      * @param {Object} item - Item to drop
      */
     dropItem(item) {
-        // Check if item is legendary or higher rarity
-        const isLegendaryOrHigher = item.rarity === 'legendary' || item.rarity === 'mythic' || item.rarity === 'artifact';
-        
-        // Only confirm for legendary or higher items
-        if (isLegendaryOrHigher) {
-            if (!confirm(`Are you sure you want to drop ${item.name}? This is a ${item.rarity} item!`)) {
-                return; // User cancelled the drop
-            }
-        }
-        
         // If item is equipped, unequip it first (moves it back to inventory)
         const equipment = this.game.player.getEquipment();
         for (const [slot, equippedItem] of Object.entries(equipment)) {

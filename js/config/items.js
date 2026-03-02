@@ -1299,17 +1299,18 @@ export const ITEM_TEMPLATES = [
         consumable: true
     },
 
-    // ==================== SKILL CONSUMABLES (cast skill at pickup point) ====================
+    // ==================== SKILL CONSUMABLES (cast skill at position, no mana/cooldown; casts = number of times) ====================
     {
         id: "waveOfLightShard",
         name: "Wave of Light Shard",
         type: "consumable",
         subType: "skill",
-        description: "Pick up to summon a bell that crashes down at this spot.",
+        description: "Consume to summon a bell that crashes down at this spot. No mana or cooldown.",
         icon: "🔔",
         baseStats: {
             effectType: "skill",
-            skillName: "Wave of Light"
+            skillName: "Wave of Light",
+            casts: 1
         },
         consumable: true
     },
@@ -1318,11 +1319,12 @@ export const ITEM_TEMPLATES = [
         name: "Cyclone Shard",
         type: "consumable",
         subType: "skill",
-        description: "Pick up to create a vortex at this spot.",
+        description: "Consume to create a vortex at this spot. No mana or cooldown.",
         icon: "🌪️",
         baseStats: {
             effectType: "skill",
-            skillName: "Cyclone Strike"
+            skillName: "Cyclone Strike",
+            casts: 1
         },
         consumable: true
     },
@@ -1331,11 +1333,26 @@ export const ITEM_TEMPLATES = [
         name: "Wave Strike Shard",
         type: "consumable",
         subType: "skill",
-        description: "Pick up to release a wave of energy at this spot.",
+        description: "Consume to release a wave of energy at this spot. No mana or cooldown.",
         icon: "🌊",
         baseStats: {
             effectType: "skill",
-            skillName: "Wave Strike"
+            skillName: "Wave Strike",
+            casts: 1
+        },
+        consumable: true
+    },
+    {
+        id: "waveOfLightShard10",
+        name: "Wave of Light Shard (10×)",
+        type: "consumable",
+        subType: "skill",
+        description: "Consume to cast Wave of Light 10 times at this spot. No mana or cooldown.",
+        icon: "🔔",
+        baseStats: {
+            effectType: "skill",
+            skillName: "Wave of Light",
+            casts: 10
         },
         consumable: true
     }

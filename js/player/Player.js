@@ -663,8 +663,14 @@ export class Player {
      * @param {string} item.type - The type of the item (weapon, armor, consumable, etc.)
      * @param {Object} [item.stats] - The stats of the item (optional)
      */
-    addToInventory(item) {
+    /**
+     * @param {Object} [options] - Optional. autoEquip: false to skip auto-equip (e.g. when loading save).
+     * @returns {'equipped'|'similar'|'weaker'|undefined} Auto-equip result when options.autoEquip is true; undefined when skipped.
+     */
+    addToInventory(item, options = {}) {
         this.inventory.addToInventory(item);
+        if (options.autoEquip !== false) return this.inventory.tryAutoEquip(item);
+        return undefined;
     }
     
     /**

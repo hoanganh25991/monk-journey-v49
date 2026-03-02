@@ -1103,11 +1103,13 @@ export class EnemyManager {
                 this.itemDropManager.dropItem(item, enemyPosition);
             } else if (this.game && this.game.player && item) {
                 // Fallback: Add directly to player inventory if no drop manager
-                this.game.player.addToInventory(item);
-                
-                // Show notification
+                const equipResult = this.game.player.addToInventory(item);
                 if (this.game.hudManager) {
-                    this.game.hudManager.showNotification(`Found ${item.name}`);
+                    if (equipResult === 'equipped') {
+                        this.game.hudManager.showNotification(`Equipped ${item.name}`, 'equip', { item });
+                    } else {
+                        this.game.hudManager.showNotification(`Found ${item.name}`);
+                    }
                 }
             }
         }

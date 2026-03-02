@@ -145,12 +145,12 @@ export class InventorySerializer {
                         amount: itemData.amount,
                         templateId: itemTemplate.id // Ensure templateId is set for future saves
                     };
-                    player.addToInventory(item);
+                    player.addToInventory(item, { autoEquip: false });
                 } else {
                     console.warn(`Item template not found for: ${itemData.name} (Template ID: ${itemData.templateId || 'N/A'})`);
                     console.debug('Available item templates:', ITEM_TEMPLATES.map(t => `${t.name} (${t.id})`));
                     // Fallback to just adding the basic item data we have
-                    player.addToInventory(itemData);
+                    player.addToInventory(itemData, { autoEquip: false });
                 }
             });
         }

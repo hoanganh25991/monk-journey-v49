@@ -81,49 +81,78 @@ export class PlayerInventory {
     // Equipment management
     // Logical slots (10): weapon, armor, helmet, boots, gloves, belt, shoulder, accessory1, accessory2, talisman
     // UI has 8 DOM slots: head, shoulders, chest, hands, weapon, legs, feet, accessory (InventoryUI maps logical → DOM)
-    equipItem(item) {
-        if (!item.type) {
-            return false;
-        }
-        // Normalize legacy/old items: type "ring" or "amulet" → accessory with subType (so they map to the 8-slot UI)
+
+    /**
+     * Get the equipment slot key for an item (same logic as equipItem).
+     * @param {Object} item - Item with type, subType
+     * @returns {string|null} Slot key or null if not equippable to any slot
+     */
+    getSlotForItem(item) {
+        if (!item.type) return null;
         let type = item.type;
         let subType = item.subType;
         if (type === 'ring' || type === 'amulet') {
             type = 'accessory';
             subType = subType || item.type;
         }
-        // Determine the correct equipment slot
         let slot = type;
-        // Handle armor subtypes → specific slots (all must map to: helmet, boots, gloves, belt, shoulder, armor/chest)
         if (type === 'armor' && subType) {
             const armorSlotMap = {
-                helmet: 'helmet',
-                boots: 'boots',
-                gloves: 'gloves',
-                belt: 'belt',
-                shoulders: 'shoulder',
-                robe: 'armor',
-                arms: 'armor',
-                legs: 'armor'
+                helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt',
+                shoulders: 'shoulder', robe: 'armor', arms: 'armor', legs: 'armor'
             };
             slot = armorSlotMap[subType] || 'armor';
         }
-        // Handle accessories (ring, amulet, talisman) → accessory1, accessory2, or talisman (all show in 1 "accessory" DOM slot)
         if (type === 'accessory') {
-            if (subType === 'talisman') {
-                slot = 'talisman';
-            } else if (!this.equipment.accessory1) {
-                slot = 'accessory1';
-            } else if (!this.equipment.accessory2) {
-                slot = 'accessory2';
-            } else {
-                // Both accessory slots are full, replace the first one
-                slot = 'accessory1';
-            }
+            if (subType === 'talisman') slot = 'talisman';
+            else if (!this.equipment.accessory1) slot = 'accessory1';
+            else if (!this.equipment.accessory2) slot = 'accessory2';
+            else slot = 'accessory1';
         }
-        
-        // Check if the slot exists
-        if (!this.equipment.hasOwnProperty(slot)) {
+        return this.equipment.hasOwnProperty(slot) ? slot : null;
+    }
+
+    /**
+     * Simple strength score for comparison: higher = better for that slot.
+     */
+    _itemStrength(item, slot) {
+        if (!item) return 0;
+        const b = item.baseStats || {};
+        const s = (item.secondaryStats || []).reduce((sum, x) => sum + (x.value || 0), 0);
+        if (slot === 'weapon') return (b.damage || 0) + s;
+        if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (b.defense || 0) + s;
+        return (b.damage || 0) + (b.defense || 0) + (b.manaBonus || 0) + (b.healthBonus || 0) + s;
+    }
+
+    /**
+     * Try to auto-equip: equip if slot is empty or if item is stronger than current.
+     * @param {Object} item - Item just added to inventory (equippable)
+     * @returns {'equipped'|'similar'|'weaker'} Result for UI
+     */
+    tryAutoEquip(item) {
+        const slot = this.getSlotForItem(item);
+        if (!slot) return 'weaker';
+        const current = this.equipment[slot];
+        if (!current) {
+            this.equipItem(item);
+            return 'equipped';
+        }
+        const newStr = this._itemStrength(item, slot);
+        const curStr = this._itemStrength(current, slot);
+        if (newStr > curStr) {
+            this.equipItem(item);
+            return 'equipped';
+        }
+        if (curStr > 0 && Math.abs(newStr - curStr) / curStr <= 0.15) return 'similar';
+        return 'weaker';
+    }
+
+    equipItem(item) {
+        if (!item.type) {
+            return false;
+        }
+        const slot = this.getSlotForItem(item);
+        if (!slot) {
             return false;
         }
         

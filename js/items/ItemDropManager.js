@@ -106,25 +106,26 @@ export class ItemDropManager {
         const hud = this.game?.hudManager;
 
         if (this.game?.player) {
-            this.game.player.addToInventory(item);
             const autoConsumeRaw = storageService.loadDataSync(STORAGE_KEYS.AUTO_CONSUME_ITEMS);
-            const autoConsume = autoConsumeRaw !== false && autoConsumeRaw !== 'false'; // default true
+            const autoConsume = autoConsumeRaw !== false && autoConsumeRaw !== 'false';
             const autoEquip = storageService.loadDataSync(STORAGE_KEYS.AUTO_EQUIP_ITEMS);
+            const equipResult = this.game.player.addToInventory(item, { autoEquip: autoEquip === true || autoEquip === 'true' });
             let didConsume = false;
             if (autoConsume && isItemConsumable(item) && hud?.components?.inventoryUI?.useConsumableItem) {
                 const castPosition = itemData.group?.position?.clone?.() ?? null;
-                hud.components.inventoryUI.useConsumableItem(item, castPosition ? { castPosition } : undefined);
+                void hud.components.inventoryUI.useConsumableItem(item, castPosition ? { castPosition } : undefined);
                 didConsume = true;
             }
             if (hud && !didConsume) {
-                hud.showNotification(`Pick ${item.name}`);
-                if (isItemEquippable(item)) {
-                    if (autoEquip === true || autoEquip === 'true') {
-                        const result = this.tryAutoEquip(item);
-                        if (result === 'equipped') hud.showNotification(`Equip ${item.name}`, 'equip', { item });
-                        else if (result === 'similar') hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
-                        else if (result === 'weaker') hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
-                    } else hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
+                if (isItemEquippable(item) && (autoEquip === true || autoEquip === 'true')) {
+                    if (equipResult === 'equipped') hud.showNotification(`Equip ${item.name}`, 'equip', { item });
+                    else if (equipResult === 'similar') hud.showNotification(`Skip ${item.name} (similar)`, 'skip', { item });
+                    else if (equipResult === 'weaker') hud.showNotification(`Skip ${item.name} (weaker)`, 'skip', { item });
+                    else hud.showNotification(`Pick ${item.name}`);
+                } else if (isItemEquippable(item) && autoEquip !== true && autoEquip !== 'true') {
+                    hud.showNotification(`Skip ${item.name} (auto-equip off)`, 'skip', { item });
+                } else {
+                    hud.showNotification(`Pick ${item.name}`);
                 }
             }
         }
@@ -139,34 +140,6 @@ export class ItemDropManager {
         this.droppedItems.delete(itemId);
     }
     
-    tryAutoEquip(item) {
-        if (!this.game?.player || !isItemEquippable(item)) return 'weaker';
-        const inv = this.game.player.inventory;
-        let slot = item.type;
-        if (item.type === 'accessory') {
-            if (item.subType === 'talisman') slot = 'talisman';
-            else slot = (!inv.equipment.accessory1 || !inv.equipment.accessory2) ? (inv.equipment.accessory1 ? 'accessory2' : 'accessory1') : 'accessory1';
-        }
-        if (item.type === 'armor' && item.subType) {
-            const map = { helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt', shoulders: 'shoulder', robe: 'armor' };
-            slot = map[item.subType] || slot;
-        }
-        if (!Object.prototype.hasOwnProperty.call(inv.equipment, slot)) return 'weaker';
-        const current = inv.equipment[slot];
-        const stat = (i) => {
-            if (!i) return 0;
-            const b = i.baseStats || {};
-            const s = (i.secondaryStats || []).reduce((sum, x) => sum + (x.value || 0), 0);
-            if (slot === 'weapon') return (b.damage || 0) + s;
-            if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (b.defense || 0) + s;
-            return (b.damage || 0) + (b.defense || 0) + (b.manaBonus || 0) + (b.healthBonus || 0) + s;
-        };
-        const newS = stat(item), curS = stat(current);
-        if (!current || newS > curS) { inv.equipItem(item); return 'equipped'; }
-        if (curS > 0 && Math.abs(newS - curS) / curS <= 0.15) return 'similar';
-        return 'weaker';
-    }
-
     ensureMaterialsSafe(itemGroup) {
         if (!itemGroup) return;
         itemGroup.traverse((child) => {

@@ -72,18 +72,16 @@ export class InteractionResultHandler {
      */
     handleItemInteraction(result) {
         if (this.game && this.game.player) {
-            this.game.player.addToInventory(result.item);
-            
-            // Show notification if HUD manager exists
+            const equipResult = this.game.player.addToInventory(result.item);
             if (this.game.hudManager) {
-                this.game.hudManager.showNotification(
-                    `Found ${result.item.name} x${result.item.amount || 1}`
-                );
+                if (equipResult === 'equipped') {
+                    this.game.hudManager.showNotification(`Equipped ${result.item.name}`, 'equip', { item: result.item });
+                } else {
+                    this.game.hudManager.showNotification(`Found ${result.item.name} x${result.item.amount || 1}`);
+                }
             }
-            
             return true;
         }
-        
         return false;
     }
     
