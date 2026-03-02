@@ -24,6 +24,7 @@ export class PathManager {
         this.pathRoot = new THREE.Group();
         this.pathRoot.name = 'PathRoot';
         this.pathRoot.renderOrder = 100;
+        this.pathRoot.visible = true;
 
         this.config = {
             pathWidth: 12,
@@ -40,6 +41,8 @@ export class PathManager {
         /** Chunk size and view distance - synced from TerrainManager for consistent lifecycle */
         this.chunkSize = 64;
         this.viewDistance = 3;
+        /** Spawn chunk coords from last init (so we ensure path at spawn when player starts far) */
+        this._spawnChunk = null;
     }
 
     /**
@@ -85,12 +88,21 @@ export class PathManager {
 
         this.pathChunks.clear();
         this._reparentDone = false;
+        // Remember spawn chunk so we ensure path there when player starts at far spawn (e.g. 200,0,-200)
+        const spawn = mapData?.spawn ?? { x: 0, y: 1, z: -13 };
+        const sx = spawn.x != null ? spawn.x : 0;
+        const sz = spawn.z != null ? spawn.z : -13;
+        this._spawnChunk = {
+            x: Math.floor(sx / this.chunkSize),
+            z: Math.floor(sz / this.chunkSize)
+        };
         // Ensure pathRoot is in world so path is visible; add to worldGroup when available
         const worldParent = this.game?.getWorldGroup?.() || this.scene;
         if (this.pathRoot.parent !== worldParent) {
             if (this.pathRoot.parent) this.pathRoot.parent.remove(this.pathRoot);
             worldParent.add(this.pathRoot);
         }
+        this.pathRoot.visible = true;
         this._ensureAllPathChunksOnce();
     }
 
@@ -400,8 +412,10 @@ export class PathManager {
 
             const x0 = p.x + perpX * halfWidth, z0 = p.z + perpZ * halfWidth;
             const x1 = p.x - perpX * halfWidth, z1 = p.z - perpZ * halfWidth;
-            const y0 = getY(x0, z0, p.y);
-            const y1 = getY(x1, z1, p.y);
+            let y0 = getY(x0, z0, p.y);
+            let y1 = getY(x1, z1, p.y);
+            if (!isFinite(y0)) y0 = (p.y != null && isFinite(p.y)) ? p.y + pathHeight : pathHeight;
+            if (!isFinite(y1)) y1 = (p.y != null && isFinite(p.y)) ? p.y + pathHeight : pathHeight;
             vertices.push([x0, y0, z0], [x1, y1, z1]);
         }
 
@@ -421,9 +435,9 @@ export class PathManager {
         const baseB = (this.config.pathColor & 0xff) / 255;
         for (let i = 0; i < vertices.length; i++) {
             const v = vertices[i];
-            posArray[i * 3] = v[0];
-            posArray[i * 3 + 1] = v[1];
-            posArray[i * 3 + 2] = v[2];
+            posArray[i * 3] = isFinite(v[0]) ? v[0] : 0;
+            posArray[i * 3 + 1] = isFinite(v[1]) ? v[1] : pathHeight;
+            posArray[i * 3 + 2] = isFinite(v[2]) ? v[2] : 0;
             colorArray[i * 3] = baseR;
             colorArray[i * 3 + 1] = baseG;
             colorArray[i * 3 + 2] = baseB;
@@ -432,25 +446,23 @@ export class PathManager {
         geometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3));
         geometry.setIndex(indices);
         geometry.computeVertexNormals();
+        geometry.computeBoundingSphere();
 
-        const material = new THREE.MeshStandardMaterial({
+        // MeshBasicMaterial: same visible color at any distance; lighting can make Standard material
+        // too dark or invisible when path is far from camera/origin, so Basic guarantees the grey strip shows.
+        const material = new THREE.MeshBasicMaterial({
             vertexColors: true,
-            roughness: 0.85,
-            metalness: 0.02,
-            emissive: 0x1a1208,
-            emissiveIntensity: 0.35,
             fog: false,
+            side: THREE.DoubleSide,
             polygonOffset: true,
             polygonOffsetFactor: 12,
             polygonOffsetUnits: 12,
-            // At large distances depth buffer precision drops; path can fail depth test and disappear.
             depthTest: false,
             depthWrite: false
         });
 
         const pathMesh = new THREE.Mesh(geometry, material);
-        pathMesh.receiveShadow = true;
-        pathMesh.castShadow = true;
+        pathMesh.visible = true;
         pathMesh.renderOrder = 100;
         pathMesh.frustumCulled = false;
         pathMesh.userData = { isPath: true, pathId };
@@ -659,20 +671,28 @@ export class PathManager {
         if (!playerPosition) return;
 
         this._syncChunkConfig();
+        this.pathRoot.visible = true;
+
         const cx = Math.floor(playerPosition.x / this.chunkSize);
         const cz = Math.floor(playerPosition.z / this.chunkSize);
         const vd = this.viewDistance;
 
-        // Ensure path meshes exist for all chunks in view
+        // Ensure path meshes exist for all chunks in view (covers "first play at far position" e.g. 200,0,-200)
         for (let x = cx - vd; x <= cx + vd; x++) {
             for (let z = cz - vd; z <= cz + vd; z++) {
                 this._ensurePathChunk(x, z);
             }
         }
 
+        // Spawn chunk: when player starts at far spawn, path at spawn must be ensured
+        if (this._spawnChunk) {
+            this._ensurePathChunk(this._spawnChunk.x, this._spawnChunk.z);
+            this._ensurePathChunk(this._spawnChunk.x, this._spawnChunk.z - 1);
+            this._ensurePathChunk(this._spawnChunk.x - 1, this._spawnChunk.z);
+        }
+
         // Always ensure path chunks containing world origin (0,0) so the path behind the player
-        // (bottom of screen when far away) has grey fill; otherwise only chunks in view were
-        // ensured and origin chunks could be in wrong parent or missing after init.
+        // (bottom of screen when far away) has grey fill
         const originChunks = [[0, 0], [0, -1], [-1, 0], [-1, -1]];
         for (const [ox, oz] of originChunks) {
             this._ensurePathChunk(ox, oz);
