@@ -223,6 +223,78 @@ export class MultiplayerUIManager {
         }
     }
 
+    /**
+     * Update Join screen when already connected as joiner: show host list, host's QR/code, Disconnect.
+     */
+    updateJoinScreenConnectedToHost() {
+        const conn = this.multiplayerManager.connection;
+        if (!conn || !conn.isConnected || conn.isHost || !conn.hostId) return;
+
+        const hostId = conn.hostId;
+        const listEl = document.getElementById('join-connected-host-list');
+        if (listEl) {
+            listEl.innerHTML = '';
+            const hostItem = document.createElement('div');
+            hostItem.className = 'player-item host-player';
+            const statusBadge = document.createElement('span');
+            statusBadge.className = 'player-status-badge';
+            const statusDot = document.createElement('span');
+            statusDot.className = 'contact-status-dot hosting';
+            statusDot.setAttribute('aria-hidden', 'true');
+            statusBadge.appendChild(statusDot);
+            const colorIndicator = document.createElement('div');
+            colorIndicator.className = 'player-color-indicator';
+            colorIndicator.style.backgroundColor = this.multiplayerManager.assignedColors.get(hostId) || '#FF5733';
+            const playerName = document.createElement('span');
+            playerName.textContent = `Player ${MultiplayerUIManager.roomIdPrefix(hostId)}`;
+            const hostLabel = document.createElement('span');
+            hostLabel.className = 'you-indicator';
+            hostLabel.textContent = ' (Host)';
+            playerName.appendChild(hostLabel);
+            hostItem.appendChild(statusBadge);
+            hostItem.appendChild(colorIndicator);
+            hostItem.appendChild(playerName);
+            listEl.appendChild(hostItem);
+        }
+
+        const codeEl = document.getElementById('join-connected-code');
+        if (codeEl) {
+            codeEl.textContent = hostId;
+            codeEl.style.cursor = 'pointer';
+            codeEl.onclick = () => this.copyConnectionCodeForJoinScreen(hostId);
+        }
+        const copyBtn = document.getElementById('join-connected-copy-btn');
+        if (copyBtn) {
+            copyBtn.onclick = () => this.copyConnectionCodeForJoinScreen(hostId);
+        }
+
+        const qrContainer = document.getElementById('join-connected-qr');
+        if (qrContainer) {
+            this.generateQRCode(hostId, qrContainer);
+        }
+    }
+
+    /**
+     * Copy connection code to clipboard from Join screen (when connected to host). Uses hostId.
+     */
+    copyConnectionCodeForJoinScreen(hostId) {
+        if (!hostId) return;
+        try {
+            navigator.clipboard.writeText(hostId).then(() => {
+                this.updateConnectionStatus('Connection ID copied to clipboard!', 'join-connection-status');
+                const codeEl = document.getElementById('join-connected-code');
+                if (codeEl) {
+                    codeEl.classList.add('copied');
+                    setTimeout(() => codeEl.classList.remove('copied'), 1000);
+                }
+            }).catch(() => {
+                this.updateConnectionStatus('Failed to copy. Please copy manually.', 'join-connection-status');
+            });
+        } catch (e) {
+            this.updateConnectionStatus('Failed to copy. Please copy manually.', 'join-connection-status');
+        }
+    }
+
     /** Show or hide "Join to existing host" block from joinedHostIds (only when we have joined hosts). */
     updateRejoinHostArea() {
         const area = document.getElementById('join-rejoin-host-area');
@@ -455,12 +527,13 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Host: send "invite to join my game" to a contact (joiner or other peer). They see a notification and can tap to join.
+     * Send "invite to join this game" to a contact. Host sends their roomId; joiner forwards the host's roomId so the contact joins the same host.
      * @param {string} joinerId - Contact's peer ID (e.g. joiner's persistent id or host id we have in contacts)
      */
     async sendInviteToJoiner(joinerId) {
-        const roomId = this.multiplayerManager.connection?.roomId;
-        if (!roomId || !this.multiplayerManager.connection?.isHost) return;
+        const conn = this.multiplayerManager.connection;
+        const roomId = conn?.isHost ? conn?.roomId : conn?.hostId;
+        if (!roomId || !conn?.isConnected) return;
         try {
             const peer = new Peer();
             await new Promise((resolve, reject) => {
@@ -1043,16 +1116,11 @@ export class MultiplayerUIManager {
     }
     
     /**
-     * Show the connection info screen.
-     * Host: full "Multiplayer Connection" screen (QR, code, connected players, start game).
-     * Joiner: only the "Connected. Joining game..." overlay; never show the full connection screen.
+     * Show the connection info screen (Multiplayer Connection).
+     * Both host and joiner see the full screen: QR, code, connected players, and explicit Disconnect.
+     * The "Connected. Joining game..." overlay is only used during re-join retry (reconnecting after drop), not when opening from the menu.
      */
     showConnectionInfoScreen() {
-        const conn = this.multiplayerManager.connection;
-        if (conn && conn.isConnected && !conn.isHost) {
-            this.showRejoinOverlay('Connected. Joining game...');
-            return;
-        }
         this._showConnectionInfoScreenInternal();
     }
 
@@ -1070,22 +1138,16 @@ export class MultiplayerUIManager {
                 if (disconnectBtn) {
                     disconnectBtn.addEventListener('click', () => {
                         console.debug('[MultiplayerUIManager] Disconnecting from multiplayer game');
-                        
-                        // Disconnect from the multiplayer game
+                        const game = this.multiplayerManager.game;
+                        const menuManager = game?.menuManager;
                         this.multiplayerManager.leaveGame();
-                        
-                        // Update UI: button back to "Multiplayer", status to disconnected, reset invite buttons
                         this.updateMultiplayerButton(false);
                         this.updateConnectionStatus('Disconnected', 'connection-info-status');
                         this.updateConnectionStatus('Disconnected', 'connection-info-status-bar');
                         this.resetInviteButtons();
-                        
-                        // Close the multiplayer modal
                         this.closeMultiplayerModal();
-                        
-                        // Return to game menu if the game has a menu manager
-                        if (this.multiplayerManager.game && this.multiplayerManager.game.menuManager) {
-                            this.multiplayerManager.game.menuManager.showMenu('gameMenu');
+                        if (menuManager) {
+                            menuManager.showMenu('gameMenu');
                         }
                     });
                 }
@@ -1102,7 +1164,7 @@ export class MultiplayerUIManager {
             }
             const hostContactsBtn = document.getElementById('host-contacts-btn');
             if (hostContactsBtn) {
-                hostContactsBtn.style.display = this.multiplayerManager.connection?.isHost ? '' : 'none';
+                hostContactsBtn.style.display = (this.multiplayerManager.connection?.isConnected) ? '' : 'none';
             }
             // Hide other screens, show connection info screen
             document.getElementById('multiplayer-initial-screen').style.display = 'none';
@@ -1874,6 +1936,7 @@ export class MultiplayerUIManager {
 
     /**
      * Show the single join screen: permissions row, host area, auto-scan, primary button (Play / QR scan / Enter Code).
+     * When already connected as joiner, shows connected-to-host view (host list, QR, code, Disconnect) instead.
      */
     async showJoinUI() {
         document.getElementById('multiplayer-initial-screen').style.display = 'none';
@@ -1895,6 +1958,41 @@ export class MultiplayerUIManager {
         const manualConnectBtn = document.getElementById('manual-connect-btn');
         if (manualConnectBtn) manualConnectBtn.disabled = false;
 
+        const conn = this.multiplayerManager.connection;
+        const isConnectedAsJoiner = conn && conn.isConnected && !conn.isHost && conn.hostId;
+
+        const joinConnectedBlock = document.getElementById('join-connected-block');
+        const joinHostArea = document.getElementById('join-host-area');
+        const joinMethodStatus = document.getElementById('join-method-status');
+
+        if (isConnectedAsJoiner) {
+            if (joinConnectedBlock) joinConnectedBlock.style.display = 'flex';
+            if (joinHostArea) joinHostArea.style.display = 'none';
+            if (joinMethodStatus) joinMethodStatus.style.display = 'none';
+            this.updateJoinScreenConnectedToHost();
+            const disconnectBtn = document.getElementById('join-disconnect-btn');
+            if (disconnectBtn) {
+                disconnectBtn.onclick = () => {
+                    this.multiplayerManager.leaveGame();
+                    this.updateMultiplayerButton(false);
+                    this.updateConnectionStatus('Disconnected', 'join-connection-status');
+                    this.resetInviteButtons();
+                    this.closeMultiplayerModal();
+                    if (this.multiplayerManager.game && this.multiplayerManager.game.menuManager) {
+                        this.multiplayerManager.game.menuManager.showMenu('gameMenu');
+                    }
+                };
+            }
+        } else {
+            if (joinConnectedBlock) joinConnectedBlock.style.display = 'none';
+            if (joinHostArea) joinHostArea.style.display = '';
+            if (joinMethodStatus) joinMethodStatus.style.display = '';
+            if (this.multiplayerManager.connection?.startJoinListener) {
+                this.multiplayerManager.connection.startJoinListener();
+            }
+            this.updateRejoinHostArea();
+        }
+
         const backButton = document.getElementById('back-from-join-btn');
         if (backButton) {
             backButton.onclick = () => {
@@ -1909,15 +2007,16 @@ export class MultiplayerUIManager {
                 this.showMultiplayerModal();
             };
         }
-        if (this.multiplayerManager.connection?.startJoinListener) {
-            this.multiplayerManager.connection.startJoinListener();
-        }
         this.updateJoinPendingInviteBanner();
 
         // Permissions row: refresh status (Allow buttons wired in setupUIListeners)
         await this.refreshJoinPermissions();
 
         this.updateHeaderPlayerInfo('join-game-player-info');
+
+        if (isConnectedAsJoiner) {
+            return;
+        }
 
         // Primary button: QR scan
         const primaryBtn = document.getElementById('join-primary-btn');
@@ -2513,8 +2612,13 @@ export class MultiplayerUIManager {
         return `${window.location.href.split('?')[0]}?join=true&connect-id=${connectionId}`;
     }
     
-    async generateQRCode(data) {
-        const qrContainer = document.getElementById('connection-info-qr');
+    /**
+     * Generate QR code for connection.
+     * @param {string} data - The connection ID (roomId or hostId) to encode
+     * @param {HTMLElement} [container] - Optional container; defaults to connection-info-qr
+     */
+    async generateQRCode(data, container) {
+        const qrContainer = container || document.getElementById('connection-info-qr');
         if (!qrContainer) return;
         
         try {
@@ -2554,8 +2658,9 @@ export class MultiplayerUIManager {
      * Copy connection code to clipboard
      */
     copyConnectionCode() {
-        // Get the room ID from the connection manager
-        const roomId = this.multiplayerManager.connection && this.multiplayerManager.connection.roomId;
+        // Host: copy roomId; joiner: copy hostId (same code others use to join this host)
+        const conn = this.multiplayerManager.connection;
+        const roomId = conn && (conn.isHost ? conn.roomId : conn.hostId);
         if (!roomId) {
             console.error('No room ID available to copy');
             this.updateConnectionStatus('No connection code available', 'host-connection-status');

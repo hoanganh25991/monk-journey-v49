@@ -631,6 +631,25 @@
                 </div>
                 <p id="join-host-empty" class="join-host-empty">Use QR scan or Enter Code to join.</p>
             </div>
+            <!-- Shown when already connected to a host: host list, QR, code, Disconnect (like host view) -->
+            <div id="join-connected-block" class="join-connected-block" style="display: none;">
+                <div class="join-connected-layout">
+                    <div class="join-connected-host-section">
+                        <h3>Connected to host</h3>
+                        <div id="join-connected-host-list" class="connected-players-list join-connected-host-list"></div>
+                    </div>
+                    <div class="qr-section join-connected-qr">
+                        <div id="join-connected-qr" class="centered-qr"></div>
+                        <div class="connection-code-row">
+                            <div id="join-connected-code" class="connection-code" title="Click to copy">—</div>
+                            <button type="button" id="join-connected-copy-btn" class="small-btn" title="Copy to clipboard">📋</button>
+                        </div>
+                    </div>
+                    <div class="multiplayer-action join-connected-actions">
+                        <button type="button" id="join-disconnect-btn" class="settings-button danger-button">Disconnect</button>
+                    </div>
+                </div>
+            </div>
             <!-- Primary action: QR scan or Enter Code -->
             <div id="join-method-status" class="join-method-status join-method-status-compact">
                 <div class="join-method-lines">
