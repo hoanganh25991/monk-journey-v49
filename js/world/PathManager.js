@@ -23,6 +23,7 @@ export class PathManager {
         /** Single group for all path meshes and edge stones; kept last in worldGroup so path renders on top of terrain. */
         this.pathRoot = new THREE.Group();
         this.pathRoot.name = 'PathRoot';
+        this.pathRoot.renderOrder = 100;
 
         this.config = {
             pathWidth: 12,
@@ -440,10 +441,11 @@ export class PathManager {
             emissiveIntensity: 0.35,
             fog: false,
             polygonOffset: true,
-            polygonOffsetFactor: 4,
-            polygonOffsetUnits: 4,
-            depthTest: true,
-            depthWrite: true
+            polygonOffsetFactor: 12,
+            polygonOffsetUnits: 12,
+            // At large distances depth buffer precision drops; path can fail depth test and disappear.
+            depthTest: false,
+            depthWrite: false
         });
 
         const pathMesh = new THREE.Mesh(geometry, material);
