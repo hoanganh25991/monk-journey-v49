@@ -306,14 +306,12 @@ export class TempestsHeartEffect extends CycloneStrikeEffect {
                 
                 activeBolts.push(boltData);
             } else {
-                // Expired, remove from scene
-                if (this.skill.game.scene) {
-                    this.skill.game.scene.remove(boltData.bolt);
+                // Expired: remove from actual parent (bolts are added to getWorldGroup() or scene)
+                if (boltData.bolt.parent) {
+                    boltData.bolt.parent.remove(boltData.bolt);
                 }
-                
-                // Dispose resources
-                boltData.bolt.geometry.dispose();
-                boltData.bolt.material.dispose();
+                if (boltData.bolt.geometry) boltData.bolt.geometry.dispose();
+                if (boltData.bolt.material) boltData.bolt.material.dispose();
             }
         }
         
@@ -375,12 +373,13 @@ export class TempestsHeartEffect extends CycloneStrikeEffect {
      * so they must be explicitly removed and disposed here.
      */
     dispose() {
-        // Clean up lightning bolts FIRST - they are in scene, not in effect group
+        // Clean up lightning bolts FIRST - they are added to getWorldGroup() or scene, not the effect group
         if (this.lightningBolts && this.lightningBolts.length > 0) {
             this.lightningBolts.forEach(boltData => {
                 if (boltData.bolt) {
-                    if (this.skill?.game?.scene && boltData.bolt.parent) {
-                        this.skill.game.scene.remove(boltData.bolt);
+                    // Remove from actual parent (same place we added in createLightningBolt)
+                    if (boltData.bolt.parent) {
+                        boltData.bolt.parent.remove(boltData.bolt);
                     }
                     if (boltData.bolt.geometry) boltData.bolt.geometry.dispose();
                     if (boltData.bolt.material) boltData.bolt.material.dispose();
