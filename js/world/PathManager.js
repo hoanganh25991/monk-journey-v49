@@ -20,10 +20,10 @@ export class PathManager {
         this.pathChunks = new Map();
         /** When true, reparent loop is skipped (all chunks already in pathRoot); reset when pathChunks change. */
         this._reparentDone = false;
-        /** Single group for all path meshes and edge stones; kept last in worldGroup so path renders on top of terrain. */
+        /** Single group for all path meshes and edge stones; low renderOrder so path draws before structures (path below objects). */
         this.pathRoot = new THREE.Group();
         this.pathRoot.name = 'PathRoot';
-        this.pathRoot.renderOrder = 100;
+        this.pathRoot.renderOrder = -100;
         this.pathRoot.visible = true;
 
         this.config = {
@@ -448,22 +448,22 @@ export class PathManager {
         geometry.computeVertexNormals();
         geometry.computeBoundingSphere();
 
-        // MeshBasicMaterial: same visible color at any distance; lighting can make Standard material
-        // too dark or invisible when path is far from camera/origin, so Basic guarantees the grey strip shows.
+        // MeshBasicMaterial: same visible color at any distance. depthTest/depthWrite true so path
+        // is below structures/player/enemies. Small polygonOffset only to avoid z-fight with terrain.
         const material = new THREE.MeshBasicMaterial({
             vertexColors: true,
             fog: false,
             side: THREE.DoubleSide,
             polygonOffset: true,
-            polygonOffsetFactor: 12,
-            polygonOffsetUnits: 12,
-            depthTest: false,
-            depthWrite: false
+            polygonOffsetFactor: 2,
+            polygonOffsetUnits: 2,
+            depthTest: true,
+            depthWrite: true
         });
 
         const pathMesh = new THREE.Mesh(geometry, material);
         pathMesh.visible = true;
-        pathMesh.renderOrder = 100;
+        pathMesh.renderOrder = -100;
         pathMesh.frustumCulled = false;
         pathMesh.userData = { isPath: true, pathId };
 

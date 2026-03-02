@@ -318,15 +318,19 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
 
-        // Keep path group last in worldGroup every frame so path always renders on top of terrain
+        // Place path after terrain but before enemies/player so path renders below structures and characters
         if (this.pathManager && typeof this.pathManager.update === 'function') {
             this.pathManager.update(playerPosition);
             const pathRoot = this.pathManager.getPathRoot?.();
             const worldGroup = this.game?.getWorldGroup?.();
             if (pathRoot && worldGroup && pathRoot.parent === worldGroup) {
-                if (worldGroup.children[worldGroup.children.length - 1] !== pathRoot) {
+                const terrainCount = this.terrainManager?.chunks?.size ?? 0;
+                const idx = worldGroup.children.indexOf(pathRoot);
+                const wantIdx = Math.min(terrainCount, worldGroup.children.length - 1);
+                if (idx !== wantIdx && wantIdx >= 0) {
                     worldGroup.remove(pathRoot);
-                    worldGroup.add(pathRoot);
+                    worldGroup.children.splice(wantIdx, 0, pathRoot);
+                    pathRoot.parent = worldGroup;
                 }
             }
         }
