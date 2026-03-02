@@ -345,11 +345,9 @@ export class ImprisonedFistsEffect extends SkillEffect {
         } else {
             direction = new THREE.Vector3(0, 0, 0);
         }
-        const newPosition = new THREE.Vector3().copy(currentPosition).add(
-            direction.multiplyScalar(moveDistance)
+        this.effect.position.copy(currentPosition).add(
+            direction.clone().multiplyScalar(moveDistance)
         );
-        const newPosition = currentPosition.clone().add(direction.multiplyScalar(moveDistance));
-        this.effect.position.copy(newPosition);
 
         // Update particle system
         if (this.particleSystem) {

@@ -32,6 +32,7 @@ export class TerrainManager {
         this.chunks = new Map(); // Active terrain chunks
         this.buffer = new Map(); // Pre-generated chunks not yet visible
         this.queue = []; // Generation queue with priority
+        this.queueKeys = new Set(); // chunkKey set for O(1) isInQueue
         
         // Player tracking for predictive loading
         this.playerChunk = { x: 0, z: 0 };
@@ -197,8 +198,9 @@ export class TerrainManager {
         }
         for (let i = maxVisiblePerFrame; i < needCreation.length; i++) {
             const c = needCreation[i];
-            if (!this.isInQueue(c.x, c.z)) {
+            if (!this.queueKeys.has(c.chunkKey)) {
                 this.queue.unshift({ x: c.x, z: c.z, chunkKey: c.chunkKey, priority: 999 });
+                this.queueKeys.add(c.chunkKey);
             }
         }
     }
@@ -222,7 +224,7 @@ export class TerrainManager {
                 // Skip if already exists or in queue
                 if (this.chunks.has(chunkKey) || 
                     this.buffer.has(chunkKey) || 
-                    this.isInQueue(x, z)) continue;
+                    this.queueKeys.has(chunkKey)) continue;
                 
                 // Skip if too close (should be visible chunk)
                 const distance = Math.max(Math.abs(x - centerChunk.x), Math.abs(z - centerChunk.z));
@@ -251,7 +253,9 @@ export class TerrainManager {
         // Add up to remaining queue capacity
         const remainingCapacity = this.maxQueueSize - this.queue.length;
         for (let i = 0; i < Math.min(candidates.length, remainingCapacity); i++) {
-            this.queue.push(candidates[i]);
+            const item = candidates[i];
+            this.queue.push(item);
+            this.queueKeys.add(item.chunkKey);
         }
     }
     
@@ -266,12 +270,13 @@ export class TerrainManager {
         
         while (this.queue.length > 0 && (performance.now() - startTime) < this.maxProcessingTime) {
             const item = this.queue.shift();
-            
+            this.queueKeys.delete(item.chunkKey);
+
             // Skip if chunk now exists (race condition)
             if (this.chunks.has(item.chunkKey) || this.buffer.has(item.chunkKey)) {
                 continue;
             }
-            
+
             // Create chunk for buffer
             this.createChunk(item.x, item.z, false);
         }
@@ -1031,7 +1036,7 @@ export class TerrainManager {
     }
     
     isInQueue(x, z) {
-        return this.queue.some(item => item.x === x && item.z === z);
+        return this.queueKeys.has(`${x},${z}`);
     }
     
     /**
@@ -1101,7 +1106,8 @@ export class TerrainManager {
         this.chunks.clear();
         this.buffer.clear();
         this.queue.length = 0;
-        
+        this.queueKeys.clear();
+
         // Clear caches
         this.textureCache.clear();
         this.geometryPool.forEach(geo => geo.dispose());

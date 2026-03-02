@@ -318,9 +318,15 @@ export class WorldManager {
         // Update terrain based on player position
         this.terrainManager.updateTerrain(playerPosition);
 
-        // Keep path group last in worldGroup so path always renders on top of terrain (avoids path disappearing after moving)
+        // Keep path group last in worldGroup so path always renders on top of terrain (avoids path grey fill disappearing)
         if (this.pathManager && typeof this.pathManager.update === 'function') {
             this.pathManager.update(playerPosition);
+            const pathRoot = this.pathManager.getPathRoot?.();
+            const worldGroup = this.game?.getWorldGroup?.();
+            if (pathRoot && worldGroup && pathRoot.parent === worldGroup && worldGroup.children[worldGroup.children.length - 1] !== pathRoot) {
+                worldGroup.remove(pathRoot);
+                worldGroup.add(pathRoot);
+            }
         }
 
         // Update lighting and shadow camera to follow player (so shadows appear on terrain)
@@ -377,6 +383,7 @@ export class WorldManager {
             if (numStruct > 0) cache.structPending.splice(0, numStruct);
         }
         if (!skipProceduralEnvironment && this.environmentManager && this.environmentManager.generateEnvironmentForChunk) {
+            const maxEnvChunksPerFrame = this.performanceProfile.envChunksPerFrame ?? 2;
             const numEnv = Math.min(maxEnvChunksPerFrame, cache.pending.length);
             for (let i = 0; i < numEnv; i++) {
                 const c = cache.pending[i];

@@ -12,18 +12,24 @@ export class EnemyModelFactory {
 
     /**
      * Load a model class by path and cache it.
+     * On network failure (e.g. ERR_INTERNET_DISCONNECTED or slow fetch), returns null so caller can use fallback.
      * @param {string} modulePath - Path relative to this file (e.g. './SkeletonModel.js')
      * @param {string} exportName - Name of the exported class
-     * @returns {Promise<Function>} The model class constructor
+     * @returns {Promise<Function|null>} The model class constructor, or null if load failed
      */
     static async _loadModelClass(modulePath, exportName) {
         const cacheKey = modulePath;
         let mod = this._moduleCache.get(cacheKey);
         if (!mod) {
-            mod = await import(/* webpackChunkName: "enemy-model-[request]" */ modulePath);
-            this._moduleCache.set(cacheKey, mod);
+            try {
+                mod = await import(/* webpackChunkName: "enemy-model-[request]" */ modulePath);
+                this._moduleCache.set(cacheKey, mod);
+            } catch (err) {
+                console.warn(`EnemyModelFactory: failed to load model "${modulePath}" (network/slow?), using default model:`, err?.message || err);
+                return null;
+            }
         }
-        return mod[exportName];
+        return mod[exportName] ?? null;
     }
 
     /**
@@ -36,7 +42,11 @@ export class EnemyModelFactory {
         const entry = ENEMY_MODEL_REGISTRY[enemy.type];
         if (entry) {
             const ModelClass = await this._loadModelClass(`./${entry.path}`, entry.exportName);
-            return new ModelClass(enemy, modelGroup);
+            if (ModelClass) {
+                return new ModelClass(enemy, modelGroup);
+            }
+            // Load failed (e.g. network disconnected / slow) — use default model
+            return new DefaultModel(enemy, modelGroup);
         }
         console.warn(`No model registry for enemy type: ${enemy.type}, using default model`);
         return new DefaultModel(enemy, modelGroup);

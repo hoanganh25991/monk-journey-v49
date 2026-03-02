@@ -55,19 +55,25 @@ export class SkillEffectFactory {
 
     /**
      * Load a module by path and cache it. Returns the export with the given name.
+     * On network failure (e.g. disconnected or slow fetch), returns null so caller can use fallback.
      * @param {string} modulePath - Path relative to js/skills (e.g. 'WaveStrikeEffect.js' or 'variants/WaveStrike/TidalWaveEffect.js')
      * @param {string} exportName - Name of the exported class
-     * @returns {Promise<Function>} The effect class constructor
+     * @returns {Promise<Function|null>} The effect class constructor, or null if load failed
      */
     static async _loadEffectClass(modulePath, exportName) {
         const fullUrl = this._resolveEffectPath(modulePath);
         const cacheKey = fullUrl;
         let mod = this._moduleCache.get(cacheKey);
         if (!mod) {
-            mod = await import(/* webpackChunkName: "skill-effect-[request]" */ fullUrl);
-            this._moduleCache.set(cacheKey, mod);
+            try {
+                mod = await import(/* webpackChunkName: "skill-effect-[request]" */ fullUrl);
+                this._moduleCache.set(cacheKey, mod);
+            } catch (err) {
+                console.warn(`SkillEffectFactory: failed to load effect "${modulePath}" (network/slow?), using fallback:`, err?.message || err);
+                return null;
+            }
         }
-        return mod[exportName];
+        return mod[exportName] ?? null;
     }
 
     /**
@@ -89,7 +95,10 @@ export class SkillEffectFactory {
         }
 
         const EffectClass = await this._loadEffectClass(entry.path, entry.exportName);
-        return new EffectClass(skill);
+        if (EffectClass) {
+            return new EffectClass(skill);
+        }
+        return null;
     }
 
     /**
@@ -101,7 +110,9 @@ export class SkillEffectFactory {
         const entry = BASE_EFFECT_REGISTRY[skill.name];
         if (entry) {
             const EffectClass = await this._loadEffectClass(entry.path, entry.exportName);
-            return new EffectClass(skill);
+            if (EffectClass) {
+                return new EffectClass(skill);
+            }
         }
         return new SkillEffect(skill);
     }
