@@ -13,9 +13,26 @@ Monk Journey is an action RPG game where you play as a monk with powerful martia
 - [Monk Journey](#monk-journey)
   - [Overview](#overview)
   - [Features](#features)
+    - [01. Combat](#01-combat)
+    - [02. Fist Person View](#02-fist-person-view)
+    - [03. Skill Selection](#03-skill-selection)
+    - [04. Skill Tree](#04-skill-tree)
+    - [05. Inventory](#05-inventory)
+    - [06. Model Preview](#06-model-preview)
+    - [07. Skill Preview](#07-skill-preview)
+    - [08. Enemy Preview](#08-enemy-preview)
+    - [09. Orbit Control](#09-orbit-control)
+    - [10. Multi Player](#10-multi-player)
   - [Gameplay](#gameplay)
+    - [Controls](#controls)
+    - [Installation](#installation)
   - [Development](#development)
+    - [Simplifying GLB models](#simplifying-glb-models)
+    - [Pre-generating maps](#pre-generating-maps)
+    - [Version and updates](#version-and-updates)
   - [Google Play](#google-play)
+    - [Short description (max 80 characters)](#short-description-max-80-characters)
+    - [Long description (max 4000 characters)](#long-description-max-4000-characters)
   - [Credits](#credits)
   - [License](#license)
 
@@ -122,7 +139,9 @@ Optional: add thumbnail images under `maps/thumbnails/<id>.png` for each map.
 [![Get it on Google Play](https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png)](https://play.google.com/store/apps/details?id=io.github.hoanganh25991.monkjourneyv49)
 
 
-Get it on Google Play: https://play.google.com/store/apps/details?id=io.github.hoanganh25991.monkjourneyv49
+Get it on Google Play
+https://play.google.com/store/apps/details?id=io.github.hoanganh25991.monkjourneyv49
+#monk-journey
 
 ### Short description (max 80 characters)
 
