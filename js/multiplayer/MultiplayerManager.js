@@ -536,9 +536,8 @@ export class MultiplayerManager {
 
         // Reset game state if needed
         if (this.game.state && this.game.state.isRunning()) {
-            // Return to main menu
             if (this.game.menuManager) {
-                this.game.menuManager.showMainMenu();
+                this.game.menuManager.showMenu('gameMenu');
             }
         }
 
