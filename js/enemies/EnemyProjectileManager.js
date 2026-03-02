@@ -29,6 +29,10 @@ export class EnemyProjectileManager {
         const sourcePosition = enemy.position.clone();
         sourcePosition.y += (enemy.heightOffset ?? 0.4) + 0.3;
 
+        // Snapshot player position at cast time — projectile flies to this point; player can dodge by moving
+        const snapshotPosition = enemy.targetPlayer.getPosition().clone();
+        snapshotPosition.y += 0.5;
+
         const projectileType = overrides.projectileType ?? enemy.projectileType ?? 'arrow';
         const flightStyle = overrides.flightStyle ?? enemy.projectileFlightStyle ?? 'direct';
         const speed = overrides.speed ?? (flightStyle === 'curve' ? 12 : 14);
@@ -36,6 +40,7 @@ export class EnemyProjectileManager {
         const projectile = new EnemyProjectile(this.projectileRoot, {
             sourcePosition,
             target: enemy.targetPlayer,
+            snapshotPosition,
             damage: enemy.damage,
             projectileType,
             flightStyle,

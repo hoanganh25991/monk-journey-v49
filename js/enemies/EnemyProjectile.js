@@ -11,7 +11,8 @@ export class EnemyProjectile {
      * @param {THREE.Object3D} parent - Parent to add mesh to (worldGroup or scene)
      * @param {Object} options
      * @param {THREE.Vector3} options.sourcePosition - Where the projectile spawns (enemy position + height)
-     * @param {Object} options.target - Target with getPosition() (e.g. player)
+     * @param {Object} options.target - Target with getPosition() and takeDamage() (e.g. player)
+     * @param {THREE.Vector3} [options.snapshotPosition] - If set, projectile flies to this position (no homing); hit only if target still there
      * @param {number} options.damage - Damage to apply on hit
      * @param {string} [options.projectileType='arrow'] - 'arrow' | 'orb' | 'bolt' | 'stone'
      * @param {string} [options.flightStyle='direct'] - 'direct' | 'curve'
@@ -25,6 +26,7 @@ export class EnemyProjectile {
         this.parent = parent;
         this.sourcePosition = options.sourcePosition.clone();
         this.target = options.target;
+        this.snapshotPosition = options.snapshotPosition ? options.snapshotPosition.clone() : null;
         this.damage = options.damage ?? 10;
         this.projectileType = options.projectileType ?? 'arrow';
         this.flightStyle = options.flightStyle ?? 'direct';
@@ -46,7 +48,11 @@ export class EnemyProjectile {
         this.curveArcHeight = 2; // Extra height at apex of arc
         this.curveTotalDistance = 0; // Set on first _updateTargetPosition
 
-        this._updateTargetPosition();
+        if (this.snapshotPosition) {
+            this.curveEnd.copy(this.snapshotPosition);
+        } else {
+            this._updateTargetPosition();
+        }
         if (this.flightStyle === 'direct') {
             this.direction.subVectors(this.curveEnd, this.curveStart).normalize();
         } else {
@@ -144,8 +150,8 @@ export class EnemyProjectile {
             return false;
         }
 
-        // For direct flight, update target position and direction each frame (homing, so arrow aims at player in sky too)
-        if (this.flightStyle === 'direct') {
+        // Snapshot mode: fly to fixed position (no homing). Otherwise direct flight homing (legacy).
+        if (this.flightStyle === 'direct' && !this.snapshotPosition) {
             this._updateTargetPosition();
             this.direction.subVectors(this.curveEnd, this.mesh.position).normalize();
         }
@@ -163,7 +169,7 @@ export class EnemyProjectile {
             this.mesh.quaternion.setFromUnitVectors(forward, this.direction.clone().normalize());
         }
 
-        // Hit check (squared distance to avoid sqrt)
+        // Hit check: projectile reached impact point (curveEnd = snapshot or current target)
         const px = this.mesh.position.x, py = this.mesh.position.y, pz = this.mesh.position.z;
         const ex = this.curveEnd.x, ey = this.curveEnd.y, ez = this.curveEnd.z;
         const hitRadiusSq = this.hitRadius * this.hitRadius;
@@ -173,6 +179,16 @@ export class EnemyProjectile {
         }
 
         return true;
+    }
+
+    /**
+     * When using snapshot position: only deal damage if target is still at/near impact point (dodged if they moved).
+     */
+    _isTargetAtImpactPoint() {
+        if (!this.target || typeof this.target.getPosition !== 'function') return false;
+        const tp = this.target.getPosition();
+        const ex = this.curveEnd.x, ey = this.curveEnd.y, ez = this.curveEnd.z;
+        return distanceSq3D(tp.x, tp.y, tp.z, ex, ey, ez) <= this.hitRadius * this.hitRadius;
     }
 
     _updateDirect(delta) {
@@ -201,6 +217,11 @@ export class EnemyProjectile {
     }
 
     _onHit() {
+        // Snapshot projectiles: only hit if target is still at the impact position (otherwise they dodged)
+        if (this.snapshotPosition && !this._isTargetAtImpactPoint()) {
+            this.dispose();
+            return;
+        }
         if (this.target && typeof this.target.takeDamage === 'function') {
             this.target.takeDamage(this.damage);
         }

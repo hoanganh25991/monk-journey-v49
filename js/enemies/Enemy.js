@@ -610,31 +610,43 @@ export class Enemy {
             return;
         }
         
-        // Melee (or fallback): deal damage immediately
+        // Melee (or fallback): wind-up then check if target is still in range/on ground — dodge by run or jump
         if (this.targetPlayer) {
-            const isRemotePlayer = this.targetPlayer !== this.player;
-            console.debug(`ENEMY TARGET: Enemy ${this.id} has target: ${isRemotePlayer ? 'REMOTE PLAYER' : 'PLAYER'}`);
-            
-            if (typeof this.targetPlayer.takeDamage === 'function') {
-                try {
-                    console.debug(`ENEMY DAMAGE: Enemy ${this.id} dealing ${this.damage} damage to player`);
-                    
-                    // Apply damage to the target
-                    this.targetPlayer.takeDamage(this.damage);
-                } catch (error) {
-                    console.error(`Error in enemy attack: ${error.message}`);
+            const attackRangeSq = this.attackRange * this.attackRange;
+            const windUpMs = 280; // Time for attack to "land"; player can dodge by moving or jumping
+            setTimeout(() => {
+                if (!this.targetPlayer || !this.isActive) {
+                    this.state.isAttacking = false;
+                    return;
                 }
-            } else {
-                console.error(`Enemy ${this.id} target doesn't have takeDamage function`);
-            }
+                const pp = this.targetPlayer.getPosition();
+                const dx = pp.x - this.position.x;
+                const dz = pp.z - this.position.z;
+                const distSq = dx * dx + dz * dz;
+                let stillInMeleeRange = distSq <= attackRangeSq;
+                let stillOnGround = true;
+                if (this.world && stillInMeleeRange) {
+                    try {
+                        const terrainY = this.world.getTerrainHeight(pp.x, pp.z);
+                        if (terrainY != null && isFinite(terrainY)) {
+                            const groundY = terrainY + 1.0;
+                            stillOnGround = pp.y <= groundY + 0.35;
+                        }
+                    } catch (_) { /* ignore */ }
+                }
+                if (stillInMeleeRange && stillOnGround && typeof this.targetPlayer.takeDamage === 'function') {
+                    try {
+                        this.targetPlayer.takeDamage(this.damage);
+                    } catch (error) {
+                        console.error(`Error in enemy attack: ${error.message}`);
+                    }
+                }
+                this.state.isAttacking = false;
+            }, windUpMs);
         } else {
             console.error(`Enemy ${this.id} has no target to attack`);
+            setTimeout(() => { this.state.isAttacking = false; }, 100);
         }
-        
-        // Reset attack state after a short delay
-        setTimeout(() => {
-            this.state.isAttacking = false;
-        }, 500);
     }
     
     castIceStorm(targetPosition) {
