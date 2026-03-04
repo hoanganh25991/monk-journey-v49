@@ -57,6 +57,7 @@ export class InteractionSystem {
     
     /**
      * Auto-trigger interaction when player is close to chests (not yet open) or quest markers (first time).
+     * Supports: chest, quest, chapter_quest (story markers).
      */
     tryAutoInteract() {
         if (this.interactionCooldown > 0 || this.nearbyInteractiveObjects.length === 0) return;
@@ -67,7 +68,7 @@ export class InteractionSystem {
         
         for (const obj of this.nearbyInteractiveObjects) {
             const isChest = obj.type === 'chest' && !obj.isOpen;
-            const isQuest = obj.type === 'quest' && !this.autoTriggeredObjects.has(obj);
+            const isQuest = (obj.type === 'quest' || obj.type === 'chapter_quest') && !this.autoTriggeredObjects.has(obj);
             if (!isChest && !isQuest) continue;
             
             // Use mesh world position when available (scene space = player at origin due to rebasing)
@@ -93,7 +94,7 @@ export class InteractionSystem {
         if (bestObject) {
             this.interactWithObject(bestObject);
             this.interactionCooldown = this.cooldownDuration;
-            if (bestObject.type === 'quest') {
+            if (bestObject.type === 'quest' || bestObject.type === 'chapter_quest') {
                 this.autoTriggeredObjects.add(bestObject);
             }
         }
