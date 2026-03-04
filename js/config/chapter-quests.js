@@ -16,6 +16,7 @@
  * @property {string} description
  * @property {string} lesson - Life lesson quote (reflection screen)
  * @property {string} area
+ * @property {{ x: number, z: number }} position - World position of quest marker (first quest near 0,0,0)
  * @property {ChapterObjective[]} objectives
  * @property {{ enemyType: string, name: string }} boss
  * @property {{ xp: number, skillPoints?: number, item?: string }} rewards
@@ -30,6 +31,7 @@ export const CHAPTER_QUESTS = [
         description: 'A village consumed by anger—disputes over land, old grudges. A Rage Beast has taken root and feeds on their anger. Calm the conflicts and face the beast so the village can find peace.',
         lesson: 'Anger burns the one who carries it.',
         area: 'The Restless Village',
+        position: { x: 0, z: 0 },
         objectives: [
             { type: 'kill', target: 'any', count: 3, progress: 0 },
             { type: 'defeat_boss', target: 'skeleton_king', count: 1, progress: 0 },
@@ -44,6 +46,7 @@ export const CHAPTER_QUESTS = [
         description: 'A dense, misty forest where travelers lose their way and their courage. Something whispers in the dark. Face the Doubt Serpent so the forest can be free of paralyzing fear.',
         lesson: 'Fear grows in silence.',
         area: 'Forest of Doubt',
+        position: { x: 80, z: 0 },
         objectives: [
             { type: 'kill', target: 'any', count: 4, progress: 0 },
             { type: 'defeat_boss', target: 'demon_lord', count: 1, progress: 0 },
@@ -58,6 +61,7 @@ export const CHAPTER_QUESTS = [
         description: 'A mountain where treasure hunters are obsessed with gold and power. A Golden Titan guards the peak. Navigate temptations and face the Titan to learn that gratitude—not accumulation—brings peace.',
         lesson: 'Gratitude ends endless hunger.',
         area: 'Mountain of Desire',
+        position: { x: -60, z: 50 },
         objectives: [
             { type: 'kill', target: 'greed_spawn', count: 6, progress: 0 },
             { type: 'defeat_boss', target: 'golden_titan', count: 1, progress: 0 },
@@ -72,6 +76,7 @@ export const CHAPTER_QUESTS = [
         description: 'A vast desert where travelers feel cut off—no landmarks, no companions. An Echo Phantom amplifies loneliness. Endure the emptiness, find connection, then face the Phantom.',
         lesson: 'You are never truly alone.',
         area: 'Desert of Loneliness',
+        position: { x: 40, z: -70 },
         objectives: [
             { type: 'kill', target: 'echo_spawn', count: 5, progress: 0 },
             { type: 'defeat_boss', target: 'echo_phantom', count: 1, progress: 0 },
@@ -86,6 +91,7 @@ export const CHAPTER_QUESTS = [
         description: 'The final trial. Here the test is not an external monster but the self. A Shadow Self mirrors your skills and choices. Face this reflection and transcend the untrained self to earn Enlightenment Mode.',
         lesson: 'Your greatest opponent is your untrained self.',
         area: 'Inner Temple',
+        position: { x: 0, z: 80 },
         objectives: [
             { type: 'defeat_boss', target: 'shadow_self', count: 1, progress: 0 },
         ],

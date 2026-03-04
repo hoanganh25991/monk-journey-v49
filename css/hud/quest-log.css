@@ -1,7 +1,6 @@
-/* 
+/*
  * hud-quest-log.css - Quest log display
- * Part of the Diablo Immortal CSS optimization
- * This file contains styles for the quest log
+ * No list UI; at most 3 quests visible, 2 lines each (title + objectives). "Review more" for rest.
  */
 
 /* Quest Log */
@@ -13,22 +12,21 @@
     border-radius: 5px;
     opacity: 0.8;
     transition: opacity 0.3s ease;
-    pointer-events: auto; /* Enable touch/click events */
-    cursor: pointer;
+    pointer-events: auto;
+    cursor: default;
 }
 
-/* CSS-only solution for opacity change on hover/active */
 #quest-log:hover,
 #quest-log:active {
     opacity: 1;
     animation: fadeOut 3s forwards;
-    animation-delay: 3s; /* Start fading out after 3 seconds */
+    animation-delay: 3s;
     animation-play-state: running;
 }
 
 #quest-log:hover,
 #quest-log:active {
-    animation-play-state: paused; /* Pause the animation while hovering/active */
+    animation-play-state: paused;
 }
 
 #quest-log .quest-title {
@@ -38,71 +36,71 @@
     margin-bottom: 10px;
 }
 
+/* Quest block: 2 lines only — title + objectives. No list, no click-to-expand. */
+#quest-list .quest-block {
+    margin-bottom: 8px;
+    padding: 4px 0;
+    border-radius: 4px;
+}
 
 #quest-list .quest-name {
     font-weight: bold;
+    font-size: 13px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 #quest-list .quest-name.main-quest {
     color: var(--theme-gold);
 }
 
-/* Summary: 1–2 lines, concise; full description hidden until expanded */
-#quest-list .quest-summary-wrap {
-    font-size: 12px;
-    margin: 4px 0;
-    opacity: 0.9;
+#quest-list .quest-objective {
+    font-size: 11px;
     line-height: 1.35;
-}
-#quest-list .quest-summary {
+    opacity: 0.9;
+    margin-top: 2px;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     word-break: break-word;
 }
-#quest-list .quest-desc-full {
-    display: none;
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-#quest-list .quest-item--expanded .quest-desc-full {
+
+/* "Review more" control — only this is clickable */
+#quest-list .quest-review-more {
     display: block;
-}
-#quest-list .quest-item--expanded .quest-summary {
-    -webkit-line-clamp: unset;
-    display: none;
-}
-#quest-list .quest-item--expanded .quest-tap-hint {
-    display: none;
-}
-#quest-list .quest-tap-hint {
-    font-size: 10px;
-    opacity: 0.75;
-    margin-top: 2px;
-}
-#quest-list .quest-item {
-    margin-bottom: 10px;
-    cursor: pointer;
-    padding: 4px 0;
+    width: 100%;
+    margin-top: 6px;
+    padding: 4px 6px;
+    font-size: 11px;
+    color: var(--theme-gold, #f0c14b);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 4px;
-    outline: none;
+    cursor: pointer;
+    text-align: center;
 }
-#quest-list .quest-item:focus-visible {
+
+#quest-list .quest-review-more:hover,
+#quest-list .quest-review-more:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
     outline: 1px solid var(--theme-gold, #f0c14b);
 }
-#quest-list .quest-area {
-    font-style: italic;
-    color: var(--theme-gold, #f0c14b);
+
+#quest-list .quest-review-more-list {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
-#quest-list .quest-objective {
-    font-size: 14px;
+
+#quest-list .quest-review-more-list .quest-block {
+    margin-bottom: 8px;
 }
 
 #quest-list .no-quests {
     font-style: italic;
+    font-size: 12px;
 }

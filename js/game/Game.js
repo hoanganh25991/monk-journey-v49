@@ -23,6 +23,8 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
+import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
+import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import storageService from '../save-manager/StorageService.js';
 import deviceCapabilities from '../utils/DeviceCapabilities.js';
 import shadowDebugger from '../debug/ShadowDebugger.js';
@@ -262,6 +264,40 @@ export class Game {
              * @returns {THREE.Group}
              */
             this.getWorldGroup = () => this.worldGroup;
+
+            /**
+             * Show accept dialog for a chapter quest (when player interacts with quest marker).
+             * @param {Object} quest - Chapter quest from config
+             */
+            this.showChapterQuestAcceptDialog = (quest) => {
+                if (!quest || !this.hudManager || !this.questManager) return;
+                const locale = this.questStoryLocale || 'en';
+                const display = getChapterQuestDisplay(quest, locale);
+                this.hudManager.showDialog(
+                    `Quest: ${display.title}`,
+                    display.description + '\n\nWould you like to accept this quest?',
+                    () => this.questManager.startQuest(quest),
+                    null
+                );
+            };
+
+            /**
+             * Notify player where to get the next quest (no popup). Markers are placed from map data.
+             * If next quest is on current map: "Find the quest marker on the map." Else: "Travel to [Map] to get your next quest."
+             */
+            this.ensureChapterQuestMarkerAndNotify = () => {
+                if (!this.questManager || this.multiplayerManager?.connection?.isConnected || !this.hudManager) return;
+                const next = this.questManager.getNextChapterQuestForMarker();
+                if (!next) return;
+                const currentMapId = this.world?.currentMap?.id;
+                const nextMapId = getMapIdForChapterQuest(next.id);
+                if (nextMapId === currentMapId) {
+                    this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
+                } else {
+                    const nextMapLabel = next.area ?? (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+                    this.hudManager.showNotification(`Travel to ${nextMapLabel} to get your next quest.`);
+                }
+            };
             
             // Initialize item drop manager
             this.itemDropManager = new ItemDropManager(this.scene, this);
@@ -1133,7 +1169,7 @@ export class Game {
                             this.audioManager.setMusicContext('exploration');
                             if (!this._hasOfferedQuestThisSession && this.questManager && !this.multiplayerManager?.connection?.isConnected) {
                                 this._hasOfferedQuestThisSession = true;
-                                this.questManager.checkForAvailableQuests();
+                                this.ensureChapterQuestMarkerAndNotify();
                             }
                             console.debug("Game revealed and unpaused");
                         }, 543);
@@ -1166,10 +1202,10 @@ export class Game {
                 const homeButton = document.getElementById('home-button');
                 if (homeButton) homeButton.style.display = 'block';
                 this._warmupFramesLeft = -1;
-                // Offer first/next chapter quest when game is revealed via warmup path (e.g. loaded game)
+                // Place quest marker and instruct player to go to it (no popup on reload)
                 if (!this._hasOfferedQuestThisSession && this.questManager && !this.multiplayerManager?.connection?.isConnected) {
                     this._hasOfferedQuestThisSession = true;
-                    this.questManager.checkForAvailableQuests();
+                    this.ensureChapterQuestMarkerAndNotify();
                 }
             }
         }

@@ -84,12 +84,13 @@ Location: `scripts/download-sounds.js` (or `tools/download-sounds.js`).
 ## Implementation Steps (Checklist)
 
 - [x] Add missing sound ids: `questComplete`, `lightning`, `explosion` in `js/config/sounds.js`.
-- [ ] Create `assets/audio/` directory.
-- [ ] Add `scripts/sound-manifest.json` with at least one URL per required file (or a subset for MVP).
-- [ ] Add `scripts/download-sounds.js` (Node) to fetch from manifest and save into `assets/audio/`.
-- [ ] (Optional) Add `npm run download-sounds` in `package.json`.
-- [ ] Run script once to populate `assets/audio/`; verify in game that “Sound not found” is gone and skills/UI play real SFX.
-- [ ] (Optional) Document in README: “To use real sounds, run `npm run download-sounds` and add your own manifest URLs from Pixabay/Freesound/etc.”
+- [x] Add `scripts/sound-manifest.json` (template with all filenames; fill in URLs from Pixabay/Freesound/Mixkit).
+- [x] Add `scripts/download-sounds.js` (Node) to fetch from manifest and save into `assets/audio/`.
+- [x] Add `npm run download-sounds` in `package.json`.
+- [ ] Create `assets/audio/` (script creates it on first run).
+- [ ] Fill `scripts/sound-manifest.json` with direct MP3 URLs; run `npm run download-sounds` to populate `assets/audio/`.
+- [ ] Verify in game: no “Sound not found”, skills/UI play real SFX when files exist.
+- [ ] (Optional) Document in README: “To use real sounds, run `npm run download-sounds` after adding URLs to `scripts/sound-manifest.json`.”
 
 ## Verification
 

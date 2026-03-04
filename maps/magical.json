@@ -3601,5 +3601,15 @@
         }
       ]
     }
+  ],
+  "interactive": [
+    {
+      "type": "chapter_quest",
+      "chapterQuestId": "chapter_5_inner_temple",
+      "position": {
+        "x": 0,
+        "z": 80
+      }
+    }
   ]
 }

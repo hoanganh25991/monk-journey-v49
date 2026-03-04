@@ -42,80 +42,93 @@ export class QuestLogUI extends UIComponent {
         return sentence.slice(0, maxLen).trim().replace(/\s+\S*$/, '') + '…';
     }
 
+    /** Max quests shown before "Review more". */
+    static get MAX_VISIBLE_QUESTS() { return 3; }
+
     /**
-     * Update the quest log with active quests
+     * Update the quest log with active quests.
+     * Shows at most 3 quests; each quest is 2 lines (title + objectives). No list UI, no click-to-expand.
+     * If more than 3 quests, a "Review more" control reveals the rest.
      * @param {Array} activeQuests - Array of active quests
      */
     updateQuestLog(activeQuests) {
         this.activeQuests = activeQuests || [];
-        // Clear quest list
         this.questList.innerHTML = '';
-
-        // One-time click and key delegation for expand/collapse
-        if (!this._questListClickBound) {
-            this._questListClickBound = true;
-            const toggleQuest = (item) => {
-                if (!item) return;
-                const idx = parseInt(item.dataset.questIndex, 10);
-                if (Number.isNaN(idx) || idx < 0 || idx >= (this.activeQuests?.length || 0)) return;
-                const expanded = item.classList.toggle('quest-item--expanded');
-                item.setAttribute('aria-expanded', expanded);
-            };
-            this.questList.addEventListener('click', (e) => {
-                const item = e.target.closest('.quest-item');
-                toggleQuest(item);
-            });
-            this.questList.addEventListener('keydown', (e) => {
-                if (e.key !== 'Enter' && e.key !== ' ') return;
-                const item = e.target.closest('.quest-item');
-                if (!item) return;
-                e.preventDefault();
-                toggleQuest(item);
-            });
-        }
 
         if (activeQuests.length === 0) {
             const noQuests = document.createElement('div');
             noQuests.className = 'no-quests';
             noQuests.textContent = 'No active quests';
             this.questList.appendChild(noQuests);
-        } else {
-            const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
-            activeQuests.forEach((quest, index) => {
-                const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
-                const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
-                const name = display ? display.title : (quest.title || quest.name);
-                const isMain = quest.isMainQuest || (quest.lesson != null);
-                const area = display ? display.area : quest.area;
-                const fullDescRaw = display ? display.description : (quest.description || '');
-                let objectiveText;
-                if (quest.objectives && Array.isArray(quest.objectives)) {
-                    objectiveText = quest.objectives.map(o => this.formatObjective(o)).join(' · ');
-                } else if (quest.objective) {
-                    objectiveText = this.formatObjective(quest.objective);
-                } else {
-                    objectiveText = 'Complete the objective';
-                }
-                const fullDesc = fullDescRaw.trim();
-                const summary = this.getQuestSummary(fullDesc);
-                const hasFullDesc = fullDesc.length > 0 && fullDesc.length > (summary.length + 2);
-                const summaryLine = area
-                    ? (summary ? `${area} — ${summary}` : area)
-                    : summary;
-                const questHTML = `
-                    <div class="quest-item" data-quest-index="${index}" role="button" tabindex="0" aria-expanded="false" aria-label="${this.escapeHtml(name)}. Tap to expand full description.">
-                        <div class="quest-name ${isMain ? 'main-quest' : ''}">${this.escapeHtml(name)}</div>
-                        <div class="quest-summary-wrap">
-                            ${summaryLine ? `<div class="quest-summary">${this.escapeHtml(summaryLine)}</div>` : ''}
-                            ${hasFullDesc ? `<div class="quest-desc-full" aria-hidden="true">${this.escapeHtml(fullDesc)}</div>` : ''}
-                            ${hasFullDesc ? '<div class="quest-tap-hint">Tap for full details</div>' : ''}
-                        </div>
-                        <div class="quest-objective">${this.escapeHtml(objectiveText)}</div>
-                    </div>
-                `;
-                this.questList.innerHTML += questHTML;
-            });
+            return;
         }
+
+        const maxVisible = QuestLogUI.MAX_VISIBLE_QUESTS;
+        const hasMore = activeQuests.length > maxVisible;
+        const visibleQuests = hasMore ? activeQuests.slice(0, maxVisible) : activeQuests;
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+
+        visibleQuests.forEach((quest) => {
+            this.questList.appendChild(this.buildQuestBlock(quest, locale));
+        });
+
+        if (hasMore) {
+            const reviewMore = document.createElement('button');
+            reviewMore.type = 'button';
+            reviewMore.className = 'quest-review-more';
+            reviewMore.textContent = `Review more (${activeQuests.length - maxVisible})`;
+            reviewMore.setAttribute('aria-label', `Show ${activeQuests.length - maxVisible} more quests`);
+            reviewMore.addEventListener('click', () => this.toggleReviewMore(reviewMore));
+            this.questList.appendChild(reviewMore);
+
+            this._reviewMoreContainer = document.createElement('div');
+            this._reviewMoreContainer.className = 'quest-review-more-list';
+            this._reviewMoreContainer.hidden = true;
+            activeQuests.slice(maxVisible).forEach((quest) => {
+                this._reviewMoreContainer.appendChild(this.buildQuestBlock(quest, locale));
+            });
+            this.questList.appendChild(this._reviewMoreContainer);
+        }
+    }
+
+    /**
+     * Build a single quest block: 2 lines only (title + objectives). No click, no expand.
+     * @param {Object} quest - Quest data
+     * @param {string} locale - Locale for chapter display
+     * @returns {HTMLElement}
+     */
+    buildQuestBlock(quest, locale) {
+        const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
+        const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
+        const name = display ? display.title : (quest.title || quest.name);
+        const isMain = quest.isMainQuest || (quest.lesson != null);
+        let objectiveText;
+        if (quest.objectives && Array.isArray(quest.objectives)) {
+            objectiveText = quest.objectives.map(o => this.formatObjective(o)).join(' · ');
+        } else if (quest.objective) {
+            objectiveText = this.formatObjective(quest.objective);
+        } else {
+            objectiveText = 'Complete the objective';
+        }
+        const block = document.createElement('div');
+        block.className = 'quest-block';
+        block.innerHTML = `
+            <div class="quest-name ${isMain ? 'main-quest' : ''}">${this.escapeHtml(name)}</div>
+            <div class="quest-objective">${this.escapeHtml(objectiveText)}</div>
+        `;
+        return block;
+    }
+
+    /**
+     * Toggle visibility of the "review more" quests.
+     * @param {HTMLButtonElement} button - The "Review more" button
+     */
+    toggleReviewMore(button) {
+        const container = this._reviewMoreContainer;
+        if (!container) return;
+        container.hidden = !container.hidden;
+        const n = (this.activeQuests || []).length - QuestLogUI.MAX_VISIBLE_QUESTS;
+        button.textContent = container.hidden ? `Review more (${n})` : 'Show less';
     }
 
     /**

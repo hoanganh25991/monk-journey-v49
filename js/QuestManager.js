@@ -1,5 +1,6 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
 import { getChapterQuestDisplay } from './config/chapter-quests-locales.js';
+import { getNextStoryMapAfter } from './config/chapter-quest-maps.js';
 
 export class QuestManager {
     constructor(game) {
@@ -37,6 +38,13 @@ export class QuestManager {
         if (!nextId) return [];
         const next = getChapterQuestById(nextId);
         return next ? [this.cloneChapterQuestForStart(next)] : [];
+    }
+
+    /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) */
+    getNextChapterQuestForMarker() {
+        if (this.getActiveChapterQuest()) return null;
+        const available = this.getAvailableChapterQuests();
+        return available.length > 0 ? available[0] : null;
     }
 
     /** @returns {Object|null} Active chapter quest (story) or null if none. Used for boss spawn wiring. */
@@ -484,18 +492,16 @@ export class QuestManager {
     }
     
     checkForNextQuest(completedQuest) {
-        // Chapter story: offer next chapter quest
+        // Chapter story: instruct player to go to the next map for the next quest (marker is on that map)
         if (completedQuest.nextQuestId) {
             const nextChapter = getChapterQuestById(completedQuest.nextQuestId);
             if (nextChapter) {
-                const locale = this.game.questStoryLocale || 'en';
-                const display = getChapterQuestDisplay(nextChapter, locale);
+                const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
                 setTimeout(() => {
-                    this.game.hudManager.showDialog(
-                        `New Quest: ${display.title}`,
-                        `${display.description}\n\nWould you like to accept this quest?`,
-                        () => this.startQuest(nextChapter)
-                    );
+                    if (this.game.hudManager) {
+                        const label = nextMap?.mapName ?? nextChapter.area ?? 'the next map';
+                        this.game.hudManager.showNotification(`Travel to ${label} to get your next quest.`);
+                    }
                 }, 2000);
                 return;
             }

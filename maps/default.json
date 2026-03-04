@@ -5316,5 +5316,15 @@
         }
       ]
     }
+  ],
+  "interactive": [
+    {
+      "type": "chapter_quest",
+      "chapterQuestId": "chapter_1_restless_village",
+      "position": {
+        "x": 0,
+        "z": 0
+      }
+    }
   ]
 }

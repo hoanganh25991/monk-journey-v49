@@ -114,6 +114,9 @@ export class WorldManager {
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
         this._chunkGenCache.chunkZ = -9999;
+        if (this.interactiveManager) {
+            this.interactiveManager.loadFromMapData(mapData.interactive || [], this.game);
+        }
 
         // Apply terrain profile (hills, mountains, etc.) - regenerates terrain with new height variation
         if (mapData.terrain?.profile && this.terrainManager?.applyTerrainConfig) {
