@@ -212,9 +212,10 @@ export class HUDManager {
      * Show a dialog with title and text
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
+     * @param {function} [onAccept] - Optional. If provided, show "Accept" button; clicking it calls onAccept() then closes.
      */
-    showDialog(title, text) {
-        this.components.dialogUI.showDialog(title, text);
+    showDialog(title, text, onAccept) {
+        this.components.dialogUI.showDialog(title, text, onAccept);
     }
     
     /**

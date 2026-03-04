@@ -456,13 +456,19 @@ export class QuestManager {
         // GDD §11: post-boss reflection (life lesson + Continue Journey); §12 Path of Mastery after Ch5
         if (this.isChapterQuest(quest) && quest.lesson) {
             const isChapter5 = quest.id === 'chapter_5_inner_temple';
-            const options = isChapter5 ? {
-                isChapter5: true,
-                onEnterPathOfMastery: () => {
-                    doAfterReflection();
-                    if (this.game.enterPathOfMastery) this.game.enterPathOfMastery();
-                }
-            } : {};
+            const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
+            const chapterNum = chMatch ? chMatch[1] : '';
+            const chapterTitle = (chapterNum && quest.area) ? `Chapter ${chapterNum} — ${quest.area}` : (quest.area || '');
+            const options = {
+                chapterTitle: chapterTitle || undefined,
+                ...(isChapter5 ? {
+                    isChapter5: true,
+                    onEnterPathOfMastery: () => {
+                        doAfterReflection();
+                        if (this.game.enterPathOfMastery) this.game.enterPathOfMastery();
+                    }
+                } : {})
+            };
             this.game.hudManager.showReflectionScreen(quest.lesson, doAfterReflection, options);
         } else {
             doAfterReflection();

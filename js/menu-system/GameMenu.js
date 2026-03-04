@@ -4,6 +4,7 @@
  */
 
 import { IMenu } from './IMenu.js';
+import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
 
 export class GameMenu extends IMenu {
     /**
@@ -14,6 +15,8 @@ export class GameMenu extends IMenu {
         super('game-menu', game);
         this.loadGameButton = document.getElementById('load-game-button');
         this.settingsMenuButton = document.getElementById('settings-menu-button');
+        this.helpMenuButton = document.getElementById('help-menu-button');
+        this.storyMenuButton = document.getElementById('story-menu-button');
         this.googleSignInButton = document.getElementById('google-signin-button');
         this.multiplayerButton = document.getElementById('multiplayer-button');
         this.setupEventListeners();
@@ -99,6 +102,31 @@ export class GameMenu extends IMenu {
             })
         }
 
+        // Help button
+        if (this.helpMenuButton) {
+            this.helpMenuButton.addEventListener('click', () => this.showHelpModal());
+        }
+        const helpModalClose = document.getElementById('help-modal-close-btn');
+        if (helpModalClose) {
+            helpModalClose.addEventListener('click', () => this.hideHelpModal());
+        }
+        const helpBackdrop = document.querySelector('#help-modal .help-modal-backdrop');
+        if (helpBackdrop) {
+            helpBackdrop.addEventListener('click', () => this.hideHelpModal());
+        }
+
+        if (this.storyMenuButton) {
+            this.storyMenuButton.addEventListener('click', () => this.showStoryModal());
+        }
+        const storyModalClose = document.getElementById('story-modal-close-btn');
+        if (storyModalClose) {
+            storyModalClose.addEventListener('click', () => this.hideStoryModal());
+        }
+        const storyBackdrop = document.querySelector('#story-modal .help-modal-backdrop');
+        if (storyBackdrop) {
+            storyBackdrop.addEventListener('click', () => this.hideStoryModal());
+        }
+
         // Settings button
         if (this.settingsMenuButton) {
             this.settingsMenuButton.addEventListener('click', () => {
@@ -144,6 +172,60 @@ export class GameMenu extends IMenu {
         }
         
 
+    }
+
+    showHelpModal() {
+        const el = document.getElementById('help-modal');
+        if (el) el.style.display = 'flex';
+    }
+
+    hideHelpModal() {
+        const el = document.getElementById('help-modal');
+        if (el) el.style.display = 'none';
+    }
+
+    showStoryModal() {
+        const content = document.getElementById('story-modal-content');
+        const completedEl = document.getElementById('story-completed-list');
+        const nextEl = document.getElementById('story-next-chapter');
+        if (!content || !completedEl || !nextEl) return;
+
+        const qm = this.game.questManager;
+        if (!qm) {
+            completedEl.innerHTML = '<p>Start or load a game to track your journey.</p>';
+            nextEl.innerHTML = '';
+        } else {
+            const completed = [];
+            for (const q of CHAPTER_QUESTS) {
+                if (qm.completedChapterQuestIds && qm.completedChapterQuestIds.has(q.id)) {
+                    completed.push({ area: q.area, lesson: q.lesson });
+                }
+            }
+            if (completed.length > 0) {
+                completedEl.innerHTML = '<h3>Completed</h3><ul class="story-journal-list">' +
+                    completed.map(c => `<li><strong>${c.area}</strong> — ${c.lesson}</li>`).join('') +
+                    '</ul>';
+            } else {
+                completedEl.innerHTML = '<p>Complete chapter quests to fill your journal.</p>';
+            }
+            const activeChapter = qm.getActiveChapterQuest && qm.getActiveChapterQuest();
+            const nextChapter = activeChapter
+                ? CHAPTER_QUESTS.find(q => q.id === activeChapter.id)
+                : (completed.length < CHAPTER_QUESTS.length ? CHAPTER_QUESTS[completed.length] : null);
+            if (nextChapter) {
+                nextEl.innerHTML = `<p><strong>Next:</strong> ${nextChapter.area} — ${nextChapter.title}</p>`;
+            } else {
+                nextEl.innerHTML = completed.length >= CHAPTER_QUESTS.length ? '<p>You have completed the main journey. Enter the Path of Mastery for more.</p>' : '';
+            }
+        }
+
+        const el = document.getElementById('story-modal');
+        if (el) el.style.display = 'flex';
+    }
+
+    hideStoryModal() {
+        const el = document.getElementById('story-modal');
+        if (el) el.style.display = 'none';
     }
 
     /**

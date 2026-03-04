@@ -77,6 +77,9 @@ export class Game {
         
         /** Set to true when Space or jump button is pressed; processed in game loop */
         this.jumpRequested = false;
+
+        /** Once per game start (new or load), offer first/next chapter quest when game is revealed; set false in start(), true after offering */
+        this._hasOfferedQuestThisSession = false;
         
         /** Single-player only: when true, guide overlay is open; simulation frozen but HUD and scene visible */
         this.guideFreezeActive = false;
@@ -707,6 +710,7 @@ export class Game {
      */
     start(isLoadedGame = false, requestFullscreenMode = true) {
         console.debug("Game starting...");
+        this._hasOfferedQuestThisSession = false;
 
         const path = typeof localStorage !== 'undefined'
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || 'maps/default.json')
@@ -1115,6 +1119,10 @@ export class Game {
                             if (mapOverlayEl) mapOverlayEl.style.display = 'none';
                             this.resume();
                             this.audioManager.setMusicContext('exploration');
+                            if (!this._hasOfferedQuestThisSession && this.questManager && !this.multiplayerManager?.connection?.isConnected) {
+                                this._hasOfferedQuestThisSession = true;
+                                this.questManager.checkForAvailableQuests();
+                            }
                             console.debug("Game revealed and unpaused");
                         }, 543);
                     };

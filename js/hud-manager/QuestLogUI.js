@@ -51,9 +51,11 @@ export class QuestLogUI extends UIComponent {
                 } else {
                     objectiveText = 'Complete the objective';
                 }
+                const areaOrDesc = (quest.area || quest.description) ? `<div class="quest-area-desc">${quest.area ? `<span class="quest-area">${quest.area}</span>` : ''}${quest.area && quest.description ? ' · ' : ''}${quest.description ? `<span class="quest-desc">${quest.description}</span>` : ''}</div>` : '';
                 const questHTML = `
                     <div class="quest-item">
                         <div class="quest-name ${isMain ? 'main-quest' : ''}">${name}</div>
+                        ${areaOrDesc}
                         <div class="quest-objective">${objectiveText}</div>
                     </div>
                 `;

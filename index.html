@@ -403,7 +403,10 @@
         <!-- Dialog Box -->
         <div id="dialog-box" style="display: none;">
             <div id="dialog-text"></div>
-            <div id="dialog-continue">Click to continue...</div>
+            <div id="dialog-actions">
+                <span id="dialog-continue">Click to continue...</span>
+                <button id="dialog-accept-btn" class="menu-button dialog-accept" style="display: none;">Accept</button>
+            </div>
         </div>
 
         <!-- Top Right UI (Home Button, Full Screen Button and Mini Map) -->
@@ -586,7 +589,43 @@
         <div class="menu-button-container">
             <button id="load-game-button" class="menu-button">Play</button>
             <button id="multiplayer-button" class="menu-button">Multiplayer</button>
+            <button id="help-menu-button" class="menu-button">Help</button>
+            <button id="story-menu-button" class="menu-button">Story</button>
             <button id="settings-menu-button" class="menu-button">Settings</button>
+        </div>
+    </div>
+
+    <!-- Help / How to Play modal -->
+    <div id="help-modal" class="help-modal" style="display: none;">
+        <div class="help-modal-backdrop"></div>
+        <div class="help-modal-box">
+            <h2 class="help-modal-title">How to Play</h2>
+            <div id="help-modal-content" class="help-modal-content">
+                <p class="help-intro">A peaceful monk travels a fragmented world, facing inner struggles—anger, fear, greed, loneliness—to restore harmony and find peace.</p>
+                <h3>Controls</h3>
+                <p><strong>WASD</strong> — Move. <strong>Mouse / touch drag</strong> — Rotate camera. Use the <strong>skill buttons</strong> (or number keys) to cast abilities.</p>
+                <h3>Quests</h3>
+                <p>Accept the <strong>story quest</strong> when it is offered at the start of a new or loaded game. You can also find <strong>interactive objects</strong> in the world that give quests.</p>
+                <h3>Quest log</h3>
+                <p>The <strong>quest log</strong> on the left shows your current objectives. Complete them, then face the <strong>chapter boss</strong>.</p>
+                <h3>After each chapter</h3>
+                <p>Defeat the chapter boss, then read the <strong>life lesson</strong> and tap <strong>Continue Journey</strong> to move on.</p>
+            </div>
+            <button type="button" id="help-modal-close-btn" class="menu-button help-modal-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Story / Journal modal -->
+    <div id="story-modal" class="help-modal story-modal" style="display: none;">
+        <div class="help-modal-backdrop"></div>
+        <div class="help-modal-box">
+            <h2 class="help-modal-title">Your Journey</h2>
+            <div id="story-modal-content" class="help-modal-content story-modal-content">
+                <p class="help-intro">You are a monk restoring harmony across the world.</p>
+                <div id="story-completed-list"></div>
+                <div id="story-next-chapter"></div>
+            </div>
+            <button type="button" id="story-modal-close-btn" class="menu-button help-modal-close">Close</button>
         </div>
     </div>
 

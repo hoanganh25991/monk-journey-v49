@@ -28,6 +28,14 @@
     width: 480px;
 }
 
+#reflection-screen .reflection-chapter-title {
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 var(--margin-medium, 0.75rem);
+}
+
 #reflection-screen .reflection-quote {
     color: rgba(255, 230, 180, 0.95);
     font-size: 22px;

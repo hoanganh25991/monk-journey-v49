@@ -50,6 +50,25 @@
     color: var(--theme-gold);
 }
 
+#quest-list .quest-area-desc {
+    font-size: 12px;
+    margin: 4px 0;
+    opacity: 0.9;
+    line-height: 1.3;
+}
+#quest-list .quest-area {
+    font-style: italic;
+    color: var(--theme-gold, #f0c14b);
+}
+#quest-list .quest-desc {
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
 #quest-list .quest-objective {
     font-size: 14px;
 }

@@ -9,10 +9,86 @@
     margin-bottom: 15px;
 }
 
+#dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
 #dialog-continue {
     text-align: right;
     color: #ff6600;
     cursor: pointer;
+}
+
+#dialog-accept-btn.dialog-accept {
+    padding: 8px 20px;
+}
+
+/* Help modal (How to Play) */
+.help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+}
+.help-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.7));
+}
+.help-modal-box {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    padding: var(--padding-large);
+    background: var(--modal-content-bg, rgba(30, 25, 20, 0.98));
+    border: 2px solid #f0c14b;
+    border-radius: 10px;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+    color: white;
+    overflow-y: auto;
+}
+.help-modal-title {
+    margin: 0 0 1rem;
+    font-size: 1.4rem;
+    color: #f0c14b;
+}
+.help-modal-content {
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+.help-modal-content h3 {
+    margin: 1rem 0 0.4rem;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+.help-modal-content p {
+    margin: 0 0 0.5rem;
+}
+.help-intro {
+    font-style: italic;
+    margin-bottom: 0.75rem;
+}
+.help-modal-close {
+    display: block;
+    margin: 0 auto;
+}
+
+.story-modal-content .story-journal-list {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+.story-modal-content .story-journal-list li {
+    margin: 0.25rem 0;
 }
 
 /* Inventory Components */
