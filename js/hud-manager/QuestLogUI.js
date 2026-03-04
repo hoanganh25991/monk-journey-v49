@@ -40,37 +40,48 @@ export class QuestLogUI extends UIComponent {
             noQuests.textContent = 'No active quests';
             this.questList.appendChild(noQuests);
         } else {
-            // Add active quests
             activeQuests.forEach(quest => {
-                // Create quest item HTML
+                const name = quest.title || quest.name;
+                const isMain = quest.isMainQuest || (quest.lesson != null);
+                let objectiveText;
+                if (quest.objectives && Array.isArray(quest.objectives)) {
+                    objectiveText = quest.objectives.map(o => this.formatObjective(o)).join(' · ');
+                } else if (quest.objective) {
+                    objectiveText = this.formatObjective(quest.objective);
+                } else {
+                    objectiveText = 'Complete the objective';
+                }
                 const questHTML = `
                     <div class="quest-item">
-                        <div class="quest-name ${quest.isMainQuest ? 'main-quest' : ''}">${quest.name}</div>
-                        <div class="quest-objective">${this.formatObjective(quest.objective)}</div>
+                        <div class="quest-name ${isMain ? 'main-quest' : ''}">${name}</div>
+                        <div class="quest-objective">${objectiveText}</div>
                     </div>
                 `;
-                
-                // Add to quest list
                 this.questList.innerHTML += questHTML;
             });
         }
     }
-    
+
     /**
      * Format quest objective based on type
-     * @param {Object} objective - Quest objective
+     * @param {Object} objective - Quest objective (may have type, target, progress, count)
      * @returns {string} - Formatted objective text
      */
     formatObjective(objective) {
+        if (!objective) return '';
+        const p = objective.progress ?? 0;
+        const c = objective.count ?? 1;
         switch (objective.type) {
             case 'kill':
-                return `Kill ${objective.progress}/${objective.count} enemies`;
+                return `Kill ${p}/${c} enemies`;
+            case 'defeat_boss':
+                return `Defeat boss ${p}/${c}`;
             case 'interact':
-                return `Find ${objective.progress}/${objective.count} ${objective.target}s`;
+                return `Find ${p}/${c} ${objective.target || 'target'}s`;
             case 'explore':
-                return `Discover ${objective.progress}/${objective.count} zones`;
+                return `Discover ${p}/${c} zones`;
             default:
-                return objective.description || 'Complete the objective';
+                return objective.description || `${p}/${c}`;
         }
     }
 }

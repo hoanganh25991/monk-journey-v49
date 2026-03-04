@@ -1,0 +1,92 @@
+import { UIComponent } from '../UIComponent.js';
+
+/**
+ * Reflection UI — post-boss life lesson (GDD §11).
+ * Screen fade, show quote, "Continue Journey" button.
+ */
+export class ReflectionUI extends UIComponent {
+    constructor(game) {
+        super('reflection-screen', game);
+        this.isReflectionOpen = false;
+        this.onContinueCallback = null;
+    }
+
+    init() {
+        const template = `
+            <div id="reflection-screen-content">
+                <p class="reflection-quote" id="reflection-quote"></p>
+                <div class="reflection-actions">
+                    <button class="menu-button reflection-continue" id="reflection-continue-btn">Continue Journey</button>
+                    <button class="menu-button reflection-pom" id="reflection-pom-btn" style="display: none;">Enter Path of Mastery</button>
+                </div>
+            </div>
+        `;
+        this.render(template);
+
+        const continueBtn = document.getElementById('reflection-continue-btn');
+        if (continueBtn) {
+            continueBtn.addEventListener('click', () => this.handleContinue());
+        }
+        const pomBtn = document.getElementById('reflection-pom-btn');
+        if (pomBtn) {
+            pomBtn.addEventListener('click', () => this.handleEnterPathOfMastery());
+        }
+
+        this.onEnterPathOfMasteryCallback = null;
+        this.hide();
+        return true;
+    }
+
+    /**
+     * Show reflection screen with life lesson quote.
+     * @param {string} lesson - Quote to display (e.g. "Anger burns the one who carries it.")
+     * @param {function} onContinue - Called when user clicks "Continue Journey"
+     * @param {Object} [options] - Optional: { isChapter5: boolean, onEnterPathOfMastery: function }
+     */
+    showReflection(lesson, onContinue, options = {}) {
+        if (this.isReflectionOpen) return;
+
+        const quoteEl = document.getElementById('reflection-quote');
+        if (quoteEl) quoteEl.textContent = lesson;
+
+        this.onContinueCallback = onContinue;
+        this.onEnterPathOfMasteryCallback = options.onEnterPathOfMastery || null;
+        const pomBtn = document.getElementById('reflection-pom-btn');
+        if (pomBtn) {
+            pomBtn.style.display = options.isChapter5 ? 'block' : 'none';
+        }
+        this.show();
+        this.isReflectionOpen = true;
+
+        if (this.game && !this.game.multiplayerManager?.connection?.isConnected) {
+            this.game.pause(false);
+        }
+    }
+
+    handleEnterPathOfMastery() {
+        if (!this.isReflectionOpen) return;
+        const cb = this.onEnterPathOfMasteryCallback;
+        this.onContinueCallback = null;
+        this.onEnterPathOfMasteryCallback = null;
+        this.hide();
+        this.isReflectionOpen = false;
+        if (this.game) this.game.resume(false);
+        if (cb) cb();
+    }
+
+    handleContinue() {
+        if (!this.isReflectionOpen) return;
+
+        const cb = this.onContinueCallback;
+        this.onContinueCallback = null;
+        this.hide();
+        this.isReflectionOpen = false;
+
+        if (this.game) this.game.resume(false);
+        if (cb) cb();
+    }
+
+    hideReflection() {
+        this.handleContinue();
+    }
+}

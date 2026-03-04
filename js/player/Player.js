@@ -84,6 +84,7 @@ export class Player {
         
         // Initialize skills
         this.skills.initializeSkills();
+        this.skills.preloadEffectHandlers(); // GDD: skill cast < 150ms (preload effect modules)
         
         // Ensure player has a default weapon (visible staff) if none equipped
         this.ensureDefaultWeapon();
@@ -490,6 +491,31 @@ export class Player {
         return this.statusEffects.applyEffect(effectType, duration, intensity);
     }
     
+    /**
+     * Activate Enlightenment Mode (Harmony capstone; requires Ch5 complete and at least 1 level in the node).
+     * Applies a short buff: increased damage, movement speed, and faster skill cooldown recovery.
+     * @returns {boolean} - True if activation succeeded
+     */
+    activateEnlightenmentMode() {
+        if (!this.stats || typeof this.stats.activateEnlightenmentMode !== 'function') return false;
+        const completed = this.game?.questManager?.completedChapterQuestIds
+            ? new Set(this.game.questManager.completedChapterQuestIds)
+            : new Set();
+        return this.stats.activateEnlightenmentMode(completed);
+    }
+
+    /**
+     * Whether the player can activate Enlightenment Mode (unlocked, Ch5 done, not on cooldown, not active).
+     * @returns {boolean}
+     */
+    canActivateEnlightenmentMode() {
+        if (!this.stats || typeof this.stats.canActivateEnlightenmentMode !== 'function') return false;
+        const completed = this.game?.questManager?.completedChapterQuestIds
+            ? new Set(this.game.questManager.completedChapterQuestIds)
+            : new Set();
+        return this.stats.canActivateEnlightenmentMode(completed);
+    }
+
     /**
      * Add a temporary flat boost to a stat (used by consumables).
      * Delegates to stats.addTemporaryBoost; converts flat amount to ratio for stats that use multiplicative boosts.

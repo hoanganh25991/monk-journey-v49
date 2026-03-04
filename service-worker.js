@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260302T172220';
+const CACHE_VERSION = '20260304T220833';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -20,6 +20,7 @@ const ASSETS_TO_CACHE =   [
     "js/QuestManager.js",
     "js/UIComponent.js",
     "js/config/camera-modes.js",
+    "js/config/chapter-quests.js",
     "js/config/coach.js",
     "js/config/colors.js",
     "js/config/consumable-skills.js",
@@ -40,6 +41,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/render.js",
     "js/config/skill-icons.js",
     "js/config/skill-preview.js",
+    "js/config/skill-tree-graph.js",
     "js/config/skill-tree.js",
     "js/config/skills.js",
     "js/config/sounds.js",
@@ -106,9 +108,11 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/PlayerUI.js",
     "js/hud-manager/PortalButton.js",
     "js/hud-manager/QuestLogUI.js",
+    "js/hud-manager/ReflectionUI.js",
     "js/hud-manager/SkillSelectionButton.js",
     "js/hud-manager/SkillSelectionUI.js",
     "js/hud-manager/SkillTreeButton.js",
+    "js/hud-manager/SkillTreeGraphView.js",
     "js/hud-manager/SkillTreeUI.js",
     "js/hud-manager/SkillsUI.js",
     "js/hud-manager/VirtualJoystickUI.js",
@@ -430,6 +434,7 @@ const ASSETS_TO_CACHE =   [
     "css/multiplayer.css",
     "css/notifications.css",
     "css/orientation-message.css",
+    "css/reflection-screen.css",
     "css/reset.css",
     "css/settings/base.css",
     "css/settings/buttons.css",

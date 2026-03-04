@@ -16,7 +16,11 @@ export class SettingsSerializer {
         try {
             const settings = {
                 difficulty: game.difficulty || 'basic',
-                audioSettings: {}
+                audioSettings: {},
+                isInPathOfMastery: !!game.isInPathOfMastery,
+                pathOfMasteryCompletions: game.pathOfMasteryCompletions && typeof game.pathOfMasteryCompletions === 'object'
+                    ? { ...game.pathOfMasteryCompletions } : {},
+                unlockedCosmetics: Array.isArray(game.unlockedCosmetics) ? [...game.unlockedCosmetics] : []
             };
             
             // Only add audio settings if audioManager exists and is initialized
@@ -64,6 +68,17 @@ export class SettingsSerializer {
                 if (game.enemyManager) {
                     game.enemyManager.setDifficulty(settings.difficulty);
                 }
+            }
+            
+            // Path of Mastery (Phase 6.2)
+            if (settings.isInPathOfMastery !== undefined) {
+                game.isInPathOfMastery = !!settings.isInPathOfMastery;
+            }
+            if (settings.pathOfMasteryCompletions && typeof settings.pathOfMasteryCompletions === 'object') {
+                game.pathOfMasteryCompletions = { ...settings.pathOfMasteryCompletions };
+            }
+            if (Array.isArray(settings.unlockedCosmetics)) {
+                game.unlockedCosmetics = [...settings.unlockedCosmetics];
             }
             
             // Load audio settings

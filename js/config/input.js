@@ -18,6 +18,9 @@ export const ACTION_KEYS = {
     JUMP: 'Space'
 };
 
+// Enlightenment Mode (Harmony capstone, unlock after Ch5)
+export const ENLIGHTENMENT_MODE_KEY = 'KeyR';
+
 // UI toggle keys
 export const UI_KEYS = {
     TOGGLE_INVENTORY: 'KeyY',
@@ -68,6 +71,14 @@ export const isSkillKey = (keyCode) => {
 
 // Default cooldown for continuous casting (in seconds)
 export const CAST_INTERVAL = 0.1;
+
+// Combat responsiveness (design/systems/combat-and-performance.md)
+/** Input buffer window (ms): queue next skill/attack if pressed within this window when action was blocked (e.g. on cooldown). */
+export const INPUT_BUFFER_MS = 100;
+/** Allow animation cancel after this fraction of attack animation (e.g. 0.6 = 60%). */
+export const ATTACK_ANIMATION_CANCEL_RATIO = 0.6;
+/** Default attack pose duration (ms); cancel allowed after ATTACK_ANIMATION_CANCEL_RATIO of this. */
+export const ATTACK_ANIMATION_DURATION_MS = 300;
 
 // Interaction range (in world units)
 export const INTERACTION_RANGE = 3;

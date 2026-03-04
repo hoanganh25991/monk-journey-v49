@@ -1,5 +1,5 @@
 import * as THREE from '../libs/three/three.module.js';
-import { ALL_SOUNDS, ALL_MUSIC } from './config/sounds.js';
+import { ALL_SOUNDS, ALL_MUSIC, MUSIC_LAYERS, MUSIC_CROSSFADE_DURATION } from './config/sounds.js';
 import { STORAGE_KEYS } from './config/storage-keys.js';
 import storageService from './save-manager/StorageService.js';
 
@@ -15,6 +15,12 @@ export class AudioManager {
         this.listener = null;
         this.musicSource = null;
         this.currentMusic = null;
+        /** GDD music context: 'exploration' | 'combat' | 'boss'. Drives which layer plays. */
+        this.currentMusicContext = 'exploration';
+        /** Crossfade animation frame id for cancellation. */
+        this._crossfadeAnimationId = null;
+        /** Crossfade duration in seconds (GDD: 1.5s). */
+        this.crossfadeDuration = MUSIC_CROSSFADE_DURATION;
         
         // Sound collections
         this.sounds = {};
@@ -137,9 +143,11 @@ export class AudioManager {
     }
     
     createMusic() {
-        // Load all music tracks from the music configuration
+        // GDD: preload music; on load failure try fallback, then disable layer gracefully
         Object.values(ALL_MUSIC).forEach(music => {
-            this.music[music.id] = this.createSound(music.id, music.file, music.volume, music.loop);
+            this.music[music.id] = this.createSound(music.id, music.file, music.volume, music.loop, {
+                fallbackFile: music.fallbackFile || null
+            });
         });
     }
     
@@ -198,40 +206,38 @@ export class AudioManager {
         });
     }
     
-    createSound(name, filename, volume = 1.0, loop = false) {
+    createSound(name, filename, volume = 1.0, loop = false, options = {}) {
         try {
-            // Create audio object
             const sound = new THREE.Audio(this.listener);
-            
-            // Set properties
             sound.name = name;
             sound.setVolume(volume);
             sound.setLoop(loop);
-            
-            // Load audio file
             const audioLoader = new THREE.AudioLoader();
-            
-            // Load the actual file
-            audioLoader.load(`assets/audio/${filename}`, buffer => {
-                sound.setBuffer(buffer);
-                if (this.soundPoolMax[name]) {
-                    this.soundBuffers[name] = buffer;
-                    if (!this.soundPools[name]) this.soundPools[name] = [];
-                    this.soundPools[name].push({ audio: sound, startTime: 0 });
-                }
-                console.debug(`Loaded audio: ${name}`);
-            }, 
-            // Progress callback
-            (xhr) => {
-                console.debug(`${name} loading: ${(xhr.loaded / xhr.total * 100)}% loaded`);
-            },
-            // Error callback
-            (error) => {
-                console.error(`Error loading audio ${name}:`, error);
-                // Fall back to simulated sound
-                this.simulateAudioBuffer(sound);
-            });
-            
+            const fallbackFile = options.fallbackFile || null;
+            const tryLoad = (file, isFallback = false) => {
+                audioLoader.load(`assets/audio/${file}`, buffer => {
+                    sound.setBuffer(buffer);
+                    if (this.soundPoolMax[name]) {
+                        this.soundBuffers[name] = buffer;
+                        if (!this.soundPools[name]) this.soundPools[name] = [];
+                        this.soundPools[name].push({ audio: sound, startTime: 0 });
+                    }
+                    console.debug(`Loaded audio: ${name}${isFallback ? ' (fallback)' : ''}`);
+                }, undefined, (error) => {
+                    if (fallbackFile && !isFallback) {
+                        tryLoad(fallbackFile, true);
+                        return;
+                    }
+                    if (fallbackFile) {
+                        console.warn(`Music ${name} failed to load (fallback too), disabling layer gracefully`);
+                        this._setSilentBuffer(sound);
+                    } else {
+                        console.error(`Error loading audio ${name}:`, error);
+                        this.simulateAudioBuffer(sound);
+                    }
+                });
+            };
+            tryLoad(filename);
             return sound;
         } catch (error) {
             console.error(`Error creating sound ${name}:`, error);
@@ -264,6 +270,12 @@ export class AudioManager {
             console.error(`Error creating simulated sound ${name}:`, error);
             return null;
         }
+    }
+    
+    _setSilentBuffer(sound) {
+        const context = this.listener.context;
+        const buffer = context.createBuffer(1, context.sampleRate * 0.1, context.sampleRate);
+        sound.setBuffer(buffer);
     }
     
     simulateAudioBuffer(sound, frequency = 220, duration = 0.5, options = {}) {
@@ -554,6 +566,79 @@ export class AudioManager {
         }
     }
     
+    /**
+     * Set music context (GDD layers). Crossfades ~1.5s when switching.
+     * @param {'exploration'|'combat'|'boss'} context - exploration (ambient), combat (drums), boss (intensity)
+     * @returns {boolean}
+     */
+    setMusicContext(context) {
+        const trackId = MUSIC_LAYERS[context];
+        if (!trackId || trackId === this.currentMusic && !this._crossfadeAnimationId) {
+            this.currentMusicContext = context;
+            return true;
+        }
+        this.currentMusicContext = context;
+        return this._crossfadeTo(trackId);
+    }
+    
+    /**
+     * Crossfade to a music track over MUSIC_CROSSFADE_DURATION.
+     * @param {string} toTrackId - Music id (e.g. 'mainTheme', 'battleTheme', 'bossTheme')
+     * @returns {boolean}
+     */
+    _crossfadeTo(toTrackId) {
+        if (!this.audioEnabled || this.isMuted) return false;
+        const toTrack = this.music[toTrackId];
+        if (!toTrack) return false;
+        
+        if (this._crossfadeAnimationId != null) {
+            cancelAnimationFrame(this._crossfadeAnimationId);
+            this._crossfadeAnimationId = null;
+        }
+        
+        const fromTrackId = this.currentMusic;
+        const fromTrack = fromTrackId && this.music[fromTrackId] ? this.music[fromTrackId] : null;
+        const duration = this.crossfadeDuration;
+        const baseVolume = this.musicVolume;
+        
+        const startTime = performance.now() / 1000;
+        
+        const tick = () => {
+            const elapsed = performance.now() / 1000 - startTime;
+            const t = Math.min(elapsed / duration, 1);
+            const ease = t * (2 - t); // smooth ease-out
+            
+            if (fromTrack && fromTrack.isPlaying) {
+                fromTrack.setVolume(baseVolume * (1 - ease));
+            }
+            toTrack.setVolume(baseVolume * ease);
+            
+            if (t >= 1) {
+                if (fromTrack && fromTrack.isPlaying) fromTrack.stop();
+                toTrack.setVolume(baseVolume);
+                this.currentMusic = toTrackId;
+                this._crossfadeAnimationId = null;
+                return;
+            }
+            this._crossfadeAnimationId = requestAnimationFrame(tick);
+        };
+        
+        try {
+            toTrack.play();
+            if (fromTrack && fromTrack.isPlaying) {
+                this._crossfadeAnimationId = requestAnimationFrame(tick);
+            } else {
+                toTrack.setVolume(baseVolume);
+                if (fromTrack) fromTrack.stop();
+                this.currentMusic = toTrackId;
+            }
+            return true;
+        } catch (err) {
+            console.warn('Could not start music crossfade:', err);
+            return false;
+        }
+    }
+    
     playMusic(name = 'mainTheme') {
         if (!this.audioEnabled || this.isMuted) return false;
         
@@ -576,16 +661,19 @@ export class AudioManager {
     }
     
     stopMusic() {
+        if (this._crossfadeAnimationId != null) {
+            cancelAnimationFrame(this._crossfadeAnimationId);
+            this._crossfadeAnimationId = null;
+        }
         if (this.currentMusic && this.music[this.currentMusic]) {
             try {
                 this.music[this.currentMusic].stop();
-                return true;
             } catch (error) {
                 console.warn(`Could not stop music ${this.currentMusic}:`, error);
-                return false;
             }
         }
         this.currentMusic = null;
+        this.currentMusicContext = 'exploration';
         return true;
     }
     

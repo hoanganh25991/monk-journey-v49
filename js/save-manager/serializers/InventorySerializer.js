@@ -1,7 +1,9 @@
 /**
- * Handles serialization and deserialization of player inventory and equipment
+ * Handles serialization and deserialization of player inventory and equipment.
+ * GDD slots: weapon, robe, prayerBeads, talisman, relic.
  */
 import { ITEM_TEMPLATES } from '../../config/items.js';
+import { GDD_EQUIPMENT_SLOTS } from '../../player/PlayerInventory.js';
 
 export class InventorySerializer {
     /**
@@ -96,13 +98,10 @@ export class InventorySerializer {
             templateId: item.templateId || null
         }));
         
-        // Optimize equipment storage - store item name and templateId for proper loading
         const optimizedEquipment = {};
-        Object.entries(equipment).forEach(([slot, item]) => {
-            optimizedEquipment[slot] = item ? {
-                name: item.name,
-                templateId: item.templateId || null
-            } : null;
+        GDD_EQUIPMENT_SLOTS.forEach(slot => {
+            const item = equipment[slot];
+            optimizedEquipment[slot] = item ? { name: item.name, templateId: item.templateId || null } : null;
         });
         
         return {
@@ -155,36 +154,32 @@ export class InventorySerializer {
             });
         }
         
-        // Clear existing equipment
-        if (player.inventory.equipment) {
-            Object.keys(player.inventory.equipment).forEach(slot => {
-                player.inventory.equipment[slot] = null;
-            });
-        }
+        GDD_EQUIPMENT_SLOTS.forEach(slot => {
+            player.inventory.equipment[slot] = null;
+        });
         
-        // Load equipment
         if (inventoryData.equipment) {
             console.debug('Loading player equipment');
-            
-            Object.entries(inventoryData.equipment).forEach(([slot, itemData]) => {
-                if (itemData && player.inventory.equipment.hasOwnProperty(slot)) {
-                    const itemTemplate = this.findItemTemplate(itemData);
-                    const itemName = typeof itemData === 'string' ? itemData : itemData.name;
-                    const templateId = typeof itemData === 'object' ? itemData.templateId : null;
-                    
-                    if (itemTemplate) {
-                        // Set the equipment slot with the full item data, preserving the original name
-                        player.inventory.equipment[slot] = { 
-                            ...itemTemplate, 
-                            name: itemName, // Keep the generated name with quality prefix
-                            templateId: itemTemplate.id // Ensure templateId is set for future saves
-                        };
-                    } else {
-                        console.warn(`Equipment template not found for: ${itemName} (Template ID: ${templateId || 'N/A'})`);
-                        console.debug('Available item templates:', ITEM_TEMPLATES.map(t => `${t.name} (${t.id})`));
-                        // Fallback to just setting the available data
-                        player.inventory.equipment[slot] = typeof itemData === 'string' ? { name: itemData } : itemData;
-                    }
+            const legacyToGdd = {
+                weapon: 'weapon', armor: 'robe', helmet: 'robe', boots: 'robe', gloves: 'robe',
+                belt: 'robe', shoulder: 'robe', accessory1: 'prayerBeads', accessory2: 'talisman', talisman: 'talisman'
+            };
+            Object.entries(inventoryData.equipment).forEach(([rawSlot, itemData]) => {
+                const slot = legacyToGdd[rawSlot] || (GDD_EQUIPMENT_SLOTS.includes(rawSlot) ? rawSlot : null);
+                if (!slot || !itemData) return;
+                if (player.inventory.equipment[slot]) return;
+                const itemTemplate = this.findItemTemplate(itemData);
+                const itemName = typeof itemData === 'string' ? itemData : itemData.name;
+                const templateId = typeof itemData === 'object' ? itemData.templateId : null;
+                if (itemTemplate) {
+                    player.inventory.equipment[slot] = {
+                        ...itemTemplate,
+                        name: itemName,
+                        templateId: itemTemplate.id
+                    };
+                } else {
+                    console.warn(`Equipment template not found for: ${itemName} (Template ID: ${templateId || 'N/A'})`);
+                    player.inventory.equipment[slot] = typeof itemData === 'string' ? { name: itemData } : itemData;
                 }
             });
         }

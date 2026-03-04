@@ -5,6 +5,8 @@ import { SKILL_TREES } from "../config/skill-tree.js";
 import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
 import { STORAGE_KEYS } from "../config/storage-keys.js";
 import storageService from "../save-manager/StorageService.js";
+import { SkillTreeGraphView } from "./SkillTreeGraphView.js";
+import { getSkillTreeNodeById, canLevelSkillTreeNode } from "../config/skill-tree-graph.js";
 
 /**
  * Skill Tree UI component
@@ -35,6 +37,9 @@ export class SkillTreeUI extends UIComponent {
     // Initialize player skills data structure
     this.playerSkills = {};
     
+    // GDD graph view (skill-tree-graph.js)
+    this.graphView = null;
+
     // DOM elements
     this.elements = {
       skillPointsValue: null,
@@ -44,8 +49,12 @@ export class SkillTreeUI extends UIComponent {
       skillVariants: null,
       skillBuffs: null,
       saveButton: null,
-      continueButton: null, // New button to continue from variants to buffs
-      backButton: null      // New button to go back from buffs to variants
+      continueButton: null,
+      backButton: null,
+      nodeDetailPanel: null,
+      nodeLevelLine: null,
+      nodeRequirements: null,
+      levelUpButton: null,
     };
   }
   
@@ -63,8 +72,17 @@ export class SkillTreeUI extends UIComponent {
    * Refresh the skill tree when custom skills setting changes
    */
   async refreshSkillTree() {
-    // Re-render the skill tree (all skills always enabled)
     this.renderSkillTree();
+    if (this.graphView) this.graphView.refresh();
+  }
+
+  /**
+   * When skill tree is shown, sync points and graph from player/quest state.
+   */
+  show() {
+    super.show();
+    this.syncSkillPointsFromPlayer();
+    this.updateNodeDetailPanel(this.graphView ? this.graphView.getSelectedNodeId() : null);
   }
 
   /**
@@ -97,25 +115,115 @@ export class SkillTreeUI extends UIComponent {
     // Initialize player skills data structure
     await this.initPlayerSkills();
 
-    // Render the skill tree
+    // GDD graph view: mount and init
+    const graphMount = document.getElementById('skill-tree-graph-mount');
+    if (graphMount && this.game) {
+      this.graphView = new SkillTreeGraphView(graphMount, this.game, {
+        onSelectNode: (nodeId) => this.updateNodeDetailPanel(nodeId),
+        onLevelUp: () => {}, // level-up is done via button in detail panel
+      });
+      this.graphView.init();
+    }
+
+    // Render the skill tree (legacy list; kept for possible future use)
     this.renderSkillTree();
-    
-    // Initialize with no skill selected - show empty variants panel
-    this.showSkillVariants(null);
-    
+
+    // Initialize with no skill selected
+    this.updateNodeDetailPanel(null);
+
     // Add event listener for save button
     if (this.elements.saveButton) {
       this.elements.saveButton.addEventListener('click', () => {
         this.saveSkillTree();
       });
-    } else {
-      console.error("Save button element not found in the DOM");
     }
-    
-    // Initialize available points display
-    this.updateAvailablePoints();
+    if (this.elements.levelUpButton) {
+      this.elements.levelUpButton.addEventListener('click', () => this.doGraphLevelUp());
+    }
+
+    // Sync skill points from player (GDD)
+    this.syncSkillPointsFromPlayer();
 
     return true;
+  }
+
+  /**
+   * Sync skill points display from game.player.stats (GDD).
+   */
+  syncSkillPointsFromPlayer() {
+    const stats = this.game?.player?.stats;
+    const points = (stats && typeof stats.skillPoints === 'number') ? stats.skillPoints : 0;
+    if (this.elements.skillPointsValue) this.elements.skillPointsValue.textContent = points;
+    if (this.graphView) this.graphView.refresh();
+  }
+
+  /**
+   * Update the node detail panel (and Level Up button) when a graph node is selected.
+   * @param {string|null} nodeId
+   */
+  updateNodeDetailPanel(nodeId) {
+    if (!this.elements.skillDetailName || !this.elements.skillDetailDescription) return;
+    if (!this.elements.nodeLevelLine || !this.elements.nodeRequirements || !this.elements.levelUpButton) return;
+
+    if (!nodeId) {
+      this.elements.skillDetailName.textContent = 'Select a node';
+      this.elements.skillDetailDescription.textContent = 'Click a node on the graph to view details and spend skill points.';
+      this.elements.nodeLevelLine.textContent = '';
+      this.elements.nodeRequirements.textContent = '';
+      this.elements.levelUpButton.style.display = 'none';
+      return;
+    }
+
+    const node = getSkillTreeNodeById(nodeId);
+    const stats = this.game?.player?.stats;
+    const questManager = this.game?.questManager;
+    const nodeLevels = (stats && stats.skillTreeNodeLevels) ? { ...stats.skillTreeNodeLevels } : {};
+    const completedChapterQuestIds = (questManager && questManager.completedChapterQuestIds)
+      ? new Set(questManager.completedChapterQuestIds)
+      : new Set();
+    const currentLevel = nodeLevels[nodeId] ?? 0;
+
+    this.elements.skillDetailName.textContent = node ? node.name : nodeId;
+    this.elements.skillDetailDescription.textContent = node ? node.description : '';
+
+    this.elements.nodeLevelLine.textContent = `Level ${currentLevel} / ${node ? node.maxLevel : '?'} • Cost: ${node ? node.costPerLevel : 1} skill point(s) per level`;
+    const reqParts = [];
+    if (node && (node.requiredLevel ?? 1) > 1) {
+      reqParts.push(`Requires level ${node.requiredLevel}`);
+    }
+    if (node && node.requiredNodes && node.requiredNodes.length) {
+      reqParts.push('Requires: ' + node.requiredNodes.map(id => getSkillTreeNodeById(id)?.name || id).join(', '));
+    }
+    if (node && node.requireChapter5) reqParts.push('Requires: Chapter 5 completed');
+    this.elements.nodeRequirements.textContent = reqParts.join(' • ') || '';
+
+    const playerLevel = stats?.level ?? 1;
+    const canLevel = node && stats && canLevelSkillTreeNode(node, nodeLevels, completedChapterQuestIds, playerLevel)
+      && (stats.skillPoints ?? 0) >= (node.costPerLevel ?? 1);
+    this.elements.levelUpButton.style.display = canLevel ? 'block' : 'none';
+  }
+
+  /**
+   * Spend one skill point on the currently selected graph node (GDD).
+   */
+  doGraphLevelUp() {
+    const nodeId = this.graphView ? this.graphView.getSelectedNodeId() : null;
+    if (!nodeId || !this.game || !this.game.player || !this.game.player.stats) return;
+    const questManager = this.game.questManager;
+    const completedChapterQuestIds = (questManager && questManager.completedChapterQuestIds)
+      ? questManager.completedChapterQuestIds
+      : new Set();
+    const spent = this.game.player.stats.spendSkillPointOnNode(nodeId, completedChapterQuestIds);
+    if (spent) {
+      this.syncSkillPointsFromPlayer();
+      this.updateNodeDetailPanel(nodeId);
+      if (this.game.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+        this.game.saveManager.saveGame(false, true).catch(() => {});
+      }
+      if (this.game.hudManager && typeof this.game.hudManager.showNotification === 'function') {
+        this.game.hudManager.showNotification('Skill upgraded!');
+      }
+    }
   }
   
   /**
@@ -131,6 +239,10 @@ export class SkillTreeUI extends UIComponent {
     this.elements.skillVariants = document.getElementById('skill-variants');
     this.elements.skillBuffs = document.getElementById('skill-buffs');
     this.elements.saveButton = document.getElementById('skill-tree-save-btn');
+    this.elements.nodeDetailPanel = document.getElementById('skill-tree-node-detail');
+    this.elements.nodeLevelLine = document.getElementById('skill-node-level-line');
+    this.elements.nodeRequirements = document.getElementById('skill-node-requirements');
+    this.elements.levelUpButton = document.getElementById('skill-tree-level-up-btn');
     
     // Create continue button for mobile optimization
     this.elements.continueButton = document.createElement('button');

@@ -3,6 +3,7 @@ import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from '../
 import { Skill } from '../skills/Skill.js';
 import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
+import { ATTACK_ANIMATION_DURATION_MS } from '../config/input.js';
 
 /**
  * @typedef {Object} SkillTreeEntry
@@ -64,12 +65,13 @@ export class PlayerSkills {
     // setGame method removed - game is now passed in constructor
     
     /**
-     * Trigger attack animation on player model (hand/staff swing)
-     * @param {number} [durationMs=500] - How long to show attack pose
+     * Trigger attack animation on player model (hand/staff swing).
+     * GDD: cancel allowed at 60% of duration (combat-and-performance.md).
+     * @param {number} [durationMs] - How long to show attack pose (default ATTACK_ANIMATION_DURATION_MS)
      */
-    triggerAttackAnimation(durationMs = 500) {
+    triggerAttackAnimation(durationMs = ATTACK_ANIMATION_DURATION_MS) {
         if (this.game?.player?.state) {
-            this.game.player.state.setAttacking(true);
+            this.game.player.state.setAttackAnimation(durationMs);
             setTimeout(() => {
                 if (this.game?.player?.state) {
                     this.game.player.state.setAttacking(false);
@@ -101,6 +103,17 @@ export class PlayerSkills {
         }
     }
     
+    /**
+     * Preload effect handlers for all current skills so first cast is < 150ms (GDD combat feel).
+     * Call after initializeSkills(); fire-and-forget.
+     */
+    preloadEffectHandlers() {
+        if (!this.skills || this.skills.length === 0) return;
+        this.skills.forEach(skill => {
+            if (skill.ensureEffectHandler) skill.ensureEffectHandler().catch(() => {});
+        });
+    }
+
     /**
      * Filters skills based on the custom skills flag
      * @param {Array<Object>} skills - Array of skill configurations
@@ -348,6 +361,11 @@ export class PlayerSkills {
      */
     async useSkill(skillIndex) {
         console.debug('PlayerSkills.useSkill called with index:', skillIndex);
+
+        // Animation cancel at 60% (GDD combat feel): allow new skill to cancel current attack
+        if (this.game?.player?.state?.isAttacking?.() && this.game.player.state.canCancelAttack?.()) {
+            this.game.player.state.setAttacking(false);
+        }
         
         // Check if skill index is valid
         if (skillIndex < 0 || skillIndex >= this.skills.length) {
@@ -499,16 +517,17 @@ export class PlayerSkills {
         // Log the final direction that will be used
         console.debug(`Final rotation for skill cast: ${this.playerRotation.y.toFixed(2)} radians`);
         
-        // Create the skill effect (async - lazy-loads effect module on first use)
-        const skillEffect = await newSkillInstance.createEffect(this.playerPosition, this.playerRotation);
-        
-        // Add skill effect to scene
-        if (skillEffect) {
-            console.debug(`Adding ${skillTemplate.name} effect to scene`);
-            (this.game?.getWorldGroup?.() || this.scene).add(skillEffect);
-        } else {
-            console.error(`Failed to create effect for ${skillTemplate.name}`);
-        }
+        // Create the skill effect without blocking (GDD: skill cast < 150ms; effect appears when ready)
+        const sceneOrWorld = this.game?.getWorldGroup?.() || this.scene;
+        newSkillInstance.createEffect(this.playerPosition, this.playerRotation).then(skillEffect => {
+            if (skillEffect) {
+                console.debug(`Adding ${skillTemplate.name} effect to scene`);
+                sceneOrWorld.add(skillEffect);
+                this.activeSkills.push(newSkillInstance);
+            } else {
+                console.error(`Failed to create effect for ${skillTemplate.name}`);
+            }
+        });
         
         // Log enemy was auto-targeted (only if an enemy was found)
         if (targetEnemy) {
@@ -517,11 +536,7 @@ export class PlayerSkills {
             console.debug(`Using ${skillTemplate.name} without a target`);
         }
 
-        // Sound is now handled by the skill itself in createEffect method
-        this.triggerAttackAnimation(500);
-        // Add to active skills
-        this.activeSkills.push(newSkillInstance);
-        
+        this.triggerAttackAnimation(ATTACK_ANIMATION_DURATION_MS);
         return true;
     }
 
@@ -569,6 +584,11 @@ export class PlayerSkills {
      * @returns {boolean} - True if primary attack was successfully used, false otherwise
      */
     async usePrimaryAttack() {
+        // Animation cancel at 60% (GDD combat feel)
+        if (this.game?.player?.state?.isAttacking?.() && this.game.player.state.canCancelAttack?.()) {
+            this.game.player.state.setAttacking(false);
+        }
+
         // Find the Fist of Thunder skill (should be the last skill in the array)
         // This is the basic attack skill with the "h" key
         const primaryAttackSkill = this.skills.find(skill => skill.primaryAttack === true);
@@ -648,7 +668,7 @@ export class PlayerSkills {
                     this.game.audioManager.playSound('playerAttack');
                 }
                 
-                this.triggerAttackAnimation(500);
+                this.triggerAttackAnimation(ATTACK_ANIMATION_DURATION_MS);
                 // Add to active skills
                 this.activeSkills.push(newSkillInstance);
                 
@@ -731,7 +751,7 @@ export class PlayerSkills {
                         this.game.audioManager.playSound('playerAttack');
                     }
                     
-                    this.triggerAttackAnimation(500);
+                    this.triggerAttackAnimation(ATTACK_ANIMATION_DURATION_MS);
                     // Add to active skills
                     this.activeSkills.push(newSkillInstance);
                     
@@ -765,7 +785,7 @@ export class PlayerSkills {
                             this.game.audioManager.playSound('playerAttack');
                         }
                         
-                        this.triggerAttackAnimation(500);
+                        this.triggerAttackAnimation(ATTACK_ANIMATION_DURATION_MS);
                         // Add to active skills
                         this.activeSkills.push(newSkillInstance);
                         
@@ -804,7 +824,7 @@ export class PlayerSkills {
                         if (this.game && this.game.audioManager) {
                             this.game.audioManager.playSound('playerAttack');
                         }
-                        this.triggerAttackAnimation(500);
+                        this.triggerAttackAnimation(ATTACK_ANIMATION_DURATION_MS);
                         this.activeSkills.push(newSkillInstance);
                         return true;
                     }

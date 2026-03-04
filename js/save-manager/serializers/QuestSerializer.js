@@ -1,3 +1,5 @@
+import { getChapterQuestById } from '../../config/chapter-quests.js';
+
 /**
  * Handles serialization and deserialization of quest data
  */
@@ -14,20 +16,36 @@ export class QuestSerializer {
         }
         
         // For active quests, we need to save progress information
-        const activeQuestsData = questManager.activeQuests.map(quest => ({
-            id: quest.id,
-            objective: {
-                progress: quest.objective.progress,
-                discovered: quest.objective.discovered || []
+        const activeQuestsData = questManager.activeQuests.map(quest => {
+            // Chapter quests have objectives[] with progress
+            if (quest.objectives && Array.isArray(quest.objectives)) {
+                return {
+                    id: quest.id,
+                    objectives: quest.objectives.map(o => ({ progress: o.progress ?? 0 }))
+                };
             }
-        }));
+            // Legacy: single objective
+            return {
+                id: quest.id,
+                objective: {
+                    progress: quest.objective?.progress ?? 0,
+                    discovered: quest.objective?.discovered || []
+                }
+            };
+        });
         
         // For completed quests, only save the IDs
         const completedQuestIds = questManager.completedQuests.map(quest => quest.id);
         
+        // GDD: persist completed chapter quest IDs so story progress survives save/load
+        const completedChapterQuestIds = questManager.completedChapterQuestIds
+            ? Array.from(questManager.completedChapterQuestIds)
+            : [];
+        
         return {
             activeQuests: activeQuestsData,
-            completedQuestIds: completedQuestIds
+            completedQuestIds: completedQuestIds,
+            completedChapterQuestIds: completedChapterQuestIds
         };
     }
     
@@ -48,31 +66,49 @@ export class QuestSerializer {
         questManager.activeQuests = [];
         questManager.completedQuests = [];
         
+        // Restore completed chapter quest IDs (GDD story progress)
+        if (questData.completedChapterQuestIds && Array.isArray(questData.completedChapterQuestIds)) {
+            questManager.completedChapterQuestIds.clear();
+            questData.completedChapterQuestIds.forEach(id => questManager.completedChapterQuestIds.add(id));
+        }
+        
         // Load active quests with their progress
         if (questData.activeQuests && Array.isArray(questData.activeQuests)) {
             console.debug(`Loading ${questData.activeQuests.length} active quests`);
             
             questData.activeQuests.forEach(savedQuest => {
                 try {
-                    // Find the original quest template
-                    const originalQuest = questManager.quests.find(q => q.id === savedQuest.id);
+                    // Chapter quest: template lives in config, not questManager.quests
+                    const chapterTemplate = getChapterQuestById(savedQuest.id);
+                    if (chapterTemplate) {
+                        const objectives = (chapterTemplate.objectives || []).map((o, i) => ({
+                            ...o,
+                            progress: savedQuest.objectives?.[i]?.progress ?? 0
+                        }));
+                        const questWithProgress = {
+                            ...chapterTemplate,
+                            title: chapterTemplate.title || chapterTemplate.name,
+                            name: chapterTemplate.title || chapterTemplate.name,
+                            objectives
+                        };
+                        questManager.activeQuests.push(questWithProgress);
+                        return;
+                    }
                     
+                    // Legacy: find the original quest template in questManager.quests
+                    const originalQuest = questManager.quests.find(q => q.id === savedQuest.id);
                     if (originalQuest) {
-                        // Create a new quest object with progress from saved data
                         const questWithProgress = {
                             ...originalQuest,
                             objective: {
                                 ...originalQuest.objective,
-                                progress: savedQuest.objective && savedQuest.objective.progress ? 
-                                    savedQuest.objective.progress : 0,
-                                discovered: savedQuest.objective && savedQuest.objective.discovered ? 
-                                    savedQuest.objective.discovered : []
+                                progress: savedQuest.objective && savedQuest.objective.progress != null
+                                    ? savedQuest.objective.progress : 0,
+                                discovered: savedQuest.objective && savedQuest.objective.discovered
+                                    ? savedQuest.objective.discovered : []
                             }
                         };
-                        
                         questManager.activeQuests.push(questWithProgress);
-                        
-                        // Remove from available quests
                         questManager.quests = questManager.quests.filter(q => q.id !== savedQuest.id);
                     } else {
                         console.warn(`Original quest template not found for ID: ${savedQuest.id}`);

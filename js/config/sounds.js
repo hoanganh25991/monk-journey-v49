@@ -891,50 +891,40 @@ export const ENVIRONMENT_SOUNDS = {
     }
 };
 
-// Music tracks
+// Music tracks (GDD: exploration ambient, combat subtle drums, boss intensity)
 export const MUSIC = {
     mainTheme: {
         id: 'mainTheme',
         file: 'main_theme.mp3',
+        fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 220,
-        //     duration: 5.0,
-        //     type: 'sine',
-        //     decay: false,
-        //     melody: true
-        // }
     },
     battleTheme: {
         id: 'battleTheme',
         file: 'battle_theme.mp3',
+        fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 280,
-        //     duration: 5.0,
-        //     type: 'square',
-        //     decay: false,
-        //     melody: true,
-        //     tempo: 140
-        // }
     },
     bossTheme: {
         id: 'bossTheme',
         file: 'boss_theme.mp3',
+        fallbackFile: 'battle_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 180,
-        //     duration: 5.0,
-        //     type: 'sawtooth',
-        //     decay: false,
-        //     melody: true,
-        //     tempo: 160
-        // }
     }
 };
+
+/** GDD music layers: exploration (default), combat, boss. Crossfade ~1.5s when switching. */
+export const MUSIC_LAYERS = {
+    exploration: 'mainTheme',
+    combat: 'battleTheme',
+    boss: 'bossTheme',
+};
+
+/** Crossfade duration in seconds (GDD: 1.5s). */
+export const MUSIC_CROSSFADE_DURATION = 1.5;
 
 // Export all sounds as a single object for convenience
 export const ALL_SOUNDS = {

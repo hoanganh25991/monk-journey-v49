@@ -25,6 +25,9 @@ export class InteractionSystem {
         // Track interaction cooldown to prevent spam
         this.interactionCooldown = 0;
         this.cooldownDuration = 500; // ms
+        
+        // Objects we've already auto-triggered (e.g. quest markers – once per object)
+        this.autoTriggeredObjects = new Set();
     }
     
     /**
@@ -43,8 +46,48 @@ export class InteractionSystem {
         // Update nearby objects
         this.updateNearbyObjects();
         
+        // Auto-open chests and trigger quests when player comes close
+        this.tryAutoInteract();
+        
         // Update visual indicators for interactive objects
         this.updateVisualIndicators();
+    }
+    
+    /**
+     * Auto-trigger interaction when player is close to chests (not yet open) or quest markers (first time).
+     */
+    tryAutoInteract() {
+        if (this.interactionCooldown > 0 || this.nearbyInteractiveObjects.length === 0) return;
+        
+        const playerPosition = this.player.getPosition();
+        let bestObject = null;
+        let bestDistanceSq = Infinity;
+        
+        for (const obj of this.nearbyInteractiveObjects) {
+            const isChest = obj.type === 'chest' && !obj.isOpen;
+            const isQuest = obj.type === 'quest' && !this.autoTriggeredObjects.has(obj);
+            if (!isChest && !isQuest) continue;
+            
+            const distanceSq = distanceSq2D(
+                playerPosition.x, playerPosition.z,
+                obj.position.x, obj.position.z
+            );
+            const radius = (obj.interactionRadius != null ? obj.interactionRadius : INTERACTION_RANGE);
+            if (distanceSq > radius * radius) continue;
+            
+            if (distanceSq < bestDistanceSq) {
+                bestDistanceSq = distanceSq;
+                bestObject = obj;
+            }
+        }
+        
+        if (bestObject) {
+            this.interactWithObject(bestObject);
+            this.interactionCooldown = this.cooldownDuration;
+            if (bestObject.type === 'quest') {
+                this.autoTriggeredObjects.add(bestObject);
+            }
+        }
     }
     
     /**

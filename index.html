@@ -229,15 +229,21 @@
             </div>
             <div id="skill-tree-container">
                 <div id="skill-tree-view">
-                    <div id="skill-tree-skills"></div>
+                    <div id="skill-tree-graph-mount"></div>
+                    <div id="skill-tree-skills" style="display: none;"></div>
                 </div>
                 <div id="skill-tree-details">
                     <div id="skill-detail-header">
-                        <div id="skill-detail-name">Select a skill</div>
-                        <div id="skill-detail-description">Click on a skill to view its details and customize it.</div>
+                        <div id="skill-detail-name">Select a node</div>
+                        <div id="skill-detail-description">Click a node on the graph to view details and spend skill points.</div>
+                    </div>
+                    <div id="skill-tree-node-detail" class="skill-tree-node-detail-panel">
+                        <div id="skill-node-level-line"></div>
+                        <div id="skill-node-requirements"></div>
+                        <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">Level Up</button>
                     </div>
                     <div id="skill-detail-content">
-                        <div id="skill-customization-container">
+                        <div id="skill-customization-container" style="display: none;">
                             <div id="skill-variants-container">
                                 <h3>Variants</h3>
                                 <div id="skill-variants"></div>
@@ -263,29 +269,20 @@
                 <div id="character-equipment">
                     <div id="character-model-container">👤</div>
                     <div id="equipment-slots">
-                        <div class="equipment-slot" data-slot="head">
-                            <div class="slot-icon">🧢</div>
+                        <div class="equipment-slot" data-slot="weapon" title="Weapon (Staff)">
+                            <div class="slot-icon">🪄</div>
                         </div>
-                        <div class="equipment-slot" data-slot="shoulders">
-                            <div class="slot-icon">👔</div>
+                        <div class="equipment-slot" data-slot="robe" title="Robe">
+                            <div class="slot-icon">👘</div>
                         </div>
-                        <div class="equipment-slot" data-slot="chest">
-                            <div class="slot-icon">👕</div>
+                        <div class="equipment-slot" data-slot="prayer-beads" title="Prayer Beads">
+                            <div class="slot-icon">📿</div>
                         </div>
-                        <div class="equipment-slot" data-slot="hands">
-                            <div class="slot-icon">🧤</div>
+                        <div class="equipment-slot" data-slot="talisman" title="Talisman">
+                            <div class="slot-icon">🔮</div>
                         </div>
-                        <div class="equipment-slot" data-slot="weapon">
-                            <div class="slot-icon">⚔️</div>
-                        </div>
-                        <div class="equipment-slot" data-slot="legs">
-                            <div class="slot-icon">👖</div>
-                        </div>
-                        <div class="equipment-slot" data-slot="feet">
-                            <div class="slot-icon">👟</div>
-                        </div>
-                        <div class="equipment-slot" data-slot="accessory">
-                            <div class="slot-icon">💍</div>
+                        <div class="equipment-slot" data-slot="relic" title="Relic">
+                            <div class="slot-icon">✨</div>
                         </div>
                     </div>
                     <!-- Stats button at the bottom of inventory -->
@@ -323,6 +320,19 @@
                                 <div class="stat-item">
                                     <div class="stat-label">Level</div>
                                     <div class="stat-value" id="stat-level">1</div>
+                                </div>
+                            </div>
+                            <div class="stats-points-row">
+                                <span id="stat-unspent-label">Unspent points:</span>
+                                <span class="stat-value" id="stat-unspent">0</span>
+                                <span id="stat-skillpoints-label">Skill points:</span>
+                                <span class="stat-value" id="stat-skillpoints">0</span>
+                            </div>
+                            <p class="stats-points-hint" id="stats-points-hint">Unspent points → Attributes (Health, Mana, Speed…). Skill points → Skill Tree.</p>
+                            <div class="stats-attributes-section">
+                                <h4>Attributes</h4>
+                                <div class="stats-attributes-grid" id="stats-attributes-grid">
+                                    <!-- Strength, Intelligence, Agility, Vitality, Wisdom rows with +/- -->
                                 </div>
                             </div>
                             <button id="close-stats-overlay" class="circle-btn">💾</button>
@@ -484,6 +494,7 @@
             <div class="level-up-content">
                 <div class="level-up-text">Level</div>
                 <div class="level-up-level"></div>
+                <div class="level-up-rewards" aria-hidden="true">+3 attribute points, +1 skill point</div>
             </div>
         </div>
 
@@ -1331,6 +1342,9 @@
 
     <!-- Death Screen -->
     <div id="death-screen" class="game-menu" style="display: none;"></div>
+
+    <!-- Reflection Screen (post-boss life lesson) -->
+    <div id="reflection-screen" class="game-menu" style="display: none;"></div>
 
     <!-- Orientation Lock -->
     <script src="pwa/orientation-lock.js"></script>

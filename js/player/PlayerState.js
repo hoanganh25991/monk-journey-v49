@@ -1,3 +1,5 @@
+import { ATTACK_ANIMATION_CANCEL_RATIO } from '../config/input.js';
+
 /**
  * PlayerState.js
  * Manages the player's state (moving, attacking, etc.)
@@ -13,6 +15,10 @@ export class PlayerState {
             inWater: false,
             isInteracting: false
         };
+        /** When attack animation started (Date.now()); 0 if not attacking. */
+        this.attackStartedAt = 0;
+        /** Planned attack animation duration (ms). */
+        this.attackDurationMs = 0;
         
         // Initialize status effects
         this.statusEffects = {
@@ -73,6 +79,30 @@ export class PlayerState {
     
     setAttacking(isAttacking) {
         this.state.isAttacking = isAttacking;
+        if (!isAttacking) {
+            this.attackStartedAt = 0;
+            this.attackDurationMs = 0;
+        }
+    }
+
+    /**
+     * Start attack animation with duration for cancel-at-60% (GDD combat feel).
+     * @param {number} durationMs - Duration in ms
+     */
+    setAttackAnimation(durationMs) {
+        this.state.isAttacking = true;
+        this.attackStartedAt = Date.now();
+        this.attackDurationMs = durationMs;
+    }
+
+    /**
+     * True if attack animation has passed the cancel threshold (e.g. 60%).
+     * @returns {boolean}
+     */
+    canCancelAttack() {
+        if (!this.state.isAttacking || this.attackDurationMs <= 0) return true;
+        const elapsed = Date.now() - this.attackStartedAt;
+        return elapsed >= this.attackDurationMs * ATTACK_ANIMATION_CANCEL_RATIO;
     }
     
     setUsingSkill(isUsingSkill) {

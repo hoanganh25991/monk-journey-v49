@@ -116,6 +116,9 @@ export class InventoryUI extends UIComponent {
             });
         }
 
+        // Build attribute allocation grid (GDD: Strength, Intelligence, Agility, Vitality, Wisdom)
+        this.ensureAttributesGrid();
+
         // Hide initially
         this.hide();
         
@@ -615,12 +618,45 @@ export class InventoryUI extends UIComponent {
     }
     
     /**
-     * Update player stats display
+     * Build or ensure the attribute allocation grid exists and is wired (GDD: +/– allocate)
+     */
+    ensureAttributesGrid() {
+        const grid = document.getElementById('stats-attributes-grid');
+        if (!grid || grid.dataset.built === '1') return;
+        const attrs = [
+            { id: 'strength', label: 'Strength', tip: '+5 HP per point' },
+            { id: 'intelligence', label: 'Intelligence', tip: '+5 Mana per point' },
+            { id: 'agility', label: 'Agility', tip: '+2% Attack speed' },
+            { id: 'vitality', label: 'Vitality', tip: '+1 HP regen/s' },
+            { id: 'wisdom', label: 'Wisdom', tip: '+2% Cooldown reduction' }
+        ];
+        grid.innerHTML = attrs.map(a => `
+            <div class="stats-attr-row" data-attr="${a.id}">
+                <span class="stats-attr-name" title="${a.tip}">${a.label}</span>
+                <span class="stats-attr-value" id="attr-value-${a.id}">0</span>
+                <div class="stats-attr-buttons">
+                    <button type="button" class="stats-attr-btn stats-attr-plus" data-attr="${a.id}" aria-label="Add ${a.label}">+</button>
+                </div>
+            </div>
+        `).join('');
+        grid.querySelectorAll('.stats-attr-plus').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const attr = btn.dataset.attr;
+                if (!this.game?.player?.stats?.allocateAttribute(attr)) return;
+                this.updatePlayerStats();
+                if (this.game.hudManager?.updatePlayerStats) this.game.hudManager.updatePlayerStats();
+            });
+        });
+        grid.dataset.built = '1';
+    }
+
+    /**
+     * Update player stats display (including unspent/skill points and attributes)
      */
     updatePlayerStats() {
-        if (!this.statsContainer) return;
-        
-        // Get player stats
+        const stats = this.game?.player?.stats;
+        if (!stats) return;
+
         const health = this.game.player.getHealth();
         const maxHealth = this.game.player.getMaxHealth();
         const mana = this.game.player.getMana();
@@ -629,21 +665,36 @@ export class InventoryUI extends UIComponent {
         const defense = this.game.player.getDefense ? this.game.player.getDefense() : 5;
         const speed = this.game.player.getSpeed ? this.game.player.getSpeed() : 1.0;
         const level = this.game.player.getLevel ? this.game.player.getLevel() : 1;
-        
-        // Update stat values
-        const healthElement = document.getElementById('stat-health');
-        const manaElement = document.getElementById('stat-mana');
-        const attackElement = document.getElementById('stat-attack');
-        const defenseElement = document.getElementById('stat-defense');
-        const speedElement = document.getElementById('stat-speed');
-        const levelElement = document.getElementById('stat-level');
-        
-        if (healthElement) healthElement.textContent = `${Number(health).toFixed()}/${Number(maxHealth).toFixed()}`;
-        if (manaElement) manaElement.textContent = `${Number(mana).toFixed()}/${Number(maxMana).toFixed()}`;
-        if (attackElement) attackElement.textContent = Number(attack).toFixed();
-        if (defenseElement) defenseElement.textContent = Number(defense).toFixed();
-        if (speedElement) speedElement.textContent = Number(speed).toFixed();
-        if (levelElement) levelElement.textContent = level;
+
+        const healthEl = document.getElementById('stat-health');
+        const manaEl = document.getElementById('stat-mana');
+        const attackEl = document.getElementById('stat-attack');
+        const defenseEl = document.getElementById('stat-defense');
+        const speedEl = document.getElementById('stat-speed');
+        const levelEl = document.getElementById('stat-level');
+        if (healthEl) healthEl.textContent = `${Number(health).toFixed()}/${Number(maxHealth).toFixed()}`;
+        if (manaEl) manaEl.textContent = `${Number(mana).toFixed()}/${Number(maxMana).toFixed()}`;
+        if (attackEl) attackEl.textContent = Number(attack).toFixed();
+        if (defenseEl) defenseEl.textContent = Number(defense).toFixed();
+        if (speedEl) speedEl.textContent = Number(speed).toFixed();
+        if (levelEl) levelEl.textContent = level;
+
+        const unspentEl = document.getElementById('stat-unspent');
+        const skillpointsEl = document.getElementById('stat-skillpoints');
+        if (unspentEl) unspentEl.textContent = stats.unspentAttributePoints ?? 0;
+        if (skillpointsEl) skillpointsEl.textContent = stats.skillPoints ?? 0;
+
+        ['strength', 'intelligence', 'agility', 'vitality', 'wisdom'].forEach(attr => {
+            const el = document.getElementById(`attr-value-${attr}`);
+            if (el) el.textContent = stats[attr] ?? 0;
+        });
+
+        const grid = document.getElementById('stats-attributes-grid');
+        if (grid?.querySelectorAll) {
+            grid.querySelectorAll('.stats-attr-plus').forEach(btn => {
+                btn.disabled = (stats.unspentAttributePoints ?? 0) < 1;
+            });
+        }
     }
     
     /**
@@ -656,8 +707,8 @@ export class InventoryUI extends UIComponent {
         }
         
         if (this.statsOverlay) {
-            // Update stats before showing
             if (show) {
+                this.ensureAttributesGrid();
                 this.updatePlayerStats();
                 this.statsOverlay.style.display = 'flex';
             } else {
@@ -1038,18 +1089,13 @@ export class InventoryUI extends UIComponent {
                 slotMap[slotType] = slot;
             }
         });
-        // Map inventory equipment keys to DOM data-slot names (head vs helmet, etc.)
+        // GDD slots: weapon, robe, prayerBeads, talisman, relic → DOM data-slot
         const equipmentToDomSlot = {
-            helmet: 'head',
-            shoulder: 'shoulders',
-            armor: 'chest',
-            gloves: 'hands',
-            boots: 'feet',
             weapon: 'weapon',
-            belt: 'legs',  // or add data-slot="belt" if you add a belt slot
-            accessory1: 'accessory',
-            accessory2: 'accessory',
-            talisman: 'accessory'
+            robe: 'robe',
+            prayerBeads: 'prayer-beads',
+            talisman: 'talisman',
+            relic: 'relic'
         };
         
         // Update each equipment slot
@@ -1109,18 +1155,12 @@ export class InventoryUI extends UIComponent {
      */
     getSlotName(slot) {
         const slotNames = {
-            weapon: 'Weapon',
-            armor: 'Armor',
-            helmet: 'Helmet',
-            boots: 'Boots',
-            gloves: 'Gloves',
-            belt: 'Belt',
-            shoulder: 'Shoulder',
-            accessory1: 'Accessory 1',
-            accessory2: 'Accessory 2',
-            talisman: 'Talisman'
+            weapon: 'Weapon (Staff)',
+            robe: 'Robe',
+            prayerBeads: 'Prayer Beads',
+            talisman: 'Talisman',
+            relic: 'Relic'
         };
-        
         return slotNames[slot] || slot.charAt(0).toUpperCase() + slot.slice(1);
     }
     
@@ -1131,18 +1171,12 @@ export class InventoryUI extends UIComponent {
      */
     getSlotIcon(slot) {
         const slotIcons = {
-            weapon: '🗡️',
-            armor: '🛡️',
-            helmet: '⛑️',
-            boots: '👢',
-            gloves: '🧤',
-            belt: '⚔️',
-            shoulder: '🧥',
-            accessory1: '💍',
-            accessory2: '💍',
-            talisman: '🔮'
+            weapon: '🪄',
+            robe: '👘',
+            prayerBeads: '📿',
+            talisman: '🔮',
+            relic: '✨'
         };
-        
         return slotIcons[slot] || '❓';
     }
     

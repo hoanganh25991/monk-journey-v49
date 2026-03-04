@@ -1,12 +1,52 @@
+import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
+
 export class QuestManager {
     constructor(game) {
         this.game = game;
         this.quests = [];
         this.activeQuests = [];
         this.completedQuests = [];
-        
+        /** @type {Set<string>} Completed chapter quest ids (GDD story) */
+        this.completedChapterQuestIds = new Set();
+
         // Initialize with some default quests
         this.initializeQuests();
+    }
+
+    /** @returns {boolean} */
+    isChapterQuest(quest) {
+        return quest && (quest.lesson != null && quest.boss != null);
+    }
+
+    /** Deep clone objectives with progress 0 for starting a chapter quest */
+    cloneChapterQuestForStart(quest) {
+        return {
+            ...quest,
+            title: quest.title || quest.name,
+            name: quest.title || quest.name,
+            objectives: (quest.objectives || []).map(o => ({ ...o, progress: 0 })),
+        };
+    }
+
+    /** @returns {Object[]} Chapter quests available to start (first or next after completed) */
+    getAvailableChapterQuests() {
+        const completed = this.completedChapterQuestIds;
+        const all = CHAPTER_QUESTS;
+        const nextId = all.find(q => !completed.has(q.id))?.id;
+        if (!nextId) return [];
+        const next = getChapterQuestById(nextId);
+        return next ? [this.cloneChapterQuestForStart(next)] : [];
+    }
+
+    /** @returns {Object|null} Active chapter quest (story) or null if none. Used for boss spawn wiring. */
+    getActiveChapterQuest() {
+        const chapter = this.activeQuests.find(q => this.isChapterQuest(q));
+        return chapter || null;
+    }
+
+    /** @returns {boolean} True if Chapter 5 is completed (Path of Mastery unlocked). GDD §12. */
+    isPathOfMasteryUnlocked() {
+        return this.completedChapterQuestIds.has('chapter_5_inner_temple');
     }
     
     initializeQuests() {
@@ -287,41 +327,64 @@ export class QuestManager {
     }
     
     startQuest(quest) {
-        // Find the quest in the available quests
+        // Chapter quest (GDD story): match by id, add clone to active, do not remove from list
+        if (this.isChapterQuest(quest)) {
+            if (this.activeQuests.some(q => q.id === quest.id)) return false;
+            const copy = this.cloneChapterQuestForStart(quest);
+            this.activeQuests.push(copy);
+            this.game.hudManager.updateQuestLog(this.activeQuests);
+            return true;
+        }
+
+        // Legacy: find in this.quests by name
         const questToStart = this.quests.find(q => q.name === quest.name);
-        
         if (questToStart) {
-            // Check if quest is already active
             if (!this.activeQuests.some(q => q.id === questToStart.id)) {
-                // Add to active quests
                 this.activeQuests.push(questToStart);
-                
-                // Remove from available quests
                 this.quests = this.quests.filter(q => q.id !== questToStart.id);
-                
-                // Notify UI
                 this.game.hudManager.updateQuestLog(this.activeQuests);
-                
                 return true;
             }
         }
-        
         return false;
     }
     
     updateEnemyKill(enemy) {
-        // Update kill objectives for active quests
+        // Path of Mastery (Phase 6.2): record boss kill for mastery progression and first-clear cosmetic
+        if (enemy.isBoss && this.game?.isInPathOfMastery && typeof this.game.recordPathOfMasteryBossKill === 'function') {
+            this.game.recordPathOfMasteryBossKill(enemy.type);
+        }
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type === 'kill') {
-                // Check if this enemy type matches the quest target
+            // Chapter quests: multiple objectives (kill, defeat_boss)
+            if (quest.objectives && Array.isArray(quest.objectives)) {
+                let updated = false;
+                for (const obj of quest.objectives) {
+                    const match = (obj.type === 'kill' || obj.type === 'defeat_boss') &&
+                        (obj.target === 'any' || obj.target === enemy.type);
+                    if (match) {
+                        obj.progress = (obj.progress || 0) + 1;
+                        updated = true;
+                        this.game.hudManager.showNotification(
+                            `Quest: ${obj.progress}/${obj.count} ${obj.type === 'defeat_boss' ? 'boss' : 'enemies'}`
+                        );
+                        break;
+                    }
+                }
+                if (updated) {
+                    const allComplete = quest.objectives.every(o => (o.progress || 0) >= o.count);
+                    if (allComplete) this.completeQuest(quest);
+                    else this.game.hudManager.updateQuestLog(this.activeQuests);
+                }
+                return;
+            }
+
+            // Legacy: single objective
+            if (quest.objective && quest.objective.type === 'kill') {
                 if (quest.objective.target === 'any' || quest.objective.target === enemy.type) {
                     quest.objective.progress++;
-                    
-                    // Check if objective is complete
                     if (quest.objective.progress >= quest.objective.count) {
                         this.completeQuest(quest);
                     } else {
-                        // Update UI
                         this.game.hudManager.updateQuestLog(this.activeQuests);
                         this.game.hudManager.showNotification(`Quest progress: ${quest.objective.progress}/${quest.objective.count} enemies defeated`);
                     }
@@ -371,50 +434,69 @@ export class QuestManager {
     }
     
     completeQuest(quest) {
-        // Remove from active quests
         this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
-        
-        // Add to completed quests
         this.completedQuests.push(quest);
-        
-        // Award rewards
-        this.awardQuestRewards(quest);
-        
-        // Play quest complete sound
-        if (this.game && this.game.audioManager) {
-            this.game.audioManager.playSound('questComplete');
+
+        if (quest.id) this.completedChapterQuestIds.add(quest.id);
+
+        const doAfterReflection = () => {
+            this.awardQuestRewards(quest);
+            if (this.game && this.game.audioManager) {
+                this.game.audioManager.playSound('questComplete');
+            }
+            this.game.hudManager.updateQuestLog(this.activeQuests);
+            const title = quest.title || quest.name;
+            this.game.hudManager.showDialog(
+                `Quest Completed: ${title}`,
+                `You have completed the quest and received your rewards!`
+            );
+            this.checkForNextQuest(quest);
+        };
+
+        // GDD §11: post-boss reflection (life lesson + Continue Journey); §12 Path of Mastery after Ch5
+        if (this.isChapterQuest(quest) && quest.lesson) {
+            const isChapter5 = quest.id === 'chapter_5_inner_temple';
+            const options = isChapter5 ? {
+                isChapter5: true,
+                onEnterPathOfMastery: () => {
+                    doAfterReflection();
+                    if (this.game.enterPathOfMastery) this.game.enterPathOfMastery();
+                }
+            } : {};
+            this.game.hudManager.showReflectionScreen(quest.lesson, doAfterReflection, options);
+        } else {
+            doAfterReflection();
         }
-        
-        // Update UI
-        this.game.hudManager.updateQuestLog(this.activeQuests);
-        this.game.hudManager.showDialog(
-            `Quest Completed: ${quest.name}`,
-            `You have completed the quest and received your rewards!`
-        );
-        
-        // Check for next quest in the storyline
-        this.checkForNextQuest(quest);
     }
     
     checkForNextQuest(completedQuest) {
-        // Check if this quest has a next quest in the storyline
+        // Chapter story: offer next chapter quest
+        if (completedQuest.nextQuestId) {
+            const nextChapter = getChapterQuestById(completedQuest.nextQuestId);
+            if (nextChapter) {
+                setTimeout(() => {
+                    this.game.hudManager.showDialog(
+                        `New Quest: ${nextChapter.title}`,
+                        `${nextChapter.description}\n\nWould you like to accept this quest?`,
+                        () => this.startQuest(nextChapter)
+                    );
+                }, 2000);
+                return;
+            }
+        }
+        // Legacy: main quest chain
         if (completedQuest.isMainQuest && completedQuest.nextQuestId) {
-            // Find the next quest
             const nextQuest = this.quests.find(q => q.id === completedQuest.nextQuestId);
-            
             if (nextQuest) {
-                // Check if player meets level requirement
-                if (this.game.player.getLevel() >= nextQuest.requiredLevel) {
-                    // Automatically start the next main quest
+                if (this.game.player.getLevel() >= (nextQuest.requiredLevel || 1)) {
                     setTimeout(() => {
                         this.game.hudManager.showDialog(
                             `New Quest Available: ${nextQuest.name}`,
                             `${nextQuest.description}\n\nWould you like to accept this quest?`,
                             () => this.startQuest(nextQuest)
                         );
-                    }, 2000); // Show after a short delay
+                    }, 2000);
                 } else {
-                    // Inform player about level requirement
                     setTimeout(() => {
                         this.game.hudManager.showNotification(
                             `New quest "${nextQuest.name}" will be available at level ${nextQuest.requiredLevel}.`
@@ -426,28 +508,43 @@ export class QuestManager {
     }
     
     awardQuestRewards(quest) {
-        // Award experience
-        if (quest.reward.experience) {
-            this.game.player.addExperience(quest.reward.experience);
-            this.game.hudManager.showNotification(`Gained ${quest.reward.experience} experience`);
-        }
-        
-        // Award gold
-        if (quest.reward.gold) {
-            this.game.player.addGold(quest.reward.gold);
-            this.game.hudManager.showNotification(`Gained ${quest.reward.gold} gold`);
-        }
-        
-        // Award items
-        if (quest.reward.items) {
-            quest.reward.items.forEach(item => {
-                const equipResult = this.game.player.addToInventory(item);
-                if (equipResult === 'equipped') {
-                    this.game.hudManager.showNotification(`Equipped ${item.name}`, 'equip', { item });
+        // GDD rewards (chapter quests): rewards.xp, rewards.skillPoints
+        const rewards = quest.rewards || quest.reward;
+        if (rewards) {
+            const xp = rewards.xp ?? rewards.experience;
+            if (xp) {
+                this.game.player.addExperience(xp);
+                this.game.hudManager.showNotification(`Gained ${xp} experience`);
+            }
+            const skillPoints = rewards.skillPoints;
+            if (skillPoints && this.game.hudManager.components.skillTreeUI) {
+                const ui = this.game.hudManager.components.skillTreeUI;
+                if (typeof ui.addSkillPoints === 'function') {
+                    ui.addSkillPoints(skillPoints);
                 } else {
-                    this.game.hudManager.showNotification(`Received ${item.name} x${item.amount}`);
+                    ui.skillPoints = (ui.skillPoints || 0) + skillPoints;
+                    if (ui.elements?.skillPointsValue) ui.elements.skillPointsValue.textContent = ui.skillPoints;
                 }
-            });
+                this.game.hudManager.showNotification(`Gained ${skillPoints} skill point(s)`);
+            }
+        }
+
+        // Legacy: reward.gold and reward.items
+        if (quest.reward) {
+            if (quest.reward.gold) {
+                this.game.player.addGold(quest.reward.gold);
+                this.game.hudManager.showNotification(`Gained ${quest.reward.gold} gold`);
+            }
+            if (quest.reward.items) {
+                quest.reward.items.forEach(item => {
+                    const equipResult = this.game.player.addToInventory(item);
+                    if (equipResult === 'equipped') {
+                        this.game.hudManager.showNotification(`Equipped ${item.name}`, 'equip', { item });
+                    } else {
+                        this.game.hudManager.showNotification(`Received ${item.name} x${item.amount}`);
+                    }
+                });
+            }
         }
     }
     
@@ -461,29 +558,33 @@ export class QuestManager {
     
     getAvailableQuests() {
         const playerLevel = this.game.player.getLevel();
-        
-        // Filter quests based on player level and completed quests
-        return this.quests.filter(quest => {
-            // Check if quest is already completed
+        const legacy = this.quests.filter(quest => {
             const isCompleted = this.completedQuests.some(q => q.id === quest.id);
             if (isCompleted) return false;
-            
-            // Check if quest is already active
             const isActive = this.activeQuests.some(q => q.id === quest.id);
             if (isActive) return false;
-            
-            // Check if player meets level requirement
-            return playerLevel >= quest.requiredLevel;
+            return playerLevel >= (quest.requiredLevel || 1);
         });
+        const chapter = this.getAvailableChapterQuests().filter(
+            q => !this.activeQuests.some(a => a.id === q.id)
+        );
+        return [...chapter, ...legacy];
     }
     
     checkForAvailableQuests() {
         const availableQuests = this.getAvailableQuests();
-        
-        // Check for main quests first
+        const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q));
+        if (chapterQuests.length > 0) {
+            const q = chapterQuests[0];
+            this.game.hudManager.showDialog(
+                `New Quest: ${q.title || q.name}`,
+                `${q.description}\n\nWould you like to accept this quest?`,
+                () => this.startQuest(q)
+            );
+            return;
+        }
         const mainQuests = availableQuests.filter(q => q.isMainQuest);
         if (mainQuests.length > 0) {
-            // Offer the first available main quest
             const mainQuest = mainQuests[0];
             this.game.hudManager.showDialog(
                 `New Main Quest Available: ${mainQuest.name}`,
@@ -492,13 +593,9 @@ export class QuestManager {
             );
             return;
         }
-        
-        // If no main quests, check for side quests
         const sideQuests = availableQuests.filter(q => !q.isMainQuest);
         if (sideQuests.length > 0) {
-            // Offer a random side quest
-            const randomIndex = Math.floor(Math.random() * sideQuests.length);
-            const sideQuest = sideQuests[randomIndex];
+            const sideQuest = sideQuests[Math.floor(Math.random() * sideQuests.length)];
             this.game.hudManager.showDialog(
                 `New Side Quest Available: ${sideQuest.name}`,
                 `${sideQuest.description}\n\nWould you like to accept this quest?`,

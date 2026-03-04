@@ -81,6 +81,13 @@ export class Game {
         /** Single-player only: when true, guide overlay is open; simulation frozen but HUD and scene visible */
         this.guideFreezeActive = false;
         
+        /** Path of Mastery (Phase 6.2): when true, spawns use path_of_mastery zone and harder bosses; persisted in settings */
+        this.isInPathOfMastery = false;
+        /** Path of Mastery boss kill counts by boss type; persisted in settings */
+        this.pathOfMasteryCompletions = {};
+        /** Unlocked cosmetic IDs (e.g. masters_robe_skin); persisted in settings */
+        this.unlockedCosmetics = [];
+        
         // Default difficulty (will be updated in init)
         this.difficulty = 'medium';
         
@@ -909,6 +916,68 @@ export class Game {
         
         console.debug("Game resumed successfully");
     }
+
+    /**
+     * Returns a serializable snapshot of the current player build for Shadow Self (Phase 6.1).
+     * Used only when spawning shadow_self boss: mirror level, attributes, derived stats, and skill tree.
+     * @returns {{ level: number, maxHealth: number, maxMana: number, attackPower: number, movementSpeed: number, strength: number, intelligence: number, agility: number, vitality: number, wisdom: number, skillTreeNodeLevels: Object }|null}
+     */
+    getPlayerBuildSnapshot() {
+        if (!this.player?.stats) return null;
+        const s = this.player.stats;
+        const inv = this.player.inventory;
+        const attackPower = s.getAttackPower() + (inv ? inv.getAttackBonus() : 0);
+        const movementSpeed = s.getMovementSpeed() + (inv ? inv.getSpeedBonus() : 0);
+        return {
+            level: s.level,
+            maxHealth: s.getMaxHealth(),
+            maxMana: s.getMaxMana(),
+            attackPower: Math.max(1, attackPower),
+            movementSpeed: Math.max(1, movementSpeed),
+            strength: s.strength ?? 0,
+            intelligence: s.intelligence ?? 0,
+            agility: s.agility ?? 0,
+            vitality: s.vitality ?? 0,
+            wisdom: s.wisdom ?? 0,
+            skillTreeNodeLevels: (s.skillTreeNodeLevels && typeof s.skillTreeNodeLevels === 'object') ? { ...s.skillTreeNodeLevels } : {}
+        };
+    }
+
+    /**
+     * Enter Path of Mastery (GDD §12). Unlocked after Chapter 5.
+     * Sets isInPathOfMastery so spawns use path_of_mastery zone and harder bosses; state persisted in settings.
+     */
+    enterPathOfMastery() {
+        if (!this.questManager?.isPathOfMasteryUnlocked?.()) return;
+        this.isInPathOfMastery = true;
+        if (this.hudManager) {
+            this.hudManager.showNotification('Path of Mastery: harder enemies and bosses will now appear. Defeat bosses to earn mastery and cosmetics.');
+        }
+    }
+
+    /**
+     * Record a Path of Mastery boss kill; increments completion count and unlocks cosmetic on first PoM boss clear.
+     * @param {string} bossType - Enemy type (e.g. 'skeleton_king', 'shadow_self')
+     */
+    recordPathOfMasteryBossKill(bossType) {
+        if (!this.isInPathOfMastery || !bossType) return;
+        const totalBefore = Object.values(this.pathOfMasteryCompletions).reduce((a, b) => a + b, 0);
+        this.pathOfMasteryCompletions[bossType] = (this.pathOfMasteryCompletions[bossType] || 0) + 1;
+        if (totalBefore === 0 && this.unlockedCosmetics.indexOf('masters_robe_skin') === -1) {
+            this.unlockedCosmetics.push('masters_robe_skin');
+            if (this.hudManager) {
+                this.hudManager.showNotification('Cosmetic unlocked: Master\'s Robe skin!');
+            }
+        }
+    }
+
+    /**
+     * Return a copy of unlocked cosmetic IDs for equipment/UI to offer skin selection.
+     * @returns {string[]}
+     */
+    getUnlockedCosmetics() {
+        return Array.isArray(this.unlockedCosmetics) ? [...this.unlockedCosmetics] : [];
+    }
     
     /**
      * Single-player only: freeze or unfreeze the game for the HUD guide overlay.
@@ -1045,7 +1114,7 @@ export class Game {
                             const mapOverlayEl = document.getElementById('mapLoadingOverlay');
                             if (mapOverlayEl) mapOverlayEl.style.display = 'none';
                             this.resume();
-                            this.audioManager.playMusic();
+                            this.audioManager.setMusicContext('exploration');
                             console.debug("Game revealed and unpaused");
                         }, 543);
                     };

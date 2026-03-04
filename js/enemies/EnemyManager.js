@@ -232,9 +232,9 @@ export class EnemyManager {
                 this.enemyKillCount = 0; // Reset kill counter
                 void this.spawnRandomBoss();
                 
-                // Play boss theme if available
+                // GDD music layers: switch to boss intensity
                 if (this.game && this.game.audioManager) {
-                    this.game.audioManager.playMusic('bossTheme');
+                    this.game.audioManager.setMusicContext('boss');
                 }
             }
         }
@@ -289,11 +289,25 @@ export class EnemyManager {
         // Process deferred disposal queue
         this.processDisposalQueue();
         
-        // Check if boss theme should be stopped (all bosses are dead)
-        if (!bossAlive && this.game && this.game.audioManager && 
-            this.game.audioManager.getCurrentMusic() === 'bossTheme') {
-            // Stop boss theme and return to main theme
-            this.game.audioManager.playMusic('mainTheme');
+        // GDD music layers: return to exploration or combat when no boss alive
+        if (!bossAlive && this.game && this.game.audioManager) {
+            const am = this.game.audioManager;
+            if (am.getCurrentMusic() === 'bossTheme') {
+                const inCombat = this.enemies.size > 0;
+                am.setMusicContext(inCombat ? 'combat' : 'exploration');
+            }
+        } else if (this.game && this.game.audioManager && this.enemies.size > 0) {
+            // No boss but enemies present: use combat layer if currently exploration
+            const am = this.game.audioManager;
+            if (am.currentMusicContext === 'exploration' && am.getCurrentMusic() === 'mainTheme') {
+                am.setMusicContext('combat');
+            }
+        } else if (this.game && this.game.audioManager && this.enemies.size === 0) {
+            // No enemies: return to exploration
+            const am = this.game.audioManager;
+            if (am.currentMusicContext === 'combat') {
+                am.setMusicContext('exploration');
+            }
         }
 
         // Cave group spawning: spawn/respawn groups when player approaches caves
@@ -319,14 +333,19 @@ export class EnemyManager {
         }
     }
     
-    async spawnEnemy(specificType = null, position = null, enemyId = null, caveGroupKey = null) {
+    async spawnEnemy(specificType = null, position = null, enemyId = null, caveGroupKey = null, configOverride = null) {
         let enemyType;
-        
-        if (specificType) {
+        let skipScaling = false;
+
+        if (configOverride && typeof configOverride === 'object' && configOverride.type) {
+            // Pre-built config (e.g. Shadow Self from player snapshot); use as-is without scaling
+            enemyType = configOverride;
+            skipScaling = true;
+        } else if (specificType) {
             // Use specified enemy type
-            enemyType = this.enemyTypes.find(type => type.type === specificType) || 
+            enemyType = this.enemyTypes.find(type => type.type === specificType) ||
                         this.bossTypes.find(type => type.type === specificType);
-            
+
             if (!enemyType) {
                 console.warn(`Enemy type ${specificType} not found, using random type`);
                 enemyType = this.getRandomEnemyType();
@@ -335,9 +354,9 @@ export class EnemyManager {
             // Get random enemy type based on current zone
             enemyType = this.getRandomEnemyType();
         }
-        
-        // Apply difficulty scaling
-        const scaledEnemyType = this.applyDifficultyScaling(enemyType);
+
+        // Apply difficulty scaling unless overridden (e.g. shadow_self uses snapshot stats)
+        const scaledEnemyType = skipScaling ? enemyType : this.applyDifficultyScaling(enemyType);
         
         // Get position
         const spawnPosition = position ? position.clone() : this.getRandomSpawnPosition();
@@ -784,9 +803,11 @@ export class EnemyManager {
         const groupSize = 20 + Math.floor(Math.random() * this.enemyGroupSize.max / 2);
         console.debug(`Spawning a LARGE dangerous group of ${groupSize} enemies!`);
         
-        // Get available zones
+        // Get available zones (Path of Mastery: use path_of_mastery when flag set)
         const availableZones = Object.keys(this.zoneEnemies);
-        const randomZone = availableZones[Math.floor(Math.random() * availableZones.length)];
+        const randomZone = (this.game?.isInPathOfMastery && this.zoneEnemies['path_of_mastery'])
+            ? 'path_of_mastery'
+            : availableZones[Math.floor(Math.random() * availableZones.length)];
         const zoneEnemyTypes = this.zoneEnemies[randomZone];
         
         // Select a random enemy type from the zone for this group
@@ -903,9 +924,11 @@ export class EnemyManager {
         }
     }
     getRandomEnemyType() {
-        // Get a random zone instead of using player's current zone
+        // Path of Mastery (Phase 6.2): use path_of_mastery zone when flag is set
         const availableZones = Object.keys(this.zoneEnemies);
-        const randomZone = availableZones[Math.floor(Math.random() * availableZones.length)];
+        const randomZone = (this.game?.isInPathOfMastery && this.zoneEnemies['path_of_mastery'])
+            ? 'path_of_mastery'
+            : availableZones[Math.floor(Math.random() * availableZones.length)];
         
         // Get enemy types for this random zone
         const zoneEnemyTypes = this.zoneEnemies[randomZone];
@@ -932,7 +955,10 @@ export class EnemyManager {
         // If we have zone bosses configuration and a zone is specified or we can get a random zone
         if (this.zoneBosses) {
             let bossZone = zone;
-            
+            // Path of Mastery (Phase 6.2): use path_of_mastery when flag is set and no zone specified
+            if (!bossZone && this.game?.isInPathOfMastery && this.zoneBosses['path_of_mastery']) {
+                bossZone = 'path_of_mastery';
+            }
             // If no zone specified, get a random zone that has bosses
             if (!bossZone) {
                 const availableZones = Object.keys(this.zoneBosses);
@@ -977,14 +1003,12 @@ export class EnemyManager {
             strengthFactor = Math.max(0.9, Math.min(strengthFactor, 1.25)); // clamp
         }
         
-        // Get random zone for zone-based difficulty
+        // Get random zone for zone-based difficulty (Path of Mastery uses path_of_mastery multiplier)
         let zoneDifficultyMultiplier = 1.0;
-        
-        // Get a random zone from available zones
         const availableZones = Object.keys(this.zoneDifficultyMultipliers);
-        const randomZone = availableZones[Math.floor(Math.random() * availableZones.length)];
-        
-        // Get zone difficulty multiplier
+        const randomZone = (this.game?.isInPathOfMastery && availableZones.includes('path_of_mastery'))
+            ? 'path_of_mastery'
+            : availableZones[Math.floor(Math.random() * availableZones.length)];
         zoneDifficultyMultiplier = this.zoneDifficultyMultipliers[randomZone] || 1.0;
         
         // Use game-balance settings for level scaling
@@ -1250,15 +1274,41 @@ export class EnemyManager {
     
     async spawnBoss(bossType, position) {
         // Find the boss type
-        const bossConfig = this.bossTypes.find(type => type.type === bossType);
+        let bossConfig = this.bossTypes.find(type => type.type === bossType);
         
         if (!bossConfig) {
             console.warn(`Boss type ${bossType} not found`);
             return null;
         }
+
+        // Shadow Self (Phase 6.1): build boss from player snapshot instead of fixed BOSS_TYPES
+        let configOverride = null;
+        if (bossType === 'shadow_self' && this.game?.getPlayerBuildSnapshot) {
+            const snapshot = this.game.getPlayerBuildSnapshot();
+            if (snapshot) {
+                const scale = 0.95; // Slightly below player so fight is fair
+                configOverride = {
+                    ...bossConfig,
+                    type: 'shadow_self',
+                    name: bossConfig.name || 'Shadow Self',
+                    health: Math.max(100, Math.round(snapshot.maxHealth * scale)),
+                    damage: Math.max(5, Math.round(snapshot.attackPower * scale)),
+                    speed: Math.min(4, Math.max(1, snapshot.movementSpeed * scale)),
+                    attackRange: bossConfig.attackRange ?? 2.2,
+                    attackSpeed: Math.min(2, 1 + (snapshot.agility * 0.02) * scale),
+                    experienceValue: bossConfig.experienceValue ?? 350,
+                    color: bossConfig.color ?? 0x333366,
+                    scale: bossConfig.scale ?? 1.2,
+                    isBoss: true,
+                    behavior: bossConfig.behavior ?? 'boss',
+                    zone: bossConfig.zone,
+                    abilities: bossConfig.abilities
+                };
+            }
+        }
         
-        // Apply difficulty scaling
-        const scaledBossConfig = this.applyDifficultyScaling(bossConfig);
+        // Apply difficulty scaling (skipped when configOverride is used for shadow_self)
+        const scaledBossConfig = configOverride || this.applyDifficultyScaling(bossConfig);
         
         // Determine spawn position
         let spawnPosition;
@@ -1270,18 +1320,15 @@ export class EnemyManager {
             spawnPosition = new THREE.Vector3(playerPos.x, playerPos.y, playerPos.z + 5); // 5 units in front of player
         }
         
-        // Adjust position to terrain height if world is available
-        // if (this.game && this.game.world) {
-        //     const terrainHeight = this.game.world.getTerrainHeight(spawnPosition.x, spawnPosition.z);
-        //     if (terrainHeight !== null) {
-        //         // Use the boss's height offset for proper positioning
-        //         const bossHeightOffset = (scaledBossConfig.scale || 1) * 0.4; // Same calculation as in Enemy constructor
-        //         spawnPosition.y = terrainHeight + bossHeightOffset;
-        //     }
-        // }
-        
         // Use the existing spawnEnemy method to ensure consistent positioning (async)
-        const boss = await this.spawnEnemy(bossType, spawnPosition, `boss_${this.nextEnemyId++}`);
+        // For shadow_self with snapshot, pass config so spawnEnemy uses it without re-scaling
+        const boss = await this.spawnEnemy(
+            configOverride ? configOverride.type : bossType,
+            spawnPosition,
+            `boss_${this.nextEnemyId++}`,
+            null,
+            configOverride || null
+        );
         
         if (!boss) {
             console.warn(`Failed to spawn boss ${bossType}`);
@@ -1533,9 +1580,11 @@ export class EnemyManager {
             this.maxEnemies - this.enemies.size // Don't exceed max enemies
         );
         
-        // Get a random zone instead of using player's current zone
+        // Get a random zone (Path of Mastery: use path_of_mastery when flag set)
         const availableZones = Object.keys(this.zoneEnemies);
-        const randomZone = availableZones[Math.floor(Math.random() * availableZones.length)];
+        const randomZone = (this.game?.isInPathOfMastery && this.zoneEnemies['path_of_mastery'])
+            ? 'path_of_mastery'
+            : availableZones[Math.floor(Math.random() * availableZones.length)];
         
         // Get enemy types for this random zone
         const zoneEnemyTypes = this.zoneEnemies[randomZone];

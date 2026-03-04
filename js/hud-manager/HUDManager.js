@@ -8,6 +8,7 @@ import { SkillSelectionUI } from './SkillSelectionUI.js';
 import { VirtualJoystickUI } from './VirtualJoystickUI.js';
 import { CameraControlUI } from './CameraControlUI.js';
 import { DeathScreenUI } from './DeathScreenUI.js';
+import { ReflectionUI } from './ReflectionUI.js';
 import { NotificationsUI } from './NotificationsUI.js';
 import { QuestLogUI } from './QuestLogUI.js';
 import { MiniMapUI } from './MiniMapUI.js';
@@ -135,7 +136,11 @@ export class HUDManager {
         // Create death screen UI
         this.components.deathScreenUI = new DeathScreenUI(this.game);
         this.components.deathScreenUI.init();
-        
+
+        // Create reflection screen UI (post-boss life lesson)
+        this.components.reflectionUI = new ReflectionUI(this.game);
+        this.components.reflectionUI.init();
+
         // Create notifications UI
         this.components.notificationsUI = new NotificationsUI(this.game);
         this.components.notificationsUI.init();
@@ -281,6 +286,16 @@ export class HUDManager {
      */
     hideDeathScreen() {
         this.components.deathScreenUI.hideDeathScreen();
+    }
+
+    /**
+     * Show reflection screen (post-boss life lesson). GDD §11.
+     * @param {string} lesson - Life lesson quote to display
+     * @param {function} onContinue - Callback when user clicks "Continue Journey"
+     * @param {Object} [options] - Optional: { isChapter5: boolean, onEnterPathOfMastery: function } for Path of Mastery (GDD §12)
+     */
+    showReflectionScreen(lesson, onContinue, options = {}) {
+        this.components.reflectionUI.showReflection(lesson, onContinue, options);
     }
     
     /**

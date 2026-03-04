@@ -24,6 +24,7 @@ import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
 import { PlayerEquipmentVisuals } from './PlayerEquipmentVisuals.js';
 import { PlayerCoachVisuals } from './PlayerCoachVisuals.js';
+import { createNativeMonkGroup, updateNativeMonkAnimations } from './models/NativeMonkModel.js';
 
 /**
  * @typedef {Object} ModelAdjustment
@@ -105,6 +106,8 @@ export class PlayerModel {
         this.sizeMultiplier = this.currentModel.multiplier; // Size multiplier
         this.modelScale = this.baseScale * this.sizeMultiplier; // Effective scale
         this.modelPath = this.currentModel.path; // Path to the 3D model
+        /** @type {THREE.Group|null} When using native monk, the procedural model root */
+        this.nativeMonkRoot = null;
     }
     
     // setGame method removed - game is now passed in constructor
