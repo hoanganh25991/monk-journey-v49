@@ -583,6 +583,13 @@ export class QuestManager {
     }
     
     checkForAvailableQuests() {
+        const remindLater = () => {
+            setTimeout(() => {
+                if (this.game.hudManager && !this.getActiveChapterQuest()) {
+                    this.game.hudManager.showNotification('A story quest is available. Look for the quest log on the left.');
+                }
+            }, 8000);
+        };
         const availableQuests = this.getAvailableQuests();
         const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q));
         if (chapterQuests.length > 0) {
@@ -590,7 +597,8 @@ export class QuestManager {
             this.game.hudManager.showDialog(
                 `New Quest: ${q.title || q.name}`,
                 `${q.description}\n\nWould you like to accept this quest?`,
-                () => this.startQuest(q)
+                () => this.startQuest(q),
+                remindLater
             );
             return;
         }
@@ -600,7 +608,8 @@ export class QuestManager {
             this.game.hudManager.showDialog(
                 `New Main Quest Available: ${mainQuest.name}`,
                 `${mainQuest.description}\n\nWould you like to accept this quest?`,
-                () => this.startQuest(mainQuest)
+                () => this.startQuest(mainQuest),
+                remindLater
             );
             return;
         }
@@ -610,7 +619,8 @@ export class QuestManager {
             this.game.hudManager.showDialog(
                 `New Side Quest Available: ${sideQuest.name}`,
                 `${sideQuest.description}\n\nWould you like to accept this quest?`,
-                () => this.startQuest(sideQuest)
+                () => this.startQuest(sideQuest),
+                remindLater
             );
         }
     }

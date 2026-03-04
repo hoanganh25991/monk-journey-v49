@@ -41,6 +41,7 @@ export class DialogUI extends UIComponent {
                 if (this._onAccept) {
                     const cb = this._onAccept;
                     this._onAccept = null;
+                    this._onDecline = null; // accepted, so do not call decline
                     cb();
                 }
                 this.hideDialog();
@@ -58,9 +59,11 @@ export class DialogUI extends UIComponent {
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
      * @param {function} [onAccept] - Optional. If provided, show "Accept" button; clicking it calls onAccept() then closes. Otherwise "Click to continue" (click to close).
+     * @param {function} [onDecline] - Optional. If provided with onAccept, called when the dialog is closed without clicking Accept (e.g. overlay click).
      */
-    showDialog(title, text, onAccept) {
+    showDialog(title, text, onAccept, onDecline) {
         this._onAccept = typeof onAccept === 'function' ? onAccept : null;
+        this._onDecline = typeof onDecline === 'function' ? onDecline : null;
         
         // Update dialog text
         this.dialogText.innerHTML = `<h3>${title}</h3><p>${text.replace(/\n/g, '<br>')}</p>`;
@@ -86,7 +89,11 @@ export class DialogUI extends UIComponent {
      * Hide the dialog
      */
     hideDialog() {
+        if (this._onAccept && this._onDecline) {
+            try { this._onDecline(); } catch (err) { console.warn('Dialog onDecline error:', err); }
+        }
         this._onAccept = null;
+        this._onDecline = null;
         if (this.dialogContinue) this.dialogContinue.style.display = '';
         if (this.dialogAcceptBtn) this.dialogAcceptBtn.style.display = 'none';
         // Hide dialog box

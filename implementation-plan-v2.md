@@ -154,7 +154,7 @@ Use this in addition to **IMPLEMENTATION_PLAN.md**. Order below is recommended; 
 |-------|------|--------|--------|
 | **8** | 8.1 Dialog Accept callback | ✅ Done | `DialogUI` / `HUDManager` support `onAccept`; quest dialog shows Accept button and starts quest on click. |
 | **8** | 8.2 Offer quest on game start | ✅ Done | `checkForAvailableQuests()` called after reveal (both reveal animation path and warmup path in `Game.js`); `_hasOfferedQuestThisSession` ensures once per start. |
-| **8** | 8.3 Decline/remind | ⏭ Optional P2 | Not implemented; leave as-is per plan. |
+| **8** | 8.3 Decline/remind | ✅ Done | DialogUI/HUDManager support `onDecline`; when quest offer is closed without Accept, a reminder notification is shown after 8s ("A story quest is available. Look for the quest log on the left.") if no chapter quest is active. |
 | **9** | 9.1 Help / How to play | ✅ Done | Main menu **Help** opens modal with intro, Controls, Quests, Quest log, After each chapter (`index.html` #help-modal). |
 | **9** | 9.2 First-time hint | ✅ Done | One-time notification when player accepts first chapter quest: "Your journey: complete the objectives in the quest log, then face the chapter boss." (`QuestManager.startQuest` + `Game._hasShownQuestHintThisSession`). |
 | **10** | 10.1 Quest log description/area | ✅ Done | `QuestLogUI` shows `quest.area` and `quest.description` for each active quest (`quest-area-desc`). |
