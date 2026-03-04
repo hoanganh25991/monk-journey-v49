@@ -66,8 +66,8 @@
             <div class="login-modal-loader"></div>
             <p class="login-modal-status" id="login-modal-status"></p>
             <div class="login-modal-buttons" id="login-modal-buttons">
-                <button class="login-btn" id="login-modal-login-btn">Login</button>
-                <button class="cancel-btn" id="login-modal-cancel-btn">Start New Game</button>
+                <button type="button" class="settings-button" id="login-modal-login-btn">Login</button>
+                <button type="button" class="settings-button secondary-button" id="login-modal-cancel-btn">Start New Game</button>
             </div>
         </div>
     </div>
@@ -88,8 +88,8 @@
                 <div id="conflict-cloud-data"></div>
             </div>
             <div class="login-modal-buttons">
-                <button class="login-btn" id="conflict-use-cloud-btn">Use Cloud Version</button>
-                <button class="cancel-btn" id="conflict-use-local-btn">Use Local Version</button>
+                <button type="button" class="settings-button" id="conflict-use-cloud-btn">Use Cloud Version</button>
+                <button type="button" class="settings-button secondary-button" id="conflict-use-local-btn">Use Local Version</button>
             </div>
         </div>
     </div>
@@ -102,7 +102,21 @@
                 Map selection feature is coming soon! Stay tuned for exciting new worlds to explore.
             </p>
             <div class="login-modal-buttons">
-                <button class="login-btn" id="map-selection-ok-btn">OK</button>
+                <button type="button" class="settings-button" id="map-selection-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Game Confirm Modal -->
+    <div id="new-game-confirm-modal" class="login-modal-overlay" style="display: none;">
+        <div class="login-modal-dialog">
+            <h3 class="login-modal-title">Start New Game?</h3>
+            <p class="login-modal-message">
+                Are you sure you want to start a new game? Your current progress will be lost.
+            </p>
+            <div class="login-modal-buttons">
+                <button type="button" class="settings-button secondary-button" id="new-game-confirm-cancel-btn">Cancel</button>
+                <button type="button" class="settings-button" id="new-game-confirm-start-btn">Start New Game</button>
             </div>
         </div>
     </div>

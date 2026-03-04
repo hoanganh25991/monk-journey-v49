@@ -250,36 +250,49 @@ export class GameplayTab extends SettingsTab {
         
         // Initialize New Game button if it exists
         if (this.newGameButton) {
-            this.newGameButton.addEventListener('click', () => {
-                // Confirm before starting a new game
-                if (confirm('Are you sure you want to start a new game? Your current progress will be lost.')) {
-                    // Close the settings menu
-                    if (this.settingsMenu) {
-                        this.settingsMenu.hide();
-                    }
-                    
-                    // Start a new game
-                    if (this.game) {
-                        console.debug('Starting a new game...');
-                        
-                        // First, delete all player state data from localStorage
-                        if (this.game.saveManager) {
-                            console.debug('Removing player state data from localStorage...');
-                            const saveDeleted = this.game.saveManager.deleteSave();
-                            if (saveDeleted) {
-                                console.debug('Player state data successfully removed');
-                            } else {
-                                console.warn('Failed to remove player state data');
-                            }
+            const newGameConfirmModal = document.getElementById('new-game-confirm-modal');
+            const newGameConfirmCancelBtn = document.getElementById('new-game-confirm-cancel-btn');
+            const newGameConfirmStartBtn = document.getElementById('new-game-confirm-start-btn');
+
+            const startNewGame = () => {
+                newGameConfirmModal.style.display = 'none';
+                // Close the settings menu
+                if (this.settingsMenu) {
+                    this.settingsMenu.hide();
+                }
+                if (this.game) {
+                    console.debug('Starting a new game...');
+                    if (this.game.saveManager) {
+                        console.debug('Removing player state data from localStorage...');
+                        const saveDeleted = this.game.saveManager.deleteSave();
+                        if (saveDeleted) {
+                            console.debug('Player state data successfully removed');
+                        } else {
+                            console.warn('Failed to remove player state data');
                         }
-                        
-                        // Clear ALL localStorage (including settings) for a fresh start
-                        // This fixes issues with stale quality/shadow settings on mobile
-                        console.debug('Clearing all localStorage for fresh start...');
-                        localStorage.clear();
-                        
-                        window.location.reload();
                     }
+                    console.debug('Clearing all localStorage for fresh start...');
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            };
+
+            this.newGameButton.addEventListener('click', () => {
+                newGameConfirmModal.style.display = 'flex';
+            });
+
+            if (newGameConfirmCancelBtn) {
+                newGameConfirmCancelBtn.addEventListener('click', () => {
+                    newGameConfirmModal.style.display = 'none';
+                });
+            }
+            if (newGameConfirmStartBtn) {
+                newGameConfirmStartBtn.addEventListener('click', startNewGame);
+            }
+
+            newGameConfirmModal.addEventListener('click', (e) => {
+                if (e.target === newGameConfirmModal) {
+                    newGameConfirmModal.style.display = 'none';
                 }
             });
         }
