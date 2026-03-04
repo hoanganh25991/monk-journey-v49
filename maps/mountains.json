@@ -2969,8 +2969,8 @@
       "type": "chapter_quest",
       "chapterQuestId": "chapter_3_mountain_of_desire",
       "position": {
-        "x": -80,
-        "z": 60
+        "x": -60,
+        "z": 50
       }
     }
   ]
