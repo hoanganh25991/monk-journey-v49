@@ -95,6 +95,8 @@ export class Game {
         
         // Default difficulty (will be updated in init)
         this.difficulty = 'medium';
+        /** Quest & story language: 'en' | 'vi' (Settings > Game); default EN */
+        this.questStoryLocale = 'en';
         
         // WebGL state tracking
         this.webglContextLost = false;
@@ -120,6 +122,11 @@ export class Game {
             const validQualityLevels = ['high', 'medium', 'low', 'minimal'];
             this.materialQuality = validQualityLevels.includes(materialQuality) ? materialQuality : 'high';
             console.debug(`Game initialized with material quality: ${this.materialQuality}`);
+
+            // Quest & story language (EN / VI)
+            const questStoryLocale = await storageService.loadData(STORAGE_KEYS.QUEST_STORY_LOCALE);
+            this.questStoryLocale = questStoryLocale === 'vi' ? 'vi' : 'en';
+            console.debug(`Game initialized with quest/story locale: ${this.questStoryLocale}`);
         } catch (error) {
             console.error('Error loading initial settings:', error);
         }

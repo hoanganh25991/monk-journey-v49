@@ -1,4 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
+import { getReflectionUiString } from '../config/chapter-quests-locales.js';
 
 /**
  * Reflection UI — post-boss life lesson (GDD §11).
@@ -59,12 +60,17 @@ export class ReflectionUI extends UIComponent {
         const quoteEl = document.getElementById('reflection-quote');
         if (quoteEl) quoteEl.textContent = lesson;
 
-        this.onContinueCallback = onContinue;
-        this.onEnterPathOfMasteryCallback = options.onEnterPathOfMastery || null;
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        const continueBtn = document.getElementById('reflection-continue-btn');
+        if (continueBtn) continueBtn.textContent = getReflectionUiString('continueJourney', locale);
         const pomBtn = document.getElementById('reflection-pom-btn');
         if (pomBtn) {
+            pomBtn.textContent = getReflectionUiString('enterPathOfMastery', locale);
             pomBtn.style.display = options.isChapter5 ? 'block' : 'none';
         }
+
+        this.onContinueCallback = onContinue;
+        this.onEnterPathOfMasteryCallback = options.onEnterPathOfMastery || null;
         this.show();
         this.isReflectionOpen = true;
 

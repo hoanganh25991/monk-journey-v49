@@ -5,6 +5,7 @@
 
 import { IMenu } from './IMenu.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
+import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
 
 export class GameMenu extends IMenu {
     /**
@@ -195,10 +196,12 @@ export class GameMenu extends IMenu {
             completedEl.innerHTML = '<p>Start or load a game to track your journey.</p>';
             nextEl.innerHTML = '';
         } else {
+            const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
             const completed = [];
             for (const q of CHAPTER_QUESTS) {
                 if (qm.completedChapterQuestIds && qm.completedChapterQuestIds.has(q.id)) {
-                    completed.push({ area: q.area, lesson: q.lesson });
+                    const d = getChapterQuestDisplay(q, locale);
+                    completed.push({ area: d.area, lesson: d.lesson });
                 }
             }
             if (completed.length > 0) {
@@ -213,7 +216,8 @@ export class GameMenu extends IMenu {
                 ? CHAPTER_QUESTS.find(q => q.id === activeChapter.id)
                 : (completed.length < CHAPTER_QUESTS.length ? CHAPTER_QUESTS[completed.length] : null);
             if (nextChapter) {
-                nextEl.innerHTML = `<p><strong>Next:</strong> ${nextChapter.area} — ${nextChapter.title}</p>`;
+                const nextDisplay = getChapterQuestDisplay(nextChapter, locale);
+                nextEl.innerHTML = `<p><strong>Next:</strong> ${nextDisplay.area} — ${nextDisplay.title}</p>`;
             } else {
                 nextEl.innerHTML = completed.length >= CHAPTER_QUESTS.length ? '<p>You have completed the main journey. Enter the Path of Mastery for more.</p>' : '';
             }

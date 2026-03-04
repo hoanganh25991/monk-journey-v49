@@ -129,6 +129,10 @@ export class EnemyManager {
         // Simplified boss spawning configuration
         this.enemyKillCount = 0;
         this.killsPerBossSpawn = this.enemyGroupSize.max; // Spawn a boss after every 100 enemy kills
+        /** When a chapter quest has kill objectives complete but boss not, spawn chapter boss after this many kills (so player doesn't need to find a lair). */
+        this.killsBeforeChapterBossSpawn = 5;
+        /** Quest id for which we already spawned the chapter boss (so we don't spawn it again). */
+        this._chapterBossSpawnedForQuestId = null;
         
         // Item generation
         this.itemGenerator = new ItemGenerator(game);
@@ -226,12 +230,25 @@ export class EnemyManager {
                 this.spawnTimer = 0;
             }
             
-            // Simplified boss spawning - spawn boss based on kill count only
-            if (this.enemyKillCount >= this.killsPerBossSpawn) {
-                console.debug(`Spawning boss after ${this.enemyKillCount} enemy kills.`);
+            // Simplified boss spawning - spawn boss based on kill count; prefer chapter boss when quest is ready
+            const activeChapter = this.game?.questManager?.getActiveChapterQuest?.() || null;
+            if (this._chapterBossSpawnedForQuestId && (!activeChapter || activeChapter.id !== this._chapterBossSpawnedForQuestId)) {
+                this._chapterBossSpawnedForQuestId = null; // Quest completed or changed, allow chapter boss spawn for new quest
+            }
+            const killObjectivesComplete = activeChapter?.objectives?.filter(o => o.type === 'kill').every(o => (o.progress || 0) >= o.count) ?? false;
+            const bossObjectiveIncomplete = activeChapter?.objectives?.some(o => o.type === 'defeat_boss' && (o.progress || 0) < o.count) ?? false;
+            const chapterBossPending = activeChapter?.boss?.enemyType && killObjectivesComplete && bossObjectiveIncomplete && !this._chapterBossSpawnedForQuestId;
+            const requiredKills = chapterBossPending ? this.killsBeforeChapterBossSpawn : this.killsPerBossSpawn;
+            if (this.enemyKillCount >= requiredKills) {
                 this.enemyKillCount = 0; // Reset kill counter
-                void this.spawnRandomBoss();
-                
+                if (chapterBossPending) {
+                    this._chapterBossSpawnedForQuestId = activeChapter.id;
+                    console.debug(`Spawning chapter boss ${activeChapter.boss.enemyType} for quest ${activeChapter.id}.`);
+                    void this.spawnBoss(activeChapter.boss.enemyType, this.getRandomSpawnPosition());
+                } else {
+                    console.debug(`Spawning boss after ${requiredKills} enemy kills.`);
+                    void this.spawnRandomBoss();
+                }
                 // GDD music layers: switch to boss intensity
                 if (this.game && this.game.audioManager) {
                     this.game.audioManager.setMusicContext('boss');

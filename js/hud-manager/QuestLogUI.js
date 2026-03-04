@@ -1,4 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
+import { getChapterQuestById } from '../config/chapter-quests.js';
+import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
 
 /**
  * Quest Log UI component
@@ -78,9 +80,14 @@ export class QuestLogUI extends UIComponent {
             noQuests.textContent = 'No active quests';
             this.questList.appendChild(noQuests);
         } else {
+            const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
             activeQuests.forEach((quest, index) => {
-                const name = quest.title || quest.name;
+                const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
+                const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
+                const name = display ? display.title : (quest.title || quest.name);
                 const isMain = quest.isMainQuest || (quest.lesson != null);
+                const area = display ? display.area : quest.area;
+                const fullDescRaw = display ? display.description : (quest.description || '');
                 let objectiveText;
                 if (quest.objectives && Array.isArray(quest.objectives)) {
                     objectiveText = quest.objectives.map(o => this.formatObjective(o)).join(' · ');
@@ -89,11 +96,11 @@ export class QuestLogUI extends UIComponent {
                 } else {
                     objectiveText = 'Complete the objective';
                 }
-                const fullDesc = (quest.description || '').trim();
+                const fullDesc = fullDescRaw.trim();
                 const summary = this.getQuestSummary(fullDesc);
                 const hasFullDesc = fullDesc.length > 0 && fullDesc.length > (summary.length + 2);
-                const summaryLine = quest.area
-                    ? (summary ? `${quest.area} — ${summary}` : quest.area)
+                const summaryLine = area
+                    ? (summary ? `${area} — ${summary}` : area)
                     : summary;
                 const questHTML = `
                     <div class="quest-item" data-quest-index="${index}" role="button" tabindex="0" aria-expanded="false" aria-label="${this.escapeHtml(name)}. Tap to expand full description.">

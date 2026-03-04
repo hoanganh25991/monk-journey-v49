@@ -1,4 +1,5 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
+import { getChapterQuestDisplay } from './config/chapter-quests-locales.js';
 
 export class QuestManager {
     constructor(game) {
@@ -460,10 +461,12 @@ export class QuestManager {
 
         // GDD §11: post-boss reflection (life lesson + Continue Journey); §12 Path of Mastery after Ch5
         if (this.isChapterQuest(quest) && quest.lesson) {
+            const locale = this.game.questStoryLocale || 'en';
+            const display = getChapterQuestDisplay(quest, locale);
             const isChapter5 = quest.id === 'chapter_5_inner_temple';
             const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
             const chapterNum = chMatch ? chMatch[1] : '';
-            const chapterTitle = (chapterNum && quest.area) ? `Chapter ${chapterNum} — ${quest.area}` : (quest.area || '');
+            const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
             const options = {
                 chapterTitle: chapterTitle || undefined,
                 ...(isChapter5 ? {
@@ -474,7 +477,7 @@ export class QuestManager {
                     }
                 } : {})
             };
-            this.game.hudManager.showReflectionScreen(quest.lesson, doAfterReflection, options);
+            this.game.hudManager.showReflectionScreen(display.lesson, doAfterReflection, options);
         } else {
             doAfterReflection();
         }
@@ -485,10 +488,12 @@ export class QuestManager {
         if (completedQuest.nextQuestId) {
             const nextChapter = getChapterQuestById(completedQuest.nextQuestId);
             if (nextChapter) {
+                const locale = this.game.questStoryLocale || 'en';
+                const display = getChapterQuestDisplay(nextChapter, locale);
                 setTimeout(() => {
                     this.game.hudManager.showDialog(
-                        `New Quest: ${nextChapter.title}`,
-                        `${nextChapter.description}\n\nWould you like to accept this quest?`,
+                        `New Quest: ${display.title}`,
+                        `${display.description}\n\nWould you like to accept this quest?`,
                         () => this.startQuest(nextChapter)
                     );
                 }, 2000);

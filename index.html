@@ -206,6 +206,7 @@
                         🚀
                         <div class="jump-key">_</div>
                     </button>
+                    <span id="jump-info-label" class="jump-info-label" title="Jump: press Space or tap 🚀. Up to 3 jumps in the air. Hold jump at peak to hover briefly." aria-label="Jump info">INFO</span>
                 </div>
                 <div id="camera-control-button">
                     <div class="camera-icon">🎥</div>
@@ -933,6 +934,19 @@
                                 <select id="difficulty-select" class="settings-select"></select>
                             </div>
                             <div class="settings-description">Choose the difficulty level for your game experience</div>
+                        </div>
+
+                        <!-- Quest & Story Language -->
+                        <div id="quest-locale-container" class="setting-item">
+                            <h3>Quest &amp; Story Language</h3>
+                            <div class="setting-row">
+                                <span class="settings-label">Language</span>
+                                <div class="quest-locale-buttons" role="group" aria-label="Quest and story language">
+                                    <button type="button" id="quest-locale-en" class="quest-locale-btn active" data-locale="en" aria-pressed="true">🇬🇧 EN</button>
+                                    <button type="button" id="quest-locale-vi" class="quest-locale-btn" data-locale="vi" aria-pressed="false">🇻🇳 VI</button>
+                                </div>
+                            </div>
+                            <div class="settings-description">Language for quest titles, descriptions, and life lessons</div>
                         </div>
                         
                         <!-- Game Control -->

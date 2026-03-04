@@ -28,6 +28,8 @@ export const STORAGE_KEYS = {
     SELECTED_ANIMATION: 'monk_journey_selected_animation',
     
     // Game settings
+    /** Quest & story language: 'en' | 'vi' (Settings > Game) */
+    QUEST_STORY_LOCALE: 'monk_journey_quest_story_locale',
     DIFFICULTY: 'monk_journey_difficulty',
     SELECTED_SKILLS: 'monk_journey_selected_skills',
     SELECTED_SKILL_PREVIEW: 'monk_journey_selected_skill_preview',

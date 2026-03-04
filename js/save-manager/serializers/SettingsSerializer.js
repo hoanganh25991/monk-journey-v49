@@ -16,6 +16,7 @@ export class SettingsSerializer {
         try {
             const settings = {
                 difficulty: game.difficulty || 'basic',
+                questStoryLocale: game.questStoryLocale || 'en',
                 audioSettings: {},
                 isInPathOfMastery: !!game.isInPathOfMastery,
                 pathOfMasteryCompletions: game.pathOfMasteryCompletions && typeof game.pathOfMasteryCompletions === 'object'
@@ -69,7 +70,11 @@ export class SettingsSerializer {
                     game.enemyManager.setDifficulty(settings.difficulty);
                 }
             }
-            
+
+            if (settings.questStoryLocale !== undefined) {
+                game.questStoryLocale = settings.questStoryLocale === 'vi' ? 'vi' : 'en';
+            }
+
             // Path of Mastery (Phase 6.2)
             if (settings.isInPathOfMastery !== undefined) {
                 game.isInPathOfMastery = !!settings.isInPathOfMastery;
