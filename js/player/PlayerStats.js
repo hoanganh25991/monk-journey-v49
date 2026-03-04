@@ -353,7 +353,11 @@ export class PlayerStats {
      * @returns {number} Current movement speed
      */
     getMovementSpeed() {
-        return this.movementSpeed;
+        const v = this.movementSpeed;
+        if (v === 0 || v === undefined || v === null || !isFinite(v)) {
+            return DEFAULT_PLAYER_STATS.movementSpeed;
+        }
+        return v;
     }
     
     // Setters

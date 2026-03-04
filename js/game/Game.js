@@ -274,6 +274,8 @@ export class Game {
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.05;
             this.controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent camera from going below ground
+            // Arrow keys are for player movement (WASD/arrows in InputHandler); disable OrbitControls key pan so they don't move camera instead
+            this.controls.enablePan = false;
             
             this.updateLoadingProgress(15, 'Optimizing performance...', 'Initializing performance manager');
             

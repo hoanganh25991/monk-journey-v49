@@ -190,17 +190,12 @@ export class StructureFactory {
             // Add to scene
             (this.game?.getWorldGroup?.() || this.scene).add(villageGroup);
             
-            // Add interactive objects like NPCs and treasure chests
+            // Add interactive objects like NPCs and treasure chests (no deprecated quest marker — quests use chapter/UI system)
             if (this.worldManager && this.worldManager.interactiveManager) {
                 // Add a treasure chest
                 const chestX = x + (Math.random() * 10 - 5);
                 const chestZ = z + (Math.random() * 10 - 5);
                 this.worldManager.interactiveManager.createTreasureChest(chestX, chestZ);
-                
-                // Add quest marker
-                const questX = x + (Math.random() * 10 - 5);
-                const questZ = z + (Math.random() * 10 - 5);
-                this.worldManager.interactiveManager.createQuestMarker(questX, questZ);
             }
             
             return villageGroup;
