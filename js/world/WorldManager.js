@@ -13,6 +13,7 @@ import { PathManager } from './PathManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
+import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { LodManager } from './LodManager.js';
 
 /**
@@ -116,6 +117,11 @@ export class WorldManager {
         this._chunkGenCache.chunkZ = -9999;
         if (this.interactiveManager) {
             this.interactiveManager.loadFromMapData(mapData.interactive || [], this.game);
+            // Ensure yellow quest marker exists when the next chapter quest is on this map (map data may omit or mismatch chapter)
+            const next = this.game?.questManager?.getNextChapterQuestForMarker?.();
+            if (next?.position && getMapIdForChapterQuest(next.id) === mapData.id && this.interactiveManager.ensureChapterQuestMarker) {
+                this.interactiveManager.ensureChapterQuestMarker(this.game.questManager);
+            }
         }
 
         this._applyMapTerrainAndContent(mapData);

@@ -28,6 +28,8 @@ export class InteractionSystem {
         
         // Objects we've already auto-triggered (e.g. quest markers – once per object)
         this.autoTriggeredObjects = new Set();
+        // Reusable vector for world position lookups
+        this._worldPos = new THREE.Vector3();
     }
     
     /**
@@ -68,10 +70,17 @@ export class InteractionSystem {
             const isQuest = obj.type === 'quest' && !this.autoTriggeredObjects.has(obj);
             if (!isChest && !isQuest) continue;
             
-            const distanceSq = distanceSq2D(
-                playerPosition.x, playerPosition.z,
-                obj.position.x, obj.position.z
-            );
+            // Use mesh world position when available (scene space = player at origin due to rebasing)
+            let distanceSq;
+            if (obj.mesh && obj.mesh.getWorldPosition) {
+                obj.mesh.getWorldPosition(this._worldPos);
+                distanceSq = distanceSq2D(0, 0, this._worldPos.x, this._worldPos.z);
+            } else {
+                distanceSq = distanceSq2D(
+                    playerPosition.x, playerPosition.z,
+                    obj.position.x, obj.position.z
+                );
+            }
             const radius = (obj.interactionRadius != null ? obj.interactionRadius : INTERACTION_RANGE);
             if (distanceSq > radius * radius) continue;
             

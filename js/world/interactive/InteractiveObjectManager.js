@@ -210,12 +210,12 @@ export class InteractiveObjectManager {
             chest.open();
         }
         
-        // Add to interactive objects
+        // Add to interactive objects (generous radius so auto-open triggers when player is close)
         this.interactiveObjects.push({
             type: 'chest',
             mesh: chestGroup,
             position: new THREE.Vector3(x, y, z),
-            interactionRadius: 2,
+            interactionRadius: 3.5,
             isOpen: isOpen,
             onInteract: () => {
                 // Open chest animation and give reward

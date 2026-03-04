@@ -295,6 +295,10 @@ export class Game {
                 }
                 const currentMapId = this.world?.currentMap?.id;
                 const nextMapId = getMapIdForChapterQuest(next.id);
+                // Always place the yellow quest marker when the next quest is on this map (map data may not have it, e.g. wrong chapter in interactive)
+                if (nextMapId === currentMapId && this.world?.interactiveManager?.ensureChapterQuestMarker) {
+                    this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
+                }
                 if (nextMapId === currentMapId) {
                     this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
                 } else {
