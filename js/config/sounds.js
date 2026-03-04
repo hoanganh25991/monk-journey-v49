@@ -407,6 +407,39 @@ export const SKILL_SOUNDS = {
             attack: 0.01
         }
     },
+    /** Alias for Wave of Light lightning variant; uses same file as thunderStrike. */
+    lightning: {
+        id: 'lightning',
+        file: 'thunder_strike.mp3',
+        volume: 0.85,
+        simulated: {
+            frequency: 550,
+            duration: 0.2,
+            type: 'sawtooth',
+            decay: true,
+            slide: -40,
+            noise: 0.25,
+            distortion: 0.4,
+            filter: 'highpass'
+        }
+    },
+    /** Alias for Wave of Light explosive variant; uses same file as massiveExplosion. */
+    explosion: {
+        id: 'explosion',
+        file: 'massive_explosion.mp3',
+        volume: 0.9,
+        simulated: {
+            frequency: 220,
+            duration: 0.6,
+            type: 'sawtooth',
+            decay: true,
+            slide: -30,
+            noise: 0.3,
+            distortion: 0.5,
+            filter: 'lowpass',
+            attack: 0.01
+        }
+    },
     
     // Breath of Heaven
     breathOfHeaven: {
@@ -842,6 +875,18 @@ export const UI_SOUNDS = {
             tremolo: 10,
             noise: 0.1,
             filter: 'highpass'
+        }
+    },
+    questComplete: {
+        id: 'questComplete',
+        file: 'quest_complete.mp3',
+        volume: 0.8,
+        simulated: {
+            frequency: 523,
+            duration: 0.5,
+            type: 'sine',
+            decay: false,
+            arpeggio: [1, 1.25, 1.5, 2]
         }
     }
 };
