@@ -450,17 +450,12 @@ export class InteractiveObjectManager {
     }
     
     /**
-     * Clear all interactive objects
+     * Clear all interactive objects (remove from actual parent, e.g. worldGroup, to avoid duplicate markers).
      */
     clear() {
-        // Remove all interactive objects from the scene
         this.interactiveObjects.forEach(obj => {
-            if (obj.mesh && obj.mesh.parent) {
-                this.scene.remove(obj.mesh);
-            }
+            if (obj.mesh?.parent) obj.mesh.parent.remove(obj.mesh);
         });
-        
-        // Reset collection
         this.interactiveObjects = [];
     }
     

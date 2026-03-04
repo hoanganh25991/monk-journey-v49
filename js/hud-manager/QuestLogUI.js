@@ -117,7 +117,7 @@ export class QuestLogUI extends UIComponent {
     }
 
     /**
-     * Build a single quest block: 2 lines only (title + objectives). No click, no expand.
+     * Build a single quest block: 2 lines only (title + objectives). Click opens detail popup.
      * @param {Object} quest - Quest data
      * @param {string} locale - Locale for chapter display
      * @returns {HTMLElement}
@@ -136,12 +136,90 @@ export class QuestLogUI extends UIComponent {
             objectiveText = 'Complete the objective';
         }
         const block = document.createElement('div');
-        block.className = 'quest-block';
+        block.className = 'quest-block quest-block-clickable';
+        block.setAttribute('role', 'button');
+        block.setAttribute('tabindex', '0');
+        block.setAttribute('aria-label', `View details: ${name}`);
         block.innerHTML = `
             <div class="quest-name ${isMain ? 'main-quest' : ''}">${this.escapeHtml(name)}</div>
             <div class="quest-objective">${this.escapeHtml(objectiveText)}</div>
         `;
+        const onOpenDetail = () => this.showQuestDetail(quest, locale);
+        block.addEventListener('click', (e) => {
+            e.stopPropagation();
+            onOpenDetail();
+        });
+        block.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onOpenDetail();
+            }
+        });
         return block;
+    }
+
+    /**
+     * Show a full-screen detail popup for a quest (story, objectives, lesson).
+     * Rendered above the HUD with high z-index so it is always visible.
+     * @param {Object} quest - Quest data
+     * @param {string} locale - Locale for chapter display
+     */
+    showQuestDetail(quest, locale) {
+        const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
+        const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
+        const name = display ? display.title : (quest.title || quest.name);
+        const area = display ? display.area : (quest.area || '');
+        const description = display ? display.description : (quest.description || '');
+        const lesson = display ? display.lesson : (quest.lesson || '');
+        let objectiveHtml = '';
+        if (quest.objectives && Array.isArray(quest.objectives)) {
+            objectiveHtml = quest.objectives.map(o => `<li>${this.escapeHtml(this.formatObjective(o))}</li>`).join('');
+        } else if (quest.objective) {
+            objectiveHtml = `<li>${this.escapeHtml(this.formatObjective(quest.objective))}</li>`;
+        }
+        if (objectiveHtml) objectiveHtml = `<ul class="quest-detail-objectives">${objectiveHtml}</ul>`;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'quest-detail-overlay';
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'Quest details');
+        overlay.innerHTML = `
+            <div class="quest-detail-backdrop" data-close></div>
+            <div class="quest-detail-panel">
+                <div class="quest-detail-header">
+                    <h2 class="quest-detail-title">${this.escapeHtml(name)}</h2>
+                    ${area ? `<div class="quest-detail-area">${this.escapeHtml(area)}</div>` : ''}
+                    <button type="button" class="quest-detail-close" aria-label="Close">×</button>
+                </div>
+                <div class="quest-detail-body">
+                    ${description ? `<p class="quest-detail-description">${this.escapeHtml(description)}</p>` : ''}
+                    ${objectiveHtml}
+                    ${lesson ? `<p class="quest-detail-lesson"><strong>Lesson:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
+                </div>
+            </div>
+        `;
+
+        const close = () => {
+            overlay.remove();
+            if (this.game && typeof this.game.resume === 'function') {
+                this.game.resume(false);
+            }
+        };
+
+        overlay.querySelector('[data-close]').addEventListener('click', close);
+        overlay.querySelector('.quest-detail-close').addEventListener('click', close);
+        overlay.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                close();
+            }
+        });
+
+        document.body.appendChild(overlay);
+        if (this.game && typeof this.game.pause === 'function') {
+            this.game.pause(false);
+        }
+        overlay.querySelector('.quest-detail-close').focus();
     }
 
     /**

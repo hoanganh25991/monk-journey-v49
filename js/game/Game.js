@@ -276,7 +276,17 @@ export class Game {
                 this.hudManager.showDialog(
                     `Quest: ${display.title}`,
                     display.description + '\n\nWould you like to accept this quest?',
-                    () => this.questManager.startQuest(quest),
+                    () => {
+                        this.questManager.startQuest(quest);
+                        // Remove the accepted quest's marker so it disappears and we don't get duplicates
+                        if (this.world?.interactiveManager?.removeChapterQuestMarkers) {
+                            this.world.interactiveManager.removeChapterQuestMarkers();
+                        }
+                        // Place marker for next story quest if it's on this map
+                        if (this.world?.interactiveManager?.ensureChapterQuestMarker) {
+                            this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
+                        }
+                    },
                     null
                 );
             };
