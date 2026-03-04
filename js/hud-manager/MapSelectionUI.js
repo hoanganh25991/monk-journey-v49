@@ -2,6 +2,8 @@ import { UIComponent } from '../UIComponent.js';
 import { MAP_MANIFEST } from '../config/maps.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
+import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
+import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -111,13 +113,25 @@ export class MapSelectionUI extends UIComponent {
         });
     }
 
+    /** Get chapter area label for a map if it hosts a chapter quest (e.g. "Forest of Doubt" for forest) */
+    getChapterAreaForMap(mapId) {
+        const entry = CHAPTER_QUEST_MAPS.find((e) => e.mapId === mapId);
+        if (!entry) return null;
+        const quest = CHAPTER_QUESTS.find((q) => q.id === entry.chapterQuestId);
+        return quest?.area ?? null;
+    }
+
     populateMapList() {
         this.mapListEl.innerHTML = '';
         const storedPath = typeof localStorage !== 'undefined'
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || DEFAULT_MAP_PATH)
             : DEFAULT_MAP_PATH;
 
-        for (const map of this.mapManifest) {
+        const sorted = [...this.mapManifest].sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+        );
+
+        for (const map of sorted) {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
@@ -125,7 +139,9 @@ export class MapSelectionUI extends UIComponent {
             const thumb = map.thumbnail
                 ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
                 : '<span class="map-icon">🗺️</span>';
-            li.innerHTML = `${thumb} <span class="map-list-name">${map.name}</span>`;
+            const chapterArea = this.getChapterAreaForMap(map.id);
+            const subtitle = chapterArea ? `<span class="map-list-subtitle">${chapterArea}</span>` : '';
+            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${map.name}</span>${subtitle}</span>`;
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }

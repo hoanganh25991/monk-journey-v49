@@ -260,9 +260,25 @@
     flex-shrink: 0;
 }
 
+.map-list-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
 .map-list-name {
     font-weight: 500;
     color: #fff; /* Match skill-tree text color */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.map-list-subtitle {
+    font-size: 0.85em;
+    color: var(--theme-gold);
+    opacity: 0.9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

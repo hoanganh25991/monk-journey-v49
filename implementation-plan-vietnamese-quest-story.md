@@ -103,18 +103,18 @@
 
 ## 4. File checklist
 
-| Step | File | Action |
-|------|------|--------|
-| 1 | `js/config/storage-keys.js` | Add `QUEST_STORY_LOCALE`. |
-| 2 | `js/config/chapter-quests-locales.js` (new) | Add EN/VI objects and `getChapterQuestText` / `getChapterQuestDisplay`. |
-| 3 | `js/game/Game.js` | Add `questStoryLocale`, load in `loadInitialSettings()`. |
-| 4 | `js/save-manager/serializers/SettingsSerializer.js` | Serialize/deserialize `questStoryLocale`. |
-| 5 | `index.html` | Add "Quest & Story Language" row with EN/VI flag toggle in Game tab. |
-| 6 | `js/menu-system/settings-menu/GameplayTab.js` | Wire toggle, load/save locale, update `game.questStoryLocale`. |
-| 7 | `js/QuestManager.js` | Use locale helper for reflection lesson/title and next-quest dialog. |
-| 8 | `js/hud-manager/QuestLogUI.js` | Use locale helper for chapter quest title/area/description. |
-| 9 | (Optional) `js/hud-manager/ReflectionUI.js` | Localize "Continue Journey" / "Enter Path of Mastery". |
-| 10 | (Optional) `js/menu-system/GameMenu.js` | Use locale for completed chapters list. |
+| Step | File | Action | Status |
+|------|------|--------|--------|
+| 1 | `js/config/storage-keys.js` | Add `QUEST_STORY_LOCALE`. | ✅ Done |
+| 2 | `js/config/chapter-quests-locales.js` (new) | Add EN/VI objects and `getChapterQuestText` / `getChapterQuestDisplay`. | ✅ Done |
+| 3 | `js/game/Game.js` | Add `questStoryLocale`, load in `loadInitialSettings()`. | ✅ Done |
+| 4 | `js/save-manager/serializers/SettingsSerializer.js` | Serialize/deserialize `questStoryLocale`. | ✅ Done |
+| 5 | `index.html` | Add "Quest & Story Language" row with EN/VI flag toggle in Game tab. | ✅ Done |
+| 6 | `js/menu-system/settings-menu/GameplayTab.js` | Wire toggle, load/save locale, update `game.questStoryLocale`. | ✅ Done |
+| 7 | `js/QuestManager.js` | Use locale helper for reflection lesson/title, next-quest dialog, "Travel to…", and "New Quest" dialog. | ✅ Done |
+| 8 | `js/hud-manager/QuestLogUI.js` | Use locale helper for chapter quest title/area/description. | ✅ Done |
+| 9 | (Optional) `js/hud-manager/ReflectionUI.js` | Localize "Continue Journey" / "Enter Path of Mastery". | ✅ Done |
+| 10 | (Optional) `js/menu-system/GameMenu.js` | Use locale for completed chapters list. | ✅ Done |
 
 ---
 
@@ -126,3 +126,15 @@
 - **Usage:** QuestManager, QuestLogUI (and optionally ReflectionUI, GameMenu) resolve all quest/story text through the locale helper using `game.questStoryLocale`.
 
 This keeps the toggle in one place (Settings > Game), uses a single default (EN), and makes it straightforward to add more languages later by extending the locales file and the toggle (e.g. dropdown or more flags).
+
+---
+
+## 6. Implementation status (completed)
+
+All checklist items are implemented:
+
+- **Data:** `chapter-quests-locales.js` has full EN/VI for all 5 chapters (title, description, lesson, area, bossName) and helpers `getChapterQuestText`, `getChapterQuestDisplay`, plus `REFLECTION_UI_STRINGS` / `getReflectionUiString` for reflection buttons.
+- **Settings:** `QUEST_STORY_LOCALE` in storage-keys; Game loads it in `loadInitialSettings()`; SettingsSerializer persists it in save data; GameplayTab provides EN/VI flag toggle and calls `initializeQuestLocaleSettings()` from `init()` and when tab is shown.
+- **Usage:** QuestManager uses locale for reflection (lesson, chapter title), "Travel to …" notification (next area name), and "New Quest" dialog (title/description). QuestLogUI, ReflectionUI, GameMenu all use the locale helper.
+
+**Optional follow-up:** Localize static QuestLogUI strings ("No active quests", "Complete the objective", "Kill X/Y", "Defeat boss X/Y") and the "Travel to … to get your next quest" / "Would you like to accept this quest?" shell text via a small UI-strings map (en/vi) if desired.

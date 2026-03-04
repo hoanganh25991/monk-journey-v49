@@ -500,10 +500,12 @@ export class QuestManager {
         if (completedQuest.nextQuestId) {
             const nextChapter = getChapterQuestById(completedQuest.nextQuestId);
             if (nextChapter) {
+                const locale = this.game.questStoryLocale || 'en';
+                const nextDisplay = getChapterQuestDisplay(nextChapter, locale);
                 const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
                 setTimeout(() => {
                     if (this.game.hudManager) {
-                        const label = nextMap?.mapName ?? nextChapter.area ?? 'the next map';
+                        const label = nextMap?.mapName ?? nextDisplay.area ?? 'the next map';
                         this.game.hudManager.showNotification(`Travel to ${label} to get your next quest.`);
                     }
                 }, 2000);
@@ -609,9 +611,11 @@ export class QuestManager {
         const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q));
         if (chapterQuests.length > 0) {
             const q = chapterQuests[0];
+            const locale = this.game.questStoryLocale || 'en';
+            const display = getChapterQuestDisplay(q, locale);
             this.game.hudManager.showDialog(
-                `New Quest: ${q.title || q.name}`,
-                `${q.description}\n\nWould you like to accept this quest?`,
+                `New Quest: ${display.title || q.title || q.name}`,
+                `${display.description || q.description}\n\nWould you like to accept this quest?`,
                 () => this.startQuest(q),
                 remindLater
             );
