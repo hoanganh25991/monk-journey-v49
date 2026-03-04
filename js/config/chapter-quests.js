@@ -31,7 +31,7 @@ export const CHAPTER_QUESTS = [
         description: 'A village consumed by anger—disputes over land, old grudges. A Rage Beast has taken root and feeds on their anger. Calm the conflicts and face the beast so the village can find peace.',
         lesson: 'Anger burns the one who carries it.',
         area: 'The Restless Village',
-        position: { x: 0, z: 0 },
+        position: { x: 72, z: 0 },  // outside village (minimap + flag marker); must match scripts/generate-maps.js CHAPTER_QUEST_MAPS
         objectives: [
             { type: 'kill', target: 'any', count: 3, progress: 0 },
             { type: 'defeat_boss', target: 'skeleton_king', count: 1, progress: 0 },
