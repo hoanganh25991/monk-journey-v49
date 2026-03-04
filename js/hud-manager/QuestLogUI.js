@@ -1,6 +1,7 @@
 import { UIComponent } from '../UIComponent.js';
 import { getChapterQuestById } from '../config/chapter-quests.js';
 import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
+import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 
 /**
  * Quest Log UI component
@@ -46,6 +47,23 @@ export class QuestLogUI extends UIComponent {
     static get MAX_VISIBLE_QUESTS() { return 3; }
 
     /**
+     * When there are no active quests, return a short hint so the player knows what to do.
+     * @returns {string} Hint text or empty string if no next quest
+     */
+    getWhatToDoHint() {
+        if (!this.game?.questManager) return '';
+        const next = this.game.questManager.getNextChapterQuestForMarker();
+        if (!next) return '';
+        const currentMapId = this.game.world?.currentMap?.id;
+        const nextMapId = getMapIdForChapterQuest(next.id);
+        if (nextMapId === currentMapId) {
+            return '→ Find the quest marker (yellow ! on the map) to start your journey.';
+        }
+        const label = next.area ?? (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+        return `→ Travel to ${label} to get your next quest.`;
+    }
+
+    /**
      * Update the quest log with active quests.
      * Shows at most 3 quests; each quest is 2 lines (title + objectives). No list UI, no click-to-expand.
      * If more than 3 quests, a "Review more" control reveals the rest.
@@ -60,6 +78,13 @@ export class QuestLogUI extends UIComponent {
             noQuests.className = 'no-quests';
             noQuests.textContent = 'No active quests';
             this.questList.appendChild(noQuests);
+            const hint = this.getWhatToDoHint();
+            if (hint) {
+                const hintEl = document.createElement('div');
+                hintEl.className = 'quest-log-hint';
+                hintEl.textContent = hint;
+                this.questList.appendChild(hintEl);
+            }
             return;
         }
 

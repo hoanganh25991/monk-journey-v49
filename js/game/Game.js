@@ -289,6 +289,10 @@ export class Game {
                 if (!this.questManager || this.multiplayerManager?.connection?.isConnected || !this.hudManager) return;
                 const next = this.questManager.getNextChapterQuestForMarker();
                 if (!next) return;
+                // Refresh markers so they match current quest state (e.g. after save loaded)
+                if (this.world?.refreshInteractiveFromCurrentMap) {
+                    this.world.refreshInteractiveFromCurrentMap();
+                }
                 const currentMapId = this.world?.currentMap?.id;
                 const nextMapId = getMapIdForChapterQuest(next.id);
                 if (nextMapId === currentMapId) {
@@ -297,6 +301,7 @@ export class Game {
                     const nextMapLabel = next.area ?? (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
                     this.hudManager.showNotification(`Travel to ${nextMapLabel} to get your next quest.`);
                 }
+                this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
             };
             
             // Initialize item drop manager

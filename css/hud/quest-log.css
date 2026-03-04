@@ -104,3 +104,12 @@
     font-style: italic;
     font-size: 12px;
 }
+
+/* Hint when no active quest: what to do next (find marker or travel to map) */
+#quest-list .quest-log-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--theme-gold, #f0c14b);
+    opacity: 0.95;
+}

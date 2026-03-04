@@ -118,6 +118,19 @@ export class WorldManager {
             this.interactiveManager.loadFromMapData(mapData.interactive || [], this.game);
         }
 
+        this._applyMapTerrainAndContent(mapData);
+    }
+
+    /**
+     * Re-load interactive objects from current map (e.g. after save applied so quest markers match state).
+     * Call when quest state may have changed (load game, complete quest) so the right marker is shown.
+     */
+    refreshInteractiveFromCurrentMap() {
+        if (!this.currentMap || !this.interactiveManager) return;
+        this.interactiveManager.loadFromMapData(this.currentMap.interactive || [], this.game);
+    }
+
+    _applyMapTerrainAndContent(mapData) {
         // Apply terrain profile (hills, mountains, etc.) - regenerates terrain with new height variation
         if (mapData.terrain?.profile && this.terrainManager?.applyTerrainConfig) {
             const spawn = mapData.spawn || { x: 0, y: 1, z: -13 };
@@ -175,6 +188,15 @@ export class WorldManager {
             }
         };
         requestAnimationFrame(tick);
+    }
+
+    /**
+     * Re-load interactive objects from current map (e.g. after save applied so quest markers match state).
+     * Call when quest state may have changed (load game, complete quest) so the right marker is shown.
+     */
+    refreshInteractiveFromCurrentMap() {
+        if (!this.currentMap || !this.interactiveManager) return;
+        this.interactiveManager.loadFromMapData(this.currentMap.interactive || [], this.game);
     }
     
     /**
