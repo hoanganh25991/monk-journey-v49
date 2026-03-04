@@ -372,7 +372,11 @@ export class QuestManager {
             // Chapter quests: multiple objectives (kill, defeat_boss)
             if (quest.objectives && Array.isArray(quest.objectives)) {
                 let updated = false;
-                for (const obj of quest.objectives) {
+                // When enemy is a boss, prefer defeat_boss objective so the kill is counted as "Defeat boss" not "Kill enemies"
+                const objectivesToCheck = enemy.isBoss
+                    ? [...quest.objectives].sort((a, b) => (a.type === 'defeat_boss' ? -1 : b.type === 'defeat_boss' ? 1 : 0))
+                    : quest.objectives;
+                for (const obj of objectivesToCheck) {
                     const match = (obj.type === 'kill' || obj.type === 'defeat_boss') &&
                         (obj.target === 'any' || obj.target === enemy.type);
                     if (match) {
