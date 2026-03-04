@@ -1224,28 +1224,50 @@ export class EnemyManager {
         return { ...items[0] };
     }
     
+    /**
+     * Check if (x, z) is inside any map safe zone (e.g. village – no enemy spawn).
+     * @param {number} x
+     * @param {number} z
+     * @returns {boolean}
+     */
+    isInsideSafeZone(x, z) {
+        const safeZones = this.game?.world?.getSafeZones?.() ?? [];
+        for (const zone of safeZones) {
+            if (zone.type === 'circle' && zone.radius != null) {
+                const dx = x - (zone.x ?? 0);
+                const dz = z - (zone.z ?? 0);
+                if (dx * dx + dz * dz <= zone.radius * zone.radius) return true;
+            }
+        }
+        return false;
+    }
+
     getRandomSpawnPosition() {
         const anchors = this.getAllSpawnAnchorPositions();
         const anchor = anchors[Math.floor(Math.random() * anchors.length)];
-        
+
         // Prefer spawning near caves (65% chance) when caves exist - creates enemy groups around caves
         const caves = this.game?.world?.getCavePositions?.() ?? [];
         if (caves.length > 0 && Math.random() < 0.65) {
             const cave = caves[Math.floor(Math.random() * caves.length)];
-            const spreadRadius = 12 + Math.random() * 18;
-            const angle = Math.random() * Math.PI * 2;
-            const x = cave.x + fastCos(angle) * spreadRadius;
-            const z = cave.z + fastSin(angle) * spreadRadius;
-            return new THREE.Vector3(x, 0, z);
+            for (let attempt = 0; attempt < 12; attempt++) {
+                const spreadRadius = 12 + Math.random() * 18;
+                const angle = Math.random() * Math.PI * 2;
+                const x = cave.x + fastCos(angle) * spreadRadius;
+                const z = cave.z + fastSin(angle) * spreadRadius;
+                if (!this.isInsideSafeZone(x, z)) return new THREE.Vector3(x, 0, z);
+            }
         }
-        
+
         // Fallback: spawn around chosen anchor (host player or a joiner in multiplayer)
-        const angle = Math.random() * Math.PI * 2;
-        const distance = this.spawnRadius * 0.5 + Math.random() * this.spawnRadius * 0.5;
-        const x = anchor.x + fastCos(angle) * distance;
-        const z = anchor.z + fastSin(angle) * distance;
-        
-        return new THREE.Vector3(x, 0, z);
+        for (let attempt = 0; attempt < 15; attempt++) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = this.spawnRadius * 0.5 + Math.random() * this.spawnRadius * 0.5;
+            const x = anchor.x + fastCos(angle) * distance;
+            const z = anchor.z + fastSin(angle) * distance;
+            if (!this.isInsideSafeZone(x, z)) return new THREE.Vector3(x, 0, z);
+        }
+        return new THREE.Vector3(anchor.x + 30, 0, anchor.z + 30);
     }
     
     getEnemiesNearPosition(position, radius) {

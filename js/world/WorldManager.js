@@ -208,6 +208,14 @@ export class WorldManager {
     }
     
     /**
+     * Get safe zones where enemies must not spawn (e.g. village interior)
+     * @returns {Array<{ type: string, x: number, z: number, radius?: number }>}
+     */
+    getSafeZones() {
+        return this.currentMap?.safeZones ?? [];
+    }
+
+    /**
      * Get cave positions for enemy spawning (from map data or placed structures)
      * @returns {Array<{x: number, z: number}>}
      */

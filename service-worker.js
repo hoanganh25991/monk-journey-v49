@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260304T220833';
+const CACHE_VERSION = '20260304T235021';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -20,6 +20,8 @@ const ASSETS_TO_CACHE =   [
     "js/QuestManager.js",
     "js/UIComponent.js",
     "js/config/camera-modes.js",
+    "js/config/chapter-quest-maps.js",
+    "js/config/chapter-quests-locales.js",
     "js/config/chapter-quests.js",
     "js/config/coach.js",
     "js/config/colors.js",
@@ -107,6 +109,7 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/NotificationsUI.js",
     "js/hud-manager/PlayerUI.js",
     "js/hud-manager/PortalButton.js",
+    "js/hud-manager/QuestDirectionIndicator.js",
     "js/hud-manager/QuestLogUI.js",
     "js/hud-manager/ReflectionUI.js",
     "js/hud-manager/SkillSelectionButton.js",
@@ -181,6 +184,7 @@ const ASSETS_TO_CACHE =   [
     "js/player/PlayerStats.js",
     "js/player/PlayerStatusEffects.js",
     "js/player/PlayerTomb.js",
+    "js/player/models/NativeMonkModel.js",
     "js/save-manager/GoogleAuthManager.js",
     "js/save-manager/GoogleDriveAdapter.js",
     "js/save-manager/ISaveSystem.js",
@@ -421,6 +425,7 @@ const ASSETS_TO_CACHE =   [
     "css/hud/layout.css",
     "css/hud/minimap.css",
     "css/hud/player-stats.css",
+    "css/hud/quest-direction-indicator.css",
     "css/hud/quest-log.css",
     "css/hud/skills.css",
     "css/hud/status-effects.css",

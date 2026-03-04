@@ -291,6 +291,52 @@ export class StructureFactory {
             
             return caveGroup;
         });
+
+        // Village fence segment (simple post + rail)
+        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE, (x, z) => {
+            const group = new THREE.Group();
+            const y = this.getTerrainHeight(x, z);
+            const woodColor = 0x8B7355;
+            const mat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const postGeo = new THREE.BoxGeometry(0.4, 1.8, 0.4);
+            const post = new THREE.Mesh(postGeo, mat);
+            post.position.set(0, 0.9, 0);
+            post.castShadow = true;
+            group.add(post);
+            const railGeo = new THREE.BoxGeometry(1.6, 0.2, 0.2);
+            const rail = new THREE.Mesh(railGeo, mat);
+            rail.position.set(0, 1.7, 0);
+            rail.castShadow = true;
+            group.add(rail);
+            group.position.set(x, y, z);
+            (this.game?.getWorldGroup?.() || this.scene).add(group);
+            return group;
+        });
+
+        // Village gate (two posts + cross beam)
+        this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z) => {
+            const group = new THREE.Group();
+            const y = this.getTerrainHeight(x, z);
+            const woodColor = 0x6B5344;
+            const mat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const postGeo = new THREE.BoxGeometry(0.5, 2.2, 0.5);
+            const postL = new THREE.Mesh(postGeo, mat);
+            postL.position.set(-0.8, 1.1, 0);
+            postL.castShadow = true;
+            group.add(postL);
+            const postR = new THREE.Mesh(postGeo, mat);
+            postR.position.set(0.8, 1.1, 0);
+            postR.castShadow = true;
+            group.add(postR);
+            const beamGeo = new THREE.BoxGeometry(2, 0.25, 0.3);
+            const beam = new THREE.Mesh(beamGeo, mat);
+            beam.position.set(0, 2.2, 0);
+            beam.castShadow = true;
+            group.add(beam);
+            group.position.set(x, y, z);
+            (this.game?.getWorldGroup?.() || this.scene).add(group);
+            return group;
+        });
     }
     
     /**

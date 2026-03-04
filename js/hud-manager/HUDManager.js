@@ -11,6 +11,7 @@ import { DeathScreenUI } from './DeathScreenUI.js';
 import { ReflectionUI } from './ReflectionUI.js';
 import { NotificationsUI } from './NotificationsUI.js';
 import { QuestLogUI } from './QuestLogUI.js';
+import { QuestDirectionIndicator } from './QuestDirectionIndicator.js';
 import { MiniMapUI } from './MiniMapUI.js';
 import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
@@ -152,6 +153,10 @@ export class HUDManager {
         // Create quest log UI
         this.components.questLogUI = new QuestLogUI(this.game);
         this.components.questLogUI.init();
+
+        // Quest direction indicator (flag at screen edge toward yellow quest marker)
+        this.components.questDirectionIndicator = new QuestDirectionIndicator(this.game);
+        this.components.questDirectionIndicator.init();
         
         // Create UI buttons
         this.components.homeButton = new HomeButton(this.game);
@@ -182,6 +187,9 @@ export class HUDManager {
         
         // Update mini map UI
         this.components.miniMapUI.update(delta);
+
+        // Update quest direction indicator (flag at screen edge)
+        this.components.questDirectionIndicator.update(delta);
         
         // Update camera control UI
         this.components.cameraControlUI.update(delta);
