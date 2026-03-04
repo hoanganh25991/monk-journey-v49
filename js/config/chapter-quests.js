@@ -1,6 +1,10 @@
 /**
  * Chapter quests — GDD-aligned (quest.md §5, §6; design/systems/quest-system.md).
  * Each main story quest: narrative, emotional theme, objectives, boss, reflection quote, rewards.
+ *
+ * Tone (Phase 7.6): Quests are one-time help—the monk helps a place once, learns a lesson, moves on.
+ * Lessons and quest text are kid/teen-friendly: life lessons about growth, harmony, and being better
+ * (anger, fear, gratitude, connection, self-mastery) without heavy or scary content.
  */
 
 /** @typedef {{ type: string, target?: string, count: number, progress?: number }} ChapterObjective */

@@ -49,7 +49,7 @@ export class AudioManager {
             // Load user settings from storage service
             await this.loadSettings();
             
-            // Check if audio files exist
+            // Offline-first: check runs async; on failure we use simulated/fallback (no blocking).
             this.checkAudioFilesExist().then(available => {
                 this.audioFilesAvailable = available;
                 
@@ -122,9 +122,12 @@ export class AudioManager {
         }
     }
     
+    /**
+     * Check if audio assets exist. Non-blocking: used to choose real vs simulated audio.
+     * Phase 7.7 — Offline-first: on failure we use simulated/fallback audio so the game never hangs.
+     */
     async checkAudioFilesExist() {
         try {
-            // Check if main theme exists as a simple test
             const response = await fetch('assets/audio/main_theme.mp3', { method: 'HEAD' });
             return response.ok;
         } catch (error) {

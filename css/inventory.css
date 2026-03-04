@@ -175,7 +175,17 @@
 
 .slot-icon {
     font-size: 24px;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
+}
+
+.slot-label {
+    font-size: 10px;
+    color: #aaa;
+    text-align: center;
+    line-height: 1.1;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .slot-name {

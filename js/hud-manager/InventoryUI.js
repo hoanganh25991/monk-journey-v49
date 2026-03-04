@@ -136,17 +136,19 @@ export class InventoryUI extends UIComponent {
             this.itemPopup.className = 'item-popup';
             this.itemPopup.style.display = 'none';
             
-            // Add popup content
+            // Add popup content (GDD: rarity, baseStats, secondaryStats, legendary effect)
             this.itemPopup.innerHTML = `
                 <div class="item-popup-header">
                     <div class="item-popup-icon"></div>
                     <div class="item-popup-title">
                         <h3 class="item-popup-name"></h3>
                         <div class="item-popup-type"></div>
+                        <div class="item-popup-rarity"></div>
                     </div>
                 </div>
                 <div id="item-preview-container" class="item-preview-container"></div>
                 <div class="item-popup-stats"></div>
+                <div class="item-popup-legendary"></div>
                 <div class="item-popup-description"></div>
                 <div class="item-popup-actions">
                     <button class="item-popup-use">Consume</button>
@@ -470,12 +472,13 @@ export class InventoryUI extends UIComponent {
                 
                 // Add click event to show item popup
                 slotElement.addEventListener('click', (event) => {
-                    // Show item popup
                     this.showItemPopup(item, slotElement, event);
                 });
                 
-                // Add tooltip with item name
-                slotElement.title = item.name;
+                // Richer tooltip: name, rarity, one-line stats (Phase 7.4)
+                const rarityPart = item.rarity && item.rarity !== 'common' ? ` [${item.rarity.charAt(0).toUpperCase() + item.rarity.slice(1)}]` : '';
+                const statsLine = this.getItemStatsSummary(item);
+                slotElement.title = statsLine ? `${item.name}${rarityPart}\n${statsLine}` : `${item.name}${rarityPart}`;
                 
                 // Store the slot index in the item for future reference
                 item.slotIndex = slotIndex;
@@ -489,6 +492,56 @@ export class InventoryUI extends UIComponent {
      * @param {HTMLElement} slotElement - The slot element that was clicked
      * @param {Event} event - The click event
      */
+    /**
+     * Format a stat key for display (e.g. manaBonus → Mana, skillDamage → Skill Damage).
+     */
+    formatStatName(key) {
+        const map = {
+            damage: 'Damage',
+            attackSpeed: 'Attack speed',
+            skillDamage: 'Skill damage',
+            defense: 'Defense',
+            movementSpeed: 'Movement speed',
+            manaBonus: 'Mana',
+            healthBonus: 'Health',
+            healthRegen: 'HP regen',
+            manaRegen: 'Mana regen',
+            attackPower: 'Attack power',
+            critChance: 'Crit chance',
+            critDamage: 'Crit damage',
+            elementalDamage: 'Elemental damage',
+            cooldownReduction: 'Cooldown reduction',
+            allResistance: 'All resistance',
+            maxHealth: 'Max health',
+            resourceMax: 'Resource max',
+            wisdom: 'Wisdom',
+            jumpHeight: 'Jump height'
+        };
+        if (map[key]) return map[key];
+        return key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+    }
+
+    /**
+     * Build one-line stats summary for tooltips (from baseStats or stats).
+     */
+    getItemStatsSummary(item) {
+        const stats = item.baseStats || item.stats || {};
+        const parts = [];
+        if (stats.damage) parts.push(`+${stats.damage} Damage`);
+        if (stats.defense) parts.push(`+${stats.defense} Defense`);
+        if (stats.manaBonus) parts.push(`+${stats.manaBonus} Mana`);
+        if (stats.healthBonus) parts.push(`+${stats.healthBonus} Health`);
+        if (stats.skillDamage) parts.push(`+${stats.skillDamage} Skill dmg`);
+        if (stats.movementSpeed) parts.push(`+${stats.movementSpeed} Speed`);
+        if (stats.attackSpeed && stats.attackSpeed !== 1) parts.push(`${stats.attackSpeed}× Atk spd`);
+        if (parts.length === 0 && item.baseStats && Object.keys(item.baseStats).length > 0) {
+            for (const [k, v] of Object.entries(item.baseStats)) {
+                if (typeof v === 'number' && v !== 0) parts.push(`${k}: ${v}`);
+            }
+        }
+        return parts.slice(0, 5).join(', ');
+    }
+
     showItemPopup(item, slotElement, event) {
         // Store reference to current item and slot
         this.currentItem = item;
@@ -498,7 +551,9 @@ export class InventoryUI extends UIComponent {
         const iconElement = this.itemPopup.querySelector('.item-popup-icon');
         const nameElement = this.itemPopup.querySelector('.item-popup-name');
         const typeElement = this.itemPopup.querySelector('.item-popup-type');
+        const rarityElement = this.itemPopup.querySelector('.item-popup-rarity');
         const statsElement = this.itemPopup.querySelector('.item-popup-stats');
+        const legendaryElement = this.itemPopup.querySelector('.item-popup-legendary');
         const descElement = this.itemPopup.querySelector('.item-popup-description');
         const useButton = this.itemPopup.querySelector('.item-popup-use');
         const equipButton = this.itemPopup.querySelector('.item-popup-equip');
@@ -511,20 +566,54 @@ export class InventoryUI extends UIComponent {
         const displayType = item.type === 'currency' ? 'CURRENCY' : (item.type ? item.type.toUpperCase() : 'CONSUMABLE');
         typeElement.textContent = displayType;
         
-        // Set stats if available
-        if (item.stats) {
-            let statsHtml = '<ul class="item-stats-list">';
-            for (const [stat, value] of Object.entries(item.stats)) {
-                const formattedStat = stat.charAt(0).toUpperCase() + stat.slice(1);
-                const valueText = value > 0 ? `+${value}` : value;
-                statsHtml += `<li><span class="stat-name">${formattedStat}:</span> <span class="stat-value ${value > 0 ? 'positive' : 'negative'}">${valueText}</span></li>`;
+        // Rarity (GDD: Common, Uncommon, Rare, Epic, Legendary)
+        const rarity = item.rarity || 'common';
+        if (rarity !== 'common') {
+            rarityElement.textContent = rarity.charAt(0).toUpperCase() + rarity.slice(1);
+            rarityElement.style.display = 'block';
+            rarityElement.className = 'item-popup-rarity item-rarity-' + rarity;
+        } else {
+            rarityElement.style.display = 'none';
+        }
+        
+        // Stats: prefer baseStats (design source), fallback to item.stats (scaled)
+        const statsSource = item.baseStats && Object.keys(item.baseStats).length > 0 ? item.baseStats : (item.stats || {});
+        let statsHtml = '';
+        if (Object.keys(statsSource).length > 0) {
+            statsHtml = '<ul class="item-stats-list">';
+            for (const [stat, value] of Object.entries(statsSource)) {
+                if (value == null || (typeof value === 'object' && !Array.isArray(value))) continue;
+                const label = this.formatStatName(stat);
+                const valueText = typeof value === 'number' ? (value > 0 ? `+${value}` : String(value)) : String(value);
+                statsHtml += `<li><span class="stat-name">${label}:</span> <span class="stat-value ${typeof value === 'number' && value > 0 ? 'positive' : 'negative'}">${valueText}</span></li>`;
             }
             statsHtml += '</ul>';
+            if (item.secondaryStats && item.secondaryStats.length > 0) {
+                statsHtml += '<div class="item-secondary-stats">';
+                item.secondaryStats.forEach(sec => {
+                    const typeLabel = this.formatStatName(sec.type || 'effect');
+                    statsHtml += `<div class="item-secondary-line"><span class="stat-name">${typeLabel}</span>: <span class="stat-value">${sec.value != null ? sec.value : ''} ${sec.element || ''}</span></div>`;
+                });
+                statsHtml += '</div>';
+            }
             statsElement.innerHTML = statsHtml;
             statsElement.style.display = 'block';
         } else {
             statsElement.innerHTML = '';
             statsElement.style.display = 'none';
+        }
+        
+        // Legendary skill behavior (GDD: readable in UI)
+        if (item.legendarySkillBehavior) {
+            const lb = item.legendarySkillBehavior;
+            const effectText = lb.effect === 'meditation_field_heal_5pct_max_hp_per_sec'
+                ? 'Meditation Field heals 5% max HP per second while active.'
+                : (item.description || `Legendary: ${lb.skillId}`);
+            legendaryElement.innerHTML = `<div class="item-legendary-effect">✨ ${effectText}</div>`;
+            legendaryElement.style.display = 'block';
+        } else {
+            legendaryElement.innerHTML = '';
+            legendaryElement.style.display = 'none';
         }
         
         // Set description
@@ -1032,29 +1121,16 @@ export class InventoryUI extends UIComponent {
             // Show notification with stat changes if available
             let notificationText = `Equipped ${item.name}`;
             
-            // Add stat information to notification if available
-            if (item.stats) {
+            // Add stat information to notification (baseStats or item.stats)
+            const stats = item.baseStats || item.stats;
+            if (stats && typeof stats === 'object') {
                 const statChanges = [];
-                
-                if (item.stats.attack) {
-                    statChanges.push(`+${item.stats.attack} Attack`);
-                }
-                if (item.stats.defense) {
-                    statChanges.push(`+${item.stats.defense} Defense`);
-                }
-                if (item.stats.health) {
-                    statChanges.push(`+${item.stats.health} Health`);
-                }
-                if (item.stats.mana) {
-                    statChanges.push(`+${item.stats.mana} Mana`);
-                }
-                if (item.stats.speed) {
-                    statChanges.push(`+${item.stats.speed} Speed`);
-                }
-                
-                if (statChanges.length > 0) {
-                    notificationText += ` (${statChanges.join(', ')})`;
-                }
+                if (stats.damage) statChanges.push(`+${stats.damage} Damage`);
+                if (stats.defense) statChanges.push(`+${stats.defense} Defense`);
+                if (stats.healthBonus || stats.health) statChanges.push(`+${stats.healthBonus || stats.health} Health`);
+                if (stats.manaBonus || stats.mana) statChanges.push(`+${stats.manaBonus || stats.mana} Mana`);
+                if (stats.movementSpeed || stats.speed) statChanges.push(`+${stats.movementSpeed || stats.speed} Speed`);
+                if (statChanges.length > 0) notificationText += ` (${statChanges.join(', ')})`;
             }
             
             this.game.hudManager.showNotification(notificationText, 'equip', { item });
@@ -1117,6 +1193,12 @@ export class InventoryUI extends UIComponent {
                     itemIcon.textContent = item.icon || '📦';
                     slotElement.appendChild(itemIcon);
                     
+                    // GDD slot label (Phase 7.4)
+                    const label = document.createElement('span');
+                    label.className = 'slot-label';
+                    label.textContent = this.getSlotName(slot);
+                    slotElement.appendChild(label);
+                    
                     // Add tooltip with item name
                     slotElement.title = item.name;
                     
@@ -1133,6 +1215,12 @@ export class InventoryUI extends UIComponent {
                     emptySlot.className = 'empty-slot';
                     emptySlot.textContent = this.getSlotIcon(slot);
                     slotElement.appendChild(emptySlot);
+                    
+                    // GDD slot label (Phase 7.4)
+                    const label = document.createElement('span');
+                    label.className = 'slot-label';
+                    label.textContent = this.getSlotName(slot);
+                    slotElement.appendChild(label);
                     
                     // Add tooltip with slot name
                     slotElement.title = this.getSlotName(slot);

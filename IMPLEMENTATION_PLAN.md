@@ -6,7 +6,7 @@ This document maps **quest.md** (Complete Game Design Document) to the codebase 
 
 ## Next up (recommended order)
 
-1. **Phase 7 — Polish & enhancements** (see below): 7.1 done (camera sensitivity), 7.3 done (skills-by-level + level/points messaging). Next: native monk model (7.2), item system (7.4), relaxation music (7.5), quest/story tone (7.6), performance (7.7), skill tree UX (7.8).
+1. **Phase 7 — Polish & enhancements** (see below): 7.1–7.7 done (camera, monk model, skills-by-level, items tooltips/UX, relaxation music, quest tone, offline-first). Next: skill tree UX (7.8, optional).
 2. **Phase 6 done.** Shadow Self has Mirror Strike ability and dark visual; Path of Mastery uses flag + path_of_mastery zone, mastery completions in save, first PoM boss clear unlocks Master's Robe cosmetic.
 3. **Phase 5 done.** Core combat feel and PoM unlock/entry point are in place.
 
@@ -134,26 +134,26 @@ Post–core-implementation improvements. Order is flexible; pick by priority.
 - [x] **Drag sensitivity:** In camera rotate (drag): increase sensitivity so the same drag rotates further (e.g. ~3× current). Touch/pointer drag should allow more rotation per gesture. File: `js/hud-manager/CameraControlUI.js` (or wherever drag-to-rotate is handled). Implemented: `DRAG_SENSITIVITY_MULTIPLIER = 3` (tunable).
 
 ### Step 7.2 — Native monk model (Three.js)
-- [ ] **Custom monk model:** Replace or complement current player representation with a native Three.js monk model (similar to enemy model approach). Design: young monk, shaolin-style yellow cloth; parts: head, hands, body, legs, long staff.
-- [ ] **Attachment points:** Model definition should expose positions/slots for equipment (helmet, shoulder, armor, etc.) so items can be attached and swapped easily; keep native model’s unique style, use opacity/layering for gear on top.
-- [ ] **Equipment visuals:** Align with `PlayerEquipmentVisuals.js` (e.g. ~96–130): support adding/swapping items on the native model while preserving the monk’s base look.
+- [x] **Custom monk model:** Replace or complement current player representation with a native Three.js monk model (similar to enemy model approach). Design: young monk, shaolin-style yellow cloth; parts: head, hands, body, legs, long staff. Implemented: `js/player/models/NativeMonkModel.js` (createNativeMonkGroup); selectable as "Monk (Native)" in character config.
+- [x] **Attachment points:** Model definition should expose positions/slots for equipment (helmet, shoulder, armor, etc.) so items can be attached and swapped easily; keep native model’s unique style, use opacity/layering for gear on top.
+- [x] **Equipment visuals:** Align with `PlayerEquipmentVisuals.js` (e.g. ~96–130): support adding/swapping items on the native model while preserving the monk’s base look.
 
 ### Step 7.3 — Skills & progression clarity
 - [x] **Skills by level:** Optional “skills learned = unlock at particular level” so some skills unlock over time by level in addition to (or alongside) skill tree. Implemented: requiredLevel on each node (1–5 by path); unlock checks use playerLevel; UI shows "Requires level X".
 - [x] **Level/points messaging:** Ensure UI clearly communicates: level = points for attributes (health, mana, attack speed, etc.); skill points = learn/upgrade skills in tree. Implemented: stats overlay hint; level-up popup shows "+3 attribute points, +1 skill point".
 
 ### Step 7.4 — Items & content
-- [ ] **Items system:** Further improvements to item system (beyond GDD slots and legendary pipeline already in place)—e.g. balance, variety, tooltips, or UX from todo.md.
+- [x] **Items system:** Further improvements to item system (beyond GDD slots and legendary pipeline already in place)—e.g. balance, variety, tooltips, or UX from todo.md. Implemented: item popup shows baseStats, secondaryStats, rarity badge, and legendary skill effect text; inventory grid tooltips show name, rarity, and one-line stats summary; equipment slots show visible GDD labels (Weapon, Robe, Prayer Beads, Talisman, Relic); equip notification uses baseStats when present.
 
 ### Step 7.5 — Music & atmosphere
-- [ ] **Relaxation music:** Use “nhạc không lời, nhẹ nhàng thư giãn” (instrumental, gentle, relaxing) where applicable; ensure layered music (Phase 4.1) uses calm exploration/combat/boss tracks that match the intended mood.
+- [x] **Relaxation music:** Use “nhạc không lời, nhẹ nhàng thư giãn” (instrumental, gentle, relaxing) where applicable; ensure layered music (Phase 4.1) uses calm exploration/combat/boss tracks that match the intended mood. Implemented: mood documented in `sounds.js`; MUSIC entries have calm `simulated` params (gentle sine, low vibrato/tremolo) so when assets are missing the fallback stays relaxing.
 
 ### Step 7.6 — Quest & story tone
-- [ ] **Quest as one-time help:** Reinforce that quests are single-serving “help once” experiences with clear story and lesson.
-- [ ] **Kid/teen-friendly lessons:** Ensure quest text and reflection lessons align with teaching life lessons and growth (monk journey, harmony, being better/happier) for younger audiences.
+- [x] **Quest as one-time help:** Reinforce that quests are single-serving “help once” experiences with clear story and lesson.
+- [x] **Kid/teen-friendly lessons:** Ensure quest text and reflection lessons align with teaching life lessons and growth (monk journey, harmony, being better/happier) for younger audiences. Implemented: tone guidance in `chapter-quests.js` (one-time help, kid/teen-friendly life lessons).
 
 ### Step 7.7 — Performance & offline-first
-- [ ] **Responsiveness:** Keep game fast and responsive (cast fast, no unnecessary waits); maintain fallbacks (e.g. if track X fails, load default) so nothing hangs on network; remain offline-first.
+- [x] **Responsiveness:** Keep game fast and responsive (cast fast, no unnecessary waits); maintain fallbacks (e.g. if track X fails, load default) so nothing hangs on network; remain offline-first. Implemented: audio init does not block on network (checkAudioFilesExist runs async); fallbacks and simulated music documented in AudioManager.
 
 ### Step 7.8 — Skill tree UX (optional)
 - [ ] **Skill tree UI polish:** Further improve graph UI (circle network, main → variant visualization, clear description of what each node gives); ensure “what you can have on each” is clear to the player.
@@ -180,7 +180,7 @@ Post–core-implementation improvements. Order is flexible; pick by priority.
 | Path of Mastery (Ch5 unlock, entry point) | `js/QuestManager.js`, `js/game/Game.js`, `js/hud-manager/ReflectionUI.js`, `js/hud-manager/HUDManager.js`, `css/reflection-screen.css` |
 | Shadow Self (mirror build + Mirror Strike) | Phase 6.1: `js/player/PlayerStats.js` or Game snapshot, `js/enemies/EnemyManager.js` (spawnBoss override), `js/enemies/Enemy.js` (shadow_self + castMirrorStrike), `js/config/game-balance.js` (shadow_self) |
 | Path of Mastery content (area, bosses, mastery, cosmetics) | Phase 6.2: `js/game/Game.js` (enterPathOfMastery, isInPathOfMastery, recordPathOfMasteryBossKill, getUnlockedCosmetics), `js/config/game-balance.js` (path_of_mastery zone), `js/enemies/EnemyManager.js` (PoM zone in spawns), `js/save-manager/serializers/SettingsSerializer.js` (pathOfMasteryCompletions, unlockedCosmetics), `js/QuestManager.js` (updateEnemyKill → recordPathOfMasteryBossKill) |
-| Phase 7 (camera, monk model, skills-by-level, items, music, tone, UX) | `js/hud-manager/CameraControlUI.js`, player model code, `js/player/PlayerEquipmentVisuals.js`, `js/config/sounds.js`, `js/AudioManager.js`, quest/reflection copy, skill tree UI |
+| Phase 7 (camera, monk model, skills-by-level, items, music, tone, UX) | `js/hud-manager/CameraControlUI.js`, `js/player/models/NativeMonkModel.js`, `js/player/PlayerModel.js`, `js/config/player-models.js`, `js/player/PlayerEquipmentVisuals.js`, `js/config/sounds.js`, `js/AudioManager.js`, quest/reflection copy, skill tree UI |
 
 ---
 

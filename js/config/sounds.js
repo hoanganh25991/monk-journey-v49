@@ -891,7 +891,10 @@ export const ENVIRONMENT_SOUNDS = {
     }
 };
 
-// Music tracks (GDD: exploration ambient, combat subtle drums, boss intensity)
+// Music tracks (GDD: exploration ambient, combat subtle drums, boss intensity).
+// Phase 7.5 — Relaxation mood: "nhạc không lời, nhẹ nhàng thư giãn" (instrumental, gentle, relaxing).
+// Use calm exploration, subtle combat, and melodic boss tracks. When files are missing, simulated
+// fallbacks use gentle sine waves so the mood stays relaxed (offline-first).
 export const MUSIC = {
     mainTheme: {
         id: 'mainTheme',
@@ -899,6 +902,14 @@ export const MUSIC = {
         fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
+        simulated: {
+            frequency: [220, 277, 330],
+            duration: 8,
+            type: 'sine',
+            decay: false,
+            vibrato: 2,
+            tremolo: 0.1,
+        },
     },
     battleTheme: {
         id: 'battleTheme',
@@ -906,6 +917,14 @@ export const MUSIC = {
         fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
+        simulated: {
+            frequency: [260, 330, 392],
+            duration: 6,
+            type: 'sine',
+            decay: false,
+            vibrato: 3,
+            tremolo: 0.15,
+        },
     },
     bossTheme: {
         id: 'bossTheme',
@@ -913,7 +932,15 @@ export const MUSIC = {
         fallbackFile: 'battle_theme.mp3',
         volume: 0.1,
         loop: true,
-    }
+        simulated: {
+            frequency: [196, 262, 330],
+            duration: 6,
+            type: 'sine',
+            decay: false,
+            vibrato: 4,
+            tremolo: 0.2,
+        },
+    },
 };
 
 /** GDD music layers: exploration (default), combat, boss. Crossfade ~1.5s when switching. */
