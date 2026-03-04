@@ -54,12 +54,14 @@ export class QuestLogUI extends UIComponent {
         if (!this.game?.questManager) return '';
         const next = this.game.questManager.getNextChapterQuestForMarker();
         if (!next) return '';
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        const nextDisplay = getChapterQuestDisplay(next, locale);
         const currentMapId = this.game.world?.currentMap?.id;
         const nextMapId = getMapIdForChapterQuest(next.id);
         if (nextMapId === currentMapId) {
             return '→ Find the quest marker (yellow ! on the map) to start your journey.';
         }
-        const label = next.area ?? (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+        const label = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
         return `→ Travel to ${label} to get your next quest.`;
     }
 
@@ -72,6 +74,9 @@ export class QuestLogUI extends UIComponent {
     updateQuestLog(activeQuests) {
         this.activeQuests = activeQuests || [];
         this.questList.innerHTML = '';
+
+        // Always use current game locale so language matches Settings (VI/EN) even after async load
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
 
         if (activeQuests.length === 0) {
             const noQuests = document.createElement('div');
@@ -91,7 +96,6 @@ export class QuestLogUI extends UIComponent {
         const maxVisible = QuestLogUI.MAX_VISIBLE_QUESTS;
         const hasMore = activeQuests.length > maxVisible;
         const visibleQuests = hasMore ? activeQuests.slice(0, maxVisible) : activeQuests;
-        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
 
         visibleQuests.forEach((quest) => {
             this.questList.appendChild(this.buildQuestBlock(quest, locale));
@@ -161,12 +165,14 @@ export class QuestLogUI extends UIComponent {
     /**
      * Show a full-screen detail popup for a quest (story, objectives, lesson).
      * Rendered above the HUD with high z-index so it is always visible.
+     * Always uses current game.questStoryLocale so the language matches Settings.
      * @param {Object} quest - Quest data
-     * @param {string} locale - Locale for chapter display
+     * @param {string} [locale] - Locale fallback when game not available
      */
     showQuestDetail(quest, locale) {
+        const effectiveLocale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : (locale || 'en');
         const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
-        const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
+        const display = chapterTemplate ? getChapterQuestDisplay(quest, effectiveLocale) : null;
         const name = display ? display.title : (quest.title || quest.name);
         const area = display ? display.area : (quest.area || '');
         const description = display ? display.description : (quest.description || '');
