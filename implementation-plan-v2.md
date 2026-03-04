@@ -145,3 +145,21 @@ Use this in addition to **IMPLEMENTATION_PLAN.md**. Order below is recommended; 
   - **Life lessons and “monk, journey to happiness, peace”:** Phase 10.4 and Phase 11 (in-game framing + optional readme/store line).
 
 **implementation-plan-v2.md** gives concrete steps (Phases 8–11) to close these gaps without changing the existing architecture.
+
+---
+
+## 6. Implementation status (Phases 8–11)
+
+| Phase | Step | Status | Notes |
+|-------|------|--------|--------|
+| **8** | 8.1 Dialog Accept callback | ✅ Done | `DialogUI` / `HUDManager` support `onAccept`; quest dialog shows Accept button and starts quest on click. |
+| **8** | 8.2 Offer quest on game start | ✅ Done | `checkForAvailableQuests()` called after reveal (both reveal animation path and warmup path in `Game.js`); `_hasOfferedQuestThisSession` ensures once per start. |
+| **8** | 8.3 Decline/remind | ⏭ Optional P2 | Not implemented; leave as-is per plan. |
+| **9** | 9.1 Help / How to play | ✅ Done | Main menu **Help** opens modal with intro, Controls, Quests, Quest log, After each chapter (`index.html` #help-modal). |
+| **9** | 9.2 First-time hint | ✅ Done | One-time notification when player accepts first chapter quest: "Your journey: complete the objectives in the quest log, then face the chapter boss." (`QuestManager.startQuest` + `Game._hasShownQuestHintThisSession`). |
+| **10** | 10.1 Quest log description/area | ✅ Done | `QuestLogUI` shows `quest.area` and `quest.description` for each active quest (`quest-area-desc`). |
+| **10** | 10.2 Reflection chapter title | ✅ Done | `ReflectionUI` shows `options.chapterTitle` (e.g. "Chapter 1 — The Restless Village"); `QuestManager.completeQuest` passes it. |
+| **10** | 10.3 Story / Journal | ✅ Done | Main menu **Story** opens "Your Journey" modal with completed chapters + lessons and next chapter (`GameMenu.showStoryModal`). |
+| **10** | 10.4 Overarching message | ✅ Done | Help modal intro: "A peaceful monk travels a fragmented world, facing inner struggles—anger, fear, greed, loneliness—to restore harmony and find peace." |
+| **11** | 11.1 In-game tone | ✅ Done | Chapter quests and reflection quotes in `chapter-quests.js` and UI align with growth, harmony, peace. |
+| **11** | 11.2 readme / store | ✅ Done | README Overview already includes: "Each chapter ends with a moment of reflection and a life lesson—a journey not only of strength but of peace and understanding." |

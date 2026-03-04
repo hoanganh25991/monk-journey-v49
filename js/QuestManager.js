@@ -333,6 +333,11 @@ export class QuestManager {
             const copy = this.cloneChapterQuestForStart(quest);
             this.activeQuests.push(copy);
             this.game.hudManager.updateQuestLog(this.activeQuests);
+            // First-time hint (Phase 9.2): one-time tip after accepting a chapter quest
+            if (this.game && !this.game._hasShownQuestHintThisSession) {
+                this.game._hasShownQuestHintThisSession = true;
+                this.game.hudManager.showNotification('Your journey: complete the objectives in the quest log, then face the chapter boss.');
+            }
             return true;
         }
 
