@@ -38,9 +38,6 @@
     margin-bottom: 10px;
 }
 
-#quest-list .quest-item {
-    margin-bottom: 10px;
-}
 
 #quest-list .quest-name {
     font-weight: bold;
@@ -50,25 +47,58 @@
     color: var(--theme-gold);
 }
 
-#quest-list .quest-area-desc {
+/* Summary: 1–2 lines, concise; full description hidden until expanded */
+#quest-list .quest-summary-wrap {
     font-size: 12px;
     margin: 4px 0;
     opacity: 0.9;
-    line-height: 1.3;
+    line-height: 1.35;
 }
-#quest-list .quest-area {
-    font-style: italic;
-    color: var(--theme-gold, #f0c14b);
-}
-#quest-list .quest-desc {
-    margin-top: 2px;
+#quest-list .quest-summary {
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    word-break: break-word;
 }
-
+#quest-list .quest-desc-full {
+    display: none;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+#quest-list .quest-item--expanded .quest-desc-full {
+    display: block;
+}
+#quest-list .quest-item--expanded .quest-summary {
+    -webkit-line-clamp: unset;
+    display: none;
+}
+#quest-list .quest-item--expanded .quest-tap-hint {
+    display: none;
+}
+#quest-list .quest-tap-hint {
+    font-size: 10px;
+    opacity: 0.75;
+    margin-top: 2px;
+}
+#quest-list .quest-item {
+    margin-bottom: 10px;
+    cursor: pointer;
+    padding: 4px 0;
+    border-radius: 4px;
+    outline: none;
+}
+#quest-list .quest-item:focus-visible {
+    outline: 1px solid var(--theme-gold, #f0c14b);
+}
+#quest-list .quest-area {
+    font-style: italic;
+    color: var(--theme-gold, #f0c14b);
+}
 #quest-list .quest-objective {
     font-size: 14px;
 }
