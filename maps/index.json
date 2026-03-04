@@ -7,7 +7,7 @@
     "size": "1200x1200",
     "thumbnail": "maps/thumbnails/default.png",
     "structures": 65,
-    "paths": 18,
+    "paths": 4,
     "environment": 230
   },
   {
@@ -18,7 +18,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/terrant.png",
     "structures": 28,
-    "paths": 11,
+    "paths": 2,
     "environment": 95
   },
   {
@@ -29,7 +29,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/forest.png",
     "structures": 32,
-    "paths": 15,
+    "paths": 3,
     "environment": 145
   },
   {
@@ -40,7 +40,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/desert.png",
     "structures": 24,
-    "paths": 14,
+    "paths": 2,
     "environment": 88
   },
   {
@@ -51,7 +51,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/mountains.png",
     "structures": 26,
-    "paths": 15,
+    "paths": 2,
     "environment": 102
   },
   {
@@ -62,7 +62,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/swamp.png",
     "structures": 28,
-    "paths": 17,
+    "paths": 2,
     "environment": 118
   },
   {
@@ -73,7 +73,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/magical.png",
     "structures": 30,
-    "paths": 16,
+    "paths": 3,
     "environment": 125
   },
   {
@@ -84,7 +84,7 @@
     "size": "2500x2500",
     "thumbnail": "maps/thumbnails/mixed.png",
     "structures": 280,
-    "paths": 43,
+    "paths": 12,
     "environment": 980
   },
   {
@@ -95,7 +95,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/highland-vale.png",
     "structures": 26,
-    "paths": 17,
+    "paths": 2,
     "environment": 102
   },
   {
@@ -106,7 +106,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/ember-wastes.png",
     "structures": 24,
-    "paths": 12,
+    "paths": 2,
     "environment": 88
   },
   {
@@ -117,7 +117,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/whisper-woods.png",
     "structures": 32,
-    "paths": 14,
+    "paths": 3,
     "environment": 145
   },
   {
@@ -128,7 +128,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/crimson-bog.png",
     "structures": 28,
-    "paths": 16,
+    "paths": 2,
     "environment": 118
   },
   {
@@ -139,7 +139,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/sky-prairie.png",
     "structures": 28,
-    "paths": 13,
+    "paths": 2,
     "environment": 95
   },
   {
@@ -150,7 +150,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/veil-garden.png",
     "structures": 30,
-    "paths": 13,
+    "paths": 3,
     "environment": 125
   },
   {
@@ -161,7 +161,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/frost-hollow.png",
     "structures": 26,
-    "paths": 19,
+    "paths": 2,
     "environment": 102
   },
   {
@@ -172,7 +172,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/sand-shrine.png",
     "structures": 24,
-    "paths": 15,
+    "paths": 2,
     "environment": 88
   },
   {
@@ -183,7 +183,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/thorn-marsh.png",
     "structures": 28,
-    "paths": 19,
+    "paths": 2,
     "environment": 118
   },
   {
@@ -194,7 +194,7 @@
     "size": "800x800",
     "thumbnail": "maps/thumbnails/eldritch-grove.png",
     "structures": 30,
-    "paths": 14,
+    "paths": 3,
     "environment": 125
   }
 ]
