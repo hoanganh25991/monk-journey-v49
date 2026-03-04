@@ -312,7 +312,9 @@ export class Game {
                 if (nextMapId === currentMapId) {
                     this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
                 } else {
-                    const nextMapLabel = next.area ?? (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+                    const locale = this.questStoryLocale || 'en';
+                    const nextDisplay = getChapterQuestDisplay(next, locale);
+                    const nextMapLabel = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
                     this.hudManager.showNotification(`Travel to ${nextMapLabel} to get your next quest.`);
                 }
                 this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
