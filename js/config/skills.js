@@ -430,6 +430,13 @@ export const BATTLE_SKILLS = [
     ...NORMAL_SKILLS.slice(0, 7), // First 7 normal skills
 ];
 
+/** Starter set for first-time play (no saved skill selection): 1 primary + 2 normal skills. */
+/** @type {SkillConfig[]} */
+export const STARTING_SKILLS = [
+    PRIMARY_ATTACKS[1],
+    ...NORMAL_SKILLS.slice(0, 2),
+];
+
 /** Ordered skill names - use this for consistent ordering (skill-tree, UI) */
 export const SKILL_ORDER = [...PRIMARY_ATTACKS, ...NORMAL_SKILLS].map(s => s.name);
 

@@ -7,6 +7,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { getGLTFLoader } from '../utils/GLTFLoaderWithMeshopt.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
+import { createNativeMonkGroup, updateNativeMonkAnimations } from '../player/models/NativeMonkModel.js';
 
 export class ModelPreview {
     constructor(container, width = 300, height = 485) {
@@ -25,6 +26,8 @@ export class ModelPreview {
         this.visible = true;
         this.animations = {};
         this.currentAnimation = null;
+        /** @type {boolean} When true, this.model is the native procedural monk (no GLB). */
+        this.isNativeMonk = false;
         
         // Check if there's an existing wrapper with ID 'model-preview-fullscreen-wrapper'
         const existingWrapper = this.container.querySelector('#model-preview-fullscreen-wrapper');
@@ -173,6 +176,7 @@ export class ModelPreview {
     }
     
     loadModel(modelPath, scale = 1.0) {
+        this.isNativeMonk = false;
         // Remove existing model if any
         if (this.model) {
             this.scene.remove(this.model);
@@ -251,6 +255,32 @@ export class ModelPreview {
         );
     }
     
+    /**
+     * Show the procedural native monk in the preview (no GLB file).
+     * @param {number} scale - Scale to apply
+     */
+    loadNativeMonk(scale = 1.0) {
+        this.isNativeMonk = true;
+        if (this.model) {
+            this.scene.remove(this.model);
+            this.model = null;
+        }
+        this.mixer = null;
+        this.animations = {};
+        this.currentAnimation = null;
+        const root = createNativeMonkGroup({ includeDefaultStaff: true });
+        root.traverse((node) => {
+            if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+            }
+        });
+        root.scale.setScalar(scale);
+        this.model = root;
+        this.centerModel();
+        this.scene.add(this.model);
+    }
+    
     centerModel() {
         if (!this.model) return;
         
@@ -290,6 +320,9 @@ export class ModelPreview {
             const delta = this.clock.getDelta();
             if (this.mixer) {
                 updateAnimation(this.mixer, delta);
+            }
+            if (this.isNativeMonk && this.model) {
+                updateNativeMonkAnimations(this.model, delta, {});
             }
             
             // Render scene

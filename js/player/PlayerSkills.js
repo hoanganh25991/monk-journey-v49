@@ -1,7 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { fastAtan2, fastSin, fastCos, distanceSq2D, distanceApprox2D } from '../utils/FastMath.js';
 import { Skill } from '../skills/Skill.js';
-import { SKILLS, BATTLE_SKILLS } from '../config/skills.js';
+import { SKILLS, BATTLE_SKILLS, STARTING_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ATTACK_ANIMATION_DURATION_MS } from '../config/input.js';
 
@@ -215,9 +215,8 @@ export class PlayerSkills {
                 this.skills = filteredSkills.map(skillConfig => new Skill(skillConfig, this.game));
             }
         } else {
-            // No saved skills, use default battle skills
-            // Filter out custom skills if disabled
-            const filteredSkills = this.filterCustomSkills(BATTLE_SKILLS);
+            // No saved skills (first-time play): use starter set (1 primary + 2 normal), not full 8
+            const filteredSkills = this.filterCustomSkills(STARTING_SKILLS);
             this.skills = filteredSkills.map(skillConfig => new Skill(skillConfig, this.game));
         }
     }

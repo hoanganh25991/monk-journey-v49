@@ -86,8 +86,11 @@ export class CharacterModelTab extends SettingsTab {
             // Update the model preview
             if (this.modelPreview) {
                 const selectedModel = CHARACTER_MODELS[selectedIndex];
-                if (selectedModel && selectedModel.modelPath) {
-                    this.modelPreview.loadModel(selectedModel.modelPath, selectedModel.scale || 1.0);
+                if (selectedModel?.native) {
+                    const scale = selectedModel.baseScale || selectedModel.scale || 1.0;
+                    this.modelPreview.loadNativeMonk(scale);
+                } else if (selectedModel?.modelPath) {
+                    this.modelPreview.loadModel(selectedModel.modelPath, selectedModel.baseScale || selectedModel.scale || 1.0);
                 }
             }
         });
@@ -155,8 +158,12 @@ export class CharacterModelTab extends SettingsTab {
         const selectedModel = selectedModelIndex >= 0 && selectedModelIndex < CHARACTER_MODELS.length ? 
             CHARACTER_MODELS[selectedModelIndex] : null;
         
-        // Set the model
-        if (selectedModel && selectedModel.modelPath) {
+        // Set the model (native procedural monk has no modelPath)
+        if (selectedModel?.native) {
+            console.debug('Loading native monk preview');
+            const scale = selectedModel.baseScale || selectedModel.scale || 1.0;
+            this.modelPreview.loadNativeMonk(scale);
+        } else if (selectedModel?.modelPath) {
             console.debug(`Loading model: ${selectedModel.modelPath}`);
             const scale = selectedModel.baseScale || selectedModel.scale || 1.0;
             this.modelPreview.loadModel(selectedModel.modelPath, scale);

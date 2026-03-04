@@ -170,7 +170,7 @@ SMOOTH & ACCESSIBLE
 • Adjustable quality and controls
 • Fullscreen landscape gameplay
 
-Download Monk Journey and start your journey today.
+Each chapter ends with a moment of reflection and a life lesson—a journey not only of strength but of peace and understanding. Download Monk Journey and start your journey today.
 ```
 
 ## Credits
