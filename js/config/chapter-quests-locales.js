@@ -1,7 +1,10 @@
 /**
  * Chapter quest & story strings by locale (EN / VI).
  * Consumers should use getChapterQuestText / getChapterQuestDisplay with game.questStoryLocale.
+ * For chapters 6–100, text falls back to quest data from chapter-quests.js when no locale entry exists.
  */
+
+import { getChapterQuestById } from './chapter-quests.js';
 
 const DEFAULT_LOCALE = 'en';
 
@@ -98,7 +101,14 @@ export function getChapterQuestText(questId, locale = DEFAULT_LOCALE, key) {
     const byId = byLocale && byLocale[questId];
     if (byId && typeof byId[key] === 'string') return byId[key];
     const fallback = CHAPTER_QUEST_TEXTS.en && CHAPTER_QUEST_TEXTS.en[questId];
-    return (fallback && typeof fallback[key] === 'string') ? fallback[key] : '';
+    if (fallback && typeof fallback[key] === 'string') return fallback[key];
+    // Chapters 6–100: fallback to quest data from chapter-quests.js
+    const quest = getChapterQuestById(questId);
+    if (quest && key) {
+        if (key === 'bossName') return quest.boss?.name ?? '';
+        if (key in quest && typeof quest[key] === 'string') return quest[key];
+    }
+    return '';
 }
 
 /** UI strings for reflection screen (buttons) by locale */
