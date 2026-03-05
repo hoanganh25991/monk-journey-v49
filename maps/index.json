@@ -8,7 +8,15 @@
     "thumbnail": "maps/thumbnails/default.png",
     "structures": 65,
     "paths": 4,
-    "environment": 230
+    "environment": 230,
+    "chapters": [
+      1,
+      19,
+      37,
+      55,
+      73,
+      91
+    ]
   },
   {
     "id": "terrant",
@@ -19,7 +27,15 @@
     "thumbnail": "maps/thumbnails/terrant.png",
     "structures": 28,
     "paths": 2,
-    "environment": 95
+    "environment": 95,
+    "chapters": [
+      2,
+      20,
+      38,
+      56,
+      74,
+      92
+    ]
   },
   {
     "id": "forest",
@@ -30,7 +46,15 @@
     "thumbnail": "maps/thumbnails/forest.png",
     "structures": 32,
     "paths": 3,
-    "environment": 145
+    "environment": 145,
+    "chapters": [
+      3,
+      21,
+      39,
+      57,
+      75,
+      93
+    ]
   },
   {
     "id": "desert",
@@ -41,7 +65,15 @@
     "thumbnail": "maps/thumbnails/desert.png",
     "structures": 24,
     "paths": 2,
-    "environment": 88
+    "environment": 88,
+    "chapters": [
+      4,
+      22,
+      40,
+      58,
+      76,
+      94
+    ]
   },
   {
     "id": "mountains",
@@ -52,7 +84,15 @@
     "thumbnail": "maps/thumbnails/mountains.png",
     "structures": 26,
     "paths": 2,
-    "environment": 102
+    "environment": 102,
+    "chapters": [
+      5,
+      23,
+      41,
+      59,
+      77,
+      95
+    ]
   },
   {
     "id": "swamp",
@@ -63,7 +103,15 @@
     "thumbnail": "maps/thumbnails/swamp.png",
     "structures": 28,
     "paths": 2,
-    "environment": 118
+    "environment": 118,
+    "chapters": [
+      6,
+      24,
+      42,
+      60,
+      78,
+      96
+    ]
   },
   {
     "id": "magical",
@@ -74,7 +122,15 @@
     "thumbnail": "maps/thumbnails/magical.png",
     "structures": 30,
     "paths": 3,
-    "environment": 125
+    "environment": 125,
+    "chapters": [
+      7,
+      25,
+      43,
+      61,
+      79,
+      97
+    ]
   },
   {
     "id": "mixed",
@@ -85,7 +141,15 @@
     "thumbnail": "maps/thumbnails/mixed.png",
     "structures": 280,
     "paths": 12,
-    "environment": 980
+    "environment": 980,
+    "chapters": [
+      8,
+      26,
+      44,
+      62,
+      80,
+      98
+    ]
   },
   {
     "id": "highland-vale",
@@ -96,7 +160,15 @@
     "thumbnail": "maps/thumbnails/highland-vale.png",
     "structures": 26,
     "paths": 2,
-    "environment": 102
+    "environment": 102,
+    "chapters": [
+      9,
+      27,
+      45,
+      63,
+      81,
+      99
+    ]
   },
   {
     "id": "ember-wastes",
@@ -107,7 +179,15 @@
     "thumbnail": "maps/thumbnails/ember-wastes.png",
     "structures": 24,
     "paths": 2,
-    "environment": 88
+    "environment": 88,
+    "chapters": [
+      10,
+      28,
+      46,
+      64,
+      82,
+      100
+    ]
   },
   {
     "id": "whisper-woods",
@@ -118,7 +198,14 @@
     "thumbnail": "maps/thumbnails/whisper-woods.png",
     "structures": 32,
     "paths": 3,
-    "environment": 145
+    "environment": 145,
+    "chapters": [
+      11,
+      29,
+      47,
+      65,
+      83
+    ]
   },
   {
     "id": "crimson-bog",
@@ -129,7 +216,14 @@
     "thumbnail": "maps/thumbnails/crimson-bog.png",
     "structures": 28,
     "paths": 2,
-    "environment": 118
+    "environment": 118,
+    "chapters": [
+      12,
+      30,
+      48,
+      66,
+      84
+    ]
   },
   {
     "id": "sky-prairie",
@@ -140,7 +234,14 @@
     "thumbnail": "maps/thumbnails/sky-prairie.png",
     "structures": 28,
     "paths": 2,
-    "environment": 95
+    "environment": 95,
+    "chapters": [
+      13,
+      31,
+      49,
+      67,
+      85
+    ]
   },
   {
     "id": "veil-garden",
@@ -151,7 +252,14 @@
     "thumbnail": "maps/thumbnails/veil-garden.png",
     "structures": 30,
     "paths": 3,
-    "environment": 125
+    "environment": 125,
+    "chapters": [
+      14,
+      32,
+      50,
+      68,
+      86
+    ]
   },
   {
     "id": "frost-hollow",
@@ -162,7 +270,14 @@
     "thumbnail": "maps/thumbnails/frost-hollow.png",
     "structures": 26,
     "paths": 2,
-    "environment": 102
+    "environment": 102,
+    "chapters": [
+      15,
+      33,
+      51,
+      69,
+      87
+    ]
   },
   {
     "id": "sand-shrine",
@@ -173,7 +288,14 @@
     "thumbnail": "maps/thumbnails/sand-shrine.png",
     "structures": 24,
     "paths": 2,
-    "environment": 88
+    "environment": 88,
+    "chapters": [
+      16,
+      34,
+      52,
+      70,
+      88
+    ]
   },
   {
     "id": "thorn-marsh",
@@ -184,7 +306,14 @@
     "thumbnail": "maps/thumbnails/thorn-marsh.png",
     "structures": 28,
     "paths": 2,
-    "environment": 118
+    "environment": 118,
+    "chapters": [
+      17,
+      35,
+      53,
+      71,
+      89
+    ]
   },
   {
     "id": "eldritch-grove",
@@ -195,6 +324,13 @@
     "thumbnail": "maps/thumbnails/eldritch-grove.png",
     "structures": 30,
     "paths": 3,
-    "environment": 125
+    "environment": 125,
+    "chapters": [
+      18,
+      36,
+      54,
+      72,
+      90
+    ]
   }
 ]

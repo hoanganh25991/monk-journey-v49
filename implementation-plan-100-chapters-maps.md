@@ -60,7 +60,7 @@
 
 ### 3.2 Optional chapter metadata in manifest
 
-- When writing **`maps/index.json`**, if **`scripts/map-chapters.json`** exists, `generate-maps.js` merges a **`chapters`** array (e.g. `[1, 19, 37]`) into each manifest entry by `mapId`. Format: array of `{ mapId, chapters: [number] }` or an object `{ "default": [1, 19, 37], ... }`. The Map Selection UI can then show “Chapters: 1, 19, 37” as a second line or tooltip. To generate this file from game data, run a one-off script that imports `CHAPTER_QUEST_MAPS` and groups by `mapId`.
+- When writing **`maps/index.json`**, if **`scripts/map-chapters.json`** exists, `generate-maps.js` merges a **`chapters`** array (e.g. `[1, 19, 37]`) into each manifest entry by `mapId`. Format: array of `{ mapId, chapters: [number] }` or an object `{ "default": [1, 19, 37], ... }`. The Map Selection UI can then show “Chapters: 1, 19, 37” as a second line or tooltip. **Generate from game data**: run `node scripts/generate-map-chapters.js` (from project root). This writes `scripts/map-chapters.json` from `CHAPTER_QUEST_MAPS`. Then run `node scripts/generate-maps.js` to regenerate the manifest with `chapters` per map.
 
 ---
 
@@ -76,11 +76,12 @@
 | Step | File | Action |
 |------|------|--------|
 | 1 | `implementation-plan-100-chapters-maps.md` | This plan (done) |
-| 2 | `js/config/chapter-quests.js` | Add chapters 6–100 (Buddha life lessons, chain nextQuestId) |
-| 3 | `js/config/chapter-quests-locales.js` | Add EN (and VI as needed) for chapters 6–100 |
-| 4 | `js/config/chapter-quest-maps.js` | Assign each of 100 chapters to a map (round-robin or by theme) |
-| 5 | `js/hud-manager/MapSelectionUI.js` | No change if area comes from CHAPTER_QUESTS; optional: show manifest `chapters` |
-| 6 | `scripts/generate-maps.js` | Optional: smaller CHAPTER_MAP_SIZE; optional: write `chapters` into manifest from config |
+| 2 | `js/config/chapter-quests.js` | Add chapters 6–100 (Buddha life lessons, chain nextQuestId) — **done** |
+| 3 | `js/config/chapter-quests-locales.js` | Add EN (and VI as needed) for chapters 6–100 — **done** (fallback to quest data for 6–100) |
+| 4 | `js/config/chapter-quest-maps.js` | Assign each of 100 chapters to a map (round-robin or by theme) — **done** |
+| 5 | `js/hud-manager/MapSelectionUI.js` | No change if area comes from CHAPTER_QUESTS; optional: show manifest `chapters` — **done** |
+| 6 | `scripts/generate-maps.js` | Optional: smaller CHAPTER_MAP_SIZE; optional: merge `chapters` from config — **done** |
+| 7 | `scripts/generate-map-chapters.js` | One-off script: generates `scripts/map-chapters.json` from CHAPTER_QUEST_MAPS — **done** |
 
 ---
 
