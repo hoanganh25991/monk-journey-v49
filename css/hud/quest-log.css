@@ -233,6 +233,7 @@
 
 .quest-detail-description {
     margin: 0 0 12px;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .quest-detail-choice-hint {

@@ -4,7 +4,8 @@ import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
-import { getMapSelectionUiString, getChapterQuestDisplay, MAP_DISPLAY_NAMES_VI } from '../config/chapter-quests-locales.js';
+import { getMapSelectionUiString, getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
+import { getMapDisplay } from '../config/map-locales.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -157,14 +158,10 @@ export class MapSelectionUI extends UIComponent {
         return display?.area ?? quest?.area ?? null;
     }
 
-    /** Display name for a map entry in the current locale (name_vi from manifest or MAP_DISPLAY_NAMES_VI fallback). */
+    /** Display name for a map entry in the current locale (from map-locales, then manifest). */
     getMapDisplayName(mapEntry) {
-        const locale = this.getLocale();
-        if (locale === 'vi') {
-            if (mapEntry.name_vi) return mapEntry.name_vi;
-            if (MAP_DISPLAY_NAMES_VI[mapEntry.id]) return MAP_DISPLAY_NAMES_VI[mapEntry.id];
-        }
-        return mapEntry.name || '';
+        const { name } = getMapDisplay(mapEntry.id, this.getLocale(), { name: mapEntry.name, description: mapEntry.description });
+        return name || mapEntry.name || '';
     }
 
     populateMapList() {
@@ -214,8 +211,8 @@ export class MapSelectionUI extends UIComponent {
     updateDetailPanel(mapEntry) {
         const nameEl = document.getElementById('selectedMapName');
         const descEl = document.getElementById('selectedMapDescription');
-        const displayName = this.getMapDisplayName(mapEntry);
-        const displayDesc = (this.getLocale() === 'vi' && mapEntry.description_vi) ? mapEntry.description_vi : (mapEntry.description || '');
+        const fallback = { name: mapEntry.name, description: mapEntry.description };
+        const { name: displayName, description: displayDesc } = getMapDisplay(mapEntry.id, this.getLocale(), fallback);
         if (nameEl) {
             nameEl.textContent = displayName;
             nameEl.dataset.filled = '1';

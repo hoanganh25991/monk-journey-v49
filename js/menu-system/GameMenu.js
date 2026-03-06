@@ -16,7 +16,6 @@ export class GameMenu extends IMenu {
         super('game-menu', game);
         this.loadGameButton = document.getElementById('load-game-button');
         this.settingsMenuButton = document.getElementById('settings-menu-button');
-        this.helpMenuButton = document.getElementById('help-menu-button');
         this.storyMenuButton = document.getElementById('story-menu-button');
         this.googleSignInButton = document.getElementById('google-signin-button');
         this.multiplayerButton = document.getElementById('multiplayer-button');
@@ -103,19 +102,6 @@ export class GameMenu extends IMenu {
             })
         }
 
-        // Help button
-        if (this.helpMenuButton) {
-            this.helpMenuButton.addEventListener('click', () => this.showHelpModal());
-        }
-        const helpModalClose = document.getElementById('help-modal-close-btn');
-        if (helpModalClose) {
-            helpModalClose.addEventListener('click', () => this.hideHelpModal());
-        }
-        const helpBackdrop = document.querySelector('#help-modal .help-modal-backdrop');
-        if (helpBackdrop) {
-            helpBackdrop.addEventListener('click', () => this.hideHelpModal());
-        }
-
         if (this.storyMenuButton) {
             this.storyMenuButton.addEventListener('click', () => this.showStoryModal());
         }
@@ -173,16 +159,6 @@ export class GameMenu extends IMenu {
         }
         
 
-    }
-
-    showHelpModal() {
-        const el = document.getElementById('help-modal');
-        if (el) el.style.display = 'flex';
-    }
-
-    hideHelpModal() {
-        const el = document.getElementById('help-modal');
-        if (el) el.style.display = 'none';
     }
 
     showStoryModal() {

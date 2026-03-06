@@ -317,7 +317,8 @@ export class Game {
                     this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
                 }
                 if (nextMapId === currentMapId) {
-                    this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
+                    const locale = this.questStoryLocale || 'en';
+                    this.hudManager.showNotification(getQuestUiString('storyQuestAwaitsOnMap', locale));
                 } else {
                     const locale = this.questStoryLocale || 'en';
                     const nextDisplay = getChapterQuestDisplay(next, locale);

@@ -115,7 +115,7 @@
 .item-popup-description {
     margin-bottom: 15px;
     font-size: 14px;
-    color: #ddd;
+    color: rgba(255, 255, 255, 0.95);
     line-height: 1.4;
 }
 

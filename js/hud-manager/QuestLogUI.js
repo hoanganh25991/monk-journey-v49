@@ -60,7 +60,7 @@ export class QuestLogUI extends UIComponent {
         const currentMapId = this.game.world?.currentMap?.id;
         const nextMapId = getMapIdForChapterQuest(next.id);
         if (nextMapId === currentMapId) {
-            return '→ Find the quest marker (yellow ! on the map) to start your journey.';
+            return getQuestUiString('findQuestMarkerHint', locale);
         }
         const label = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
         return '→ ' + getQuestUiString('travelToGetNextQuest', locale, { label });
@@ -78,11 +78,13 @@ export class QuestLogUI extends UIComponent {
 
         // Always use current game locale so language matches Settings (VI/EN) even after async load
         const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        const titleEl = this.element?.querySelector('.quest-title');
+        if (titleEl) titleEl.textContent = getQuestUiString('activeQuestsTitle', locale);
 
         if (activeQuests.length === 0) {
             const noQuests = document.createElement('div');
             noQuests.className = 'no-quests';
-            noQuests.textContent = 'No active quests';
+            noQuests.textContent = getQuestUiString('noActiveQuests', locale);
             this.questList.appendChild(noQuests);
             const hint = this.getWhatToDoHint();
             if (hint) {
@@ -106,8 +108,8 @@ export class QuestLogUI extends UIComponent {
             const reviewMore = document.createElement('button');
             reviewMore.type = 'button';
             reviewMore.className = 'quest-review-more';
-            reviewMore.textContent = `Review more (${activeQuests.length - maxVisible})`;
-            reviewMore.setAttribute('aria-label', `Show ${activeQuests.length - maxVisible} more quests`);
+            reviewMore.textContent = getQuestUiString('reviewMore', locale, { count: activeQuests.length - maxVisible });
+            reviewMore.setAttribute('aria-label', getQuestUiString('reviewMore', locale, { count: activeQuests.length - maxVisible }));
             reviewMore.addEventListener('click', () => this.toggleReviewMore(reviewMore));
             this.questList.appendChild(reviewMore);
 
@@ -205,13 +207,13 @@ export class QuestLogUI extends UIComponent {
                 <div class="quest-detail-header">
                     <h2 class="quest-detail-title">${this.escapeHtml(name)}</h2>
                     ${area ? `<div class="quest-detail-area">${this.escapeHtml(area)}</div>` : ''}
-                    <button type="button" class="quest-detail-close" aria-label="Close">×</button>
+                    <button type="button" class="quest-detail-close" aria-label="${this.escapeHtml(getQuestUiString('close', effectiveLocale))}">×</button>
                 </div>
                 <div class="quest-detail-body">
                     ${description ? `<p class="quest-detail-description">${this.escapeHtml(description)}</p>` : ''}
                     ${choiceHintHtml}
                     ${objectiveHtml}
-                    ${lesson ? `<p class="quest-detail-lesson"><strong>Lesson:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
+                    ${lesson ? `<p class="quest-detail-lesson"><strong>${this.escapeHtml(getQuestUiString('lessonLabel', effectiveLocale))}:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
                 </div>
             </div>
         `;
@@ -248,7 +250,8 @@ export class QuestLogUI extends UIComponent {
         if (!container) return;
         container.hidden = !container.hidden;
         const n = (this.activeQuests || []).length - QuestLogUI.MAX_VISIBLE_QUESTS;
-        button.textContent = container.hidden ? `Review more (${n})` : 'Show less';
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        button.textContent = container.hidden ? getQuestUiString('reviewMore', locale, { count: n }) : getQuestUiString('showLess', locale);
     }
 
     /**

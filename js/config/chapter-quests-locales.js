@@ -163,6 +163,14 @@ export const QUEST_UI_STRINGS = {
         otherPathsAvailable: 'Other paths await in the Story panel.',
         choiceInQuestHint: 'You can help in more than one way; complete at least one path to progress.',
         choiceCallout: 'Choice',
+        storyQuestAwaitsOnMap: 'A story quest awaits. Find the quest marker on the map (marked with !) to begin.',
+        findQuestMarkerHint: '→ Find the quest marker (yellow ! on the map) to start your journey.',
+        noActiveQuests: 'No active quests',
+        reviewMore: 'Review more ({count})',
+        showLess: 'Show less',
+        activeQuestsTitle: 'Active Quests',
+        lessonLabel: 'Lesson',
+        close: 'Close',
     },
     vi: {
         travelToGetNextQuest: 'Đi tới "{label}" để nhận nhiệm vụ tiếp theo.',
@@ -191,6 +199,14 @@ export const QUEST_UI_STRINGS = {
         otherPathsAvailable: 'Các lối đi khác đang chờ trong bảng Câu chuyện.',
         choiceInQuestHint: 'Bạn có thể giúp đỡ theo nhiều cách; hoàn thành ít nhất một lối để tiến bước.',
         choiceCallout: 'Lựa chọn',
+        storyQuestAwaitsOnMap: 'Có nhiệm vụ cốt truyện đang chờ. Hãy tìm dấu nhiệm vụ trên bản đồ (ký hiệu !) để bắt đầu.',
+        findQuestMarkerHint: '→ Tìm dấu nhiệm vụ (dấu ! vàng trên bản đồ) để bắt đầu hành trình.',
+        noActiveQuests: 'Không có nhiệm vụ',
+        reviewMore: 'Xem thêm ({count})',
+        showLess: 'Thu gọn',
+        activeQuestsTitle: 'Nhiệm vụ đang làm',
+        lessonLabel: 'Bài học',
+        close: 'Đóng',
     },
 };
 
@@ -222,28 +238,6 @@ export function getReflectionUiString(key, locale = DEFAULT_LOCALE) {
     const strings = REFLECTION_UI_STRINGS[loc] || REFLECTION_UI_STRINGS.en;
     return strings[key] || REFLECTION_UI_STRINGS.en[key] || '';
 }
-
-/** Vietnamese display names for map ids (fallback when manifest has no name_vi). */
-export const MAP_DISPLAY_NAMES_VI = {
-    'default': 'Thế giới mặc định',
-    'terrant': 'Terrant',
-    'forest': 'Rừng',
-    'desert': 'Sa mạc',
-    'mountains': 'Núi',
-    'swamp': 'Đầm lầy',
-    'magical': 'Ma thuật',
-    'mixed': 'Thế giới hỗn hợp',
-    'highland-vale': 'Thung lũng cao nguyên',
-    'ember-wastes': 'Hoang mạc tro',
-    'whisper-woods': 'Rừng thì thầm',
-    'crimson-bog': 'Đầm lầy đỏ',
-    'sky-prairie': 'Đồng cỏ bầu trời',
-    'veil-garden': 'Vườn màn sương',
-    'frost-hollow': 'Lòng chảo băng giá',
-    'sand-shrine': 'Đền cát',
-    'thorn-marsh': 'Đầm gai',
-    'eldritch-grove': 'Rừng huyền bí',
-};
 
 /** Map Selection overlay UI strings (placeholders: {name}, {mapName}) */
 export const MAP_SELECTION_UI_STRINGS = {

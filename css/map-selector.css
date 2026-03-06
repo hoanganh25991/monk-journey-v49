@@ -302,7 +302,7 @@
 }
 
 .current-map-description {
-    color: #ccc;
+    color: rgba(255, 255, 255, 0.95);
     font-size: 0.9rem;
 }
 
@@ -418,7 +418,7 @@
 
 .map-description {
     margin: 0;
-    color: #ccc; /* Match skill-tree description color */
+    color: rgba(255, 255, 255, 0.95);
     font-size: 0.9rem;
     line-height: 1.4;
     line-clamp: 2;
@@ -574,5 +574,5 @@
 
 .no-maps-message p {
     margin: 0 0 16px 0;
-    color: var(--text-secondary, #ccc);
+    color: rgba(255, 255, 255, 0.95);
 }
