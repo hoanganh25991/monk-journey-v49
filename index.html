@@ -235,12 +235,26 @@
         <!-- Skills Overlay for touch handling -->
         <div id="skills-overlay"></div>
         
-        <!-- Skill Tree UI Container -->
+        <!-- Skill Tree UI Container (combined with 8-slot skill pick) -->
         <div id="skill-tree">
             <div id="skill-tree-header">
                 <div id="skill-tree-title">Monk Skill Tree</div>
                 <div id="skill-tree-points">Available Points: <span id="skill-points-value">0</span></div>
                 <button id="skill-tree-save-btn" class="circle-btn" title="Save Skill Tree">💾</button>
+            </div>
+            <!-- 8-slot battle bar: pick/unpick skills (h + 1–7) -->
+            <div id="skill-tree-slot-bar" class="skill-tree-slot-bar">
+                <div class="skill-tree-slot-bar-label">Battle slots — click to assign or clear</div>
+                <div id="skill-tree-slots" class="battle-layout"></div>
+            </div>
+            <!-- Picker overlay when clicking a slot -->
+            <div id="skill-tree-slot-picker" class="skill-tree-slot-picker" style="display: none;">
+                <div class="skill-tree-slot-picker-backdrop"></div>
+                <div class="skill-tree-slot-picker-panel">
+                    <div class="skill-tree-slot-picker-title"></div>
+                    <div id="skill-tree-slot-picker-list" class="skill-tree-slot-picker-list"></div>
+                    <button type="button" class="skill-tree-slot-picker-clear">Clear slot</button>
+                </div>
             </div>
             <div id="skill-tree-container">
                 <div id="skill-tree-view">

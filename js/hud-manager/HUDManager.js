@@ -272,16 +272,11 @@ export class HUDManager {
     }
     
     /**
-     * Toggle skill selection UI visibility
+     * Toggle skill selection — opens the combined skill tree screen (same as Skill Tree button).
+     * Skill pick (8 slots) and skill tree are now on one screen.
      */
     toggleSkillSelection() {
-        if (this.components.skillSelectionUI.visible) {
-            this.components.skillSelectionUI.hide();
-            this.game.resume(false);
-        } else {
-            this.game.pause(false);
-            this.components.skillSelectionUI.show();
-        }
+        this.toggleSkillTree();
     }
     
     /**

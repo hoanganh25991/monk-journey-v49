@@ -43,11 +43,116 @@
     flex: 1;
 }
 
+/* 8-slot battle bar (pick/unpick) — combined with skill tree */
+.skill-tree-slot-bar {
+    flex-shrink: 0;
+    padding: var(--padding-small) var(--padding-medium);
+    background-color: rgba(30, 30, 30, 0.6);
+    border-bottom: 1px solid rgba(138, 109, 59, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.skill-tree-slot-bar-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+#skill-tree-slot-bar .battle-layout {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+    max-width: 280px;
+}
+#skill-tree-slot-bar .skill-button {
+    width: 48px;
+    height: 48px;
+    font-size: 10px;
+}
+#skill-tree-slot-bar .skill-button .skill-icon {
+    font-size: 20px;
+}
+#skill-tree-slot-bar .skill-button.empty-slot {
+    border: 2px dashed #6b4c2a;
+    cursor: pointer;
+}
+#skill-tree-slot-bar .skill-button.empty-slot:hover {
+    opacity: 0.9;
+    border-color: var(--theme-gold);
+}
+
+/* Picker overlay when clicking a slot */
+.skill-tree-slot-picker {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+}
+.skill-tree-slot-picker-backdrop {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+.skill-tree-slot-picker-panel {
+    position: relative;
+    background: rgba(25, 25, 25, 0.98);
+    border: 2px solid var(--theme-amber);
+    border-radius: 8px;
+    padding: var(--padding-medium);
+    max-width: 320px;
+    max-height: 70vh;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.skill-tree-slot-picker-title {
+    font-size: 14px;
+    color: var(--theme-gold);
+    font-weight: bold;
+}
+.skill-tree-slot-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 40vh;
+    overflow: auto;
+}
+.skill-tree-picker-item {
+    padding: 10px 12px;
+    background: rgba(50, 50, 50, 0.6);
+    border: 1px solid rgba(138, 109, 59, 0.5);
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    transition: background 0.2s;
+}
+.skill-tree-picker-item:hover {
+    background: rgba(138, 109, 59, 0.4);
+}
+.skill-tree-slot-picker-clear {
+    padding: 8px;
+    background: rgba(80, 50, 50, 0.8);
+    border: 1px solid #a55;
+    border-radius: 4px;
+    color: #f88;
+    cursor: pointer;
+    font-size: 12px;
+}
+.skill-tree-slot-picker-clear:hover {
+    background: rgba(100, 60, 60, 0.9);
+}
+
 /* Container */
 #skill-tree-container {
     display: flex;
     flex: 1;
-    height: calc(100% - 60px); /* Adjust based on header height */
+    min-height: 0;
+    position: relative;
 }
 
 /* Skill Tree View */
