@@ -102,3 +102,10 @@ Location: `scripts/download-sounds.js` (or `tools/download-sounds.js`).
 
 - **Immediate**: `questComplete`, `lightning`, and `explosion` are now in `sounds.js`; with no files, they use simulated audio so the “Sound not found” warning goes away.
 - **Full solution**: Add `assets/audio/`, a **manifest** of public MP3 URLs, and a **download script** to pull those files so all skills and UI can use real sounds while keeping the existing offline-first simulated fallback when a file is missing.
+
+## Relaxation / frequency music (see implementation-plan-refinement.md)
+
+For **relaxing, curve-and-health** background music (e.g. 432 Hz, meditation-style):
+
+- **Public sources:** [432-hz.org](https://432-hz.org/) (free 432 Hz tones, MP3/WAV/FLAC, no registration); Pixabay / Freesound (search "432 Hz", "meditation", "calm ambient", filter CC0).
+- **Refinement plan:** Add a `relaxationTheme` (or `frequency_432`) track in `sounds.js` with 432 Hz simulated fallback; wire exploration layer to use it so the game feels calm by default. Optionally add a music manifest and download script for one relaxation loop from the above sources.
