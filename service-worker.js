@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260304T235021';
+const CACHE_VERSION = '20260306T130338';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -45,6 +45,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/skill-preview.js",
     "js/config/skill-tree-graph.js",
     "js/config/skill-tree.js",
+    "js/config/skill-unlocks.js",
     "js/config/skills.js",
     "js/config/sounds.js",
     "js/config/storage-keys.js",
@@ -113,7 +114,6 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/QuestLogUI.js",
     "js/hud-manager/ReflectionUI.js",
     "js/hud-manager/SkillSelectionButton.js",
-    "js/hud-manager/SkillSelectionUI.js",
     "js/hud-manager/SkillTreeButton.js",
     "js/hud-manager/SkillTreeGraphView.js",
     "js/hud-manager/SkillTreeUI.js",
@@ -453,7 +453,6 @@ const ASSETS_TO_CACHE =   [
     "css/settings/tabs.css",
     "css/settings-menu.css",
     "css/skill-preview.css",
-    "css/skill-selection.css",
     "css/skill-tree.css",
     "css/teleport-manager.css",
     "css/utilities.css",

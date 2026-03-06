@@ -137,7 +137,7 @@
 .map-list-item.selected {
     border: 1px solid var(--theme-gold); /* Match skill-tree selected item */
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.5); /* Match skill-tree selected item glow */
-    background-color: rgba(50, 40, 0, 0.3); /* Match skill-selection selected item */
+    background-color: rgba(50, 40, 0, 0.3); /* Match selected item highlight */
 }
 
 /* Make sure child elements don't interfere with clicks */

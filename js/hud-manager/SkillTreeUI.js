@@ -76,7 +76,7 @@ export class SkillTreeUI extends UIComponent {
   }
 
   /**
-   * Get skills ordered by SKILL_TREES (for slot bar picker). Same as SkillSelectionUI.
+   * Get skills ordered by SKILL_TREES (for slot bar picker).
    * @returns {{ primaryAttacks: import('../config/skills.js').SkillConfig[], normalSkills: import('../config/skills.js').SkillConfig[] }}
    */
   getOrderedSkills() {

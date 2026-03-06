@@ -322,7 +322,7 @@ export class Game {
                     const locale = this.questStoryLocale || 'en';
                     const nextDisplay = getChapterQuestDisplay(next, locale);
                     const nextMapLabel = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
-                    this.hudManager.showNotification(`Travel to ${nextMapLabel} to get your next quest.`);
+                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label: nextMapLabel }));
                 }
                 this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
             };

@@ -62,7 +62,7 @@ export class QuestLogUI extends UIComponent {
             return '→ Find the quest marker (yellow ! on the map) to start your journey.';
         }
         const label = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
-        return `→ Travel to ${label} to get your next quest.`;
+        return '→ ' + getQuestUiString('travelToGetNextQuest', locale, { label });
     }
 
     /**

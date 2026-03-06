@@ -137,7 +137,7 @@ export const REFLECTION_UI_STRINGS = {
  */
 export const QUEST_UI_STRINGS = {
     en: {
-        travelToGetNextQuest: 'Travel to {label} to get your next quest.',
+        travelToGetNextQuest: 'Travel to "{label}" to get your next quest.',
         storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
         journeyHint: 'Your journey: complete the objectives in the quest log, then face the chapter boss.',
         questProgressCount: 'Quest: {current}/{count} {type}',
@@ -165,7 +165,7 @@ export const QUEST_UI_STRINGS = {
         choiceCallout: 'Choice',
     },
     vi: {
-        travelToGetNextQuest: 'Đi tới {label} để nhận nhiệm vụ tiếp theo.',
+        travelToGetNextQuest: 'Đi tới "{label}" để nhận nhiệm vụ tiếp theo.',
         storyQuestAvailable: 'Có nhiệm vụ cốt truyện. Hãy xem nhật ký nhiệm vụ bên trái.',
         journeyHint: 'Hành trình của bạn: hoàn thành mục tiêu trong nhật ký nhiệm vụ, rồi đối mặt trùm chương.',
         questProgressCount: 'Nhiệm vụ: {current}/{count} {type}',

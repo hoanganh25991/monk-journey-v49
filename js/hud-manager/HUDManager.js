@@ -4,7 +4,6 @@ import { SkillsUI } from './SkillsUI.js';
 import { DialogUI } from './DialogUI.js';
 import { InventoryUI } from './InventoryUI.js';
 import { SkillTreeUI } from './SkillTreeUI.js';
-import { SkillSelectionUI } from './SkillSelectionUI.js';
 import { VirtualJoystickUI } from './VirtualJoystickUI.js';
 import { CameraControlUI } from './CameraControlUI.js';
 import { DeathScreenUI } from './DeathScreenUI.js';
@@ -15,7 +14,6 @@ import { QuestDirectionIndicator } from './QuestDirectionIndicator.js';
 import { MiniMapUI } from './MiniMapUI.js';
 import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
-import { SkillTreeButton } from './SkillTreeButton.js';
 import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
 
@@ -114,13 +112,9 @@ export class HUDManager {
         this.components.inventoryUI = new InventoryUI(this.game);
         this.components.inventoryUI.init();
         
-        // Create skill tree UI
+        // Create skill tree UI (combined: tree + battle slot assign)
         this.components.skillTreeUI = new SkillTreeUI(this.game);
         this.components.skillTreeUI.init();
-        
-        // Create skill selection UI
-        this.components.skillSelectionUI = new SkillSelectionUI(this.game);
-        this.components.skillSelectionUI.init();
         
         // Create virtual joystick UI
         this.components.joystickUI = new VirtualJoystickUI(this.game);
@@ -161,7 +155,6 @@ export class HUDManager {
         // Create UI buttons
         this.components.homeButton = new HomeButton(this.game);
         this.components.fullscreenButton = new FullscreenButton(this.game);
-        this.components.skillTreeButton = new SkillTreeButton(this.game);
         this.components.inventoryButton = new InventoryButton(this.game);
         
         // Create map selection UI
@@ -199,7 +192,6 @@ export class HUDManager {
         
         // Update UI buttons
         this.components.homeButton.update(delta);
-        this.components.skillTreeButton.update(delta);
         this.components.inventoryButton.update(delta);
         
         // Update map selection UI
@@ -486,8 +478,7 @@ export class HUDManager {
         // Don't hide the buttons when paused if the settings menu is open
         const settingsMenu = document.getElementById('main-options-menu');
         const homeButton = document.getElementById('home-button');
-        const fullscreenButton = document.getElementById('skill-selection-button');
-        const skillTreeButton = document.getElementById('skill-tree-button');
+        const skillsButton = document.getElementById('skill-selection-button');
         const inventoryButton = document.getElementById('inventory-button');
         const mapSelectorButton = document.getElementById('map-selector-button');
         const hudGuideButton = document.getElementById('hud-guide-button');
@@ -496,12 +487,8 @@ export class HUDManager {
             homeButton.style.display = 'none';
         }
         
-        if (fullscreenButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
-            fullscreenButton.style.display = 'none';
-        }
-        
-        if (skillTreeButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
-            skillTreeButton.style.display = 'none';
+        if (skillsButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
+            skillsButton.style.display = 'none';
         }
         
         if (inventoryButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
@@ -536,14 +523,9 @@ export class HUDManager {
             homeButton.style.display = 'block';
         }
         
-        const fullscreenButton = document.getElementById('skill-selection-button');
-        if (fullscreenButton) {
-            fullscreenButton.style.display = 'block';
-        }
-        
-        const skillTreeButton = document.getElementById('skill-tree-button');
-        if (skillTreeButton) {
-            skillTreeButton.style.display = 'block';
+        const skillsButton = document.getElementById('skill-selection-button');
+        if (skillsButton) {
+            skillsButton.style.display = 'block';
         }
         
         const inventoryButton = document.getElementById('inventory-button');
