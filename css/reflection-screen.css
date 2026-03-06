@@ -24,8 +24,8 @@
     background: var(--modal-content-bg, rgba(20, 18, 15, 0.95));
     border: 3px solid var(--theme-gold-border-subtle, rgba(255, 204, 0, 0.4));
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    max-width: 90%;
-    width: 480px;
+    max-width: 92%;
+    width: 640px;
 }
 
 /* R-Q5: "What did you notice?" step before the lesson */
