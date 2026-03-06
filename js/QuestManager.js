@@ -539,6 +539,10 @@ export class QuestManager {
             const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
             const options = {
                 chapterTitle: chapterTitle || undefined,
+                reflectionQuestion: true,
+                onReflectionChoice: (choiceIndex) => {
+                    if (this.game.saveReflectionChoice) this.game.saveReflectionChoice(quest.id, choiceIndex);
+                },
                 ...(isChapter5 ? {
                     isChapter5: true,
                     onEnterPathOfMastery: () => {

@@ -28,6 +28,29 @@
     width: 480px;
 }
 
+/* R-Q5: "What did you notice?" step before the lesson */
+#reflection-screen .reflection-question-prompt {
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 var(--margin-medium, 0.75rem);
+}
+
+#reflection-screen .reflection-question-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin-medium, 0.75rem);
+    align-items: center;
+    width: 100%;
+}
+
+#reflection-screen .reflection-question-option {
+    min-width: 200px;
+    white-space: normal;
+    text-align: center;
+}
+
 #reflection-screen .reflection-chapter-title {
     color: var(--theme-gold, rgba(255, 204, 0, 0.95));
     font-size: 18px;

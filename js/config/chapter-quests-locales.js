@@ -111,10 +111,24 @@ export function getChapterQuestText(questId, locale = DEFAULT_LOCALE, key) {
     return '';
 }
 
-/** UI strings for reflection screen (buttons) by locale */
+/** UI strings for reflection screen (buttons, R-Q5 question) by locale */
 export const REFLECTION_UI_STRINGS = {
-    en: { continueJourney: 'Continue Journey', enterPathOfMastery: 'Enter Path of Mastery' },
-    vi: { continueJourney: 'Tiếp tục hành trình', enterPathOfMastery: 'Vào Đường Tu Tập' },
+    en: {
+        continueJourney: 'Continue Journey',
+        enterPathOfMastery: 'Enter Path of Mastery',
+        reflectionQuestionPrompt: 'What did you notice?',
+        reflectionOption1: 'The struggle—and the chance to help.',
+        reflectionOption2: 'The calm that followed the storm.',
+        reflectionOption3: 'Both: action and peace together.',
+    },
+    vi: {
+        continueJourney: 'Tiếp tục hành trình',
+        enterPathOfMastery: 'Vào Đường Tu Tập',
+        reflectionQuestionPrompt: 'Bạn đã nhận ra điều gì?',
+        reflectionOption1: 'Sự khó khăn—và cơ hội giúp đỡ.',
+        reflectionOption2: 'Sự bình yên sau cơn bão.',
+        reflectionOption3: 'Cả hai: hành động và bình an cùng nhau.',
+    },
 };
 
 /**

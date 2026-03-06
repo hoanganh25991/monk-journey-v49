@@ -3,6 +3,7 @@ import { getSkillIcon } from '../config/skill-icons.js';
 import { PRIMARY_ATTACKS, NORMAL_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { SKILL_TREES } from '../config/skill-tree.js';
+import { getUnlockedSkillNames, getChapterThatUnlocksSkill } from '../config/skill-unlocks.js';
 
 /**
  * SkillSelectionUI component
@@ -37,6 +38,16 @@ export class SkillSelectionUI extends UIComponent {
         this.loadSavedSkills();
     }
     
+    /**
+     * Get the set of skill names unlocked by current story progress (completed chapters).
+     * Used to show locked vs unlocked in UI and to filter saved selection.
+     * @returns {Set<string>}
+     */
+    getUnlockedSet() {
+        const completed = this.game?.questManager?.completedChapterQuestIds;
+        return getUnlockedSkillNames(completed || new Set());
+    }
+
     /**
      * Get skills ordered according to skill-tree.js
      * @returns {Object} Object containing ordered primary attacks and normal skills
@@ -91,9 +102,9 @@ export class SkillSelectionUI extends UIComponent {
      * Create HTML templates for dynamic content
      */
     createTemplates() {
-        // Template for skill selection item
+        // Template for skill selection item ({{unlockHint}} and {{lockedClass}} for progression)
         this.skillItemTemplate = `
-            <div class="skill-selection-item" data-skill-name="{{skillName}}" data-skill-type="{{skillType}}">
+            <div class="skill-selection-item {{lockedClass}}" data-skill-name="{{skillName}}" data-skill-type="{{skillType}}" title="{{unlockHint}}">
                 <div class="skill-icon-container">
                     <div class="skill-icon {{cssClass}}" style="border-color: {{color}}; box-shadow: 0 0 10px {{color}}40;">
                         {{icon}}
@@ -102,6 +113,7 @@ export class SkillSelectionUI extends UIComponent {
                 <div class="skill-info">
                     <div class="skill-name">{{skillName}}</div>
                     <div class="skill-description">{{description}}</div>
+                    <div class="skill-unlock-hint">{{unlockHint}}</div>
                 </div>
             </div>
         `;
@@ -262,92 +274,74 @@ export class SkillSelectionUI extends UIComponent {
     }
     
     /**
-     * Populate the primary attacks list
+     * Populate the primary attacks list (locked skills show "Complete Chapter X to unlock").
      */
     populatePrimaryAttacks() {
         const primaryAttackList = this.container.querySelector('#primary-attack-list');
-        console.debug('Primary attack list element:', primaryAttackList);
-        
-        // Clear existing content
+        if (!primaryAttackList) return;
         primaryAttackList.innerHTML = '';
-        
-        // Generate HTML for all primary attacks using ordered skills
+
+        const unlocked = this.getUnlockedSet();
         const primaryAttacksHTML = this.orderedSkills.primaryAttacks.map(skill => {
-            console.debug('Creating primary attack item for:', skill.name);
-            
-            // Get skill icon data
+            const isUnlocked = unlocked.has(skill.name);
+            const chapterInfo = getChapterThatUnlocksSkill(skill.name);
+            const unlockHint = chapterInfo ? `Complete ${chapterInfo.chapterLabel} to unlock` : '';
             const iconData = getSkillIcon(skill.name);
             const icon = skill.icon || iconData.emoji || '✨';
-            
-            // Get color for border styling
             const color = iconData.color || '#ffffff';
-            
-            // Apply template with data
-            const skillItemHTML = this.applyTemplate(this.skillItemTemplate, {
+            return this.applyTemplate(this.skillItemTemplate, {
                 skillName: skill.name,
                 skillType: 'primary',
                 cssClass: iconData.cssClass || '',
-                color: color,
-                icon: icon,
-                description: skill.description
+                color,
+                icon,
+                description: skill.description,
+                lockedClass: isUnlocked ? '' : 'locked',
+                unlockHint,
             });
-            
-            return skillItemHTML;
         }).join('');
-        
-        // Add all items to the DOM at once
+
         primaryAttackList.innerHTML = primaryAttacksHTML;
-        
-        // Add selected class to the currently selected primary attack
         if (this.selectedPrimaryAttack) {
             const selectedItem = primaryAttackList.querySelector(`[data-skill-name="${this.selectedPrimaryAttack}"]`);
-            if (selectedItem) {
+            if (selectedItem && unlocked.has(this.selectedPrimaryAttack)) {
                 selectedItem.classList.add('selected');
             }
         }
     }
     
     /**
-     * Populate the normal skills list
+     * Populate the normal skills list (locked skills show "Complete Chapter X to unlock").
      */
     populateNormalSkills() {
         const normalSkillsList = this.container.querySelector('#normal-skills-list');
-        console.debug('Normal skills list element:', normalSkillsList);
-        
-        // Clear existing content
+        if (!normalSkillsList) return;
         normalSkillsList.innerHTML = '';
-        
-        // Generate HTML for all normal skills using ordered skills
+
+        const unlocked = this.getUnlockedSet();
         const normalSkillsHTML = this.orderedSkills.normalSkills.map(skill => {
-            console.debug('Creating normal skill item for:', skill.name);
-            
-            // Get skill icon data
+            const isUnlocked = unlocked.has(skill.name);
+            const chapterInfo = getChapterThatUnlocksSkill(skill.name);
+            const unlockHint = chapterInfo ? `Complete ${chapterInfo.chapterLabel} to unlock` : '';
             const iconData = getSkillIcon(skill.name);
             const icon = skill.icon || iconData.emoji || '✨';
-            
-            // Get color for border styling
             const color = iconData.color || '#ffffff';
-            
-            // Apply template with data
-            const skillItemHTML = this.applyTemplate(this.skillItemTemplate, {
+            return this.applyTemplate(this.skillItemTemplate, {
                 skillName: skill.name,
                 skillType: 'normal',
                 cssClass: iconData.cssClass || '',
-                color: color,
-                icon: icon,
-                description: skill.description
+                color,
+                icon,
+                description: skill.description,
+                lockedClass: isUnlocked ? '' : 'locked',
+                unlockHint,
             });
-            
-            return skillItemHTML;
         }).join('');
-        
-        // Add all items to the DOM at once
+
         normalSkillsList.innerHTML = normalSkillsHTML;
-        
-        // Add selected class to currently selected normal skills
         this.selectedNormalSkills.forEach(skillName => {
             const selectedItem = normalSkillsList.querySelector(`[data-skill-name="${skillName}"]`);
-            if (selectedItem) {
+            if (selectedItem && unlocked.has(skillName)) {
                 selectedItem.classList.add('selected');
             }
         });

@@ -130,6 +130,29 @@
     background-color: rgba(50, 40, 0, 0.3);
 }
 
+/* Locked skills (unlock via chapter progress) */
+.skill-selection-item.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: auto;
+}
+
+.skill-selection-item.locked:hover {
+    background-color: rgba(20, 20, 20, 0.7);
+    transform: none;
+    box-shadow: none;
+}
+
+.skill-selection-item .skill-unlock-hint {
+    font-size: 12px;
+    color: var(--theme-amber);
+    margin-top: 4px;
+}
+
+.skill-selection-item.locked .skill-unlock-hint {
+    color: rgba(255, 180, 0, 0.85);
+}
+
 .skill-icon-container {
     width: 50px;
     height: 50px;
