@@ -243,13 +243,13 @@
         <!-- Skill Tree UI Container (combined with 8-slot skill pick) -->
         <div id="skill-tree">
             <div id="skill-tree-header">
-                <div id="skill-tree-title">Monk Skill Tree</div>
+                <div id="skill-tree-title">Skill Tree</div>
                 <div id="skill-tree-points">Available Points: <span id="skill-points-value">0</span></div>
-                <button id="skill-tree-save-btn" class="circle-btn" title="Save Skill Tree">💾</button>
+                <button id="skill-tree-save-btn" class="circle-btn" title="Save &amp; Close">💾</button>
             </div>
-            <!-- 8-slot battle bar: pick/unpick skills (h + 1–7) -->
+            <!-- Loadout bar: 8 battle slots (h + 1–7), click to assign -->
             <div id="skill-tree-slot-bar" class="skill-tree-slot-bar">
-                <div class="skill-tree-slot-bar-label">Battle slots — click to assign or clear</div>
+                <div class="skill-tree-slot-bar-label">Loadout</div>
                 <div id="skill-tree-slots" class="battle-layout"></div>
             </div>
             <!-- Picker overlay when clicking a slot -->
@@ -258,36 +258,38 @@
                 <div class="skill-tree-slot-picker-panel">
                     <div class="skill-tree-slot-picker-title"></div>
                     <div id="skill-tree-slot-picker-list" class="skill-tree-slot-picker-list"></div>
-                    <button type="button" class="skill-tree-slot-picker-clear">Clear slot</button>
+                    <button type="button" class="skill-tree-slot-picker-clear">Remove from slot</button>
                 </div>
             </div>
             <div id="skill-tree-container">
+                <!-- Left: interactive skill graph -->
                 <div id="skill-tree-view">
                     <div id="skill-tree-graph-mount"></div>
                     <div id="skill-tree-skills" style="display: none;"></div>
                 </div>
+                <!-- Right: node detail & customization -->
                 <div id="skill-tree-details">
                     <div id="skill-detail-header">
-                        <div id="skill-detail-name">Select a node</div>
-                        <div id="skill-detail-description">Click a node on the graph to view details and spend skill points.</div>
+                        <div id="skill-detail-name">Select a skill</div>
+                        <div id="skill-detail-description">Tap a node on the tree to view details and spend skill points.</div>
                     </div>
                     <div id="skill-tree-node-detail" class="skill-tree-node-detail-panel">
                         <div id="skill-node-level-line"></div>
                         <div id="skill-node-requirements"></div>
-                        <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">Level Up</button>
+                        <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">⬆ Level Up</button>
                     </div>
                     <div id="skill-detail-content">
-                        <!-- Story lore block — shown when a node with a story is selected -->
+                        <!-- Lore — shown when a node has a story -->
                         <div id="skill-story-block" style="display: none;">
                             <div class="skill-section-label">Lore</div>
                             <div id="skill-story-text"></div>
                         </div>
-                        <!-- Linked skill stats — shown when a node has a skillRef -->
+                        <!-- Skill stats — shown when a node links to a skill -->
                         <div id="skill-stats-block" style="display: none;">
                             <div class="skill-section-label">Skill: <span id="skill-stats-name"></span></div>
                             <div id="skill-stats-grid"></div>
                         </div>
-                        <!-- Variants + Buffs config — shown when a node has a skillRef with variants -->
+                        <!-- Variants + Buffs — shown when a skill has customization options -->
                         <div id="skill-customization-container" style="display: none;">
                             <div id="skill-variants-container">
                                 <h3>Variants</h3>
