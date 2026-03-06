@@ -268,6 +268,7 @@ export class WaveStrikeEffect extends SkillEffect {
      * @private
      */
     updateWaveStrikeEffect(delta) {
+        if (!this.waveState) return;
         // Update wave state
         this.waveState.age += delta;
         

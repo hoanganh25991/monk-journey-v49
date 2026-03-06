@@ -387,7 +387,7 @@ export class MysticAllyEffect extends SkillEffect {
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
-        if (!this.isActive || !this.effect) return;
+        if (!this.isActive || !this.effect || !this.mysticAllyState) return;
         
         this.elapsedTime += delta;
         

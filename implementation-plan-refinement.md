@@ -169,6 +169,11 @@ This document does a **deep check** against the existing implementation plans an
 | R-Q5: Reflection — short question before lesson ("What did you notice?") | ReflectionUI, QuestManager, chapter-quests-locales | P2 ✅ Done |
 | R-S4: Gentle LFO for simulated 432 Hz "breathing" curve | AudioManager / sounds.js | P2, Deferred |
 | Optional: Settings toggle "Use relaxation frequency in exploration" | GameplayTab, AudioManager | P2 |
+| **R-SK1:** Primary attacks in skill tree (variants + buffs) | `js/config/skill-tree.js` | P0 Pending |
+| **R-SK2:** Graph nodes (Body path) affect primary attack | `skill-tree-graph.js`, PlayerStats/PlayerSkills or effect | P0 Pending |
+| **R-SK3:** Persist and apply primary variant/buffs | `PlayerSkills.js`, save flow | P0 Pending |
+| **R-SK4:** Skill Tree UI shows primary variant/buff panel | `SkillTreeUI.js`, skill-tree.js | P1 Pending |
+| **R-SK5:** Optional: scale primary by level/graph | PlayerStats, primary effect or usePrimaryAttack | P2 Pending |
 
 ---
 
@@ -198,7 +203,8 @@ Use this to keep the game aligned with "game helps tell story, tell lesson, rela
 4. **Next-quest branching (R-Q4, R-Q6):** ✅ Done — nextQuestIds and otherPathsAvailable locales.
 5. **Music manifest (R-S3):** ✅ Done — relaxation_theme.mp3 in sound-manifest.json.
 6. **Reflection question (R-Q5):** ✅ Done — "What did you notice?" with 3 options (EN/VI) before the lesson; `onReflectionChoice` callback for optional save/Journal.
-7. **Still deferred / optional:** R-S4 LFO, Settings toggle for relaxation.
+7. **Skills — tree + variant + primary (R-SK1–R-SK5):** Add primary attacks to the skill tree (variants + buffs); wire Body path graph nodes to primary attack; ensure variant/buff choice applies to primary and shows in Skill Tree UI; optionally scale primary by level/graph. See §8.
+8. **Still deferred / optional:** R-S4 LFO, Settings toggle for relaxation.
 
 ---
 
@@ -207,6 +213,60 @@ Use this to keep the game aligned with "game helps tell story, tell lesson, rela
 - **Deep check:** Implementation plans 1–7, v2, Vietnamese, 100 chapters, and sound are largely **implemented**; gaps are **polish** and two **new directions**: (1) **frequency/relaxation sound**, (2) **open quest flow** (A, B, both, or something else, then story continues).
 - **Sound:** Add a **432 Hz–style relaxation** layer (curved, gentle), use **public sources** (432-hz.org, Pixabay, etc.), and make exploration default to it (or a Settings toggle).
 - **Quest:** Move from **fixed linear** to **open flow**: optional/alternative objectives (done), multiple possible next chapters (done), and optional reflection question (deferred) so the player is **curious** about the lesson and the choice, then **gets the lesson** and **enjoys the sound** while playing.
-- **Remaining:** Help modal line (§4), R-Q3 (choice callout in UI), and R-Q5 (reflection question) done. Deferred: R-S4 (LFO), optional Settings toggle.
+- **Skills (§8):** **Variants** are freely chosen by the user per skill. **Skill-tree** (graph) and **skill-variant** (per-skill variants/buffs) work together: graph nodes (e.g. Body path) support primary attack; per-skill variants/buffs include primary attacks; both persist and apply. **Primary attack focus:** Add primary to the skill tree (variants + buffs), wire Body path to primary scaling, optionally scale by level so the primary stays strong for players who favor it.
+- **Remaining:** Help modal line (§4), R-Q3 (choice callout in UI), and R-Q5 (reflection question) done. **Pending:** R-SK1–R-SK5 (primary in tree, graph↔primary, apply variant/buffs, UI, optional scaling). Deferred: R-S4 (LFO), optional Settings toggle.
 
 This refinement plan completes the expectations from the existing plans and focuses the next work on **story**, **lesson**, **relaxation**, and **quest curiosity**.
+
+---
+
+## 8. Skills: Skill-tree + skill-variant alignment; primary attack focus
+
+**Goal:** (1) **Variants** are allowed freely by user choice. (2) **Skill-tree** (graph) and **skill-variant** (per-skill variants/buffs) work together so investing in the tree and choosing variants both strengthen the build. (3) **Primary attack** is a first-class citizen: many players like it; the tree and variants should support improving it.
+
+### 8.1 Current state
+
+| System | What it does | Gap |
+|--------|----------------|-----|
+| **skill-tree.js (SKILL_TREES)** | Per-skill variants + buffs (e.g. Wave of Light → Explosive Light, Lightning Bell; buffs like Focused Energy). Stored in `skillTreeData` / localStorage. | Primary attacks (Fist of Thunder, Deadly Reach) are **not** in SKILL_TREES — no variants, no buffs. |
+| **skill-tree-graph.js** | Body / Mind / Harmony nodes (quick_strike, flowing_combo, meditation_field, …). Levels in `PlayerStats.skillTreeNodeLevels`. | Only one skill (Inner Sanctuary) reads a graph node via `getLegendarySkillBehavior('meditation_field')`. Body path nodes (quick_strike, flowing_combo, …) do not yet affect primary attack. |
+| **Variant selection** | User picks one variant per skill in Skill Tree UI; selection is free among unlocked options. | Unlocks can be legendary item or progression; once a variant is available, choice is free. No change needed for "variants allowed freely by user choice." |
+
+**Verdict:** Variants are already user choice. To **match stronger system with variants**: (a) add primary attacks to the skill tree (variants + buffs), (b) make graph nodes and per-skill variants/buffs work together (e.g. Body path boosts primary; graph node levels or legendary behaviors can enhance specific skills/variants), (c) focus improvements on the primary attack so it scales and stays satisfying.
+
+### 8.2 Design principles
+
+- **Variants = user choice:** Player may choose any variant they have unlocked for each skill. No forced order; optional "unlocked by" (legendary item or skill point gate) only controls availability, not which variant is "best."
+- **Skill-tree and skill-variant together:**  
+  - **Graph** (Body/Mind/Harmony): node levels and optional legendary behaviors modify skills (e.g. meditation_field → Inner Sanctuary). Body path nodes (quick_strike, flowing_combo, wind_dash, palm_burst, ground_stomp) should support **primary attack** (damage, speed, range, or synergy).  
+  - **Per-skill variants/buffs:** Remain the main way to customize each skill (including primary attack once added). Saving applies both `skillTreeNodeLevels` (graph) and `skillTreeData` (variants + buffs).  
+  - **Single source of truth:** `skills.js` for skill list and base config; `skill-tree.js` for variants/buffs; `skill-tree-graph.js` for graph; effects read both where needed.
+- **Primary attack focus:**  
+  - Primary attack is slot 1 / KeyH (Fist of Thunder or Deadly Reach). It should be improvable via (1) **skill tree variants/buffs** (e.g. damage, speed, range, life steal, cleave), and (2) **graph nodes** (e.g. quick_strike / flowing_combo levels scaling primary damage or attack speed).  
+  - So: add primary attacks to SKILL_TREES; optionally wire Body path node levels into primary attack damage or cooldown; keep primary attack impactful and fun at all levels.
+
+### 8.3 Implementation steps (refinement)
+
+| Step | Action | Priority | Status |
+|------|--------|----------|--------|
+| **R-SK1** | **Primary in skill tree:** Add Fist of Thunder and Deadly Reach to `skill-tree.js` (TREE_DATA / buildSkillTrees). Include variants (e.g. damage, speed, range, life steal, cleave) and buffs (e.g. damage %, cooldown reduction). Ensure SKILL_TREES includes primary skills so Skill Tree UI shows variant/buff panel for the selected primary. | P0 | Pending |
+| **R-SK2** | **Graph ↔ primary attack:** In `skill-tree-graph.js`, document or add optional `affectsSkill` / `affectsPrimaryAttack` so Body path nodes (quick_strike, flowing_combo, …) are clearly tied to primary attack. In combat or in PlayerStats/PlayerSkills, apply graph node levels to primary attack (e.g. quick_strike level → +X% primary damage or reduced primary cooldown). | P0 | Pending |
+| **R-SK3** | **Persist and apply primary variant/buffs:** Ensure `skillTreeData` and `PlayerSkills` apply active variant and buffs to the primary attack skill (same flow as for normal skills). Skill selection and save/load already use skillTreeData; extend so primary attack is keyed by name in skillTreeData and its variant/buffs are applied when casting. | P0 | Pending |
+| **R-SK4** | **UI: primary in Skill Tree panel:** In Skill Tree UI, when the player selects a primary attack (Fist of Thunder or Deadly Reach), show the same variant and buff panels as for other skills. Primary attacks appear in the skill list (or in a dedicated "Primary attack" entry) so users can spend points and choose variants for their main attack. | P1 | Pending |
+| **R-SK5** | **Optional: scale primary by level/graph:** Scale primary attack base damage or effect by player level and/or by Body path node levels so the primary stays relevant in late game and rewards investment in the tree. | P2 | Pending |
+
+### 8.4 File checklist (skill-tree + variant + primary)
+
+| Action | File(s) |
+|--------|--------|
+| Add primary attacks to tree data | `js/config/skill-tree.js` (TREE_DATA + buildSkillTrees to include PRIMARY_ATTACKS or explicit primary names) |
+| Graph nodes affect primary | `js/config/skill-tree-graph.js` (doc or field: affectsPrimaryAttack / Body path), `js/player/PlayerStats.js` or `js/player/PlayerSkills.js` (read node levels and apply to primary damage/cooldown), effect class for primary if needed |
+| Apply variant/buffs to primary | `js/player/PlayerSkills.js` (apply skillTreeData variant + buffs to primary attack instance), `js/save-manager` (skillTreeData already persisted) |
+| Skill Tree UI: primary variants/buffs | `js/hud-manager/SkillTreeUI.js` (list or entry for primary attack; same variant/buff rendering and save), `js/config/skill-tree.js` (ensure primary keys exist in SKILL_TREES) |
+| Optional scaling | `js/player/PlayerStats.js`, primary skill effect or `PlayerSkills.usePrimaryAttack()` (scale damage by level / node levels) |
+
+### 8.5 Summary (skills)
+
+- **Variants:** Already freely chosen by the user for each skill; no change required for "allowed freely by user choice."
+- **Skill-tree and skill-variant together:** Graph nodes (especially Body path) will support primary attack; per-skill variants/buffs remain the main customization and will include primary attacks; both systems persist and apply in sync.
+- **Primary attack focus:** Add primary to the skill tree (variants + buffs), wire Body path to primary attack scaling, and optionally scale by level so the primary attack stays strong and rewarding for players who favor it.

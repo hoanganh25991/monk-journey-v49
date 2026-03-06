@@ -358,6 +358,7 @@ export class InnerSanctuaryEffect extends SkillEffect {
      * @private
      */
     _updateInnerSanctuaryEffect(delta) {
+        if (!this.sanctuaryState) return;
         // Update sanctuary state
         this.sanctuaryState.age += delta;
         
