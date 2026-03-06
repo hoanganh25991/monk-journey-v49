@@ -1,6 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
-import { getChapterQuestById } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
+import { getChapterQuestById, chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
+import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 
 /**
@@ -131,6 +131,7 @@ export class QuestLogUI extends UIComponent {
         const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
         const name = display ? display.title : (quest.title || quest.name);
         const isMain = quest.isMainQuest || (quest.lesson != null);
+        const hasChoice = chapterTemplate ? chapterQuestHasChoiceGroups(chapterTemplate) : false;
         let objectiveText;
         if (quest.objectives && Array.isArray(quest.objectives)) {
             objectiveText = quest.objectives.map(o => this.formatObjective(o)).join(' · ');
@@ -139,13 +140,17 @@ export class QuestLogUI extends UIComponent {
         } else {
             objectiveText = 'Complete the objective';
         }
+        const choiceCallout = hasChoice ? getQuestUiString('choiceCallout', locale) : '';
         const block = document.createElement('div');
-        block.className = 'quest-block quest-block-clickable';
+        block.className = 'quest-block quest-block-clickable' + (hasChoice ? ' quest-has-choice' : '');
         block.setAttribute('role', 'button');
         block.setAttribute('tabindex', '0');
         block.setAttribute('aria-label', `View details: ${name}`);
         block.innerHTML = `
-            <div class="quest-name ${isMain ? 'main-quest' : ''}">${this.escapeHtml(name)}</div>
+            <div class="quest-block-head">
+                <div class="quest-name ${isMain ? 'main-quest' : ''}">${this.escapeHtml(name)}</div>
+                ${hasChoice ? `<span class="quest-choice-callout" aria-label="${this.escapeHtml(choiceCallout)}">${this.escapeHtml(choiceCallout)}</span>` : ''}
+            </div>
             <div class="quest-objective">${this.escapeHtml(objectiveText)}</div>
         `;
         const onOpenDetail = () => this.showQuestDetail(quest, locale);
@@ -177,6 +182,10 @@ export class QuestLogUI extends UIComponent {
         const area = display ? display.area : (quest.area || '');
         const description = display ? display.description : (quest.description || '');
         const lesson = display ? display.lesson : (quest.lesson || '');
+        const hasChoice = chapterTemplate ? chapterQuestHasChoiceGroups(chapterTemplate) : false;
+        const choiceHintHtml = hasChoice
+            ? `<p class="quest-detail-choice-hint">${this.escapeHtml(getQuestUiString('choiceInQuestHint', effectiveLocale))}</p>`
+            : '';
         let objectiveHtml = '';
         if (quest.objectives && Array.isArray(quest.objectives)) {
             objectiveHtml = quest.objectives.map(o => `<li>${this.escapeHtml(this.formatObjective(o))}</li>`).join('');
@@ -199,6 +208,7 @@ export class QuestLogUI extends UIComponent {
                 </div>
                 <div class="quest-detail-body">
                     ${description ? `<p class="quest-detail-description">${this.escapeHtml(description)}</p>` : ''}
+                    ${choiceHintHtml}
                     ${objectiveHtml}
                     ${lesson ? `<p class="quest-detail-lesson"><strong>Lesson:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
                 </div>

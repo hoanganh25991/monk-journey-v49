@@ -146,6 +146,9 @@ export const QUEST_UI_STRINGS = {
         enemies: 'enemies',
         boss: 'boss',
         nextMapFallback: 'the next map',
+        otherPathsAvailable: 'Other paths await in the Story panel.',
+        choiceInQuestHint: 'You can help in more than one way; complete at least one path to progress.',
+        choiceCallout: 'Choice',
     },
     vi: {
         travelToGetNextQuest: 'Đi tới {label} để nhận nhiệm vụ tiếp theo.',
@@ -171,6 +174,9 @@ export const QUEST_UI_STRINGS = {
         enemies: 'kẻ địch',
         boss: 'trùm',
         nextMapFallback: 'bản đồ tiếp theo',
+        otherPathsAvailable: 'Các lối đi khác đang chờ trong bảng Câu chuyện.',
+        choiceInQuestHint: 'Bạn có thể giúp đỡ theo nhiều cách; hoàn thành ít nhất một lối để tiến bước.',
+        choiceCallout: 'Lựa chọn',
     },
 };
 

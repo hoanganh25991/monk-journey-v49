@@ -7,7 +7,18 @@
  * (anger, fear, gratitude, connection, self-mastery) without heavy or scary content.
  */
 
-/** @typedef {{ type: string, target?: string, count: number, progress?: number }} ChapterObjective */
+/** @typedef {{ type: string, target?: string, count: number, progress?: number, group?: string }} ChapterObjective */
+// Optional `group`: objectives with the same group form a "choice group". Completion when requireChoiceGroupsAtLeast groups are fully complete (and all objectives without group are complete).
+
+/**
+ * Whether this chapter quest has choice groups (objectives with .group); used for UI callouts.
+ * @param {{ objectives?: Array<{ group?: string }> }} quest - Chapter quest (template or active)
+ * @returns {boolean}
+ */
+export function chapterQuestHasChoiceGroups(quest) {
+    const objectives = quest?.objectives || [];
+    return objectives.some(o => o && o.group);
+}
 
 /**
  * @typedef {Object} ChapterQuest
@@ -18,9 +29,11 @@
  * @property {string} area
  * @property {{ x: number, z: number }} position - World position of quest marker (first quest near 0,0,0)
  * @property {ChapterObjective[]} objectives
+ * @property {number} [requireChoiceGroupsAtLeast] - When objectives use `group`, need at least this many groups complete (default 1)
  * @property {{ enemyType: string, name: string }} boss
  * @property {{ xp: number, skillPoints?: number, item?: string }} rewards
  * @property {string|null} nextQuestId
+ * @property {string[]} [nextQuestIds] - Optional: multiple possible next chapters (open flow)
  */
 
 /** @type {ChapterQuest[]} */

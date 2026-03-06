@@ -30,14 +30,23 @@ export class QuestManager {
         };
     }
 
-    /** @returns {Object[]} Chapter quests available to start (first or next after completed) */
+    /** @returns {Object[]} Chapter quests available to start (linear next or branched via nextQuestIds). */
     getAvailableChapterQuests() {
         const completed = this.completedChapterQuestIds;
-        const all = CHAPTER_QUESTS;
-        const nextId = all.find(q => !completed.has(q.id))?.id;
-        if (!nextId) return [];
-        const next = getChapterQuestById(nextId);
-        return next ? [this.cloneChapterQuestForStart(next)] : [];
+        const availableIds = new Set();
+        for (const q of CHAPTER_QUESTS) {
+            if (completed.has(q.id)) {
+                if (q.nextQuestId) availableIds.add(q.nextQuestId);
+                if (q.nextQuestIds && Array.isArray(q.nextQuestIds)) q.nextQuestIds.forEach(id => availableIds.add(id));
+            }
+        }
+        const firstNotCompleted = CHAPTER_QUESTS.find(q => !completed.has(q.id));
+        if (firstNotCompleted) availableIds.add(firstNotCompleted.id);
+        return [...availableIds]
+            .filter(id => !completed.has(id) && !this.activeQuests.some(a => a.id === id))
+            .map(id => getChapterQuestById(id))
+            .filter(Boolean)
+            .map(q => this.cloneChapterQuestForStart(q));
     }
 
     /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) */
@@ -51,6 +60,36 @@ export class QuestManager {
     getActiveChapterQuest() {
         const chapter = this.activeQuests.find(q => this.isChapterQuest(q));
         return chapter || null;
+    }
+
+    /**
+     * Whether chapter quest objectives are complete (supports choice groups: A, B, or both).
+     * If no objectives have .group, all must be complete. If some have .group, required (no group) must be done
+     * and at least requireChoiceGroupsAtLeast groups must be fully complete.
+     * @param {Object} quest - Active quest with objectives[]
+     * @returns {boolean}
+     */
+    areChapterObjectivesComplete(quest) {
+        const objectives = quest.objectives || [];
+        if (objectives.length === 0) return true;
+        const required = objectives.filter(o => !o.group);
+        const byGroup = /** @type {Record<string, typeof objectives>} */ ({});
+        for (const o of objectives) {
+            if (o.group) {
+                if (!byGroup[o.group]) byGroup[o.group] = [];
+                byGroup[o.group].push(o);
+            }
+        }
+        const requiredDone = required.every(o => (o.progress || 0) >= o.count);
+        if (Object.keys(byGroup).length === 0) {
+            return requiredDone && objectives.every(o => (o.progress || 0) >= o.count);
+        }
+        const needGroups = Math.max(1, quest.requireChoiceGroupsAtLeast ?? 1);
+        let completeGroups = 0;
+        for (const groupObjectives of Object.values(byGroup)) {
+            if (groupObjectives.every(o => (o.progress || 0) >= o.count)) completeGroups++;
+        }
+        return requiredDone && completeGroups >= needGroups;
     }
 
     /** @returns {boolean} True if Chapter 5 is completed (Path of Mastery unlocked). GDD §12. */
@@ -393,7 +432,7 @@ export class QuestManager {
                     }
                 }
                 if (updated) {
-                    const allComplete = quest.objectives.every(o => (o.progress || 0) >= o.count);
+                    const allComplete = this.areChapterObjectivesComplete(quest);
                     if (allComplete) this.completeQuest(quest);
                     else this.game.hudManager.updateQuestLog(this.activeQuests);
                 }
@@ -417,16 +456,27 @@ export class QuestManager {
     }
     
     updateInteraction(objectType) {
-        // Update interaction objectives for active quests
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type === 'interact' && quest.objective.target === objectType) {
+            if (quest.objectives && Array.isArray(quest.objectives)) {
+                let updated = false;
+                for (const obj of quest.objectives) {
+                    if (obj.type === 'interact' && (obj.target === objectType || obj.target === 'any')) {
+                        obj.progress = (obj.progress || 0) + 1;
+                        updated = true;
+                        const locale = this.game.questStoryLocale || 'en';
+                        this.game.hudManager.showNotification(getQuestUiString('questProgressFound', locale, { current: obj.progress, count: obj.count, objectType: obj.target || objectType }));
+                        break;
+                    }
+                }
+                if (updated && this.areChapterObjectivesComplete(quest)) this.completeQuest(quest);
+                else if (updated) this.game.hudManager.updateQuestLog(this.activeQuests);
+                return;
+            }
+            if (quest.objective && quest.objective.type === 'interact' && quest.objective.target === objectType) {
                 quest.objective.progress++;
-                
-                // Check if objective is complete
                 if (quest.objective.progress >= quest.objective.count) {
                     this.completeQuest(quest);
                 } else {
-                    // Update UI
                     this.game.hudManager.updateQuestLog(this.activeQuests);
                     const locale = this.game.questStoryLocale || 'en';
                     this.game.hudManager.showNotification(getQuestUiString('questProgressFound', locale, { current: quest.objective.progress, count: quest.objective.count, objectType }));
@@ -505,8 +555,11 @@ export class QuestManager {
     
     checkForNextQuest(completedQuest) {
         // Chapter story: instruct player to go to the next map for the next quest (marker is on that map)
-        if (completedQuest.nextQuestId) {
-            const nextChapter = getChapterQuestById(completedQuest.nextQuestId);
+        const nextIds = completedQuest.nextQuestIds && completedQuest.nextQuestIds.length
+            ? completedQuest.nextQuestIds
+            : (completedQuest.nextQuestId ? [completedQuest.nextQuestId] : []);
+        if (nextIds.length > 0) {
+            const nextChapter = getChapterQuestById(nextIds[0]);
             if (nextChapter) {
                 const locale = this.game.questStoryLocale || 'en';
                 const nextDisplay = getChapterQuestDisplay(nextChapter, locale);
@@ -514,7 +567,10 @@ export class QuestManager {
                 setTimeout(() => {
                     if (this.game.hudManager) {
                         const label = nextMap?.mapName ?? nextDisplay.area ?? getQuestUiString('nextMapFallback', locale);
-                        this.game.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label }));
+                        const msg = nextIds.length > 1
+                            ? getQuestUiString('travelToGetNextQuest', locale, { label }) + ' ' + (getQuestUiString('otherPathsAvailable', locale) || 'Other paths await in the Story panel.')
+                            : getQuestUiString('travelToGetNextQuest', locale, { label });
+                        this.game.hudManager.showNotification(msg);
                     }
                 }, 2000);
                 return;

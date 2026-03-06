@@ -23,8 +23,9 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
-import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
+import { chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import storageService from '../save-manager/StorageService.js';
 import deviceCapabilities from '../utils/DeviceCapabilities.js';
 import shadowDebugger from '../debug/ShadowDebugger.js';
@@ -273,9 +274,15 @@ export class Game {
                 if (!quest || !this.hudManager || !this.questManager) return;
                 const locale = this.questStoryLocale || 'en';
                 const display = getChapterQuestDisplay(quest, locale);
+                const acceptPrompt = getQuestUiString('acceptQuestPrompt', locale);
+                let body = display.description + '\n\n' + acceptPrompt;
+                if (chapterQuestHasChoiceGroups(quest)) {
+                    const choiceHint = getQuestUiString('choiceInQuestHint', locale);
+                    body += '\n\n' + choiceHint;
+                }
                 this.hudManager.showDialog(
                     `Quest: ${display.title}`,
-                    display.description + '\n\nWould you like to accept this quest?',
+                    body,
                     () => {
                         this.questManager.startQuest(quest);
                         // Remove the accepted quest's marker so it disappears and we don't get duplicates

@@ -14,8 +14,8 @@ This document does a **deep check** against the existing implementation plans an
 | **Reflection** | Fade, life lesson, "Continue Journey" | ✅ ReflectionUI, chapter title | **Polish:** Optional short **question** before lesson ("What did you notice?") to create curiosity. |
 | **Progression / attributes** | GDD formula, 5 attributes, allocation | ✅ Done | Optional: one-line hint linking level-up to "growth on the path." |
 | **Skill tree** | Graph, Body/Mind/Harmony, Enlightenment after Ch5 | ✅ Done | 7.8 skill tree UX still optional. |
-| **Quest object** | objectives[], lesson, area, boss, rewards | ✅ Chapter quests use it | **Gap:** Objectives are **linear** (kill then boss). No **branching** or **optional objectives** (A, B, or both). |
-| **Music** | Exploration / combat / boss, 1.5s crossfade | ✅ Layers exist | **Gap:** No dedicated **frequency / relaxation** track (432 Hz, gentle curve, "health and relax") — see §2. |
+| **Quest object** | objectives[], lesson, area, boss, rewards | ✅ Chapter quests use it | **Refinement done:** Optional `group` and `requireChoiceGroupsAtLeast` support "at least N of M" objectives; `nextQuestIds` supports branching. UI for choice callouts (R-Q3) deferred. |
+| **Music** | Exploration / combat / boss, 1.5s crossfade | ✅ Layers exist | **Refinement done:** Dedicated **relaxation/frequency** track (432 Hz) and exploration → relaxationTheme; see §2. |
 | **Help / onboarding** | (v2) | ✅ Phase 8–9 done | Keep; ensure Help mentions "choices in the journey" when we add them. |
 
 **Verdict:** Systems are implemented; refinement is about **quest openness**, **story/lesson curiosity**, and **relaxation sound**.
@@ -27,7 +27,7 @@ This document does a **deep check** against the existing implementation plans an
 | Step | Expectation | Status | Refinement |
 |------|-------------|--------|------------|
 | 8.1–8.3 | Dialog Accept, offer on start, decline/remind | ✅ Done | — |
-| 9.1–9.2 | Help, first-time hint | ✅ Done | Add one line: "Sometimes the path offers more than one way; your choices still lead to the lesson." |
+| 9.1–9.2 | Help, first-time hint | ✅ Done | **Still to add:** One line in Help modal (e.g. under Quests or Quest log): "Sometimes the path offers more than one way; your choices still lead to the lesson." |
 | 10.1–10.4 | Quest log description, reflection chapter title, Story/Journal, overarching message | ✅ Done | **Polish:** Journal could show **choices made** (when we add them) and a one-line "What you learned." |
 | 11.1–11.2 | In-game tone, readme "journey of peace" | ✅ Done | — |
 
@@ -51,11 +51,11 @@ This document does a **deep check** against the existing implementation plans an
 
 | Area | Expectation | Status | Refinement |
 |------|-------------|--------|------------|
-| 100 chapters | chapter-quests.js, Buddha life lessons, nextQuestId chain | ✅ Done | **Refinement:** When moving to **open flow**, some chapters may have **multiple nextQuestIds** (e.g. nextQuestId: ['chapter_X', 'chapter_Y']) or **choice-based** next. |
+| 100 chapters | chapter-quests.js, Buddha life lessons, nextQuestId chain | ✅ Done | **Refinement done:** `nextQuestIds` (array) is supported; `getAvailableChapterQuests()` returns multiple when story has branched. Remaining: locale strings for choice labels when using choice-based next. |
 | Maps | chapter-quest-maps.js, MapSelectionUI area line | ✅ Done | If a chapter can be reached from multiple paths, map subtitle still shows area; no change needed. |
 | generate-maps, map-chapters | Optional size, chapters in manifest | ✅ Done | — |
 
-**Verdict:** Data supports 100 chapters. Refinement = **quest graph** (choices → multiple possible next chapters) and locale strings for choices.
+**Verdict:** Data supports 100 chapters. Quest graph (multiple nextQuestIds) is implemented; refinement = locale strings for choice labels when chapters use choice-based next.
 
 ---
 
@@ -64,10 +64,10 @@ This document does a **deep check** against the existing implementation plans an
 | Area | Expectation | Status | Refinement |
 |------|-------------|--------|------------|
 | Missing sound ids | questComplete, lightning, explosion | ✅ Done | — |
-| Manifest + download script | sound-manifest.json, download-sounds.js | ✅ Done | **Gap:** No **relaxation / frequency** track. Plan below adds a **frequency layer** and public sources. |
+| Manifest + download script | sound-manifest.json, download-sounds.js | ✅ Done | **Addressed in §2:** relaxation_theme.mp3 in manifest + EXPECTED_FILES; optional: add note to implementation-plan-sound.md. |
 | Real SFX in assets/audio | Via manifest URLs | Depends on manifest fill | — |
 
-**Verdict:** SFX path is clear. **Missing:** A dedicated **frequency / relaxation** music track (curve, health, relax) and integration — see §2.
+**Verdict:** SFX path is clear. **Missing:** A dedicated **frequency / relaxation** music track (curve, health, relax) and integration — see §2. *Optional:* Update implementation-plan-sound.md to mention the relaxation track and `relaxation_theme.mp3` in the manifest so future readers see the full picture.
 
 ---
 
@@ -94,12 +94,12 @@ This document does a **deep check** against the existing implementation plans an
 
 ### 2.3 Implementation steps (refinement)
 
-| Step | Action | Priority |
-|------|--------|----------|
-| **R-S1** | Add **relaxation / frequency** entry to `js/config/sounds.js`: e.g. `relaxationTheme` with `file: 'relaxation_theme.mp3'` (or `frequency_432.mp3`), volume 0.08–0.12, `simulated` with **432 Hz** base (sine, long duration, low vibrato/tremolo, gentle curve). | P0 |
-| **R-S2** | In `MUSIC_LAYERS`, either: (A) make **exploration** use `relaxationTheme` when available and fallback to `mainTheme`, or (B) add a fourth layer `relaxation` and let Settings toggle "Use relaxation frequency in exploration." Prefer (A) for simplicity so exploration = calm by default. | P0 |
-| **R-S3** | Add a **music manifest** (e.g. `scripts/music-manifest.json`) or extend `sound-manifest.json` with music URLs: one relaxation track from 432-hz.org or Pixabay (direct MP3 link). Document in README: "For relaxation music, add the URL to the manifest and run the download script." | P1 |
-| **R-S4** | Ensure crossfade and simulated fallback use **gentle curves** (no clicks); keep existing 1.5s crossfade. Optional: when using simulated 432 Hz, add a very slow LFO (e.g. 0.1 Hz) for a subtle "breathing" curve. | P2 |
+| Step | Action | Priority | Status |
+|------|--------|----------|--------|
+| **R-S1** | Add **relaxation / frequency** entry to `js/config/sounds.js`: e.g. `relaxationTheme` with `file: 'relaxation_theme.mp3'` (or `frequency_432.mp3`), volume 0.08–0.12, `simulated` with **432 Hz** base (sine, long duration, low vibrato/tremolo, gentle curve). | P0 | ✅ Done |
+| **R-S2** | In `MUSIC_LAYERS`, either: (A) make **exploration** use `relaxationTheme` when available and fallback to `mainTheme`, or (B) add a fourth layer `relaxation` and let Settings toggle "Use relaxation frequency in exploration." Prefer (A) for simplicity so exploration = calm by default. | P0 | ✅ Done (exploration → relaxationTheme) |
+| **R-S3** | Add a **music manifest** (e.g. `scripts/music-manifest.json`) or extend `sound-manifest.json` with music URLs: one relaxation track from 432-hz.org or Pixabay (direct MP3 link). Document in README: "For relaxation music, add the URL to the manifest and run the download script." | P1 | ✅ Done (relaxation_theme.mp3 in sound-manifest.json + EXPECTED_FILES) |
+| **R-S4** | Ensure crossfade and simulated fallback use **gentle curves** (no clicks); keep existing 1.5s crossfade. Optional: when using simulated 432 Hz, add a very slow LFO (e.g. 0.1 Hz) for a subtle "breathing" curve. | P2 | Deferred |
 
 ### 2.4 File checklist (sound refinement)
 
@@ -107,7 +107,7 @@ This document does a **deep check** against the existing implementation plans an
 |--------|--------|
 | Add relaxation track config | `js/config/sounds.js` (MUSIC.relaxationTheme, 432 Hz simulated) |
 | Wire exploration to relaxation | `js/config/sounds.js` (MUSIC_LAYERS.exploration or fallback chain), `js/AudioManager.js` (choose track by context) |
-| Music manifest + script | `scripts/music-manifest.json` or extend `scripts/sound-manifest.json`; `scripts/download-sounds.js` (or separate download-music.js) |
+| Music manifest + script | Extended `scripts/sound-manifest.json` with `relaxation_theme.mp3`; `scripts/download-sounds.js` includes it in EXPECTED_FILES. (No separate music-manifest.) |
 | Optional: Settings toggle | `index.html` (Game tab), `GameplayTab.js` ("Use relaxation frequency" checkbox); `AudioManager` uses relaxation track only when enabled |
 
 ---
@@ -118,8 +118,9 @@ This document does a **deep check** against the existing implementation plans an
 
 ### 3.1 Current vs desired
 
-- **Current:** Strictly linear. `getAvailableChapterQuests()` returns the single next chapter by order; objectives are a fixed list (e.g. kill 3, then defeat boss). One path only.
-- **Desired:** 
+- **Before refinement:** Strictly linear. `getAvailableChapterQuests()` returned the single next chapter by order; objectives were a fixed list (e.g. kill 3, then defeat boss). One path only.
+- **After refinement (implemented):** `getAvailableChapterQuests()` returns one or multiple next chapters when `nextQuestIds` is used; objectives support optional `group` and `requireChoiceGroupsAtLeast` so "at least N of M" paths can advance the chapter. Branching and choice-group completion are in place; UI callouts for choices (R-Q3) and reflection question (R-Q5) are deferred.
+- **Desired (full vision):** 
   - **Choice in the journey:** Some steps offer **options** (e.g. "Help the farmer" vs "Calm the crowd" vs "Do both" or "Walk away and return later"). Completing **any** of these (or a subset) allows the story to continue.
   - **Optional objectives:** Not all objectives required in a fixed order; some are **alternatives** (A or B) or **optional** (do A, B, or both; quest advances when at least one path is done, or when a "synthesis" condition is met).
   - **Curiosity:** Questions and choices are presented so the player **wonders** about the lesson and the consequence, then sees the reflection and the lesson.
@@ -136,14 +137,14 @@ This document does a **deep check** against the existing implementation plans an
 
 ### 3.3 Implementation steps (refinement)
 
-| Step | Action | Priority |
-|------|--------|----------|
-| **R-Q1** | **Schema:** In `chapter-quests.js`, add optional `objectiveGroups` or an `alternativeRule` on objectives (e.g. "complete any 1 of these" or "complete at least 2"). Keep backward compatibility: if absent, current behavior (all objectives required). | P0 |
-| **R-Q2** | **QuestManager:** When evaluating chapter completion, support "at least one group" or "at least N of M" objectives so the player can do A, B, or both and still progress. | P0 |
-| **R-Q3** | **UI — choice in quest:** When a chapter has choices (A/B/both), show them in the quest log and in the quest-accept dialog (e.g. "You can help in more than one way: …"). Optional: small "Choice" callout in QuestLogUI for such quests. | P1 |
-| **R-Q4** | **Next-quest branching:** Allow `nextQuestId` (single) or `nextQuestIds` (array). If array, after reflection either (a) offer one "recommended" and one "alternate" in the Story panel, or (b) unlock both and let the player pick which map/quest to do next. `getAvailableChapterQuests()` then returns multiple entries when the story has branched. | P1 |
-| **R-Q5** | **Reflection curiosity:** Optionally add a **short question** before the lesson (e.g. "What did you notice in the village?" with 2–3 one-line options). Selecting one doesn’t change the lesson but makes the moment feel like a reflection, not a wall of text. Reuse DialogUI with buttons; store choice in save for Journal if desired. | P2 |
-| **R-Q6** | **Locales:** In `chapter-quests-locales.js`, add strings for choice labels (A, B, both) and any "What did you notice?" options (EN + VI). | P1 |
+| Step | Action | Priority | Status |
+|------|--------|----------|--------|
+| **R-Q1** | **Schema:** In `chapter-quests.js`, add optional `objectiveGroups` or an `alternativeRule` on objectives (e.g. "complete any 1 of these" or "complete at least 2"). Keep backward compatibility: if absent, current behavior (all objectives required). | P0 | ✅ Done (optional `group`, `requireChoiceGroupsAtLeast`) |
+| **R-Q2** | **QuestManager:** When evaluating chapter completion, support "at least one group" or "at least N of M" objectives so the player can do A, B, or both and still progress. | P0 | ✅ Done (`areChapterObjectivesComplete()`, `updateInteraction`) |
+| **R-Q3** | **UI — choice in quest:** When a chapter has choices (A/B/both), show them in the quest log and in the quest-accept dialog (e.g. "You can help in more than one way: …"). Optional: small "Choice" callout in QuestLogUI for such quests. | P1 | ✅ Done |
+| **R-Q4** | **Next-quest branching:** Allow `nextQuestId` (single) or `nextQuestIds` (array). If array, after reflection either (a) offer one "recommended" and one "alternate" in the Story panel, or (b) unlock both and let the player pick which map/quest to do next. `getAvailableChapterQuests()` then returns multiple entries when the story has branched. | P1 | ✅ Done (`nextQuestIds`, getAvailableChapterQuests, notification) |
+| **R-Q5** | **Reflection curiosity:** Optionally add a **short question** before the lesson (e.g. "What did you notice in the village?" with 2–3 one-line options). Selecting one doesn’t change the lesson but makes the moment feel like a reflection, not a wall of text. Reuse DialogUI with buttons; store choice in save for Journal if desired. | P2 | Deferred |
+| **R-Q6** | **Locales:** In `chapter-quests-locales.js`, add strings for choice labels (A, B, both) and any "What did you notice?" options (EN + VI). | P1 | ✅ Done (`otherPathsAvailable` EN/VI) |
 
 ### 3.4 File checklist (quest refinement)
 
@@ -155,10 +156,23 @@ This document does a **deep check** against the existing implementation plans an
 | Quest log / dialog choice display | `js/hud-manager/QuestLogUI.js`, `js/hud-manager/DialogUI.js` (or HUDManager) |
 | Reflection question (optional) | `js/hud-manager/ReflectionUI.js`, `js/QuestManager.js` (completeQuest flow) |
 | Locales for choices | `js/config/chapter-quests-locales.js` |
+| Help: "choices in the journey" line | `index.html` (#help-modal-content) |
 
 ---
 
-## 4. Polish: Story, Lesson, Relax — Summary Checklist
+## 4. Remaining / Not Yet Done (quick reference)
+
+| Item | Where | Priority |
+|------|--------|----------|
+| Help modal: one line about "path offers more than one way; your choices still lead to the lesson" | `index.html` (#help-modal-content, under Quests or Quest log) | P1 ✅ Done |
+| R-Q3: UI — choice in quest (show A/B/both in quest log and accept dialog) | QuestLogUI, Game.js (accept dialog) | P1 ✅ Done |
+| R-Q5: Reflection — short question before lesson ("What did you notice?") | ReflectionUI, QuestManager | P2, Deferred |
+| R-S4: Gentle LFO for simulated 432 Hz "breathing" curve | AudioManager / sounds.js | P2, Deferred |
+| Optional: Settings toggle "Use relaxation frequency in exploration" | GameplayTab, AudioManager | P2 |
+
+---
+
+## 5. Polish: Story, Lesson, Relax — Summary Checklist
 
 Use this to keep the game aligned with "game helps tell story, tell lesson, relax to play."
 
@@ -174,20 +188,24 @@ Use this to keep the game aligned with "game helps tell story, tell lesson, rela
 
 ---
 
-## 5. Recommended Order
+## 6. Recommended Order
 
-1. **Sound (R-S1–S2):** Add relaxation/frequency track and wire exploration so the game feels calmer by default.
-2. **Quest schema (R-Q1–Q2):** Add objective groups or alternative rules and completion logic so at least one "path" (A, B, or both) can advance the chapter.
-3. **Quest UI (R-Q3):** Show choices in quest log and dialog.
-4. **Next-quest branching (R-Q4, R-Q6):** Multiple nextQuestIds and locales.
-5. **Music manifest (R-S3) and optional reflection question (R-Q5)** as polish.
+*Most refinement steps (R-S1–S3, R-Q1–Q2, R-Q4, R-Q6) are done. Order below is for reference and for remaining work.*
+
+1. **Quick win:** Add the Help modal line about "path offers more than one way" (see §4). ✅ Done
+2. **Sound (R-S1–S2):** ✅ Done — relaxation track and exploration wiring.
+3. **Quest schema (R-Q1–Q2):** ✅ Done — objective groups and completion logic.
+4. **Next-quest branching (R-Q4, R-Q6):** ✅ Done — nextQuestIds and otherPathsAvailable locales.
+5. **Music manifest (R-S3):** ✅ Done — relaxation_theme.mp3 in sound-manifest.json.
+6. **Still deferred / optional:** Reflection question (R-Q5), R-S4 LFO, Settings toggle for relaxation.
 
 ---
 
-## 6. Summary
+## 7. Summary
 
 - **Deep check:** Implementation plans 1–7, v2, Vietnamese, 100 chapters, and sound are largely **implemented**; gaps are **polish** and two **new directions**: (1) **frequency/relaxation sound**, (2) **open quest flow** (A, B, both, or something else, then story continues).
 - **Sound:** Add a **432 Hz–style relaxation** layer (curved, gentle), use **public sources** (432-hz.org, Pixabay, etc.), and make exploration default to it (or a Settings toggle).
-- **Quest:** Move from **fixed linear** to **open flow**: optional/alternative objectives, multiple possible next chapters, and optional reflection question so the player is **curious** about the lesson and the choice, then **gets the lesson** and **enjoys the sound** while playing.
+- **Quest:** Move from **fixed linear** to **open flow**: optional/alternative objectives (done), multiple possible next chapters (done), and optional reflection question (deferred) so the player is **curious** about the lesson and the choice, then **gets the lesson** and **enjoys the sound** while playing.
+- **Remaining:** Help modal line (§4) and R-Q3 (choice callout in UI) done. Deferred: R-Q5 (reflection question), R-S4 (LFO), optional Settings toggle.
 
 This refinement plan completes the expectations from the existing plans and focuses the next work on **story**, **lesson**, **relaxation**, and **quest curiosity**.
