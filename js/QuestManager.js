@@ -522,10 +522,8 @@ export class QuestManager {
             this.game.hudManager.updateQuestLog(this.activeQuests);
             const title = quest.title || quest.name;
             const locale = this.game.questStoryLocale || 'en';
-            this.game.hudManager.showDialog(
-                getQuestUiString('questCompletedTitle', locale, { title }),
-                getQuestUiString('questCompletedRewards', locale)
-            );
+            this.game.hudManager.showNotification(getQuestUiString('questCompletedTitle', locale, { title }));
+            this.showRewardsIn3D(quest);
             this.checkForNextQuest(quest);
         };
 
@@ -539,10 +537,6 @@ export class QuestManager {
             const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
             const options = {
                 chapterTitle: chapterTitle || undefined,
-                reflectionQuestion: true,
-                onReflectionChoice: (choiceIndex) => {
-                    if (this.game.saveReflectionChoice) this.game.saveReflectionChoice(quest.id, choiceIndex);
-                },
                 ...(isChapter5 ? {
                     isChapter5: true,
                     onEnterPathOfMastery: () => {
@@ -604,6 +598,44 @@ export class QuestManager {
         }
     }
     
+    /**
+     * Show quest rewards as floating 3D text above the player (no popup).
+     * @param {Object} quest - Completed quest with rewards
+     */
+    showRewardsIn3D(quest) {
+        if (!this.game?.player?.getPosition || !this.game?.effectsManager) return;
+        const pos = this.game.player.getPosition().clone();
+        const rewards = quest.rewards || quest.reward;
+        let yOffset = 0;
+        const step = 1.2;
+
+        const addRewardText = (text, rewardType) => {
+            const p = { x: pos.x, y: pos.y + yOffset, z: pos.z };
+            yOffset += step;
+            this.game.effectsManager.createRewardTextSprite(text, p, rewardType);
+        };
+
+        if (rewards) {
+            const xp = rewards.xp ?? rewards.experience;
+            if (xp) addRewardText(`+${xp} EXP`, 'xp');
+            const skillPoints = rewards.skillPoints;
+            if (skillPoints) {
+                addRewardText(`+${skillPoints} Skill Point${skillPoints !== 1 ? 's' : ''}`, 'xp');
+            }
+        }
+        if (quest.reward) {
+            if (quest.reward.gold) {
+                addRewardText(`+${quest.reward.gold} Gold`, 'gold');
+            }
+            if (quest.reward.items) {
+                for (const item of quest.reward.items) {
+                    const amount = item.amount || 1;
+                    addRewardText(`+ ${item.name}${amount > 1 ? ' x' + amount : ''}`, 'item');
+                }
+            }
+        }
+    }
+
     awardQuestRewards(quest) {
         const locale = this.game.questStoryLocale || 'en';
         // GDD rewards (chapter quests): rewards.xp, rewards.skillPoints

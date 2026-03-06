@@ -10,7 +10,30 @@ const MAP_IDS_ROUND_ROBIN = [
   'frost-hollow', 'sand-shrine', 'thorn-marsh', 'eldritch-grove',
 ];
 
+/** Map id → ZONE_ENEMIES key. Used to derive which enemy types are available on a chapter's map (so quests can require specific types and force exploration). */
+export const MAP_ID_TO_ZONE_KEY = {
+  'default': 'forest',
+  'terrant': 'forest',
+  'forest': 'forest',
+  'whisper-woods': 'forest',
+  'desert': 'ruins',
+  'ember-wastes': 'ruins',
+  'sand-shrine': 'ruins',
+  'mountains': 'mountains',
+  'highland-vale': 'mountains',
+  'frost-hollow': 'mountains',
+  'swamp': 'swamp',
+  'crimson-bog': 'swamp',
+  'thorn-marsh': 'swamp',
+  'magical': 'dark_sanctum',
+  'veil-garden': 'dark_sanctum',
+  'eldritch-grove': 'dark_sanctum',
+  'mixed': 'forest',
+  'sky-prairie': 'forest',
+};
+
 import { CHAPTER_QUESTS } from './chapter-quests.js';
+import { ZONE_ENEMIES } from './game-balance.js';
 
 export const CHAPTER_QUEST_MAPS = CHAPTER_QUESTS.map((q, i) => ({
   mapId: MAP_IDS_ROUND_ROBIN[i % MAP_IDS_ROUND_ROBIN.length],
@@ -39,4 +62,26 @@ export function getNextStoryMapAfter(completedChapterQuestId, chapterQuests) {
   const next = CHAPTER_QUEST_MAPS[idx + 1];
   const nextQuest = chapterQuests.find((q) => q.id === next.chapterQuestId);
   return { mapId: next.mapId, mapName: nextQuest?.area ?? next.mapId };
+}
+
+/**
+ * Get the zone key (for ZONE_ENEMIES) for a map id.
+ * @param {string} mapId
+ * @returns {string}
+ */
+export function getZoneKeyForMapId(mapId) {
+  return MAP_ID_TO_ZONE_KEY[mapId] ?? 'forest';
+}
+
+/**
+ * Get enemy types that can spawn on the map for a given chapter quest.
+ * Used to build kill objectives so the player must seek different (and optionally rarer) enemy types on that map.
+ * @param {string} chapterQuestId
+ * @returns {string[]} Enemy type ids (e.g. ['skeleton', 'zombie', 'shadow_beast', ...])
+ */
+export function getEnemyTypesForChapterQuest(chapterQuestId) {
+  const mapId = getMapIdForChapterQuest(chapterQuestId);
+  const zoneKey = getZoneKeyForMapId(mapId ?? '');
+  const types = ZONE_ENEMIES[zoneKey];
+  return Array.isArray(types) ? [...types] : [];
 }
