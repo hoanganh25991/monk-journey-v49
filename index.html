@@ -420,7 +420,7 @@
             <div class="map-selector-modal">
                 <div class="map-selector-header">
                     <div class="map-selector-header-left">
-                        <h2>Select Map</h2>
+                        <h2 id="map-selector-title">Select Map</h2>
                         <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
                     </div>
                     <div class="header-buttons">
@@ -451,23 +451,23 @@
                                     
                                     <div class="map-stats" id="selectedMapStats">
                                         <div class="map-stat">
-                                            <span class="stat-label">Size:</span>
+                                            <span class="stat-label" id="mapStatLabelSize">Size:</span>
                                             <span class="stat-value" id="mapSizeStat">-</span>
                                         </div>
                                         <div class="map-stat">
-                                            <span class="stat-label">Structures:</span>
+                                            <span class="stat-label" id="mapStatLabelStructures">Structures:</span>
                                             <span class="stat-value" id="structuresStat">-</span>
                                         </div>
                                         <div class="map-stat">
-                                            <span class="stat-label">Paths:</span>
+                                            <span class="stat-label" id="mapStatLabelPaths">Paths:</span>
                                             <span class="stat-value" id="pathsStat">-</span>
                                         </div>
                                         <div class="map-stat">
-                                            <span class="stat-label">Environment:</span>
+                                            <span class="stat-label" id="mapStatLabelEnvironment">Environment:</span>
                                             <span class="stat-value" id="environmentStat">-</span>
                                         </div>
                                         <div class="map-stat map-stat-enemies">
-                                            <span class="stat-label">Enemies:</span>
+                                            <span class="stat-label" id="mapStatLabelEnemies">Enemies:</span>
                                             <span class="stat-value" id="enemiesStat">-</span>
                                         </div>
                                     </div>
@@ -482,7 +482,7 @@
                 
                 <div class="loading-overlay" id="mapLoadingOverlay" style="display: none;">
                     <div class="loading-spinner"></div>
-                    <div class="loading-text">Loading map...</div>
+                    <div class="loading-text" id="mapLoadingOverlayText">Loading map...</div>
                 </div>
             </div>
         </div>

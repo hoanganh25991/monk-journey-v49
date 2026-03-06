@@ -223,6 +223,71 @@ export function getReflectionUiString(key, locale = DEFAULT_LOCALE) {
     return strings[key] || REFLECTION_UI_STRINGS.en[key] || '';
 }
 
+/** Map Selection overlay UI strings (placeholders: {name}, {mapName}) */
+export const MAP_SELECTION_UI_STRINGS = {
+    en: {
+        selectMapTitle: 'Select Map',
+        currentMap: 'Current: {name}',
+        currentMapNone: 'Current: —',
+        returnToDefaultWorld: 'Returned to Default World. Reloading...',
+        mapSetToReloading: 'Map set to "{mapName}". Reloading...',
+        selectMapPlaceholder: 'Select a map',
+        chooseMapPlaceholder: 'Choose a map from the list to view details',
+        statSize: 'Size:',
+        statStructures: 'Structures:',
+        statPaths: 'Paths:',
+        statEnvironment: 'Environment:',
+        statEnemies: 'Enemies:',
+        enemiesRandom: 'Random',
+        btnMapSelector: 'Map Selector',
+        btnReturnToProceduralWorld: 'Return to Procedural World',
+        btnGenerateNewMap: 'Generate New Map',
+        btnSaveAndClose: 'Save & Close',
+        btnApplyAndReload: 'Apply & Reload',
+        btnApplyAndReloadTitle: 'Apply this map after reload',
+        loadingMap: 'Loading map...',
+    },
+    vi: {
+        selectMapTitle: 'Chọn bản đồ',
+        currentMap: 'Hiện tại: {name}',
+        currentMapNone: 'Hiện tại: —',
+        returnToDefaultWorld: 'Đã về Thế giới mặc định. Đang tải lại...',
+        mapSetToReloading: 'Đã đặt bản đồ "{mapName}". Đang tải lại...',
+        selectMapPlaceholder: 'Chọn một bản đồ',
+        chooseMapPlaceholder: 'Chọn bản đồ trong danh sách để xem chi tiết',
+        statSize: 'Kích thước:',
+        statStructures: 'Công trình:',
+        statPaths: 'Đường đi:',
+        statEnvironment: 'Môi trường:',
+        statEnemies: 'Kẻ địch:',
+        enemiesRandom: 'Ngẫu nhiên',
+        btnMapSelector: 'Chọn bản đồ',
+        btnReturnToProceduralWorld: 'Về thế giới procedural',
+        btnGenerateNewMap: 'Tạo bản đồ mới',
+        btnSaveAndClose: 'Lưu & Đóng',
+        btnApplyAndReload: 'Áp dụng & Tải lại',
+        btnApplyAndReloadTitle: 'Áp dụng bản đồ này sau khi tải lại',
+        loadingMap: 'Đang tải bản đồ...',
+    },
+};
+
+/**
+ * Get a localized map selection UI string and replace placeholders.
+ * @param {string} key - Key in MAP_SELECTION_UI_STRINGS
+ * @param {string} [locale] - 'en' | 'vi'; defaults to DEFAULT_LOCALE
+ * @param {Record<string, string|number>} [params] - e.g. { name: 'Forest', mapName: 'My Map' }
+ * @returns {string}
+ */
+export function getMapSelectionUiString(key, locale = DEFAULT_LOCALE, params = {}) {
+    const loc = locale === 'vi' ? 'vi' : 'en';
+    const strings = MAP_SELECTION_UI_STRINGS[loc] || MAP_SELECTION_UI_STRINGS.en;
+    let s = strings[key] || MAP_SELECTION_UI_STRINGS.en[key] || '';
+    Object.keys(params).forEach(k => {
+        s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+    });
+    return s;
+}
+
 /**
  * Get all display strings for a chapter quest in the given locale.
  * @param {import('./chapter-quests.js').ChapterQuest} quest - Chapter quest object (must have .id)

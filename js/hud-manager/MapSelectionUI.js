@@ -4,6 +4,7 @@ import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -39,6 +40,47 @@ export class MapSelectionUI extends UIComponent {
         this.mapDataCache = new Map(); // path -> full map JSON
     }
 
+    /** @returns {'en'|'vi'} */
+    getLocale() {
+        return (this.game && this.game.questStoryLocale === 'vi') ? 'vi' : 'en';
+    }
+
+    /** Apply translated labels to overlay (title, stat labels, button titles, placeholders). */
+    updateMapSelectorLabels() {
+        const locale = this.getLocale();
+        const titleEl = document.getElementById('map-selector-title');
+        if (titleEl) titleEl.textContent = getMapSelectionUiString('selectMapTitle', locale);
+        const labels = [
+            { id: 'mapStatLabelSize', key: 'statSize' },
+            { id: 'mapStatLabelStructures', key: 'statStructures' },
+            { id: 'mapStatLabelPaths', key: 'statPaths' },
+            { id: 'mapStatLabelEnvironment', key: 'statEnvironment' },
+            { id: 'mapStatLabelEnemies', key: 'statEnemies' },
+        ];
+        labels.forEach(({ id, key }) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = getMapSelectionUiString(key, locale);
+        });
+        if (this.mapSelectorButton) this.mapSelectorButton.title = getMapSelectionUiString('btnMapSelector', locale);
+        const clearBtn = document.getElementById('clearCurrentMap');
+        if (clearBtn) clearBtn.title = getMapSelectionUiString('btnReturnToProceduralWorld', locale);
+        const genBtn = document.getElementById('generateRandomMap');
+        if (genBtn) genBtn.title = getMapSelectionUiString('btnGenerateNewMap', locale);
+        const closeBtn = document.getElementById('closeMapSelector');
+        if (closeBtn) closeBtn.title = getMapSelectionUiString('btnSaveAndClose', locale);
+        const playBtn = document.getElementById('playMapButton');
+        if (playBtn) {
+            playBtn.title = getMapSelectionUiString('btnApplyAndReloadTitle', locale);
+            playBtn.textContent = getMapSelectionUiString('btnApplyAndReload', locale);
+        }
+        const loadingEl = document.getElementById('mapLoadingOverlayText');
+        if (loadingEl) loadingEl.textContent = getMapSelectionUiString('loadingMap', locale);
+        const namePlaceholder = document.getElementById('selectedMapName');
+        const descPlaceholder = document.getElementById('selectedMapDescription');
+        if (namePlaceholder && !namePlaceholder.dataset.filled) namePlaceholder.textContent = getMapSelectionUiString('selectMapPlaceholder', locale);
+        if (descPlaceholder && !descPlaceholder.dataset.filled) descPlaceholder.textContent = getMapSelectionUiString('chooseMapPlaceholder', locale);
+    }
+
     init() {
         try {
             this.mapSelectorButton = document.getElementById('map-selector-button');
@@ -51,6 +93,7 @@ export class MapSelectionUI extends UIComponent {
             }
 
             this.setupEventListeners();
+            this.updateMapSelectorLabels();
             this.loadManifest().then(() => this.populateMapList());
             this.forceHide();
             return true;
@@ -164,8 +207,16 @@ export class MapSelectionUI extends UIComponent {
     }
 
     updateDetailPanel(mapEntry) {
-        document.getElementById('selectedMapName').textContent = mapEntry.name;
-        document.getElementById('selectedMapDescription').textContent = mapEntry.description || '';
+        const nameEl = document.getElementById('selectedMapName');
+        const descEl = document.getElementById('selectedMapDescription');
+        if (nameEl) {
+            nameEl.textContent = mapEntry.name;
+            nameEl.dataset.filled = '1';
+        }
+        if (descEl) {
+            descEl.textContent = mapEntry.description || '';
+            descEl.dataset.filled = '1';
+        }
         document.getElementById('mapSizeStat').textContent = mapEntry.size || '-';
         document.getElementById('structuresStat').textContent = mapEntry.structures ?? 'NA';
         document.getElementById('pathsStat').textContent = mapEntry.paths ?? 'NA';
@@ -229,7 +280,8 @@ export class MapSelectionUI extends UIComponent {
      * @returns {string} Display text for Enemies stat
      */
     getEnemiesText(mapEntry, mapData) {
-        if (mapData?.enemies === 'random') return 'Random';
+        const locale = this.getLocale();
+        if (mapData?.enemies === 'random') return getMapSelectionUiString('enemiesRandom', locale);
         if (Array.isArray(mapData?.enemies) && mapData.enemies.length > 0) {
             const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
             const names = mapData.enemies.map(t => {
@@ -239,10 +291,10 @@ export class MapSelectionUI extends UIComponent {
             return names.join(', ');
         }
         const zoneStyle = mapData?.zoneStyle || mapEntry.zoneStyle;
-        if (!zoneStyle) return 'Random';
+        if (!zoneStyle) return getMapSelectionUiString('enemiesRandom', locale);
         const key = (typeof zoneStyle === 'string' ? zoneStyle.toLowerCase() : '').replace(/\s+/g, '_');
         const zoneKey = ZONE_STYLE_TO_KEY[key] || ZONE_STYLE_TO_KEY[zoneStyle?.toLowerCase?.()] || null;
-        if (!zoneKey || !ZONE_ENEMIES[zoneKey]) return 'Random';
+        if (!zoneKey || !ZONE_ENEMIES[zoneKey]) return getMapSelectionUiString('enemiesRandom', locale);
         const types = ZONE_ENEMIES[zoneKey];
         const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
         const names = types.map(t => {
@@ -262,9 +314,10 @@ export class MapSelectionUI extends UIComponent {
             console.warn('Could not save map preference:', e);
         }
 
+        const locale = this.getLocale();
         const mapName = entry.name || entry.id || 'Map';
         if (this.game.hudManager?.showNotification) {
-            this.game.hudManager.showNotification(`Map set to "${mapName}". Reloading...`, 3000);
+            this.game.hudManager.showNotification(getMapSelectionUiString('mapSetToReloading', locale, { mapName }), 3000);
         }
         this.hide();
         setTimeout(() => location.reload(), 800);
@@ -276,8 +329,9 @@ export class MapSelectionUI extends UIComponent {
         } catch (e) {
             console.warn('Could not save map preference:', e);
         }
+        const locale = this.getLocale();
         if (this.game?.hudManager?.showNotification) {
-            this.game.hudManager.showNotification('Returned to Default World. Reloading...', 3000);
+            this.game.hudManager.showNotification(getMapSelectionUiString('returnToDefaultWorld', locale), 3000);
         }
         this.hide();
         setTimeout(() => location.reload(), 800);
@@ -285,10 +339,14 @@ export class MapSelectionUI extends UIComponent {
 
     show() {
         if (this.overlay) {
+            this.updateMapSelectorLabels();
             const currentLabel = document.getElementById('map-selector-current-label');
             if (currentLabel) {
+                const locale = this.getLocale();
                 const currentMap = this.game?.world?.currentMap;
-                currentLabel.textContent = currentMap?.name ? `Current: ${currentMap.name}` : 'Current: —';
+                currentLabel.textContent = currentMap?.name
+                    ? getMapSelectionUiString('currentMap', locale, { name: currentMap.name })
+                    : getMapSelectionUiString('currentMapNone', locale);
             }
             this.overlay.style.display = 'flex';
             this.overlay.style.visibility = 'visible';
