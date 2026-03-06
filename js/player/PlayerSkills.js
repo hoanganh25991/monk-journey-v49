@@ -4,6 +4,7 @@ import { Skill } from '../skills/Skill.js';
 import { SKILLS, BATTLE_SKILLS, STARTING_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ATTACK_ANIMATION_DURATION_MS } from '../config/input.js';
+import { getUnlockedSkillNames } from '../config/skill-unlocks.js';
 
 /**
  * @typedef {Object} SkillTreeEntry
@@ -215,37 +216,38 @@ export class PlayerSkills {
                 this.skills = filteredSkills.map(skillConfig => new Skill(skillConfig, this.game));
             }
         } else {
-            // No saved skills (first-time play): use starter set (1 primary + 2 normal), not full 8
+            // No saved skills: use starter set (progress-based: 1 primary + 2 normal from skill-unlocks.js)
             const filteredSkills = this.filterCustomSkills(STARTING_SKILLS);
             this.skills = filteredSkills.map(skillConfig => new Skill(skillConfig, this.game));
         }
     }
+
+    /**
+     * Returns the set of skill names currently unlocked by story progress (for UI / validation).
+     * @returns {Set<string>}
+     */
+    getUnlockedSkillNames() {
+        const completed = this.game?.questManager?.completedChapterQuestIds;
+        return getUnlockedSkillNames(completed || new Set());
+    }
     
     /**
-     * Loads skills from an array of skill IDs
-     * Creates skill instances with appropriate variants and buffs
+     * Loads skills from an array of skill IDs. Only loads skills that are unlocked by story progress (chapter completion).
      * @param {Array<{id: string, isPrimary: boolean}>} skillIds - Array of skill ID objects
      */
     loadSkillsFromIds(skillIds) {
-        // Reset skills array
         this.skills = [];
-        
-        // Load skill tree data from localStorage if not already loaded
-        if (!this.skillTreeData) {
-            this.loadSkillTreeData();
-        }
-        
-        // Get all available skills and filter out custom skills if disabled
+        if (!this.skillTreeData) this.loadSkillTreeData();
+
+        const completed = this.game?.questManager?.completedChapterQuestIds;
+        const unlocked = getUnlockedSkillNames(completed || new Set());
         const availableSkills = this.filterCustomSkills(SKILLS);
-        
-        // Process each skill ID
+
         skillIds.forEach(skillIdObj => {
             const { id } = skillIdObj;
-            
-            // Find the full skill config based on the ID (name)
-            const skillConfig = availableSkills.find(skill => skill.name === id);
+            if (!unlocked.has(id)) return;
 
-            // If skill config is found, create a new skill instance
+            const skillConfig = availableSkills.find(skill => skill.name === id);
             if (skillConfig) {
                 // Create a deep copy of the skill config to avoid modifying the original
                 const skillConfigCopy = JSON.parse(JSON.stringify(skillConfig));
@@ -273,10 +275,9 @@ export class PlayerSkills {
             }
         });
         
-        // If no skills were loaded, use default battle skills
         if (this.skills.length === 0) {
-            console.warn('No valid skills found from IDs, using default battle skills');
-            const filteredDefaultSkills = this.filterCustomSkills(BATTLE_SKILLS);
+            console.warn('No valid skills found from IDs, using starter set (progress-based)');
+            const filteredDefaultSkills = this.filterCustomSkills(STARTING_SKILLS);
             this.skills = filteredDefaultSkills.map(skillConfig => new Skill(skillConfig, this.game));
         }
     }

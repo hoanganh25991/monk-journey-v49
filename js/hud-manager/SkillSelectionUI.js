@@ -157,72 +157,51 @@ export class SkillSelectionUI extends UIComponent {
     }
     
     /**
-     * Load saved skills from localStorage
-     * If no skills are saved, use BATTLE_SKILLS from config
+     * Load saved skills from localStorage; filter to currently unlocked skills only (progress-based).
      */
     loadSavedSkills() {
+        const unlocked = this.getUnlockedSet();
         try {
-            // Try to get saved skills from localStorage
             const savedSkillsJson = localStorage.getItem(STORAGE_KEYS.SELECTED_SKILLS);
-            
             if (savedSkillsJson) {
-                // Parse the saved skills
                 const savedSkills = JSON.parse(savedSkillsJson);
-                
-                // Check if we're using the new format (array of skill IDs)
                 if (savedSkills.length > 0 && 'id' in savedSkills[0]) {
-                    // New format - array of { id, isPrimary } objects
-                    // Set the selected primary attack
                     const primarySkill = savedSkills.find(skill => skill.isPrimary);
-                    if (primarySkill) {
-                        this.selectedPrimaryAttack = primarySkill.id;
-                    }
-                    
-                    // Set the selected normal skills
+                    this.selectedPrimaryAttack = (primarySkill && unlocked.has(primarySkill.id)) ? primarySkill.id : null;
                     this.selectedNormalSkills = savedSkills
-                        .filter(skill => !skill.isPrimary)
+                        .filter(skill => !skill.isPrimary && unlocked.has(skill.id))
                         .map(skill => skill.id);
                 } else {
-                    // Old format - array of full skill objects
-                    // Set the selected primary attack
                     const primaryAttack = savedSkills.find(skill => skill.primaryAttack);
-                    if (primaryAttack) {
-                        this.selectedPrimaryAttack = primaryAttack.name;
-                    }
-                    
-                    // Set the selected normal skills
+                    this.selectedPrimaryAttack = (primaryAttack && unlocked.has(primaryAttack.name)) ? primaryAttack.name : null;
                     this.selectedNormalSkills = savedSkills
-                        .filter(skill => !skill.primaryAttack)
+                        .filter(skill => !skill.primaryAttack && unlocked.has(skill.name))
                         .map(skill => skill.name);
                 }
+                if (!this.selectedPrimaryAttack) {
+                    const primary = this.orderedSkills.primaryAttacks.find(s => unlocked.has(s.name));
+                    this.selectedPrimaryAttack = primary ? primary.name : null;
+                }
             } else {
-                // If no skills are saved, use BATTLE_SKILLS from config
                 this.loadDefaultSkills();
             }
         } catch (error) {
             console.error('Error loading saved skills:', error);
-            // If there's an error, use BATTLE_SKILLS from config
             this.loadDefaultSkills();
         }
     }
     
     /**
-     * Load default skills from BATTLE_SKILLS config, respecting skill-tree order
+     * Load default skills: first unlocked primary + first 7 unlocked normal skills (progress-based).
      */
     loadDefaultSkills() {
-        // Find the primary attack in ordered skills
-        if (this.orderedSkills.primaryAttacks.length > 0) {
-            // Use the first primary attack from ordered list
-            this.selectedPrimaryAttack = this.orderedSkills.primaryAttacks[0].name;
-        } else if (PRIMARY_ATTACKS.length > 0) {
-            // Fallback to first primary attack if none in ordered list
-            this.selectedPrimaryAttack = PRIMARY_ATTACKS[0].name;
-        }
-        
-        // Get normal skills from ordered list
+        const unlocked = this.getUnlockedSet();
+        const primary = this.orderedSkills.primaryAttacks.find(s => unlocked.has(s.name));
+        this.selectedPrimaryAttack = primary ? primary.name : (this.orderedSkills.primaryAttacks[0]?.name || null);
         this.selectedNormalSkills = this.orderedSkills.normalSkills
-            .map(skill => skill.name)
-            .slice(0, this.maxNormalSkills); // Ensure we don't exceed max
+            .filter(s => unlocked.has(s.name))
+            .map(s => s.name)
+            .slice(0, this.maxNormalSkills);
     }
     
     /**
@@ -354,14 +333,14 @@ export class SkillSelectionUI extends UIComponent {
         // Primary attack selection - delegate events to the container
         const primaryAttackList = this.container.querySelector('#primary-attack-list');
         primaryAttackList.addEventListener('click', (event) => {
-            // Find the closest skill-selection-item parent
             const skillItem = event.target.closest('.skill-selection-item');
             if (!skillItem) return;
-            
+            if (skillItem.classList.contains('locked')) {
+                const hint = skillItem.getAttribute('title') || 'Complete story chapters to unlock this skill.';
+                if (this.game?.hudManager) this.game.hudManager.showNotification(hint);
+                return;
+            }
             const skillName = skillItem.getAttribute('data-skill-name');
-            console.debug('Primary attack clicked:', skillName);
-            
-            // Check if this skill is already selected
             if (this.selectedPrimaryAttack === skillName) {
                 console.debug('Deselecting primary attack:', skillName);
                 // Deselect this skill
@@ -392,15 +371,14 @@ export class SkillSelectionUI extends UIComponent {
         // Normal skills selection - delegate events to the container
         const normalSkillsList = this.container.querySelector('#normal-skills-list');
         normalSkillsList.addEventListener('click', (event) => {
-            // Find the closest skill-selection-item parent
             const skillItem = event.target.closest('.skill-selection-item');
             if (!skillItem) return;
-            
+            if (skillItem.classList.contains('locked')) {
+                const hint = skillItem.getAttribute('title') || 'Complete story chapters to unlock this skill.';
+                if (this.game?.hudManager) this.game.hudManager.showNotification(hint);
+                return;
+            }
             const skillName = skillItem.getAttribute('data-skill-name');
-            console.debug('Normal skill clicked:', skillName);
-            console.debug('Current selected normal skills:', [...this.selectedNormalSkills]);
-            
-            // Check if already selected
             if (skillItem.classList.contains('selected')) {
                 console.debug('Deselecting normal skill:', skillName);
                 // Deselect
@@ -648,38 +626,26 @@ export class SkillSelectionUI extends UIComponent {
             const savedSkillsJson = localStorage.getItem(STORAGE_KEYS.SELECTED_SKILLS);
             
             if (savedSkillsJson) {
-                // Parse the saved skills
                 const savedSkills = JSON.parse(savedSkillsJson);
-                
-                // Reset selections
                 this.selectedPrimaryAttack = null;
                 this.selectedNormalSkills = [];
-                
-                // Check if we're using the new format (array of skill IDs)
+                const unlocked = this.getUnlockedSet();
                 if (savedSkills.length > 0 && 'id' in savedSkills[0]) {
-                    // New format - array of { id, isPrimary } objects
-                    // Set the selected primary attack
                     const primarySkill = savedSkills.find(skill => skill.isPrimary);
-                    if (primarySkill) {
-                        this.selectedPrimaryAttack = primarySkill.id;
-                    }
-                    
-                    // Set the selected normal skills
+                    this.selectedPrimaryAttack = (primarySkill && unlocked.has(primarySkill.id)) ? primarySkill.id : null;
                     this.selectedNormalSkills = savedSkills
-                        .filter(skill => !skill.isPrimary)
+                        .filter(skill => !skill.isPrimary && unlocked.has(skill.id))
                         .map(skill => skill.id);
                 } else {
-                    // Old format - array of full skill objects
-                    // Set the selected primary attack
                     const primaryAttack = savedSkills.find(skill => skill.primaryAttack);
-                    if (primaryAttack) {
-                        this.selectedPrimaryAttack = primaryAttack.name;
-                    }
-                    
-                    // Set the selected normal skills
+                    this.selectedPrimaryAttack = (primaryAttack && unlocked.has(primaryAttack.name)) ? primaryAttack.name : null;
                     this.selectedNormalSkills = savedSkills
-                        .filter(skill => !skill.primaryAttack)
+                        .filter(skill => !skill.primaryAttack && unlocked.has(skill.name))
                         .map(skill => skill.name);
+                }
+                if (!this.selectedPrimaryAttack) {
+                    const primary = this.orderedSkills.primaryAttacks.find(s => unlocked.has(s.name));
+                    this.selectedPrimaryAttack = primary ? primary.name : null;
                 }
             } else if (this.game && this.game.player) {
                 // If no saved skills, load from player's current skills
