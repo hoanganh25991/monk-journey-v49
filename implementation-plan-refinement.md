@@ -169,10 +169,10 @@ This document does a **deep check** against the existing implementation plans an
 | R-Q5: Reflection — short question before lesson ("What did you notice?") | ReflectionUI, QuestManager, chapter-quests-locales | P2 ✅ Done |
 | R-S4: Gentle LFO for simulated 432 Hz "breathing" curve | AudioManager / sounds.js | P2, Deferred |
 | Optional: Settings toggle "Use relaxation frequency in exploration" | GameplayTab, AudioManager | P2 |
-| **R-SK1:** Primary attacks in skill tree (variants + buffs) | `js/config/skill-tree.js` | P0 Pending |
+| **R-SK1:** Primary attacks in skill tree (variants + buffs) | `js/config/skill-tree.js` | P0 ✅ Done |
 | **R-SK2:** Graph nodes (Body path) affect primary attack | `skill-tree-graph.js`, PlayerStats/PlayerSkills or effect | P0 Pending |
-| **R-SK3:** Persist and apply primary variant/buffs | `PlayerSkills.js`, save flow | P0 Pending |
-| **R-SK4:** Skill Tree UI shows primary variant/buff panel | `SkillTreeUI.js`, skill-tree.js | P1 Pending |
+| **R-SK3:** Persist and apply primary variant/buffs | `PlayerSkills.js`, save flow | P0 ✅ Done |
+| **R-SK4:** Skill Tree UI shows primary variant/buff panel | `SkillTreeUI.js`, skill-tree.js | P1 ✅ Done |
 | **R-SK5:** Optional: scale primary by level/graph | PlayerStats, primary effect or usePrimaryAttack | P2 Pending |
 
 ---
@@ -249,10 +249,10 @@ This refinement plan completes the expectations from the existing plans and focu
 
 | Step | Action | Priority | Status |
 |------|--------|----------|--------|
-| **R-SK1** | **Primary in skill tree:** Add Fist of Thunder and Deadly Reach to `skill-tree.js` (TREE_DATA / buildSkillTrees). Include variants (e.g. damage, speed, range, life steal, cleave) and buffs (e.g. damage %, cooldown reduction). Ensure SKILL_TREES includes primary skills so Skill Tree UI shows variant/buff panel for the selected primary. | P0 | Pending |
+| **R-SK1** | **Primary in skill tree:** Add Fist of Thunder and Deadly Reach to `skill-tree.js` (TREE_DATA / buildSkillTrees). Include variants (e.g. damage, speed, range, life steal, cleave) and buffs (e.g. damage %, cooldown reduction). Ensure SKILL_TREES includes primary skills so Skill Tree UI shows variant/buff panel for the selected primary. | P0 | ✅ Done |
 | **R-SK2** | **Graph ↔ primary attack:** In `skill-tree-graph.js`, document or add optional `affectsSkill` / `affectsPrimaryAttack` so Body path nodes (quick_strike, flowing_combo, …) are clearly tied to primary attack. In combat or in PlayerStats/PlayerSkills, apply graph node levels to primary attack (e.g. quick_strike level → +X% primary damage or reduced primary cooldown). | P0 | Pending |
-| **R-SK3** | **Persist and apply primary variant/buffs:** Ensure `skillTreeData` and `PlayerSkills` apply active variant and buffs to the primary attack skill (same flow as for normal skills). Skill selection and save/load already use skillTreeData; extend so primary attack is keyed by name in skillTreeData and its variant/buffs are applied when casting. | P0 | Pending |
-| **R-SK4** | **UI: primary in Skill Tree panel:** In Skill Tree UI, when the player selects a primary attack (Fist of Thunder or Deadly Reach), show the same variant and buff panels as for other skills. Primary attacks appear in the skill list (or in a dedicated "Primary attack" entry) so users can spend points and choose variants for their main attack. | P1 | Pending |
+| **R-SK3** | **Persist and apply primary variant/buffs:** Ensure `skillTreeData` and `PlayerSkills` apply active variant and buffs to the primary attack skill (same flow as for normal skills). Skill selection and save/load already use skillTreeData; extend so primary attack is keyed by name in skillTreeData and its variant/buffs are applied when casting. | P0 | ✅ Done (apply-by-name in updateSkillsWithVariants/createSkillInstance already covers primary) |
+| **R-SK4** | **UI: primary in Skill Tree panel:** In Skill Tree UI, when the player selects a primary attack (Fist of Thunder or Deadly Reach), show the same variant and buff panels as for other skills. Primary attacks appear in the skill list (or in a dedicated "Primary attack" entry) so users can spend points and choose variants for their main attack. | P1 | ✅ Done (primary in SKILL_TREES; UI lists all skills from SKILL_TREES) |
 | **R-SK5** | **Optional: scale primary by level/graph:** Scale primary attack base damage or effect by player level and/or by Body path node levels so the primary stays relevant in late game and rewards investment in the tree. | P2 | Pending |
 
 ### 8.4 File checklist (skill-tree + variant + primary)
