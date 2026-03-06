@@ -4,36 +4,10 @@
  * Used to instruct player "Travel to [Map Name] to get your next quest" when the next chapter is on another map.
  * Chapters 1–100 are assigned round-robin across 18 maps (default, terrant, forest, desert, mountains, swamp, magical, mixed, + 10 extra).
  */
-const MAP_IDS_ROUND_ROBIN = [
-  'default', 'terrant', 'forest', 'desert', 'mountains', 'swamp', 'magical', 'mixed',
-  'highland-vale', 'ember-wastes', 'whisper-woods', 'crimson-bog', 'sky-prairie', 'veil-garden',
-  'frost-hollow', 'sand-shrine', 'thorn-marsh', 'eldritch-grove',
-];
-
-/** Map id → ZONE_ENEMIES key. Used to derive which enemy types are available on a chapter's map (so quests can require specific types and force exploration). */
-export const MAP_ID_TO_ZONE_KEY = {
-  'default': 'forest',
-  'terrant': 'forest',
-  'forest': 'forest',
-  'whisper-woods': 'forest',
-  'desert': 'ruins',
-  'ember-wastes': 'ruins',
-  'sand-shrine': 'ruins',
-  'mountains': 'mountains',
-  'highland-vale': 'mountains',
-  'frost-hollow': 'mountains',
-  'swamp': 'swamp',
-  'crimson-bog': 'swamp',
-  'thorn-marsh': 'swamp',
-  'magical': 'dark_sanctum',
-  'veil-garden': 'dark_sanctum',
-  'eldritch-grove': 'dark_sanctum',
-  'mixed': 'forest',
-  'sky-prairie': 'forest',
-};
-
+import { MAP_IDS_ROUND_ROBIN, MAP_ID_TO_ZONE_KEY, getEnemyTypesForMapId } from './chapter-maps-zones.js';
 import { CHAPTER_QUESTS } from './chapter-quests.js';
-import { ZONE_ENEMIES } from './game-balance.js';
+
+export { MAP_ID_TO_ZONE_KEY };
 
 export const CHAPTER_QUEST_MAPS = CHAPTER_QUESTS.map((q, i) => ({
   mapId: MAP_IDS_ROUND_ROBIN[i % MAP_IDS_ROUND_ROBIN.length],
@@ -81,7 +55,5 @@ export function getZoneKeyForMapId(mapId) {
  */
 export function getEnemyTypesForChapterQuest(chapterQuestId) {
   const mapId = getMapIdForChapterQuest(chapterQuestId);
-  const zoneKey = getZoneKeyForMapId(mapId ?? '');
-  const types = ZONE_ENEMIES[zoneKey];
-  return Array.isArray(types) ? [...types] : [];
+  return getEnemyTypesForMapId(mapId ?? '');
 }

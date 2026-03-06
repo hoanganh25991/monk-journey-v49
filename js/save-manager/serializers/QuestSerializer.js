@@ -41,11 +41,16 @@ export class QuestSerializer {
         const completedChapterQuestIds = questManager.completedChapterQuestIds
             ? Array.from(questManager.completedChapterQuestIds)
             : [];
+        // Reflection choices received per chapter (for replay: which reward items already claimed)
+        const reflectionChoicesReceived = questManager.reflectionChoicesReceived
+            ? { ...questManager.reflectionChoicesReceived }
+            : {};
         
         return {
             activeQuests: activeQuestsData,
             completedQuestIds: completedQuestIds,
-            completedChapterQuestIds: completedChapterQuestIds
+            completedChapterQuestIds: completedChapterQuestIds,
+            reflectionChoicesReceived
         };
     }
     
@@ -70,6 +75,10 @@ export class QuestSerializer {
         if (questData.completedChapterQuestIds && Array.isArray(questData.completedChapterQuestIds)) {
             questManager.completedChapterQuestIds.clear();
             questData.completedChapterQuestIds.forEach(id => questManager.completedChapterQuestIds.add(id));
+        }
+        // Restore reflection choices received (for replay rewards)
+        if (questData.reflectionChoicesReceived && typeof questData.reflectionChoicesReceived === 'object') {
+            questManager.reflectionChoicesReceived = { ...questData.reflectionChoicesReceived };
         }
         
         // Load active quests with their progress

@@ -10,6 +10,8 @@ export class QuestManager {
         this.completedQuests = [];
         /** @type {Set<string>} Completed chapter quest ids (GDD story) */
         this.completedChapterQuestIds = new Set();
+        /** @type {Object.<string, number[]>} Chapter id -> reflection choice indices already received (for replay) */
+        this.reflectionChoicesReceived = Object.create(null);
 
         // Initialize with some default quests
         this.initializeQuests();
@@ -30,7 +32,7 @@ export class QuestManager {
         };
     }
 
-    /** @returns {Object[]} Chapter quests available to start (linear next or branched via nextQuestIds). */
+    /** @returns {Object[]} Chapter quests available to start (linear next, branched, or replayable completed). */
     getAvailableChapterQuests() {
         const completed = this.completedChapterQuestIds;
         const availableIds = new Set();
@@ -38,12 +40,13 @@ export class QuestManager {
             if (completed.has(q.id)) {
                 if (q.nextQuestId) availableIds.add(q.nextQuestId);
                 if (q.nextQuestIds && Array.isArray(q.nextQuestIds)) q.nextQuestIds.forEach(id => availableIds.add(id));
+                if (q.replayable) availableIds.add(q.id);
             }
         }
         const firstNotCompleted = CHAPTER_QUESTS.find(q => !completed.has(q.id));
         if (firstNotCompleted) availableIds.add(firstNotCompleted.id);
         return [...availableIds]
-            .filter(id => !completed.has(id) && !this.activeQuests.some(a => a.id === id))
+            .filter(id => !this.activeQuests.some(a => a.id === id))
             .map(id => getChapterQuestById(id))
             .filter(Boolean)
             .map(q => this.cloneChapterQuestForStart(q));
@@ -512,7 +515,9 @@ export class QuestManager {
         this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
         this.completedQuests.push(quest);
 
-        if (quest.id) this.completedChapterQuestIds.add(quest.id);
+        if (quest.id && !this.completedChapterQuestIds.has(quest.id)) {
+            this.completedChapterQuestIds.add(quest.id);
+        }
 
         const doAfterReflection = () => {
             this.awardQuestRewards(quest);
@@ -535,8 +540,22 @@ export class QuestManager {
             const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
             const chapterNum = chMatch ? chMatch[1] : '';
             const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
+            const rewards = quest.reflectionRewards && Array.isArray(quest.reflectionRewards) ? quest.reflectionRewards : [];
+            const received = (quest.id && this.reflectionChoicesReceived[quest.id]) ? this.reflectionChoicesReceived[quest.id] : [];
+            const optionIndices = rewards.length ? [0, 1, 2].filter(i => i < rewards.length && !received.includes(i)) : [];
+            const showReflectionQuestion = optionIndices.length > 0;
             const options = {
                 chapterTitle: chapterTitle || undefined,
+                reflectionQuestion: showReflectionQuestion,
+                optionIndices: showReflectionQuestion ? optionIndices : undefined,
+                onReflectionChoice: (choiceIndex) => {
+                    if (!rewards[choiceIndex] || received.includes(choiceIndex)) return;
+                    if (quest.id) {
+                        if (!this.reflectionChoicesReceived[quest.id]) this.reflectionChoicesReceived[quest.id] = [];
+                        this.reflectionChoicesReceived[quest.id].push(choiceIndex);
+                    }
+                    this.awardReflectionChoiceReward(quest, choiceIndex);
+                },
                 ...(isChapter5 ? {
                     isChapter5: true,
                     onEnterPathOfMastery: () => {
@@ -548,6 +567,25 @@ export class QuestManager {
             this.game.hudManager.showReflectionScreen(display.lesson, doAfterReflection, options);
         } else {
             doAfterReflection();
+        }
+    }
+
+    /**
+     * Award the item for a reflection choice (tied to quest.reflectionRewards[choiceIndex] template ID).
+     * @param {Object} quest - Chapter quest with reflectionRewards
+     * @param {number} choiceIndex - 0, 1, or 2
+     */
+    awardReflectionChoiceReward(quest, choiceIndex) {
+        const templateId = quest.reflectionRewards && quest.reflectionRewards[choiceIndex];
+        if (!templateId || !this.game.player || !this.game.itemGenerator) return;
+        const item = this.game.itemGenerator.generateItemFromTemplateId(templateId);
+        if (!item) return;
+        const locale = this.game.questStoryLocale || 'en';
+        const equipResult = this.game.player.addToInventory(item);
+        if (equipResult === 'equipped') {
+            this.game.hudManager.showNotification(getQuestUiString('equipped', locale, { itemName: item.name }), 'equip', { item });
+        } else {
+            this.game.hudManager.showNotification(getQuestUiString('received', locale, { itemName: item.name, amount: item.amount || 1 }));
         }
     }
     

@@ -63,7 +63,42 @@ export class ItemGenerator {
         
         return item;
     }
-    
+
+    /**
+     * Generate a fixed item from a template ID (e.g. for reflection choice rewards).
+     * @param {string} templateId - ITEM_TEMPLATES id (e.g. 'basicRing', 'enlightenedAmulet')
+     * @param {number} [level] - Item level (defaults to player level)
+     * @returns {Item|null} - The generated item, or null if template not found
+     */
+    generateItemFromTemplateId(templateId, level) {
+        const template = ITEM_TEMPLATES.find(t => t.id === templateId);
+        if (!template) {
+            console.warn(`ItemGenerator: template not found for id "${templateId}"`);
+            return null;
+        }
+        const lvl = level ?? (this.game?.player?.stats?.getLevel?.() ?? 1);
+        const rarity = template.rarity || 'rare';
+        const baseStats = this.generateBaseStats(template, lvl);
+        const secondaryStats = this.generateSecondaryStats(template, rarity, lvl);
+        const specialEffects = this.generateSpecialEffects(template, rarity);
+        const setId = this.determineSetId(rarity, template.type, template.subType);
+        return new Item({
+            name: this.generateItemName(template, rarity, setId),
+            description: template.description,
+            type: template.type,
+            subType: template.subType || '',
+            icon: template.icon,
+            level: lvl,
+            rarity: rarity,
+            baseStats: baseStats,
+            secondaryStats: secondaryStats,
+            specialEffects: specialEffects,
+            setId: setId,
+            visual: template.visual || {},
+            templateId: template.id,
+        });
+    }
+
     // Helper methods for item generation
     selectRandomItemType() {
         const types = ['weapon', 'armor', 'accessory', 'consumable'];

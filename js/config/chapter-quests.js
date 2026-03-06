@@ -7,6 +7,28 @@
  * (anger, fear, gratitude, connection, self-mastery) without heavy or scary content.
  */
 
+import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
+
+/** Default map bounds (typical playable area); quest markers stay inside this range. */
+const QUEST_MAP_RADIUS = 280;
+
+/**
+ * Quest marker position for a chapter so markers are spread around the map instead of one spot.
+ * @param {number} chapterIndex - 0-based index in CHAPTER_QUESTS (chapter 1 → 0, chapter 2 → 1, …)
+ * @returns {{ x: number, z: number }}
+ */
+export function getQuestMarkerPositionForChapter(chapterIndex) {
+    const n = 18; // number of directions; matches map count for variety
+    const angle = (chapterIndex % n) * (2 * Math.PI / n);
+    const ring = Math.floor(chapterIndex / n) % 4; // 0..3 = inner to outer
+    const radius = 55 + ring * 75 + (chapterIndex % 3) * 15; // 55–220, varied
+    const r = Math.min(radius, QUEST_MAP_RADIUS);
+    return {
+        x: Math.round(r * Math.cos(angle)),
+        z: Math.round(r * Math.sin(angle)),
+    };
+}
+
 /** @typedef {{ type: string, target?: string, count: number, progress?: number, group?: string }} ChapterObjective */
 // Optional `group`: objectives with the same group form a "choice group". Completion when requireChoiceGroupsAtLeast groups are fully complete (and all objectives without group are complete).
 
@@ -34,6 +56,8 @@ export function chapterQuestHasChoiceGroups(quest) {
  * @property {{ xp: number, skillPoints?: number, item?: string }} rewards
  * @property {string|null} nextQuestId
  * @property {string[]} [nextQuestIds] - Optional: multiple possible next chapters (open flow)
+ * @property {string[]} [reflectionRewards] - Optional: 3 item template IDs; reflection choice gives that item (makes chapter more interesting)
+ * @property {boolean} [replayable] - If true, chapter can be replayed after completion to pick a different reflection reward
  */
 
 /** @type {ChapterQuest[]} */
@@ -44,13 +68,16 @@ export const CHAPTER_QUESTS = [
         description: 'A village consumed by anger—disputes over land, old grudges. A Rage Beast has taken root and feeds on their anger. Calm the conflicts and face the beast so the village can find peace.',
         lesson: 'Anger burns the one who carries it.',
         area: 'The Restless Village',
-        position: { x: 72, z: 0 },  // outside village (minimap + flag marker); scripts/generate-maps.js reads this for map JSON
+        position: getQuestMarkerPositionForChapter(0),
         objectives: [
-            { type: 'kill', target: 'any', count: 3, progress: 0 },
+            { type: 'kill', target: 'skeleton', count: 2, progress: 0 },
+            { type: 'kill', target: 'shadow_beast', count: 1, progress: 0 },
             { type: 'defeat_boss', target: 'skeleton_king', count: 1, progress: 0 },
         ],
         boss: { enemyType: 'skeleton_king', name: 'Rage Beast' },
         rewards: { xp: 250, skillPoints: 1 },
+        reflectionRewards: ['basicRing', 'basicAmulet', 'basicTalisman'],
+        replayable: true,
         nextQuestId: 'chapter_2_forest_of_doubt',
     },
     {
@@ -59,13 +86,16 @@ export const CHAPTER_QUESTS = [
         description: 'A dense, misty forest where travelers lose their way and their courage. Something whispers in the dark. Face the Doubt Serpent so the forest can be free of paralyzing fear.',
         lesson: 'Fear grows in silence.',
         area: 'Forest of Doubt',
-        position: { x: 80, z: 0 },
+        position: getQuestMarkerPositionForChapter(1),
         objectives: [
-            { type: 'kill', target: 'any', count: 4, progress: 0 },
+            { type: 'kill', target: 'zombie', count: 2, progress: 0 },
+            { type: 'kill', target: 'corrupted_treant', count: 1, progress: 0 },
             { type: 'defeat_boss', target: 'demon_lord', count: 1, progress: 0 },
         ],
         boss: { enemyType: 'demon_lord', name: 'Doubt Serpent' },
         rewards: { xp: 250, skillPoints: 1 },
+        reflectionRewards: ['elementalRing', 'enlightenedAmulet', 'chakraTalisman'],
+        replayable: true,
         nextQuestId: 'chapter_3_mountain_of_desire',
     },
     {
@@ -74,13 +104,16 @@ export const CHAPTER_QUESTS = [
         description: 'A mountain where treasure hunters are obsessed with gold and power. A Golden Titan guards the peak. Navigate temptations and face the Titan to learn that gratitude—not accumulation—brings peace.',
         lesson: 'Gratitude ends endless hunger.',
         area: 'Mountain of Desire',
-        position: { x: -60, z: 50 },
+        position: getQuestMarkerPositionForChapter(2),
         objectives: [
-            { type: 'kill', target: 'greed_spawn', count: 6, progress: 0 },
+            { type: 'kill', target: 'forest_spider', count: 2, progress: 0 },
+            { type: 'kill', target: 'feral_wolf', count: 1, progress: 0 },
             { type: 'defeat_boss', target: 'golden_titan', count: 1, progress: 0 },
         ],
         boss: { enemyType: 'golden_titan', name: 'Golden Titan' },
         rewards: { xp: 250, skillPoints: 1 },
+        reflectionRewards: ['crescentMoonRing', 'spiritCoreAmulet', 'dragonscaleTalisman'],
+        replayable: true,
         nextQuestId: 'chapter_4_desert_of_loneliness',
     },
     {
@@ -89,13 +122,16 @@ export const CHAPTER_QUESTS = [
         description: 'A vast desert where travelers feel cut off—no landmarks, no companions. An Echo Phantom amplifies loneliness. Endure the emptiness, find connection, then face the Phantom.',
         lesson: 'You are never truly alone.',
         area: 'Desert of Loneliness',
-        position: { x: 40, z: -70 },
+        position: getQuestMarkerPositionForChapter(3),
         objectives: [
-            { type: 'kill', target: 'echo_spawn', count: 5, progress: 0 },
+            { type: 'kill', target: 'skeleton', count: 2, progress: 0 },
+            { type: 'kill', target: 'necromancer', count: 1, progress: 0 },
             { type: 'defeat_boss', target: 'echo_phantom', count: 1, progress: 0 },
         ],
         boss: { enemyType: 'echo_phantom', name: 'Echo Phantom' },
         rewards: { xp: 250, skillPoints: 1 },
+        reflectionRewards: ['infinityBand', 'celestialHeart', 'cosmicNexus'],
+        replayable: true,
         nextQuestId: 'chapter_5_inner_temple',
     },
     {
@@ -104,12 +140,14 @@ export const CHAPTER_QUESTS = [
         description: 'The final trial. Here the test is not an external monster but the self. A Shadow Self mirrors your skills and choices. Face this reflection and transcend the untrained self to earn Enlightenment Mode.',
         lesson: 'Your greatest opponent is your untrained self.',
         area: 'Inner Temple',
-        position: { x: 0, z: 80 },
+        position: getQuestMarkerPositionForChapter(4),
         objectives: [
             { type: 'defeat_boss', target: 'shadow_self', count: 1, progress: 0 },
         ],
         boss: { enemyType: 'shadow_self', name: 'Shadow Self' },
         rewards: { xp: 300, skillPoints: 1 },
+        reflectionRewards: ['eternityLoop', 'soulNexus', 'cosmicNexus'],
+        replayable: true,
         nextQuestId: 'chapter_6_valley_of_patience',
     },
 ];
@@ -243,7 +281,8 @@ function slug(s) {
     return s.toLowerCase().replace(/\s+/g, '_').replace(/['']/g, '');
 }
 
-// Build chapters 6–100 and append to CHAPTER_QUESTS (mutate the exported array so CHAPTER_LESSONS etc. stay correct)
+// Build chapters 6–100 and append to CHAPTER_QUESTS (mutate the exported array so CHAPTER_LESSONS etc. stay correct).
+// Kill objectives use enemy types that spawn on this chapter's map so the player must seek different (and sometimes rarer) types.
 (function () {
     const list = CHAPTER_QUESTS;
     const start = 6;
@@ -251,21 +290,42 @@ function slug(s) {
     for (let i = start; i <= end; i++) {
         const content = CHAPTERS_6_100_CONTENT[i - start];
         if (!content) break;
+        const chapterIndex = list.length; // 0-based index of this chapter in CHAPTER_QUESTS
+        const enemyTypes = getEnemyTypesForChapterIndex(chapterIndex);
         const boss = BOSS_CYCLE[(i - 1) % BOSS_CYCLE.length];
         const nextContent = CHAPTERS_6_100_CONTENT[i - start + 1];
         const nextId = i < end && nextContent ? `chapter_${i + 1}_${slug(nextContent.area)}` : null;
         const id = `chapter_${i}_${slug(content.area)}`;
+
+        // Build kill objectives from map enemies: 2–3 common types + 1 rarer (later in list = harder to find on map)
+        const killObjectives = [];
+        if (enemyTypes.length >= 2) {
+            const mid = Math.max(1, Math.floor(enemyTypes.length / 2));
+            const common = enemyTypes.slice(0, mid);
+            const rarer = enemyTypes.slice(mid);
+            const type1 = common[(chapterIndex + 0) % common.length];
+            const type2 = common[(chapterIndex + 1) % common.length];
+            const count1 = 2 + (i % 2);
+            const count2 = 1 + (i % 2);
+            killObjectives.push({ type: 'kill', target: type1, count: count1, progress: 0 });
+            if (type2 !== type1) killObjectives.push({ type: 'kill', target: type2, count: count2, progress: 0 });
+            if (rarer.length > 0) {
+                const rareType = rarer[(chapterIndex + i) % rarer.length];
+                killObjectives.push({ type: 'kill', target: rareType, count: 1, progress: 0 });
+            }
+        } else if (enemyTypes.length === 1) {
+            killObjectives.push({ type: 'kill', target: enemyTypes[0], count: 3 + (i % 3), progress: 0 });
+        }
+        killObjectives.push({ type: 'defeat_boss', target: boss.enemyType, count: 1, progress: 0 });
+
         list.push({
             id,
             title: content.title,
             description: content.description,
             lesson: content.lesson,
             area: content.area,
-            position: { x: 50 + (i % 15) * 40, z: (i % 13) * 40 },
-            objectives: [
-                { type: 'kill', target: 'any', count: 3 + (i % 4), progress: 0 },
-                { type: 'defeat_boss', target: boss.enemyType, count: 1, progress: 0 },
-            ],
+            position: getQuestMarkerPositionForChapter(chapterIndex),
+            objectives: killObjectives,
             boss: { enemyType: boss.enemyType, name: boss.name },
             rewards: { xp: 250 + (i % 3) * 25, skillPoints: i % 5 === 0 ? 1 : 0 },
             nextQuestId: nextId,

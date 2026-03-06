@@ -2,6 +2,7 @@ import { UIComponent } from '../UIComponent.js';
 import { getChapterQuestById, chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
+import { ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 
 /**
  * Quest Log UI component
@@ -264,6 +265,18 @@ export class QuestLogUI extends UIComponent {
     }
 
     /**
+     * Get display name for an enemy type id (e.g. 'skeleton' → 'Skeleton').
+     * @param {string} enemyTypeId
+     * @returns {string}
+     */
+    getEnemyDisplayName(enemyTypeId) {
+        if (!enemyTypeId) return '';
+        const all = [...(ENEMY_TYPES || []), ...(BOSS_TYPES || [])];
+        const entry = all.find((e) => e && e.type === enemyTypeId);
+        return entry?.name ?? enemyTypeId.replace(/_/g, ' ');
+    }
+
+    /**
      * Format quest objective based on type
      * @param {Object} objective - Quest objective (may have type, target, progress, count)
      * @returns {string} - Formatted objective text
@@ -273,8 +286,12 @@ export class QuestLogUI extends UIComponent {
         const p = objective.progress ?? 0;
         const c = objective.count ?? 1;
         switch (objective.type) {
-            case 'kill':
-                return `Kill ${p}/${c} enemies`;
+            case 'kill': {
+                const target = objective.target;
+                let label = (target && target !== 'any') ? this.getEnemyDisplayName(target) : 'enemies';
+                if (c > 1 && label !== 'enemies' && !label.endsWith('s')) label += 's';
+                return `Kill ${p}/${c} ${label}`;
+            }
             case 'defeat_boss':
                 return `Defeat boss ${p}/${c}`;
             case 'interact':
