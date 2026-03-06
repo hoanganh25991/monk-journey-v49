@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { UIComponent } from '../UIComponent.js';
 import { ModelPreview } from '../menu-system/ModelPreview.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 import { ItemPreview } from '../menu-system/ItemPreview.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
 import { CONSUMABLE_SKILL_EFFECTS } from '../config/consumable-skills.js';
@@ -78,6 +79,7 @@ export class InventoryUI extends UIComponent {
         // Add click/touch event to teleport to origin (button is in camera-controls, always visible)
         const teleportButton = document.getElementById('inventory-teleport');
         if (teleportButton) {
+            this.updateTeleportToOriginTitle(teleportButton);
             const handleTeleport = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1325,6 +1327,17 @@ export class InventoryUI extends UIComponent {
             this.game.hudManager.showNotification('Inventory saved successfully!');
         }
     }
+
+    /**
+     * Set the home (🏕️) button title from current locale (Teleport to Origin / Dịch chuyển về gốc).
+     * @param {HTMLElement} [el] - inventory-teleport element; if not passed, looks up by id
+     */
+    updateTeleportToOriginTitle(el) {
+        const btn = el || document.getElementById('inventory-teleport');
+        if (!btn || !this.game) return;
+        const locale = this.game.questStoryLocale === 'vi' ? 'vi' : 'en';
+        btn.title = getMapSelectionUiString('teleportToOriginTitle', locale);
+    }
     
     /**
      * Create and manage teleport portal using TeleportManager
@@ -1407,22 +1420,21 @@ export class InventoryUI extends UIComponent {
             this.game.resume(false);
         }
 
-        // Show countdown and set auto-teleport (non-cancellable)
-        if (this.game.hudManager) {
-            // Define the countdown completion callback
-            const onCountdownComplete = () => {
-                // Additional safety checks
-                if (!this.game || !this.game.player) {
-                    console.warn('Auto-teleport cancelled: Game or player not available');
-                    return;
-                }
-                
-                // Force teleport to origin regardless of player movement
+        // Use the same translated overlay as map-select and portal (Đang dịch chuyển / Teleporting…)
+        if (this.game.hudManager && typeof this.game.hudManager.runTeleportOverlay === 'function') {
+            const locale = this.game.questStoryLocale === 'vi' ? 'vi' : 'en';
+            this.game.hudManager.runTeleportOverlay(locale, async () => {
+                if (!this.game || !this.game.player) return;
                 this.performTeleportToOrigin();
-            };
-            
-            // Start the DOM-based countdown (non-cancellable)
-            this.game.hudManager.showCountdown(3, onCountdownComplete, 'Teleporting to origin in', false);
+            });
+        } else {
+            if (this.game.hudManager) {
+                const onCountdownComplete = () => {
+                    if (!this.game || !this.game.player) return;
+                    this.performTeleportToOrigin();
+                };
+                this.game.hudManager.showCountdown(3, onCountdownComplete, 'Teleporting to origin in', false);
+            }
         }
 
         console.debug('Temporary portal created at player position:', this.playerStartPosition);

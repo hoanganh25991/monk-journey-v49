@@ -270,6 +270,7 @@ export const MAP_SELECTION_UI_STRINGS = {
         arrivedAtMap: 'You have arrived at {mapName}.',
         teleporting: 'Teleporting…',
         loadingMap: 'Loading map...',
+        teleportToOriginTitle: 'Teleport to Origin',
     },
     vi: {
         selectMapTitle: 'Chọn bản đồ',
@@ -294,6 +295,7 @@ export const MAP_SELECTION_UI_STRINGS = {
         arrivedAtMap: 'Bạn đã đến {mapName}.',
         teleporting: 'Đang dịch chuyển…',
         loadingMap: 'Đang tải bản đồ...',
+        teleportToOriginTitle: 'Dịch chuyển về gốc',
     },
 };
 
