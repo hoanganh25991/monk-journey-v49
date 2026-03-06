@@ -64,7 +64,7 @@ export class SkillTreeGraphView {
 
         this.selectedNodeId = null;
         this.pan = { x: 0, y: 0 };
-        this.scale = 1;
+        this.scale = 0.7; // Start zoomed out to show full tree
         this.isDragging = false;
         this.lastPointer = { x: 0, y: 0 };
         this.tooltipEl = null;
@@ -234,10 +234,30 @@ export class SkillTreeGraphView {
         if (!this.tooltipEl) return;
         this.tooltipEl.textContent = text;
         this.tooltipEl.style.display = 'block';
+        
         const rect = anchor.getBoundingClientRect();
         const containerRect = this.container.getBoundingClientRect();
-        this.tooltipEl.style.left = (rect.left - containerRect.left + rect.width / 2 - 120) + 'px';
-        this.tooltipEl.style.top = (rect.top - containerRect.top - 8) + 'px';
+        const tooltipWidth = 240; // max-width from CSS
+        
+        // Calculate initial position (centered above node)
+        let left = rect.left - containerRect.left + rect.width / 2 - tooltipWidth / 2;
+        let top = rect.top - containerRect.top - 8;
+        
+        // Prevent tooltip from going off left edge
+        if (left < 8) left = 8;
+        
+        // Prevent tooltip from going off right edge
+        const maxLeft = containerRect.width - tooltipWidth - 8;
+        if (left > maxLeft) left = maxLeft;
+        
+        // If tooltip would go off top, show it below the node instead
+        if (top < 8) {
+            top = rect.bottom - containerRect.top + 8;
+        }
+        
+        this.tooltipEl.style.left = left + 'px';
+        this.tooltipEl.style.top = top + 'px';
+        this.tooltipEl.style.transform = 'none'; // Remove any transform
     }
 
     hideTooltip() {

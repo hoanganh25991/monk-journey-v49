@@ -47,37 +47,39 @@
     text-shadow: 0 0 4px rgba(255, 204, 0, 0.3);
 }
 
-/* 8-slot battle bar (pick/unpick) — combined with skill tree */
+/* 8-slot battle bar (pick/unpick) — combined with skill tree - More compact */
 .skill-tree-slot-bar {
     flex-shrink: 0;
-    padding: 10px var(--padding-medium);
+    padding: 8px var(--padding-medium);
     background-color: rgba(30, 30, 30, 0.8);
     border-bottom: 2px solid rgba(138, 109, 59, 0.5);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
+    justify-content: center;
+    gap: 12px;
 }
 .skill-tree-slot-bar-label {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.8);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
     font-weight: 500;
     letter-spacing: 0.05em;
+    white-space: nowrap;
 }
 #skill-tree-slot-bar .battle-layout {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    gap: 10px;
-    max-width: 300px;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: 1fr;
+    gap: 6px;
+    max-width: none;
 }
 #skill-tree-slot-bar .skill-button {
-    width: 52px;
-    height: 52px;
-    font-size: 10px;
+    width: 44px;
+    height: 44px;
+    font-size: 9px;
 }
 #skill-tree-slot-bar .skill-button .skill-icon {
-    font-size: 22px;
+    font-size: 20px;
 }
 #skill-tree-slot-bar .skill-button.empty-slot {
     border: 2px dashed #6b4c2a;
@@ -180,6 +182,8 @@
     position: relative;
     overflow: hidden;
     min-height: 150px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
 }
 
 .skill-tree-graph-wrapper {
@@ -274,16 +278,17 @@
     display: none;
     position: absolute;
     max-width: 240px;
-    padding: 8px 10px;
-    background: rgba(0, 0, 0, 0.92);
-    border: 1px solid var(--theme-amber);
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid var(--theme-amber);
     border-radius: 6px;
     font-size: 12px;
-    line-height: 1.4;
-    color: #eee;
+    line-height: 1.6;
+    color: #f0f0f0;
     white-space: pre-line;
     z-index: 20;
     pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 #skill-tree-skills {
@@ -379,42 +384,50 @@
 
 /* GDD graph node detail panel - More prominent */
 .skill-tree-node-detail-panel {
-    margin-bottom: 20px;
-    padding: 16px 20px;
-    background: rgba(30, 30, 30, 0.8);
+    margin-bottom: 24px;
+    padding: 18px 24px;
+    background: rgba(30, 30, 30, 0.85);
     border: 2px solid rgba(138, 109, 59, 0.6);
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 #skill-node-level-line {
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 600;
     color: var(--theme-gold);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     letter-spacing: 0.02em;
+    line-height: 1.4;
 }
 
 #skill-node-requirements {
-    font-size: 12px;
-    color: #aaa;
-    margin-bottom: 12px;
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 14px;
+    line-height: 1.5;
 }
 
 .skill-tree-level-up-btn {
     display: block;
-    padding: 10px 20px;
-    background: rgba(138, 109, 59, 0.6);
-    border: 1px solid var(--theme-amber);
+    padding: 12px 24px;
+    background: rgba(138, 109, 59, 0.7);
+    border: 2px solid var(--theme-amber);
     border-radius: 6px;
     color: #fff;
-    font-size: 14px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .skill-tree-level-up-btn:hover {
-    background: rgba(138, 109, 59, 0.9);
+    background: rgba(138, 109, 59, 0.95);
+    border-color: var(--theme-gold);
+    box-shadow: 0 0 12px rgba(255, 204, 0, 0.4);
+    transform: translateY(-1px);
 }
 
 #skill-detail-header {
@@ -445,23 +458,26 @@
 #skill-detail-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+    max-width: 800px;
 }
 
 /* ── Section label (Lore / Skill: …) ── */
 .skill-section-label {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--theme-amber, #c8961e);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     text-shadow: 0 0 4px rgba(200, 150, 30, 0.3);
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(200, 150, 30, 0.2);
 }
 
 /* ── Story / Lore block ── */
 #skill-story-block {
-    padding: 18px 22px;
+    padding: 20px 24px;
     background: rgba(20, 15, 5, 0.7);
     border-left: 4px solid var(--theme-amber, #c8961e);
     border-radius: 0 8px 8px 0;
@@ -469,15 +485,16 @@
 }
 
 #skill-story-text {
-    font-size: 14px;
-    color: #d4c4a8;
-    line-height: 1.8;
+    font-size: 15px;
+    color: #e0d4b8;
+    line-height: 1.9;
     font-style: italic;
+    letter-spacing: 0.01em;
 }
 
 /* ── Skill stats grid ── */
 #skill-stats-block {
-    padding: 16px 20px;
+    padding: 20px 24px;
     background: rgba(10, 20, 35, 0.7);
     border: 2px solid rgba(80, 130, 200, 0.4);
     border-radius: 8px;
@@ -486,9 +503,9 @@
 
 #skill-stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px 16px;
-    margin-top: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 14px 18px;
+    margin-top: 12px;
 }
 
 .skill-stat-item {
@@ -498,33 +515,34 @@
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
-    padding: 12px 8px 10px;
-    gap: 4px;
+    padding: 14px 10px 12px;
+    gap: 6px;
     transition: all 0.2s;
 }
 
 .skill-stat-item:hover {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
 }
 
 .skill-stat-icon {
-    font-size: 20px;
+    font-size: 24px;
     line-height: 1;
 }
 
 .skill-stat-label {
     font-size: 11px;
-    color: #aaa;
+    color: #bbb;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 500;
+    letter-spacing: 0.1em;
+    font-weight: 600;
 }
 
 .skill-stat-value {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
-    color: #f0e0c0;
+    color: #f5e5c5;
 }
 
 #skill-customization-container {
@@ -848,21 +866,43 @@
         overflow: hidden;
     }
 
+    #skill-story-block {
+        padding: 16px 18px;
+    }
+
     #skill-story-text {
+        font-size: 14px;
+        line-height: 1.7;
         word-wrap: break-word;
         overflow-wrap: break-word;
         max-width: 100%;
     }
 
+    #skill-stats-block {
+        padding: 16px 18px;
+    }
+
     #skill-stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 6px 8px;
+        gap: 10px 12px;
         max-width: 100%;
     }
 
     .skill-stat-item {
-        padding: 6px 4px;
+        padding: 10px 6px 8px;
         min-width: 0;
+    }
+    
+    .skill-stat-icon {
+        font-size: 20px;
+    }
+    
+    .skill-stat-label {
+        font-size: 10px;
+    }
+    
+    .skill-stat-value {
+        font-size: 15px;
     }
 
     /* Stack graph above details on mobile - More compact */
@@ -1024,28 +1064,33 @@
         overflow-wrap: break-word;
     }
 
-    /* Slot bar: more compact on mobile */
+    /* Slot bar: horizontal single row on mobile */
     .skill-tree-slot-bar {
-        padding: 8px var(--padding-small);
+        padding: 6px var(--padding-small);
+        flex-direction: column;
+        gap: 6px;
     }
     
     .skill-tree-slot-bar-label {
-        font-size: 10px;
-    }
-    
-    #skill-tree-slot-bar .battle-layout {
-        max-width: 100%;
-        gap: 6px;
-    }
-
-    #skill-tree-slot-bar .skill-button {
-        width: 42px;
-        height: 42px;
         font-size: 9px;
     }
     
+    #skill-tree-slot-bar .battle-layout {
+        grid-template-columns: repeat(8, 1fr);
+        grid-template-rows: 1fr;
+        gap: 4px;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    #skill-tree-slot-bar .skill-button {
+        width: 38px;
+        height: 38px;
+        font-size: 8px;
+    }
+    
     #skill-tree-slot-bar .skill-button .skill-icon {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     #skill-tree-slot-picker-panel {
