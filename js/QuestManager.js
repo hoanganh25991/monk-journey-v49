@@ -12,6 +12,8 @@ export class QuestManager {
         this.completedChapterQuestIds = new Set();
         /** @type {Object.<string, number[]>} Chapter id -> reflection choice indices already received (for replay) */
         this.reflectionChoicesReceived = Object.create(null);
+        /** @type {Set<string>} Declined chapter quest ids (persisted, so quest won't be auto-offered again) */
+        this.declinedChapterQuestIds = new Set();
 
         // Initialize with some default quests
         this.initializeQuests();
@@ -383,6 +385,10 @@ export class QuestManager {
             if (this.activeQuests.some(q => q.id === quest.id)) return false;
             const copy = this.cloneChapterQuestForStart(quest);
             this.activeQuests.push(copy);
+            // Remove from declined list if it was previously declined
+            if (quest.id && this.declinedChapterQuestIds.has(quest.id)) {
+                this.declinedChapterQuestIds.delete(quest.id);
+            }
             this.game.hudManager.updateQuestLog(this.activeQuests);
             // First-time hint (Phase 9.2): one-time tip after accepting a chapter quest
             if (this.game && !this.game._hasShownQuestHintThisSession) {
@@ -413,6 +419,16 @@ export class QuestManager {
      * Called when a quest is successfully added to activeQuests.
      */
     persistQuestsAfterAccept() {
+        if (this.game?.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+            this.game.saveManager.saveGame(false, true).catch(() => {});
+        }
+    }
+
+    /**
+     * Trigger a background save so declined quests persist across reload.
+     * Called when a quest is declined.
+     */
+    persistQuestsAfterDecline() {
         if (this.game?.saveManager && typeof this.game.saveManager.saveGame === 'function') {
             this.game.saveManager.saveGame(false, true).catch(() => {});
         }
@@ -761,7 +777,7 @@ export class QuestManager {
             }, 8000);
         };
         const availableQuests = this.getAvailableQuests();
-        const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q));
+        const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q) && !this.declinedChapterQuestIds.has(q.id));
         if (chapterQuests.length > 0) {
             const q = chapterQuests[0];
             const locale = this.game.questStoryLocale || 'en';
@@ -770,7 +786,12 @@ export class QuestManager {
                 getQuestUiString('newQuestTitle', locale, { title: display.title || q.title || q.name }),
                 `${display.description || q.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(q),
-                remindLater
+                () => {
+                    // Mark as declined and persist
+                    this.declinedChapterQuestIds.add(q.id);
+                    this.persistQuestsAfterDecline();
+                    remindLater();
+                }
             );
             return;
         }
@@ -781,7 +802,7 @@ export class QuestManager {
                 getQuestUiString('newMainQuestAvailable', locale, { name: mainQuest.name }),
                 `${mainQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(mainQuest),
-                remindLater
+                () => {} // Legacy quests don't track decline (not persisted)
             );
             return;
         }
@@ -792,7 +813,7 @@ export class QuestManager {
                 getQuestUiString('newSideQuestAvailable', locale, { name: sideQuest.name }),
                 `${sideQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(sideQuest),
-                remindLater
+                () => {} // Legacy quests don't track decline (not persisted)
             );
         }
     }

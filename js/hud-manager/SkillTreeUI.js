@@ -1,5 +1,5 @@
 import { UIComponent } from "../UIComponent.js";
-import { SKILLS, PRIMARY_ATTACKS, NORMAL_SKILLS } from "../config/skills.js";
+import { SKILLS, PRIMARY_ATTACKS, NORMAL_SKILLS, SKILL_BY_NAME } from "../config/skills.js";
 import { getSkillIcon, getBuffIcon } from "../config/skill-icons.js";
 import { SKILL_TREES } from "../config/skill-tree.js";
 import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
@@ -378,18 +378,22 @@ export class SkillTreeUI extends UIComponent {
 
   /**
    * Update the node detail panel (and Level Up button) when a graph node is selected.
+   * Also shows story lore, linked skill stats (damage/mana/range/duration/cooldown),
+   * and the variants+buffs configuration panel when a skillRef exists.
    * @param {string|null} nodeId
    */
   updateNodeDetailPanel(nodeId) {
     if (!this.elements.skillDetailName || !this.elements.skillDetailDescription) return;
     if (!this.elements.nodeLevelLine || !this.elements.nodeRequirements || !this.elements.levelUpButton) return;
 
+    // Hide extra panels when nothing is selected
     if (!nodeId) {
       this.elements.skillDetailName.textContent = 'Select a node';
       this.elements.skillDetailDescription.textContent = 'Click a node on the graph to view details and spend skill points.';
       this.elements.nodeLevelLine.textContent = '';
       this.elements.nodeRequirements.textContent = '';
       this.elements.levelUpButton.style.display = 'none';
+      this._hideStoryStatsVariants();
       return;
     }
 
@@ -420,6 +424,73 @@ export class SkillTreeUI extends UIComponent {
     const canLevel = node && stats && canLevelSkillTreeNode(node, nodeLevels, completedChapterQuestIds, playerLevel)
       && (stats.skillPoints ?? 0) >= (node.costPerLevel ?? 1);
     this.elements.levelUpButton.style.display = canLevel ? 'block' : 'none';
+
+    // — Story block —
+    if (this.elements.skillStoryBlock && this.elements.skillStoryText) {
+      if (node && node.story) {
+        this.elements.skillStoryText.textContent = node.story;
+        this.elements.skillStoryBlock.style.display = 'block';
+      } else {
+        this.elements.skillStoryBlock.style.display = 'none';
+      }
+    }
+
+    // — Skill stats block + variants panel —
+    const skillName = node?.skillRef || null;
+    const skillConfig = skillName ? SKILL_BY_NAME[skillName] : null;
+
+    if (this.elements.skillStatsBlock && this.elements.skillStatsName && this.elements.skillStatsGrid) {
+      if (skillConfig) {
+        this.elements.skillStatsName.textContent = skillConfig.name;
+        this.elements.skillStatsGrid.innerHTML = this._buildStatsGridHTML(skillConfig);
+        this.elements.skillStatsBlock.style.display = 'block';
+      } else {
+        this.elements.skillStatsBlock.style.display = 'none';
+      }
+    }
+
+    // — Variants + Buffs panel —
+    if (this.elements.skillCustomizationContainer) {
+      if (skillName && this.skillTrees[skillName]) {
+        this.elements.skillCustomizationContainer.style.display = 'flex';
+        this.selectSkill(skillName);
+      } else {
+        this.elements.skillCustomizationContainer.style.display = 'none';
+      }
+    }
+  }
+
+  /** Hide all three extra panels (story, stats, variants). */
+  _hideStoryStatsVariants() {
+    if (this.elements.skillStoryBlock) this.elements.skillStoryBlock.style.display = 'none';
+    if (this.elements.skillStatsBlock) this.elements.skillStatsBlock.style.display = 'none';
+    if (this.elements.skillCustomizationContainer) this.elements.skillCustomizationContainer.style.display = 'none';
+  }
+
+  /**
+   * Build an HTML string for the stat grid from a SkillConfig.
+   * @param {import('../config/skills.js').SkillConfig} skill
+   * @returns {string}
+   */
+  _buildStatsGridHTML(skill) {
+    const fmt = (v, unit = '') => (v !== undefined && v !== null) ? `${v}${unit}` : '—';
+    const rows = [
+      { label: 'Damage',   value: fmt(skill.damage), icon: '⚔️' },
+      { label: 'Mana',     value: fmt(skill.manaCost), icon: '💧' },
+      { label: 'Cooldown', value: fmt(skill.cooldown, 's'), icon: '⏱️' },
+      { label: 'Range',    value: fmt(skill.range), icon: '📏' },
+      { label: 'Radius',   value: fmt(skill.radius), icon: '🔵' },
+      { label: 'Duration', value: fmt(skill.duration, 's'), icon: '⌛' },
+    ];
+    if (skill.healing !== undefined) {
+      rows.splice(1, 0, { label: 'Healing', value: fmt(skill.healing), icon: '💚' });
+    }
+    return rows.map(r => `
+      <div class="skill-stat-item">
+        <span class="skill-stat-icon">${r.icon}</span>
+        <span class="skill-stat-label">${r.label}</span>
+        <span class="skill-stat-value">${r.value}</span>
+      </div>`).join('');
   }
 
   /**
@@ -468,6 +539,13 @@ export class SkillTreeUI extends UIComponent {
     this.elements.slotPickerTitle = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-title');
     this.elements.slotPickerClear = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-clear');
     this.elements.slotPickerBackdrop = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-backdrop');
+    // Skill story + stats panels (new)
+    this.elements.skillStoryBlock = document.getElementById('skill-story-block');
+    this.elements.skillStoryText = document.getElementById('skill-story-text');
+    this.elements.skillStatsBlock = document.getElementById('skill-stats-block');
+    this.elements.skillStatsName = document.getElementById('skill-stats-name');
+    this.elements.skillStatsGrid = document.getElementById('skill-stats-grid');
+    this.elements.skillCustomizationContainer = document.getElementById('skill-customization-container');
     
     // Create continue button for mobile optimization
     this.elements.continueButton = document.createElement('button');

@@ -277,6 +277,17 @@
                         <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">Level Up</button>
                     </div>
                     <div id="skill-detail-content">
+                        <!-- Story lore block — shown when a node with a story is selected -->
+                        <div id="skill-story-block" style="display: none;">
+                            <div class="skill-section-label">Lore</div>
+                            <div id="skill-story-text"></div>
+                        </div>
+                        <!-- Linked skill stats — shown when a node has a skillRef -->
+                        <div id="skill-stats-block" style="display: none;">
+                            <div class="skill-section-label">Skill: <span id="skill-stats-name"></span></div>
+                            <div id="skill-stats-grid"></div>
+                        </div>
+                        <!-- Variants + Buffs config — shown when a node has a skillRef with variants -->
                         <div id="skill-customization-container" style="display: none;">
                             <div id="skill-variants-container">
                                 <h3>Variants</h3>
@@ -617,9 +628,9 @@
                 <h2 class="help-modal-title">How to Play</h2>
             </header>
             <div id="help-modal-content" class="help-modal-body help-modal-content"></div>
-            <footer class="help-modal-footer">
-                <button type="button" id="help-modal-close-btn" class="menu-button help-modal-close">Close</button>
-                <button type="button" id="help-modal-next-btn" class="menu-button help-modal-next">Next</button>
+            <footer class="help-modal-footer guide-nav">
+                <button type="button" id="help-modal-close-btn">Close</button>
+                <button type="button" id="help-modal-next-btn">Next</button>
             </footer>
         </div>
     </div>

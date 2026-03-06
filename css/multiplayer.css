@@ -328,7 +328,7 @@
     right: 0;
     margin: 0;
     z-index: 100;
-    border-radius: 0;
+    border-radius: 0 0 var(--panel-corner-radius, 12px) var(--panel-corner-radius, 12px);
 }
 .join-pending-invite-msg {
     margin: 0;

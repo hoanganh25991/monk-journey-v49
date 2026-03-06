@@ -95,6 +95,10 @@ export class StoryBookUI {
 
     hide() {
         if (!this.overlay) return;
+        // Move focus out before aria-hidden to avoid a11y violation (can't hide focused element from assistive tech)
+        if (this.overlay.contains(document.activeElement)) {
+            document.activeElement?.blur();
+        }
         this.overlay.style.display = 'none';
         this.overlay.style.visibility = 'hidden';
         this.overlay.setAttribute('aria-hidden', 'true');

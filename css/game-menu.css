@@ -134,21 +134,39 @@
 }
 .help-modal-next,
 .help-modal-close {
-    padding: 5px 12px;
-    font-size: 13px;
+    padding: 10px 20px;
+    font-size: 14px;
     font-weight: 600;
     min-width: unset;
     width: auto;
     margin: 0;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-width: 1px;
+    transition: all 0.2s ease;
 }
-.help-modal-next:hover,
-.help-modal-close:hover {
+
+#help-modal-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#help-modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+#help-modal-next-btn {
+    background-color: rgba(var(--theme-gold-rgb), 0.7);
+    border: 2px solid var(--theme-gold-border);
+    color: var(--theme-gold-text);
+}
+
+#help-modal-next-btn:hover {
+    background-color: var(--theme-gold-hover);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(var(--theme-gold-rgb), 0.4);
 }
+
 .help-modal-next:active,
 .help-modal-close:active {
     transform: translateY(0);
@@ -215,6 +233,8 @@
     justify-content: center;
     align-items: center;
     z-index: 150; /* Game Menu */
+    border-radius: var(--panel-corner-radius);
+    overflow: hidden;
 }
 
 /* Settings Menu - Moved to settings-menu.css */

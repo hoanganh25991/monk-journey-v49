@@ -22,7 +22,7 @@
 .map-selector-modal {
     background-color: var(--theme-bg-dark);
     border: var(--modal-content-border);
-    border-radius: var(--modal-content-radius);
+    border-radius: var(--panel-corner-radius);
     box-shadow: var(--modal-content-shadow);
     width: 100vw;
     height: 100vh;

@@ -45,12 +45,17 @@ export class QuestSerializer {
         const reflectionChoicesReceived = questManager.reflectionChoicesReceived
             ? { ...questManager.reflectionChoicesReceived }
             : {};
+        // Declined chapter quest IDs (so they won't be auto-offered again)
+        const declinedChapterQuestIds = questManager.declinedChapterQuestIds
+            ? Array.from(questManager.declinedChapterQuestIds)
+            : [];
         
         return {
             activeQuests: activeQuestsData,
             completedQuestIds: completedQuestIds,
             completedChapterQuestIds: completedChapterQuestIds,
-            reflectionChoicesReceived
+            reflectionChoicesReceived,
+            declinedChapterQuestIds
         };
     }
     
@@ -79,6 +84,11 @@ export class QuestSerializer {
         // Restore reflection choices received (for replay rewards)
         if (questData.reflectionChoicesReceived && typeof questData.reflectionChoicesReceived === 'object') {
             questManager.reflectionChoicesReceived = { ...questData.reflectionChoicesReceived };
+        }
+        // Restore declined chapter quest IDs (so they won't be auto-offered again)
+        if (questData.declinedChapterQuestIds && Array.isArray(questData.declinedChapterQuestIds)) {
+            questManager.declinedChapterQuestIds.clear();
+            questData.declinedChapterQuestIds.forEach(id => questManager.declinedChapterQuestIds.add(id));
         }
         
         // Load active quests with their progress

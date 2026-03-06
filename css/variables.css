@@ -35,6 +35,8 @@
     --modal-content-bg: var(--theme-bg-dark);
     --modal-content-border: 2px solid var(--theme-gold-border-subtle);
     --modal-content-radius: 12px;
+    /* Rounded corners for panels opened from top-right buttons (inventory, skills, map, story, settings) */
+    --panel-corner-radius: var(--modal-content-radius);
     --modal-content-shadow: 0 0 0 1px rgba(var(--theme-gold-rgb), 0.15), 0 0 30px rgba(var(--theme-gold-rgb), 0.2), 0 8px 32px rgba(0, 0, 0, 0.8);
 }
 

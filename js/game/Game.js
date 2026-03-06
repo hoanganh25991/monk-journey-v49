@@ -294,7 +294,13 @@ export class Game {
                             this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
                         }
                     },
-                    () => {} // Cancel/Decline: just close dialog, quest marker stays
+                    () => {
+                        // Cancel/Decline: mark as declined and persist
+                        if (quest.id && this.questManager) {
+                            this.questManager.declinedChapterQuestIds.add(quest.id);
+                            this.questManager.persistQuestsAfterDecline();
+                        }
+                    }
                 );
             };
 

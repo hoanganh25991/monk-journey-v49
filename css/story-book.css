@@ -16,7 +16,8 @@
 .story-book-container {
     background-color: var(--theme-bg-dark, #1a1a1a);
     border: none;
-    border-radius: 0;
+    border-radius: var(--panel-corner-radius);
+    overflow: hidden;
     box-shadow: none;
     width: 100%;
     max-width: none;

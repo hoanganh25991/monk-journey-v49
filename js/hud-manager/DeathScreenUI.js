@@ -1,10 +1,9 @@
 import { UIComponent } from '../UIComponent.js';
-import { DEATH_SCREEN_ACTIONS, REVIVE_GOLD_COST, RESPAWN_BUFF_INVULN_SECONDS } from '../config/death-screen-actions.js';
+import { DEATH_SCREEN_ACTIONS, getRespawnExpLoss } from '../config/death-screen-actions.js';
 
 /**
  * Death Screen UI component
- * Displays death screen with configurable action buttons (see death-screen-actions.js).
- * Buttons are built from config so you can select which to show and wire logic here.
+ * Single option: respawn (lose XP scaling with level). Message: "Your journey... Lose XXX XP to respawn."
  */
 export class DeathScreenUI extends UIComponent {
     /**
@@ -17,46 +16,18 @@ export class DeathScreenUI extends UIComponent {
     }
 
     /**
-     * Execute logic for the given death-screen action.
-     * @param {string} actionId - One of: respawn, respawn_buff, revive_gold, quit
+     * Execute logic for the given death-screen action (only respawn).
+     * Deducts XP (scaling with level) then revives the player.
+     * @param {string} actionId - 'respawn'
      */
     runAction(actionId) {
-        switch (actionId) {
-            case 'respawn':
-                this.game.player.revive();
-                break;
-            case 'respawn_buff': {
-                this.game.player.revive();
-                if (this.game?.player?.statusEffects) {
-                    this.game.player.statusEffects.applyEffect('invulnerable', RESPAWN_BUFF_INVULN_SECONDS, 1.0);
-                    if (this.game?.hudManager) {
-                        this.game.hudManager.showNotification(`Spirit's blessing: ${RESPAWN_BUFF_INVULN_SECONDS}s invulnerability`);
-                    }
-                }
-                break;
-            }
-            case 'revive_gold': {
-                const gold = this.game.player.getGold ? this.game.player.getGold() : 0;
-                if (gold < REVIVE_GOLD_COST) return;
-                if (this.game.player.removeGold(REVIVE_GOLD_COST)) {
-                    this.game.player.revive();
-                    this.game.player.stats.setHealth(this.game.player.stats.getMaxHealth());
-                    this.game.player.stats.setMana(this.game.player.stats.getMaxMana());
-                    if (this.game?.player?.statusEffects) {
-                        this.game.player.statusEffects.applyEffect('invulnerable', 5.0, 1.0);
-                    }
-                    if (this.game?.hudManager) {
-                        this.game.hudManager.showNotification(`Revived! (-${REVIVE_GOLD_COST} Gold)`);
-                    }
-                }
-                break;
-            }
-            case 'quit':
-                window.location.reload();
-                break;
-            default:
-                console.warn('DeathScreenUI: unknown action', actionId);
-        }
+        if (actionId !== 'respawn') return;
+        const level = this.game.player.getLevel ? this.game.player.getLevel() : 1;
+        const expLoss = getRespawnExpLoss(level);
+        const currentExp = this.game.player.getExperience ? this.game.player.getExperience() : 0;
+        const newExp = Math.max(0, currentExp - expLoss);
+        this.game.player.stats.setExperience(newExp);
+        this.game.player.revive();
     }
     
     /**
@@ -70,8 +41,8 @@ export class DeathScreenUI extends UIComponent {
         const template = `
             <div id="death-screen-content">
                 <h1>You Died</h1>
-                <div class="death-message">
-                    Your journey has come to an end, but your spirit lives on.
+                <div class="death-message" id="death-message">
+                    Your journey has come to an end. Lose <span id="respawn-exp-loss">200</span> XP to respawn.
                 </div>
 
                 <div class="death-stats" id="death-stats">
@@ -117,9 +88,8 @@ export class DeathScreenUI extends UIComponent {
         if (this.isDeathScreenOpen) {
             return;
         }
-        // Update statistics and action button states (e.g. Revive Gold disabled when poor)
+        // Update statistics and respawn XP loss text
         this.updateDeathStats();
-        this.updateActionButtons();
         
         // Show death screen
         this.show();
@@ -147,27 +117,17 @@ export class DeathScreenUI extends UIComponent {
         const enemiesDefeated = this.game.player.enemiesDefeated || 0;
         
         // Get player level
-        const playerLevel = this.game.player.level || 1;
+        const playerLevel = this.game.player.level ?? this.game.player.getLevel?.() ?? 1;
         
-        // Update UI elements (session recap = small win, encourages "one more try")
+        // Update UI elements (session recap and respawn XP cost)
         const timeEl = document.getElementById('time-survived');
         const enemiesEl = document.getElementById('enemies-defeated');
         const levelEl = document.getElementById('level-reached');
+        const expLossEl = document.getElementById('respawn-exp-loss');
         if (timeEl) timeEl.textContent = timeString;
         if (enemiesEl) enemiesEl.textContent = enemiesDefeated.toString();
         if (levelEl) levelEl.textContent = playerLevel.toString();
-    }
-
-    /**
-     * Update death action button state (e.g. disable "Revive (50 Gold)" when not enough gold).
-     */
-    updateActionButtons() {
-        const gold = this.game?.player?.getGold ? this.game.player.getGold() : 0;
-        this.container?.querySelectorAll('.death-action-btn[data-action-id="revive_gold"]').forEach((btn) => {
-            const enough = gold >= REVIVE_GOLD_COST;
-            btn.disabled = !enough;
-            btn.title = enough ? '' : `Requires ${REVIVE_GOLD_COST} Gold`;
-        });
+        if (expLossEl) expLossEl.textContent = getRespawnExpLoss(playerLevel).toString();
     }
     
     /**
