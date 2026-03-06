@@ -346,37 +346,15 @@ export class MapSelectionUI extends UIComponent {
     }
 
     /**
-     * Show glowing "TELEPORTING..." overlay with countdown 3 → 2 → 1, then run the teleport action.
-     * @param {string} locale - For label text
+     * Show shared "Đang dịch chuyển" / "Teleporting…" overlay with countdown 3 → 2 → 1, then run the teleport action.
+     * @param {string} locale - For label text (VI/EN)
      * @param {() => Promise<void>} doTeleport - Async function to load map, move player, etc.
      */
     async runTeleportEffect(locale, doTeleport) {
-        const overlayEl = document.getElementById('teleport-effect-overlay');
-        const labelEl = document.getElementById('teleport-effect-label');
-        const countdownEl = document.getElementById('teleport-effect-countdown');
-        if (!overlayEl || !countdownEl) {
-            try {
-                await doTeleport();
-            } catch (e) {
-                console.warn('Teleport failed:', e);
-            }
+        if (this.game?.hudManager?.runTeleportOverlay) {
+            await this.game.hudManager.runTeleportOverlay(locale, doTeleport);
             return;
         }
-
-        const labelText = getMapSelectionUiString('teleporting', locale).toUpperCase();
-        if (labelEl) labelEl.textContent = labelText;
-        overlayEl.style.display = 'flex';
-        overlayEl.setAttribute('aria-hidden', 'false');
-
-        const countdownSeconds = 3;
-        for (let n = countdownSeconds; n >= 1; n--) {
-            countdownEl.textContent = String(n);
-            await new Promise((r) => setTimeout(r, 1000));
-        }
-
-        overlayEl.style.display = 'none';
-        overlayEl.setAttribute('aria-hidden', 'true');
-
         try {
             await doTeleport();
         } catch (e) {

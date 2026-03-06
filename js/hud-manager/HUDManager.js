@@ -16,6 +16,7 @@ import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
 import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 
 import { InventoryButton } from './InventoryButton.js';
 import './HUDGuide.js'; // Registers click handler for hud-guide-button
@@ -374,7 +375,51 @@ export class HUDManager {
         // Start the countdown
         updateCountdown();
     }
-    
+
+    /**
+     * Show the shared "Đang dịch chuyển" / "Teleporting…" overlay with countdown 3→2→1, then run the teleport action.
+     * Used by both Map Selection and portal/home (🏕️) so the same VI-friendly modal is shown everywhere.
+     * @param {string} locale - 'en' | 'vi'
+     * @param {() => Promise<void>} doTeleport - Async function to perform the teleport (load map, move player, etc.)
+     * @returns {Promise<void>}
+     */
+    async runTeleportOverlay(locale, doTeleport) {
+        const overlayEl = document.getElementById('teleport-effect-overlay');
+        const labelEl = document.getElementById('teleport-effect-label');
+        const countdownEl = document.getElementById('teleport-effect-countdown');
+        if (!overlayEl || !countdownEl) {
+            try {
+                await doTeleport();
+            } catch (e) {
+                console.warn('Teleport failed:', e);
+            }
+            return;
+        }
+
+        const labelText = getMapSelectionUiString('teleporting', locale).toUpperCase();
+        if (labelEl) labelEl.textContent = labelText;
+        overlayEl.style.display = 'flex';
+        overlayEl.setAttribute('aria-hidden', 'false');
+
+        const countdownSeconds = 3;
+        for (let n = countdownSeconds; n >= 1; n--) {
+            countdownEl.textContent = String(n);
+            await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        overlayEl.style.display = 'none';
+        overlayEl.setAttribute('aria-hidden', 'true');
+
+        try {
+            await doTeleport();
+        } catch (e) {
+            console.warn('Teleport failed:', e);
+            if (this.showNotification) {
+                this.showNotification(getMapSelectionUiString('loadingMap', locale) + ' Failed.', 3000);
+            }
+        }
+    }
+
     /**
      * Update the quest log with active quests
      * @param {Array} activeQuests - Array of active quests
