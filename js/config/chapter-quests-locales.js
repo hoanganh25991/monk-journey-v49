@@ -223,13 +223,35 @@ export function getReflectionUiString(key, locale = DEFAULT_LOCALE) {
     return strings[key] || REFLECTION_UI_STRINGS.en[key] || '';
 }
 
+/** Vietnamese display names for map ids (fallback when manifest has no name_vi). */
+export const MAP_DISPLAY_NAMES_VI = {
+    'default': 'Thế giới mặc định',
+    'terrant': 'Terrant',
+    'forest': 'Rừng',
+    'desert': 'Sa mạc',
+    'mountains': 'Núi',
+    'swamp': 'Đầm lầy',
+    'magical': 'Ma thuật',
+    'mixed': 'Thế giới hỗn hợp',
+    'highland-vale': 'Thung lũng cao nguyên',
+    'ember-wastes': 'Hoang mạc tro',
+    'whisper-woods': 'Rừng thì thầm',
+    'crimson-bog': 'Đầm lầy đỏ',
+    'sky-prairie': 'Đồng cỏ bầu trời',
+    'veil-garden': 'Vườn màn sương',
+    'frost-hollow': 'Lòng chảo băng giá',
+    'sand-shrine': 'Đền cát',
+    'thorn-marsh': 'Đầm gai',
+    'eldritch-grove': 'Rừng huyền bí',
+};
+
 /** Map Selection overlay UI strings (placeholders: {name}, {mapName}) */
 export const MAP_SELECTION_UI_STRINGS = {
     en: {
         selectMapTitle: 'Select Map',
         currentMap: 'Current: {name}',
         currentMapNone: 'Current: —',
-        returnToDefaultWorld: 'Returned to Default World. Reloading...',
+        returnToDefaultWorld: 'Returned to Default World.',
         mapSetToReloading: 'Map set to "{mapName}". Reloading...',
         selectMapPlaceholder: 'Select a map',
         chooseMapPlaceholder: 'Choose a map from the list to view details',
@@ -243,15 +265,17 @@ export const MAP_SELECTION_UI_STRINGS = {
         btnReturnToProceduralWorld: 'Return to Procedural World',
         btnGenerateNewMap: 'Generate New Map',
         btnSaveAndClose: 'Save & Close',
-        btnApplyAndReload: 'Apply & Reload',
-        btnApplyAndReloadTitle: 'Apply this map after reload',
+        btnApplyAndReload: 'Teleport',
+        btnApplyAndReloadTitle: 'Teleport to this map',
+        arrivedAtMap: 'You have arrived at {mapName}.',
+        teleporting: 'Teleporting…',
         loadingMap: 'Loading map...',
     },
     vi: {
         selectMapTitle: 'Chọn bản đồ',
         currentMap: 'Hiện tại: {name}',
         currentMapNone: 'Hiện tại: —',
-        returnToDefaultWorld: 'Đã về Thế giới mặc định. Đang tải lại...',
+        returnToDefaultWorld: 'Đã về Thế giới mặc định.',
         mapSetToReloading: 'Đã đặt bản đồ "{mapName}". Đang tải lại...',
         selectMapPlaceholder: 'Chọn một bản đồ',
         chooseMapPlaceholder: 'Chọn bản đồ trong danh sách để xem chi tiết',
@@ -262,11 +286,13 @@ export const MAP_SELECTION_UI_STRINGS = {
         statEnemies: 'Kẻ địch:',
         enemiesRandom: 'Ngẫu nhiên',
         btnMapSelector: 'Chọn bản đồ',
-        btnReturnToProceduralWorld: 'Về thế giới procedural',
+        btnReturnToProceduralWorld: 'Về thế giới mặc định',
         btnGenerateNewMap: 'Tạo bản đồ mới',
         btnSaveAndClose: 'Lưu & Đóng',
-        btnApplyAndReload: 'Áp dụng & Tải lại',
-        btnApplyAndReloadTitle: 'Áp dụng bản đồ này sau khi tải lại',
+        btnApplyAndReload: 'Dịch chuyển',
+        btnApplyAndReloadTitle: 'Dịch chuyển tới bản đồ này',
+        arrivedAtMap: 'Bạn đã đến {mapName}.',
+        teleporting: 'Đang dịch chuyển…',
         loadingMap: 'Đang tải bản đồ...',
     },
 };
