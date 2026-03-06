@@ -54,10 +54,13 @@ export class QuestManager {
             .map(q => this.cloneChapterQuestForStart(q));
     }
 
-    /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) */
+    /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) 
+     * Note: This includes declined quests so the marker stays visible for manual acceptance.
+     */
     getNextChapterQuestForMarker() {
         if (this.getActiveChapterQuest()) return null;
         const available = this.getAvailableChapterQuests();
+        // Include declined quests for marker placement (player can still manually accept from marker)
         return available.length > 0 ? available[0] : null;
     }
 
