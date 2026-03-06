@@ -53,7 +53,7 @@ function showPage(index) {
   const page = pages[currentPageIndex];
   if (titleEl) titleEl.textContent = page.title;
   if (content) content.innerHTML = page.html;
-  if (nextBtn) nextBtn.textContent = currentPageIndex === pages.length - 1 ? 'Show me the buttons' : 'Next';
+  if (nextBtn) nextBtn.textContent = 'Next';
 }
 
 function openHelpModal() {
