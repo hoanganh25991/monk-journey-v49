@@ -625,7 +625,7 @@ export class TeleportManager {
                     
                     // Show teleport prompt with spiral symbols
                     if (this.game && this.game.hudManager) {
-                        const spiralSymbols = ['🌀', '🍥', '𖦹', '𖣐'];
+                        const spiralSymbols = ['🌀', '🍥', '𖦹', '🏕️'];
                         const randomSpiral = spiralSymbols[Math.floor(Math.random() * spiralSymbols.length)];
                         this.game.hudManager.showNotification(
                             `${randomSpiral} ${portal.targetName} ${randomSpiral}`,
@@ -791,7 +791,7 @@ export class TeleportManager {
                 
                 // Show arrival notification with spiral effects
                 if (this.game && this.game.hudManager) {
-                    const spiralSymbols = ['🌀', '🍥', '𖦹', '𖣐'];
+                    const spiralSymbols = ['🌀', '🍥', '𖦹', '🏕️'];
                     const randomSpiral = spiralSymbols[Math.floor(Math.random() * spiralSymbols.length)];
                     this.game.hudManager.showNotification(
                         `✨ Teleported to ${portal.targetName} ${randomSpiral}`,

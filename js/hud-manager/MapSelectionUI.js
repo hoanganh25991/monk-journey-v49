@@ -62,10 +62,6 @@ export class MapSelectionUI extends UIComponent {
             if (el) el.textContent = getMapSelectionUiString(key, locale);
         });
         if (this.mapSelectorButton) this.mapSelectorButton.title = getMapSelectionUiString('btnMapSelector', locale);
-        const clearBtn = document.getElementById('clearCurrentMap');
-        if (clearBtn) clearBtn.title = getMapSelectionUiString('btnReturnToProceduralWorld', locale);
-        const genBtn = document.getElementById('generateRandomMap');
-        if (genBtn) genBtn.title = getMapSelectionUiString('btnGenerateNewMap', locale);
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) closeBtn.title = getMapSelectionUiString('btnSaveAndClose', locale);
         const playBtn = document.getElementById('playMapButton');
@@ -139,11 +135,6 @@ export class MapSelectionUI extends UIComponent {
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hide());
-        }
-
-        const clearBtn = document.getElementById('clearCurrentMap');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearCurrentMap());
         }
 
         const playBtn = document.getElementById('playMapButton');
@@ -335,15 +326,7 @@ export class MapSelectionUI extends UIComponent {
         }
 
         this.hide();
-
-        const overlayEl = document.getElementById('mapLoadingOverlay');
-        const overlayTextEl = document.getElementById('mapLoadingOverlayText');
-        if (overlayEl) {
-            overlayEl.style.display = 'flex';
-            if (overlayTextEl) overlayTextEl.textContent = getMapSelectionUiString('teleporting', locale);
-        }
-
-        try {
+        await this.runTeleportEffect(locale, async () => {
             const mapData = await this.game.loadAndApplyMap(path);
             const spawn = mapData?.spawn || { x: 0, y: 1, z: -13 };
             if (this.game.player?.setPosition) {
@@ -356,54 +339,51 @@ export class MapSelectionUI extends UIComponent {
                 const pos = this.game.player.movement.getPosition();
                 this.game.worldGroup.position.copy(pos).negate();
             }
-        } catch (e) {
-            console.warn('Teleport map load failed:', e);
-        }
-
-        if (overlayEl) overlayEl.style.display = 'none';
-        if (this.game.hudManager?.showNotification) {
-            this.game.hudManager.showNotification(getMapSelectionUiString('arrivedAtMap', locale, { mapName }), 3000);
-        }
+            if (this.game.hudManager?.showNotification) {
+                this.game.hudManager.showNotification(getMapSelectionUiString('arrivedAtMap', locale, { mapName }), 3000);
+            }
+        });
     }
 
-    /** Teleport to default map (no page reload). */
-    async clearCurrentMap() {
+    /**
+     * Show glowing "TELEPORTING..." overlay with countdown 3 → 2 → 1, then run the teleport action.
+     * @param {string} locale - For label text
+     * @param {() => Promise<void>} doTeleport - Async function to load map, move player, etc.
+     */
+    async runTeleportEffect(locale, doTeleport) {
+        const overlayEl = document.getElementById('teleport-effect-overlay');
+        const labelEl = document.getElementById('teleport-effect-label');
+        const countdownEl = document.getElementById('teleport-effect-countdown');
+        if (!overlayEl || !countdownEl) {
+            try {
+                await doTeleport();
+            } catch (e) {
+                console.warn('Teleport failed:', e);
+            }
+            return;
+        }
+
+        const labelText = getMapSelectionUiString('teleporting', locale).toUpperCase();
+        if (labelEl) labelEl.textContent = labelText;
+        overlayEl.style.display = 'flex';
+        overlayEl.setAttribute('aria-hidden', 'false');
+
+        const countdownSeconds = 3;
+        for (let n = countdownSeconds; n >= 1; n--) {
+            countdownEl.textContent = String(n);
+            await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        overlayEl.style.display = 'none';
+        overlayEl.setAttribute('aria-hidden', 'true');
+
         try {
-            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, DEFAULT_MAP_PATH);
+            await doTeleport();
         } catch (e) {
-            console.warn('Could not save map preference:', e);
-        }
-
-        const locale = this.getLocale();
-        this.hide();
-
-        const overlayEl = document.getElementById('mapLoadingOverlay');
-        const overlayTextEl = document.getElementById('mapLoadingOverlayText');
-        if (overlayEl) {
-            overlayEl.style.display = 'flex';
-            if (overlayTextEl) overlayTextEl.textContent = getMapSelectionUiString('teleporting', locale);
-        }
-
-        try {
-            const mapData = await this.game.loadAndApplyMap(DEFAULT_MAP_PATH);
-            const spawn = mapData?.spawn || { x: 0, y: 1, z: -13 };
-            if (this.game.player?.setPosition) {
-                this.game.player.setPosition(spawn.x ?? 0, spawn.y ?? 1, spawn.z ?? -13);
+            console.warn('Teleport failed:', e);
+            if (this.game?.hudManager?.showNotification) {
+                this.game.hudManager.showNotification(getMapSelectionUiString('loadingMap', locale) + ' Failed.', 3000);
             }
-            if (this.game.enemyManager?.removeAllEnemies) {
-                this.game.enemyManager.removeAllEnemies();
-            }
-            if (this.game.worldGroup && this.game.player?.movement?.getPosition) {
-                const pos = this.game.player.movement.getPosition();
-                this.game.worldGroup.position.copy(pos).negate();
-            }
-        } catch (e) {
-            console.warn('Teleport to default map failed:', e);
-        }
-
-        if (overlayEl) overlayEl.style.display = 'none';
-        if (this.game?.hudManager?.showNotification) {
-            this.game.hudManager.showNotification(getMapSelectionUiString('returnToDefaultWorld', locale), 3000);
         }
     }
 

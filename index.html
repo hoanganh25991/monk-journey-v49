@@ -131,6 +131,12 @@
         <div class="play-reveal-text" id="play-reveal-text">Preparing your adventure...</div>
     </div>
 
+    <!-- Teleport effect: glowing "TELEPORTING..." + countdown over game view -->
+    <div id="teleport-effect-overlay" class="teleport-effect-overlay" style="display: none;" aria-hidden="true">
+        <div class="teleport-effect-label" id="teleport-effect-label">TELEPORTING...</div>
+        <div class="teleport-effect-countdown" id="teleport-effect-countdown">3</div>
+    </div>
+
     <!-- Touch Debug Container -->
     <div id="touch-debug-container" style="
         position: fixed;
@@ -217,10 +223,10 @@
                 <!-- Single slot: inventory-teleport (static) or portal-button (purple + rotation) when near portal -->
                 <div id="teleport-button-slot">
                     <div id="inventory-teleport" title="Teleport to Origin">
-                        <div class="teleport-icon-static">𖣐</div>
+                        <div class="teleport-icon-static">🏕️</div>
                     </div>
                     <div id="portal-button" style="display: none;">
-                        <div class="portal-icon">𖣐</div>
+                        <div class="portal-icon">🏕️</div>
                     </div>
                 </div>
             </div>
@@ -424,8 +430,6 @@
                         <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
                     </div>
                     <div class="header-buttons">
-                        <button class="circle-btn" id="clearCurrentMap" title="Return to Procedural World">🏕️</button>
-                        <button class="circle-btn" id="generateRandomMap" title="Generate New Map">👨‍🎨</button>
                         <button class="circle-btn" id="closeMapSelector" title="Save & Close">💾</button>
                     </div>
                 </div>
@@ -534,7 +538,7 @@
     <div id="teleport-spiral-container" class="teleport-spiral-container" style="display: none;">
         <div class="spiral-overlay">
             <div class="spiral-center">
-                <div class="spiral-symbols">𖣐</div>
+                <div class="spiral-symbols">🏕️</div>
                 <div class="spiral-text">TELEPORTING...</div>
             </div>
             <div class="spiral-rings">
