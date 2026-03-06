@@ -196,11 +196,11 @@ export class SkillTreeGraphView {
                 div.appendChild(levelBadge);
 
                 const title = this.buildNodeTooltip(node, currentLevel, isLocked, canLevel, isMaxed);
-                div.setAttribute('title', title);
 
                 div.addEventListener('mouseenter', (e) => this.showTooltip(e, title, div));
                 div.addEventListener('mouseleave', () => this.hideTooltip());
                 div.addEventListener('click', () => {
+                    this.hideTooltip();
                     this.selectedNodeId = nodeId;
                     this.updateSelectionStyles();
                     this.onSelectNode(nodeId);
@@ -232,7 +232,12 @@ export class SkillTreeGraphView {
 
     showTooltip(ev, text, anchor) {
         if (!this.tooltipEl) return;
-        this.tooltipEl.textContent = text;
+        const lines = text.split('\n');
+        this.tooltipEl.innerHTML = lines.map((line, i) =>
+            i === 0
+                ? `<div style="font-weight:bold;color:#ffcc00;margin-bottom:4px">${line}</div>`
+                : `<div>${line}</div>`
+        ).join('');
         this.tooltipEl.style.display = 'block';
         
         const rect = anchor.getBoundingClientRect();

@@ -475,18 +475,18 @@ export class SkillTreeUI extends UIComponent {
   _buildStatsGridHTML(skill) {
     const fmt = (v, unit = '') => (v !== undefined && v !== null) ? `${v}${unit}` : '—';
     const rows = [
-      { label: 'Damage',   value: fmt(skill.damage), icon: '⚔️' },
-      { label: 'Mana',     value: fmt(skill.manaCost), icon: '💧' },
-      { label: 'Cooldown', value: fmt(skill.cooldown, 's'), icon: '⏱️' },
-      { label: 'Range',    value: fmt(skill.range), icon: '📏' },
-      { label: 'Radius',   value: fmt(skill.radius), icon: '🔵' },
-      { label: 'Duration', value: fmt(skill.duration, 's'), icon: '⌛' },
+      { label: 'Damage',   value: fmt(skill.damage), icon: '⚔️', stat: 'damage' },
+      { label: 'Mana',     value: fmt(skill.manaCost), icon: '💧', stat: 'mana' },
+      { label: 'Cooldown', value: fmt(skill.cooldown, 's'), icon: '⏱️', stat: 'cooldown' },
+      { label: 'Range',    value: fmt(skill.range), icon: '📏', stat: 'range' },
+      { label: 'Radius',   value: fmt(skill.radius), icon: '🔵', stat: 'radius' },
+      { label: 'Duration', value: fmt(skill.duration, 's'), icon: '⌛', stat: 'duration' },
     ];
     if (skill.healing !== undefined) {
-      rows.splice(1, 0, { label: 'Healing', value: fmt(skill.healing), icon: '💚' });
+      rows.splice(1, 0, { label: 'Healing', value: fmt(skill.healing), icon: '💚', stat: 'healing' });
     }
     return rows.map(r => `
-      <div class="skill-stat-item">
+      <div class="skill-stat-item" data-stat="${r.stat || ''}">
         <span class="skill-stat-icon">${r.icon}</span>
         <span class="skill-stat-label">${r.label}</span>
         <span class="skill-stat-value">${r.value}</span>

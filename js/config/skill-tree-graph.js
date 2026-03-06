@@ -44,7 +44,7 @@ const NODES = [
         requiredNodes: [],
         path: SKILL_TREE_PATHS.BODY,
         requiredLevel: 1,
-        skillRef: 'Fist of Thunder',
+        skillRef: 'Deadly Reach',
         story: 'The first lesson of the monastery: strike before thought. Master Shui once said — "the hand that hesitates is already broken." Quick Strike trains the body to move on instinct, turning raw aggression into precise, devastating blows.',
     },
     {

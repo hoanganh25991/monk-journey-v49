@@ -95,13 +95,21 @@ export class StoryBookUI {
 
     hide() {
         if (!this.overlay) return;
-        // Move focus out before aria-hidden to avoid a11y violation (can't hide focused element from assistive tech)
-        if (this.overlay.contains(document.activeElement)) {
-            document.activeElement?.blur();
+        const overlay = this.overlay;
+        // Move focus to body before aria-hidden so the focused element is not hidden from assistive tech
+        if (overlay.contains(document.activeElement)) {
+            const body = document.body;
+            if (!body.hasAttribute('tabindex')) {
+                body.setAttribute('tabindex', '-1');
+            }
+            body.focus();
         }
-        this.overlay.style.display = 'none';
-        this.overlay.style.visibility = 'hidden';
-        this.overlay.setAttribute('aria-hidden', 'true');
+        overlay.style.display = 'none';
+        overlay.style.visibility = 'hidden';
+        // Defer aria-hidden until after focus move is processed (avoids "blocked aria-hidden" a11y warning)
+        requestAnimationFrame(() => {
+            overlay.setAttribute('aria-hidden', 'true');
+        });
         if (typeof this.onClose === 'function') this.onClose();
     }
 
