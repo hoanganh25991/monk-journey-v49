@@ -390,6 +390,7 @@ export class QuestManager {
                 const locale = this.game.questStoryLocale || 'en';
                 this.game.hudManager.showNotification(getQuestUiString('journeyHint', locale));
             }
+            this.persistQuestsAfterAccept();
             return true;
         }
 
@@ -400,10 +401,21 @@ export class QuestManager {
                 this.activeQuests.push(questToStart);
                 this.quests = this.quests.filter(q => q.id !== questToStart.id);
                 this.game.hudManager.updateQuestLog(this.activeQuests);
+                this.persistQuestsAfterAccept();
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Trigger a background save so accepted quests persist across reload.
+     * Called when a quest is successfully added to activeQuests.
+     */
+    persistQuestsAfterAccept() {
+        if (this.game?.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+            this.game.saveManager.saveGame(false, true).catch(() => {});
+        }
     }
     
     updateEnemyKill(enemy) {

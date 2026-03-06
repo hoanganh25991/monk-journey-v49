@@ -265,6 +265,12 @@ export const MAP_SELECTION_UI_STRINGS = {
         teleporting: 'Teleporting…',
         loadingMap: 'Loading map...',
         teleportToOriginTitle: 'Teleport to Origin',
+        btnStoryBook: 'Story',
+        storyBookTitle: 'The Journey',
+        storyChapterLabel: 'Chapter {n}',
+        storyPrevChapter: '‹ Previous',
+        storyNextChapter: 'Next ›',
+        storyCloseBook: 'Close',
     },
     vi: {
         selectMapTitle: 'Chọn bản đồ',
@@ -290,6 +296,12 @@ export const MAP_SELECTION_UI_STRINGS = {
         teleporting: 'Đang dịch chuyển…',
         loadingMap: 'Đang tải bản đồ...',
         teleportToOriginTitle: 'Dịch chuyển về gốc',
+        btnStoryBook: 'Truyện',
+        storyBookTitle: 'Hành Trình',
+        storyChapterLabel: 'Chương {n}',
+        storyPrevChapter: '‹ Trước',
+        storyNextChapter: 'Sau ›',
+        storyCloseBook: 'Đóng',
     },
 };
 

@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260306T130338';
+const CACHE_VERSION = '20260306T193414';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -20,9 +20,11 @@ const ASSETS_TO_CACHE =   [
     "js/QuestManager.js",
     "js/UIComponent.js",
     "js/config/camera-modes.js",
+    "js/config/chapter-maps-zones.js",
     "js/config/chapter-quest-maps.js",
     "js/config/chapter-quests-locales.js",
     "js/config/chapter-quests.js",
+    "js/config/chapter-story-images.js",
     "js/config/coach.js",
     "js/config/colors.js",
     "js/config/consumable-skills.js",
@@ -36,6 +38,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/input.js",
     "js/config/item-types.js",
     "js/config/items.js",
+    "js/config/map-locales.js",
     "js/config/maps.js",
     "js/config/paths.js",
     "js/config/performance-profile.js",
@@ -101,6 +104,7 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/EnemyUI.js",
     "js/hud-manager/HUDGuide.js",
     "js/hud-manager/HUDManager.js",
+    "js/hud-manager/HelpModalController.js",
     "js/hud-manager/HomeUI.js",
     "js/hud-manager/InventoryButton.js",
     "js/hud-manager/InventoryUI.js",
@@ -118,6 +122,7 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/SkillTreeGraphView.js",
     "js/hud-manager/SkillTreeUI.js",
     "js/hud-manager/SkillsUI.js",
+    "js/hud-manager/StoryBookUI.js",
     "js/hud-manager/VirtualJoystickUI.js",
     "js/interaction/InteractionSystem.js",
     "js/items/Item.js",
@@ -454,6 +459,7 @@ const ASSETS_TO_CACHE =   [
     "css/settings-menu.css",
     "css/skill-preview.css",
     "css/skill-tree.css",
+    "css/story-book.css",
     "css/teleport-manager.css",
     "css/utilities.css",
     "css/variables.css",

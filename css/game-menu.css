@@ -111,9 +111,22 @@
     font-style: italic;
     margin-bottom: 0.75rem;
 }
+.help-modal-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.25rem;
+}
+.help-modal-next,
 .help-modal-close {
-    display: block;
-    margin: 0 auto;
+    min-width: 6rem;
+}
+.help-modal-close {
+    margin: 0;
+}
+.help-modal-content .help-control-line {
+    margin: 0.5rem 0;
 }
 
 .story-modal-content .story-journal-list {

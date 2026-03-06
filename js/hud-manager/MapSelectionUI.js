@@ -6,6 +6,7 @@ import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
 import { getMapSelectionUiString, getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
 import { getMapDisplay } from '../config/map-locales.js';
+import { StoryBookUI } from './StoryBookUI.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -39,6 +40,7 @@ export class MapSelectionUI extends UIComponent {
         this.selectedMapId = null;
         this.mapManifest = [];
         this.mapDataCache = new Map(); // path -> full map JSON
+        this.storyBookUI = null;
     }
 
     /** @returns {'en'|'vi'} */
@@ -65,6 +67,8 @@ export class MapSelectionUI extends UIComponent {
         if (this.mapSelectorButton) this.mapSelectorButton.title = getMapSelectionUiString('btnMapSelector', locale);
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) closeBtn.title = getMapSelectionUiString('btnSaveAndClose', locale);
+        const storyBtn = document.getElementById('openStoryBookBtn');
+        if (storyBtn) storyBtn.title = getMapSelectionUiString('btnStoryBook', locale);
         const playBtn = document.getElementById('playMapButton');
         if (playBtn) {
             playBtn.title = getMapSelectionUiString('btnApplyAndReloadTitle', locale);
@@ -89,6 +93,9 @@ export class MapSelectionUI extends UIComponent {
                 return false;
             }
 
+            this.storyBookUI = new StoryBookUI(this.game);
+            this.storyBookUI.init();
+            this.storyBookUI.onClose = () => this.show();
             this.setupEventListeners();
             this.updateMapSelectorLabels();
             this.loadManifest().then(() => this.populateMapList());
@@ -132,6 +139,16 @@ export class MapSelectionUI extends UIComponent {
             e.stopPropagation();
             this.show();
         });
+
+        const openStoryBtn = document.getElementById('openStoryBookBtn');
+        if (openStoryBtn) {
+            openStoryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.hide();
+                if (this.storyBookUI) this.storyBookUI.show();
+            });
+        }
 
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) {

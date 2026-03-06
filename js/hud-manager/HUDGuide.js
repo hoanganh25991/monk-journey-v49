@@ -315,12 +315,5 @@ export function startHUDGuide() {
   } catch (_) {}
 }
 
-// Delegated click: start guide when info button is clicked
-document.addEventListener('click', (ev) => {
-  const t = ev.target;
-  if (t && t.id === 'hud-guide-button') {
-    ev.preventDefault();
-    ev.stopPropagation();
-    startHUDGuide();
-  }
-});
+// Info button (hud-guide-button) now opens the How to Play modal via HelpModalController.js.
+// To start the HUD tour programmatically (e.g. from elsewhere), call startHUDGuide().

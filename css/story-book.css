@@ -1,0 +1,183 @@
+/* Story Book — full-screen chapter reader (opened from Map) */
+
+.story-book-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--padding-medium, 16px);
+    box-sizing: border-box;
+}
+
+.story-book-container {
+    background-color: var(--theme-bg-dark, #1a1a1a);
+    border: 1px solid var(--theme-amber, rgba(255, 204, 0, 0.5));
+    border-radius: var(--modal-content-radius, 12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 900px;
+    height: 90vh;
+    max-height: 90vh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    overflow: hidden;
+}
+
+.story-book-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding-medium) var(--padding-large);
+    background: rgba(var(--theme-gold-rgb, 255, 204, 0), 0.08);
+    border-bottom: 1px solid var(--theme-amber);
+    flex-shrink: 0;
+}
+
+.story-book-header-title {
+    margin: 0;
+    color: var(--theme-gold);
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(var(--theme-gold-rgb, 255, 204, 0), 0.4);
+}
+
+.story-book-header-buttons {
+    display: flex;
+    gap: var(--padding-small);
+}
+
+.story-book-content {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-large);
+    padding: var(--padding-large);
+}
+
+/* Top: chapter image or placeholder */
+.story-book-chapter-visual {
+    flex-shrink: 0;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    max-height: 320px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(145deg, #2a2520 0%, #1a1510 100%);
+    border: 1px solid rgba(138, 109, 59, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.story-book-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: var(--theme-gold);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+}
+
+.story-book-chapter-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Text panel */
+.story-book-text-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.story-book-chapter-label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--theme-gold);
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.story-book-chapter-title {
+    margin: 0;
+    font-size: 1.35rem;
+    color: #fff;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.story-book-chapter-description {
+    margin: 0;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.92);
+    line-height: 1.55;
+}
+
+.story-book-lesson {
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--theme-gold);
+    background: rgba(var(--theme-gold-rgb, 255, 204, 0), 0.06);
+    border-radius: 0 6px 6px 0;
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--theme-gold);
+    opacity: 0.95;
+}
+
+/* Bottom nav: Previous | 1 / N | Next — keep on top and always clickable */
+.story-book-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--padding-medium);
+    padding: var(--padding-medium) var(--padding-large);
+    background: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(138, 109, 59, 0.4);
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.story-book-nav-btn {
+    position: relative;
+    z-index: 11;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--theme-gold);
+    background: rgba(138, 109, 59, 0.35);
+    border: 1px solid var(--theme-amber);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.story-book-nav-btn:hover:not(:disabled) {
+    background: rgba(138, 109, 59, 0.55);
+    transform: translateY(-1px);
+}
+
+.story-book-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.story-book-page-indicator {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+}
