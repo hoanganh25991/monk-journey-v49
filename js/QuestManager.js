@@ -1,5 +1,5 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
-import { getChapterQuestDisplay } from './config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getQuestUiString } from './config/chapter-quests-locales.js';
 import { getNextStoryMapAfter } from './config/chapter-quest-maps.js';
 
 export class QuestManager {
@@ -345,7 +345,8 @@ export class QuestManager {
             // First-time hint (Phase 9.2): one-time tip after accepting a chapter quest
             if (this.game && !this.game._hasShownQuestHintThisSession) {
                 this.game._hasShownQuestHintThisSession = true;
-                this.game.hudManager.showNotification('Your journey: complete the objectives in the quest log, then face the chapter boss.');
+                const locale = this.game.questStoryLocale || 'en';
+                this.game.hudManager.showNotification(getQuestUiString('journeyHint', locale));
             }
             return true;
         }
@@ -382,8 +383,11 @@ export class QuestManager {
                     if (match) {
                         obj.progress = (obj.progress || 0) + 1;
                         updated = true;
+                        const locale = this.game.questStoryLocale || 'en';
+                        const typeKey = obj.type === 'defeat_boss' ? 'boss' : 'enemies';
+                        const typeLabel = getQuestUiString(typeKey, locale);
                         this.game.hudManager.showNotification(
-                            `Quest: ${obj.progress}/${obj.count} ${obj.type === 'defeat_boss' ? 'boss' : 'enemies'}`
+                            getQuestUiString('questProgressCount', locale, { current: obj.progress, count: obj.count, type: typeLabel })
                         );
                         break;
                     }
@@ -404,7 +408,8 @@ export class QuestManager {
                         this.completeQuest(quest);
                     } else {
                         this.game.hudManager.updateQuestLog(this.activeQuests);
-                        this.game.hudManager.showNotification(`Quest progress: ${quest.objective.progress}/${quest.objective.count} enemies defeated`);
+                        const locale = this.game.questStoryLocale || 'en';
+                        this.game.hudManager.showNotification(getQuestUiString('questProgressEnemiesDefeated', locale, { current: quest.objective.progress, count: quest.objective.count }));
                     }
                 }
             }
@@ -423,7 +428,8 @@ export class QuestManager {
                 } else {
                     // Update UI
                     this.game.hudManager.updateQuestLog(this.activeQuests);
-                    this.game.hudManager.showNotification(`Quest progress: ${quest.objective.progress}/${quest.objective.count} ${objectType}s found`);
+                    const locale = this.game.questStoryLocale || 'en';
+                    this.game.hudManager.showNotification(getQuestUiString('questProgressFound', locale, { current: quest.objective.progress, count: quest.objective.count, objectType }));
                 }
             }
         });
@@ -444,7 +450,8 @@ export class QuestManager {
                     } else {
                         // Update UI
                         this.game.hudManager.updateQuestLog(this.activeQuests);
-                        this.game.hudManager.showNotification(`Zone discovered: ${zoneName}`);
+                        const locale = this.game.questStoryLocale || 'en';
+                        this.game.hudManager.showNotification(getQuestUiString('zoneDiscovered', locale, { zoneName }));
                     }
                 }
             }
@@ -464,9 +471,10 @@ export class QuestManager {
             }
             this.game.hudManager.updateQuestLog(this.activeQuests);
             const title = quest.title || quest.name;
+            const locale = this.game.questStoryLocale || 'en';
             this.game.hudManager.showDialog(
-                `Quest Completed: ${title}`,
-                `You have completed the quest and received your rewards!`
+                getQuestUiString('questCompletedTitle', locale, { title }),
+                getQuestUiString('questCompletedRewards', locale)
             );
             this.checkForNextQuest(quest);
         };
@@ -505,8 +513,8 @@ export class QuestManager {
                 const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
                 setTimeout(() => {
                     if (this.game.hudManager) {
-                        const label = nextMap?.mapName ?? nextDisplay.area ?? 'the next map';
-                        this.game.hudManager.showNotification(`Travel to ${label} to get your next quest.`);
+                        const label = nextMap?.mapName ?? nextDisplay.area ?? getQuestUiString('nextMapFallback', locale);
+                        this.game.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label }));
                     }
                 }, 2000);
                 return;
@@ -516,33 +524,35 @@ export class QuestManager {
         if (completedQuest.isMainQuest && completedQuest.nextQuestId) {
             const nextQuest = this.quests.find(q => q.id === completedQuest.nextQuestId);
             if (nextQuest) {
-                if (this.game.player.getLevel() >= (nextQuest.requiredLevel || 1)) {
-                    setTimeout(() => {
-                        this.game.hudManager.showDialog(
-                            `New Quest Available: ${nextQuest.name}`,
-                            `${nextQuest.description}\n\nWould you like to accept this quest?`,
-                            () => this.startQuest(nextQuest)
-                        );
-                    }, 2000);
-                } else {
-                    setTimeout(() => {
-                        this.game.hudManager.showNotification(
-                            `New quest "${nextQuest.name}" will be available at level ${nextQuest.requiredLevel}.`
-                        );
-                    }, 2000);
-                }
+                    const locale = this.game.questStoryLocale || 'en';
+                    if (this.game.player.getLevel() >= (nextQuest.requiredLevel || 1)) {
+                        setTimeout(() => {
+                            this.game.hudManager.showDialog(
+                                getQuestUiString('newQuestAvailable', locale, { name: nextQuest.name }),
+                                `${nextQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
+                                () => this.startQuest(nextQuest)
+                            );
+                        }, 2000);
+                    } else {
+                        setTimeout(() => {
+                            this.game.hudManager.showNotification(
+                                getQuestUiString('newQuestAtLevel', locale, { name: nextQuest.name, level: nextQuest.requiredLevel })
+                            );
+                        }, 2000);
+                    }
             }
         }
     }
     
     awardQuestRewards(quest) {
+        const locale = this.game.questStoryLocale || 'en';
         // GDD rewards (chapter quests): rewards.xp, rewards.skillPoints
         const rewards = quest.rewards || quest.reward;
         if (rewards) {
             const xp = rewards.xp ?? rewards.experience;
             if (xp) {
                 this.game.player.addExperience(xp);
-                this.game.hudManager.showNotification(`Gained ${xp} experience`);
+                this.game.hudManager.showNotification(getQuestUiString('gainedExperience', locale, { xp }));
             }
             const skillPoints = rewards.skillPoints;
             if (skillPoints && this.game.hudManager.components.skillTreeUI) {
@@ -553,7 +563,7 @@ export class QuestManager {
                     ui.skillPoints = (ui.skillPoints || 0) + skillPoints;
                     if (ui.elements?.skillPointsValue) ui.elements.skillPointsValue.textContent = ui.skillPoints;
                 }
-                this.game.hudManager.showNotification(`Gained ${skillPoints} skill point(s)`);
+                this.game.hudManager.showNotification(getQuestUiString('gainedSkillPoints', locale, { count: skillPoints }));
             }
         }
 
@@ -561,15 +571,15 @@ export class QuestManager {
         if (quest.reward) {
             if (quest.reward.gold) {
                 this.game.player.addGold(quest.reward.gold);
-                this.game.hudManager.showNotification(`Gained ${quest.reward.gold} gold`);
+                this.game.hudManager.showNotification(getQuestUiString('gainedGold', locale, { gold: quest.reward.gold }));
             }
             if (quest.reward.items) {
                 quest.reward.items.forEach(item => {
                     const equipResult = this.game.player.addToInventory(item);
                     if (equipResult === 'equipped') {
-                        this.game.hudManager.showNotification(`Equipped ${item.name}`, 'equip', { item });
+                        this.game.hudManager.showNotification(getQuestUiString('equipped', locale, { itemName: item.name }), 'equip', { item });
                     } else {
-                        this.game.hudManager.showNotification(`Received ${item.name} x${item.amount}`);
+                        this.game.hudManager.showNotification(getQuestUiString('received', locale, { itemName: item.name, amount: item.amount }));
                     }
                 });
             }
@@ -600,10 +610,11 @@ export class QuestManager {
     }
     
     checkForAvailableQuests() {
+        const locale = this.game.questStoryLocale || 'en';
         const remindLater = () => {
             setTimeout(() => {
                 if (this.game.hudManager && !this.getActiveChapterQuest()) {
-                    this.game.hudManager.showNotification('A story quest is available. Look for the quest log on the left.');
+                    this.game.hudManager.showNotification(getQuestUiString('storyQuestAvailable', locale));
                 }
             }, 8000);
         };
@@ -614,8 +625,8 @@ export class QuestManager {
             const locale = this.game.questStoryLocale || 'en';
             const display = getChapterQuestDisplay(q, locale);
             this.game.hudManager.showDialog(
-                `New Quest: ${display.title || q.title || q.name}`,
-                `${display.description || q.description}\n\nWould you like to accept this quest?`,
+                getQuestUiString('newQuestTitle', locale, { title: display.title || q.title || q.name }),
+                `${display.description || q.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(q),
                 remindLater
             );
@@ -625,8 +636,8 @@ export class QuestManager {
         if (mainQuests.length > 0) {
             const mainQuest = mainQuests[0];
             this.game.hudManager.showDialog(
-                `New Main Quest Available: ${mainQuest.name}`,
-                `${mainQuest.description}\n\nWould you like to accept this quest?`,
+                getQuestUiString('newMainQuestAvailable', locale, { name: mainQuest.name }),
+                `${mainQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(mainQuest),
                 remindLater
             );
@@ -636,8 +647,8 @@ export class QuestManager {
         if (sideQuests.length > 0) {
             const sideQuest = sideQuests[Math.floor(Math.random() * sideQuests.length)];
             this.game.hudManager.showDialog(
-                `New Side Quest Available: ${sideQuest.name}`,
-                `${sideQuest.description}\n\nWould you like to accept this quest?`,
+                getQuestUiString('newSideQuestAvailable', locale, { name: sideQuest.name }),
+                `${sideQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(sideQuest),
                 remindLater
             );

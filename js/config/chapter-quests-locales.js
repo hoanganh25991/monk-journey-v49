@@ -118,6 +118,80 @@ export const REFLECTION_UI_STRINGS = {
 };
 
 /**
+ * Quest instruction / notification messages (placeholders: {label}, {current}, {count}, {name}, {level}, {xp}, {gold}, {itemName}, {amount}, {zoneName}, {title}, {type}, {objectType}).
+ * Used by QuestManager for hints, progress, completion, and rewards.
+ */
+export const QUEST_UI_STRINGS = {
+    en: {
+        travelToGetNextQuest: 'Travel to {label} to get your next quest.',
+        storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
+        journeyHint: 'Your journey: complete the objectives in the quest log, then face the chapter boss.',
+        questProgressCount: 'Quest: {current}/{count} {type}',
+        questProgressEnemiesDefeated: 'Quest progress: {current}/{count} enemies defeated',
+        questProgressFound: 'Quest progress: {current}/{count} {objectType}s found',
+        zoneDiscovered: 'Zone discovered: {zoneName}',
+        questCompletedTitle: 'Quest Completed: {title}',
+        questCompletedRewards: 'You have completed the quest and received your rewards!',
+        newQuestAvailable: 'New Quest Available: {name}',
+        newQuestAtLevel: 'New quest "{name}" will be available at level {level}.',
+        acceptQuestPrompt: 'Would you like to accept this quest?',
+        newQuestTitle: 'New Quest: {title}',
+        newMainQuestAvailable: 'New Main Quest Available: {name}',
+        newSideQuestAvailable: 'New Side Quest Available: {name}',
+        gainedExperience: 'Gained {xp} experience',
+        gainedSkillPoints: 'Gained {count} skill point(s)',
+        gainedGold: 'Gained {gold} gold',
+        equipped: 'Equipped {itemName}',
+        received: 'Received {itemName} x{amount}',
+        enemies: 'enemies',
+        boss: 'boss',
+        nextMapFallback: 'the next map',
+    },
+    vi: {
+        travelToGetNextQuest: 'Đi tới {label} để nhận nhiệm vụ tiếp theo.',
+        storyQuestAvailable: 'Có nhiệm vụ cốt truyện. Hãy xem nhật ký nhiệm vụ bên trái.',
+        journeyHint: 'Hành trình của bạn: hoàn thành mục tiêu trong nhật ký nhiệm vụ, rồi đối mặt trùm chương.',
+        questProgressCount: 'Nhiệm vụ: {current}/{count} {type}',
+        questProgressEnemiesDefeated: 'Tiến độ: {current}/{count} kẻ địch đã hạ',
+        questProgressFound: 'Tiến độ: {current}/{count} {objectType} đã tìm',
+        zoneDiscovered: 'Đã khám phá: {zoneName}',
+        questCompletedTitle: 'Hoàn thành: {title}',
+        questCompletedRewards: 'Bạn đã hoàn thành nhiệm vụ và nhận phần thưởng!',
+        newQuestAvailable: 'Nhiệm vụ mới: {name}',
+        newQuestAtLevel: 'Nhiệm vụ "{name}" sẽ mở khi đạt cấp {level}.',
+        acceptQuestPrompt: 'Bạn có muốn nhận nhiệm vụ này không?',
+        newQuestTitle: 'Nhiệm vụ mới: {title}',
+        newMainQuestAvailable: 'Nhiệm vụ chính mới: {name}',
+        newSideQuestAvailable: 'Nhiệm vụ phụ mới: {name}',
+        gainedExperience: 'Nhận {xp} kinh nghiệm',
+        gainedSkillPoints: 'Nhận {count} điểm kỹ năng',
+        gainedGold: 'Nhận {gold} vàng',
+        equipped: 'Đã trang bị {itemName}',
+        received: 'Nhận {itemName} x{amount}',
+        enemies: 'kẻ địch',
+        boss: 'trùm',
+        nextMapFallback: 'bản đồ tiếp theo',
+    },
+};
+
+/**
+ * Get a localized quest UI string and replace placeholders.
+ * @param {string} key - Key in QUEST_UI_STRINGS (e.g. 'travelToGetNextQuest')
+ * @param {string} [locale] - 'en' | 'vi'; defaults to DEFAULT_LOCALE
+ * @param {Record<string, string|number>} [params] - e.g. { label: 'Forest', current: 2, count: 5 }
+ * @returns {string}
+ */
+export function getQuestUiString(key, locale = DEFAULT_LOCALE, params = {}) {
+    const loc = locale === 'vi' ? 'vi' : 'en';
+    const strings = QUEST_UI_STRINGS[loc] || QUEST_UI_STRINGS.en;
+    let s = strings[key] || QUEST_UI_STRINGS.en[key] || '';
+    Object.keys(params).forEach(k => {
+        s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+    });
+    return s;
+}
+
+/**
  * Get reflection button label.
  * @param {string} key - 'continueJourney' | 'enterPathOfMastery'
  * @param {string} [locale] - 'en' | 'vi'
