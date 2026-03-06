@@ -95,7 +95,7 @@ export class MapSelectionUI extends UIComponent {
 
             this.storyBookUI = new StoryBookUI(this.game);
             this.storyBookUI.init();
-            this.storyBookUI.onClose = () => this.show();
+            this.storyBookUI.onClose = () => {};
             this.setupEventListeners();
             this.updateMapSelectorLabels();
             this.loadManifest().then(() => this.populateMapList());
@@ -145,7 +145,6 @@ export class MapSelectionUI extends UIComponent {
             openStoryBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.hide();
                 if (this.storyBookUI) this.storyBookUI.show();
             });
         }

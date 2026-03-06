@@ -401,6 +401,7 @@
             <button id="map-selector-button" class="circle-btn" title="Map Selector">🗺️</button>
             <button id="inventory-button" class="circle-btn" title="Inventory">🎒</button>
             <button id="skill-selection-button" class="circle-btn" title="Skills">✨</button>
+            <button id="openStoryBookBtn" class="circle-btn" title="Story">📖</button>
 
             <span class="home-button-wrap">
                 <button id="home-button" class="circle-btn" title="Game Menu">⛩️</button>
@@ -430,7 +431,6 @@
                         <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
                     </div>
                     <div class="header-buttons">
-                        <button class="circle-btn" id="openStoryBookBtn" title="Story">📖</button>
                         <button class="circle-btn" id="closeMapSelector" title="Save & Close">💾</button>
                     </div>
                 </div>
@@ -613,12 +613,14 @@
     <div id="help-modal" class="help-modal" style="display: none;">
         <div class="help-modal-backdrop"></div>
         <div class="help-modal-box">
-            <h2 class="help-modal-title">How to Play</h2>
-            <div id="help-modal-content" class="help-modal-content"></div>
-            <div class="help-modal-buttons">
-                <button type="button" id="help-modal-next-btn" class="menu-button help-modal-next">Next</button>
+            <header class="help-modal-header">
+                <h2 class="help-modal-title">How to Play</h2>
+            </header>
+            <div id="help-modal-content" class="help-modal-body help-modal-content"></div>
+            <footer class="help-modal-footer">
                 <button type="button" id="help-modal-close-btn" class="menu-button help-modal-close">Close</button>
-            </div>
+                <button type="button" id="help-modal-next-btn" class="menu-button help-modal-next">Next</button>
+            </footer>
         </div>
     </div>
 

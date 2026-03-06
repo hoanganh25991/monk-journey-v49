@@ -30,7 +30,6 @@ export class StoryBookUI {
         const saveBtn = document.getElementById('story-book-save-btn');
         const prevBtn = document.getElementById('story-book-prev-btn');
         const nextBtn = document.getElementById('story-book-next-btn');
-        const openBtn = document.getElementById('openStoryBookBtn');
 
         if (!this.overlay) return false;
 

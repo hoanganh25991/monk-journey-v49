@@ -105,14 +105,18 @@
     .skill-button .skill-key {
         display: none !important;
     }
-    /* Center emoji in skill buttons on mobile: icon fills button and centers content */
-    .skill-button .skill-icon {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+    /* Center emoji in skill buttons on mobile: icon fills button, overrides global .skill-icon */
+    #skills-container .skill-button .skill-icon {
+        position: absolute !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         font-size: 1.5em;
+        line-height: 1;
     }
 }
 
