@@ -5,9 +5,9 @@
  */
 
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay } from '../config/chapter-quests-locales.js';
-import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 import { CHAPTER_STORY_IMAGES } from '../config/chapter-story-images.js';
+import { STORAGE_KEYS } from '../config/storage-keys.js';
 
 export class StoryBookUI {
     /**
@@ -27,25 +27,27 @@ export class StoryBookUI {
 
     init() {
         this.overlay = document.getElementById('story-book-overlay');
-        const closeBtn = document.getElementById('story-book-close-btn');
+        const saveBtn = document.getElementById('story-book-save-btn');
         const prevBtn = document.getElementById('story-book-prev-btn');
         const nextBtn = document.getElementById('story-book-next-btn');
         const openBtn = document.getElementById('openStoryBookBtn');
 
         if (!this.overlay) return false;
 
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.hide());
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveAndClose());
         }
         if (prevBtn) {
             prevBtn.addEventListener('click', () => this.prevChapter());
+            prevBtn.addEventListener('touchend', (e) => { e.preventDefault(); if (!prevBtn.disabled) this.prevChapter(); }, { passive: false });
         }
         if (nextBtn) {
             nextBtn.addEventListener('click', () => this.nextChapter());
+            nextBtn.addEventListener('touchend', (e) => { e.preventDefault(); if (!nextBtn.disabled) this.nextChapter(); }, { passive: false });
         }
 
         this.overlay.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') this.hide();
+            if (e.key === 'Escape') this.saveAndClose();
             if (e.key === 'ArrowLeft') this.prevChapter();
             if (e.key === 'ArrowRight') this.nextChapter();
         });
@@ -55,13 +57,41 @@ export class StoryBookUI {
 
     show() {
         if (!this.overlay) return;
-        this.currentIndex = 0;
+        this.currentIndex = this.getLastChapterIndex();
         this.updateLabels();
         this.renderChapter();
         this.overlay.style.display = 'flex';
         this.overlay.style.visibility = 'visible';
         this.overlay.setAttribute('aria-hidden', 'false');
-        document.getElementById('story-book-close-btn')?.focus();
+        document.getElementById('story-book-save-btn')?.focus();
+    }
+
+    /**
+     * Save current chapter as last read to storage, then close the book.
+     */
+    saveAndClose() {
+        this.saveLastChapterIndex(this.currentIndex);
+        this.hide();
+    }
+
+    /** @returns {number} Last saved chapter index (0-based), clamped to valid range. */
+    getLastChapterIndex() {
+        if (typeof localStorage === 'undefined') return 0;
+        const raw = localStorage.getItem(STORAGE_KEYS.STORY_BOOK_LAST_CHAPTER);
+        if (raw === null || raw === '') return 0;
+        const n = parseInt(raw, 10);
+        if (Number.isNaN(n) || n < 0) return 0;
+        return Math.min(n, CHAPTER_QUESTS.length - 1);
+    }
+
+    /** @param {number} index - 0-based chapter index to store. */
+    saveLastChapterIndex(index) {
+        if (typeof localStorage === 'undefined') return;
+        try {
+            localStorage.setItem(STORAGE_KEYS.STORY_BOOK_LAST_CHAPTER, String(index));
+        } catch (e) {
+            console.warn('Could not save story book last chapter:', e);
+        }
     }
 
     hide() {
@@ -76,8 +106,12 @@ export class StoryBookUI {
         const locale = this.getLocale();
         const titleEl = document.getElementById('story-book-title');
         if (titleEl) titleEl.textContent = getMapSelectionUiString('storyBookTitle', locale);
-        const closeBtn = document.getElementById('story-book-close-btn');
-        if (closeBtn) closeBtn.title = getMapSelectionUiString('storyCloseBook', locale);
+        const saveBtn = document.getElementById('story-book-save-btn');
+        if (saveBtn) {
+            saveBtn.textContent = getMapSelectionUiString('storySaveBookEmoji', locale);
+            saveBtn.title = getMapSelectionUiString('storySaveBook', locale);
+            saveBtn.setAttribute('aria-label', getMapSelectionUiString('storySaveBook', locale));
+        }
         const prevBtn = document.getElementById('story-book-prev-btn');
         if (prevBtn) {
             prevBtn.textContent = getMapSelectionUiString('storyPrevChapter', locale);

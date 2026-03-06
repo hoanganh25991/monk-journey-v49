@@ -28,6 +28,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/coach.js",
     "js/config/colors.js",
     "js/config/consumable-skills.js",
+    "js/config/death-screen-actions.js",
     "js/config/density.js",
     "js/config/elemental-effects.js",
     "js/config/enemy-behavior.js",

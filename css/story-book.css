@@ -6,22 +6,22 @@
     z-index: 9500;
     background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--padding-medium, 16px);
+    align-items: stretch;
+    justify-content: stretch;
+    padding: 0;
     box-sizing: border-box;
     pointer-events: auto;
 }
 
 .story-book-container {
     background-color: var(--theme-bg-dark, #1a1a1a);
-    border: 1px solid var(--theme-amber, rgba(255, 204, 0, 0.5));
-    border-radius: var(--modal-content-radius, 12px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     width: 100%;
-    max-width: 900px;
-    height: 90vh;
-    max-height: 90vh;
+    max-width: none;
+    height: 100%;
+    max-height: none;
     min-height: 0;
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;

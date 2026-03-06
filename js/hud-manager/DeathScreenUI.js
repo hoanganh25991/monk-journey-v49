@@ -1,8 +1,10 @@
 import { UIComponent } from '../UIComponent.js';
+import { DEATH_SCREEN_ACTIONS, REVIVE_GOLD_COST, RESPAWN_BUFF_INVULN_SECONDS } from '../config/death-screen-actions.js';
 
 /**
  * Death Screen UI component
- * Displays death screen with respawn and quit options
+ * Displays death screen with configurable action buttons (see death-screen-actions.js).
+ * Buttons are built from config so you can select which to show and wire logic here.
  */
 export class DeathScreenUI extends UIComponent {
     /**
@@ -13,12 +15,58 @@ export class DeathScreenUI extends UIComponent {
         super('death-screen', game);
         this.isDeathScreenOpen = false;
     }
+
+    /**
+     * Execute logic for the given death-screen action.
+     * @param {string} actionId - One of: respawn, respawn_buff, revive_gold, quit
+     */
+    runAction(actionId) {
+        switch (actionId) {
+            case 'respawn':
+                this.game.player.revive();
+                break;
+            case 'respawn_buff': {
+                this.game.player.revive();
+                if (this.game?.player?.statusEffects) {
+                    this.game.player.statusEffects.applyEffect('invulnerable', RESPAWN_BUFF_INVULN_SECONDS, 1.0);
+                    if (this.game?.hudManager) {
+                        this.game.hudManager.showNotification(`Spirit's blessing: ${RESPAWN_BUFF_INVULN_SECONDS}s invulnerability`);
+                    }
+                }
+                break;
+            }
+            case 'revive_gold': {
+                const gold = this.game.player.getGold ? this.game.player.getGold() : 0;
+                if (gold < REVIVE_GOLD_COST) return;
+                if (this.game.player.removeGold(REVIVE_GOLD_COST)) {
+                    this.game.player.revive();
+                    this.game.player.stats.setHealth(this.game.player.stats.getMaxHealth());
+                    this.game.player.stats.setMana(this.game.player.stats.getMaxMana());
+                    if (this.game?.player?.statusEffects) {
+                        this.game.player.statusEffects.applyEffect('invulnerable', 5.0, 1.0);
+                    }
+                    if (this.game?.hudManager) {
+                        this.game.hudManager.showNotification(`Revived! (-${REVIVE_GOLD_COST} Gold)`);
+                    }
+                }
+                break;
+            }
+            case 'quit':
+                window.location.reload();
+                break;
+            default:
+                console.warn('DeathScreenUI: unknown action', actionId);
+        }
+    }
     
     /**
      * Initialize the component
      * @returns {boolean} - True if initialization was successful
      */
     init() {
+        const buttonPlaceholder = DEATH_SCREEN_ACTIONS.filter(a => a.enabled)
+            .map(a => `<button class="menu-button death-action-btn" data-action-id="${a.id}" type="button">${a.label}</button>`)
+            .join('');
         const template = `
             <div id="death-screen-content">
                 <h1>You Died</h1>
@@ -26,36 +74,38 @@ export class DeathScreenUI extends UIComponent {
                     Your journey has come to an end, but your spirit lives on.
                 </div>
 
+                <div class="death-stats" id="death-stats">
+                    <div class="death-stats-title">This run</div>
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Time survived</span>
+                        <span class="death-stats-value" id="time-survived">--:--</span>
+                    </div>
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Enemies defeated</span>
+                        <span class="death-stats-value" id="enemies-defeated">0</span>
+                    </div>
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Level reached</span>
+                        <span class="death-stats-value" id="level-reached">1</span>
+                    </div>
+                </div>
+
                 <div class="menu-button-container">
-                    <button class="menu-button" id="respawn-button">Respawn</button>
-                    <button class="menu-button" id="quit-button">Quit Game</button>
+                    ${buttonPlaceholder}
                 </div>
             </div>
         `;
         
-        // Render the template
         this.render(template);
-        
-        // Create bound event handler methods to make them easier to remove later
-        this.handleRespawn = () => {
-            this.game.player.revive();
+        this.boundClickHandler = (e) => {
+            const btn = e.target.closest('.death-action-btn');
+            if (!btn || btn.disabled) return;
+            const actionId = btn.getAttribute('data-action-id');
+            if (actionId) this.runAction(actionId);
         };
-        
-        this.handleQuit = () => {
-            // Reload page to restart game
-            window.location.reload();
-        };
-        
-        // Add event listeners
-        const respawnButton = document.getElementById('respawn-button');
-        respawnButton.addEventListener('click', this.handleRespawn);
-        
-        const quitButton = document.getElementById('quit-button');
-        quitButton.addEventListener('click', this.handleQuit);
-        
-        // Hide initially
+        const container = this.container?.querySelector('.menu-button-container');
+        if (container) container.addEventListener('click', this.boundClickHandler);
         this.hide();
-        
         return true;
     }
     
@@ -67,8 +117,9 @@ export class DeathScreenUI extends UIComponent {
         if (this.isDeathScreenOpen) {
             return;
         }
-        // Update statistics
+        // Update statistics and action button states (e.g. Revive Gold disabled when poor)
         this.updateDeathStats();
+        this.updateActionButtons();
         
         // Show death screen
         this.show();
@@ -98,10 +149,25 @@ export class DeathScreenUI extends UIComponent {
         // Get player level
         const playerLevel = this.game.player.level || 1;
         
-        // Update UI elements
-        // document.getElementById('time-survived').textContent = timeString;
-        // document.getElementById('enemies-defeated').textContent = enemiesDefeated.toString();
-        // document.getElementById('level-reached').textContent = playerLevel.toString();
+        // Update UI elements (session recap = small win, encourages "one more try")
+        const timeEl = document.getElementById('time-survived');
+        const enemiesEl = document.getElementById('enemies-defeated');
+        const levelEl = document.getElementById('level-reached');
+        if (timeEl) timeEl.textContent = timeString;
+        if (enemiesEl) enemiesEl.textContent = enemiesDefeated.toString();
+        if (levelEl) levelEl.textContent = playerLevel.toString();
+    }
+
+    /**
+     * Update death action button state (e.g. disable "Revive (50 Gold)" when not enough gold).
+     */
+    updateActionButtons() {
+        const gold = this.game?.player?.getGold ? this.game.player.getGold() : 0;
+        this.container?.querySelectorAll('.death-action-btn[data-action-id="revive_gold"]').forEach((btn) => {
+            const enough = gold >= REVIVE_GOLD_COST;
+            btn.disabled = !enough;
+            btn.title = enough ? '' : `Requires ${REVIVE_GOLD_COST} Gold`;
+        });
     }
     
     /**
@@ -121,15 +187,9 @@ export class DeathScreenUI extends UIComponent {
      * Overrides the base class method
      */
     removeEventListeners() {
-        // Remove event listeners from buttons if they exist
-        const respawnButton = document.getElementById('respawn-button');
-        if (respawnButton && this.handleRespawn) {
-            respawnButton.removeEventListener('click', this.handleRespawn);
-        }
-        
-        const quitButton = document.getElementById('quit-button');
-        if (quitButton && this.handleQuit) {
-            quitButton.removeEventListener('click', this.handleQuit);
+        const container = this.container?.querySelector('.menu-button-container');
+        if (container && this.boundClickHandler) {
+            container.removeEventListener('click', this.boundClickHandler);
         }
     }
 }

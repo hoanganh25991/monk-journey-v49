@@ -105,6 +105,15 @@
     .skill-button .skill-key {
         display: none !important;
     }
+    /* Center emoji in skill buttons on mobile: icon fills button and centers content */
+    .skill-button .skill-icon {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5em;
+    }
 }
 
 .skill-name {

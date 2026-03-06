@@ -62,11 +62,17 @@ function openHelpModal() {
   showPage(0);
   const el = document.getElementById('help-modal');
   if (el) el.style.display = 'flex';
+  try {
+    window.__guideOnOpen?.();
+  } catch (_) {}
 }
 
 function closeHelpModal() {
   const el = document.getElementById('help-modal');
   if (el) el.style.display = 'none';
+  try {
+    window.__guideOnClose?.();
+  } catch (_) {}
 }
 
 function onNext() {

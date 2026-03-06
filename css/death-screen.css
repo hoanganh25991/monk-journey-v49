@@ -41,9 +41,22 @@
 
 #death-screen .menu-button-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
+    gap: var(--margin-medium, 1rem);
     width: 100%;
+}
+
+#death-screen .death-action-btn {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+#death-screen .death-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 #death-screen .death-message {

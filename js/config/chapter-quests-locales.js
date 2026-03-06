@@ -271,6 +271,8 @@ export const MAP_SELECTION_UI_STRINGS = {
         storyPrevChapter: '‹ Previous',
         storyNextChapter: 'Next ›',
         storyCloseBook: 'Close',
+        storySaveBook: 'Save',
+        storySaveBookEmoji: '💾',
     },
     vi: {
         selectMapTitle: 'Chọn bản đồ',
@@ -302,6 +304,8 @@ export const MAP_SELECTION_UI_STRINGS = {
         storyPrevChapter: '‹ Trước',
         storyNextChapter: 'Sau ›',
         storyCloseBook: 'Đóng',
+        storySaveBook: 'Lưu',
+        storySaveBookEmoji: '💾',
     },
 };
 
