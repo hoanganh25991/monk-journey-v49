@@ -13,6 +13,7 @@ export class DialogUI extends UIComponent {
         super('dialog-box', game);
         this.dialogText = null;
         this.dialogContinue = null;
+        this.dialogCancelBtn = null;
         this.isDialogOpen = false;
         this.game = game;
     }
@@ -26,10 +27,11 @@ export class DialogUI extends UIComponent {
         this.dialogText = document.getElementById('dialog-text');
         this.dialogContinue = document.getElementById('dialog-continue');
         this.dialogAcceptBtn = document.getElementById('dialog-accept-btn');
+        this.dialogCancelBtn = document.getElementById('dialog-cancel-btn');
         
         // Click on "Continue" or overlay: close (if no onAccept, or decline)
         this.container.addEventListener('click', (e) => {
-            if (e.target === this.dialogAcceptBtn) return;
+            if (e.target === this.dialogAcceptBtn || e.target === this.dialogCancelBtn) return;
             this.hideDialog();
         });
         if (this.dialogContinue) {
@@ -44,6 +46,12 @@ export class DialogUI extends UIComponent {
                     this._onDecline = null; // accepted, so do not call decline
                     cb();
                 }
+                this.hideDialog();
+            });
+        }
+        if (this.dialogCancelBtn) {
+            this.dialogCancelBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.hideDialog();
             });
         }
@@ -74,6 +82,9 @@ export class DialogUI extends UIComponent {
         if (this.dialogAcceptBtn) {
             this.dialogAcceptBtn.style.display = this._onAccept ? 'inline-block' : 'none';
         }
+        if (this.dialogCancelBtn) {
+            this.dialogCancelBtn.style.display = this._onAccept ? 'inline-block' : 'none';
+        }
         
         // Show dialog box
         this.show();
@@ -96,6 +107,7 @@ export class DialogUI extends UIComponent {
         this._onDecline = null;
         if (this.dialogContinue) this.dialogContinue.style.display = '';
         if (this.dialogAcceptBtn) this.dialogAcceptBtn.style.display = 'none';
+        if (this.dialogCancelBtn) this.dialogCancelBtn.style.display = 'none';
         // Hide dialog box
         this.hide();
         this.isDialogOpen = false;

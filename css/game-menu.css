@@ -27,6 +27,16 @@
     padding: 8px 20px;
 }
 
+#dialog-cancel-btn.dialog-cancel {
+    padding: 8px 20px;
+    background-color: rgba(80, 80, 80, 0.8);
+    border-color: rgba(120, 120, 120, 0.9);
+}
+#dialog-cancel-btn.dialog-cancel:hover {
+    background-color: rgba(100, 100, 100, 0.9);
+    border-color: rgba(140, 140, 140, 1);
+}
+
 /* Help modal (How to Play) */
 .help-modal {
     position: fixed;

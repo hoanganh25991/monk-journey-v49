@@ -294,7 +294,7 @@ export class Game {
                             this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
                         }
                     },
-                    null
+                    () => {} // Cancel/Decline: just close dialog, quest marker stays
                 );
             };
 
