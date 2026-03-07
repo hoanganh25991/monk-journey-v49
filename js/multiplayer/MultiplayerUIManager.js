@@ -508,7 +508,8 @@ export class MultiplayerUIManager {
      */
     async sendInviteToHost(hostId) {
         try {
-            const peer = new Peer();
+            const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+            const peer = new Peer(opts);
             await new Promise((resolve, reject) => {
                 peer.on('open', () => resolve());
                 peer.on('error', err => reject(err));
@@ -550,7 +551,8 @@ export class MultiplayerUIManager {
         const roomId = conn?.isHost ? conn?.roomId : conn?.hostId;
         if (!roomId || !conn?.isConnected) return;
         try {
-            const peer = new Peer();
+            const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+            const peer = new Peer(opts);
             await new Promise((resolve, reject) => {
                 peer.on('open', () => resolve());
                 peer.on('error', err => reject(err));
@@ -595,7 +597,8 @@ export class MultiplayerUIManager {
         const now = Date.now();
         if (now - (this._lastStatusPingAt[hostId] || 0) < MultiplayerUIManager.HOST_STATUS_PING_DEBOUNCE_MS) return;
         this._lastStatusPingAt[hostId] = now;
-        const peer = new Peer();
+        const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+        const peer = new Peer(opts);
         const timeoutMs = 10000;
         let settled = false;
         const finish = (status) => {

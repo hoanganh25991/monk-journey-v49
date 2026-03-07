@@ -11,6 +11,17 @@
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
 
+/** Optional: use a custom PeerServer for same-machine or unreliable cloud. e.g. run `npx peerjs --port 9000` then set:
+ *  PEER_SERVER = { host: 'localhost', port: 9000, path: '/', secure: false };
+ *  Leave null to use default 0.peerjs.com (can be flaky; connection may never open). */
+const PEER_SERVER = null;
+
+/** Options passed to every new Peer() so host and joiner use the same signaling server. */
+function getPeerOptions(overrides = {}) {
+    const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : {};
+    return { ...base, ...overrides };
+}
+
 export class MultiplayerConnectionManager {
     /**
      * Initialize the multiplayer connection manager
@@ -59,6 +70,15 @@ export class MultiplayerConnectionManager {
         this.peerIdToPingMs = new Map();
         /** Host: interval id for pinging all joiners; cleared on dispose. */
         this._hostPingIntervalId = null;
+        /** Joiner: timeout id for join attempt; cleared when connection opens or fails. */
+        this._joinTimeoutId = null;
+        /** Joiner: reference to pending DataConnection so timeout can close it. */
+        this._pendingJoinConn = null;
+    }
+
+    /** Returns options for new Peer() so all Peer instances use the same server (e.g. custom PEER_SERVER). */
+    getPeerOptions() {
+        return getPeerOptions();
     }
 
     /**
@@ -92,7 +112,7 @@ export class MultiplayerConnectionManager {
         const myId = this.multiplayerManager.getMyPersistentPeerId();
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');
-            this.peer = new Peer(myId);
+            this.peer = new Peer(myId, getPeerOptions());
             
             // Wait for peer to open
             await new Promise((resolve, reject) => {
@@ -156,23 +176,52 @@ export class MultiplayerConnectionManager {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
             // Joiner uses a new random Peer so we never get "ID is taken" (e.g. after hosting or reconnect on same device).
             // Host keeps persistent room ID; joiners get a new connection ID each time.
-            this.peer = new Peer();
-            
+            this.peer = new Peer(getPeerOptions());
+
             // Wait for peer to open
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => resolve());
                 this.peer.on('error', err => reject(err));
             });
-            
+
             // Connect to host
             this.hostId = roomId;
             console.warn(`[P2P] Joiner → signaling server → Host (${roomId.substring(0, 8)}…). Establishing connection...`);
             const conn = this.peer.connect(roomId, {
                 reliable: true
             });
-            
+            this._pendingJoinConn = conn;
+
+            // Timeout if connection never opens (PeerJS cloud can hang; known issue)
+            const JOIN_TIMEOUT_MS = 20000;
+            this._joinTimeoutId = setTimeout(() => {
+                if (this._joinAttemptRoomId !== roomId) return;
+                this._joinAttemptRoomId = null;
+                this._joinTimeoutId = null;
+                if (this._pendingJoinConn) {
+                    try { this._pendingJoinConn.close(); } catch (_) {}
+                    this._pendingJoinConn = null;
+                }
+                if (this.peer) {
+                    try { this.peer.destroy(); } catch (_) {}
+                    this.peer = null;
+                }
+                this.multiplayerManager.ui.onJoinToHostFailed(roomId);
+                this.multiplayerManager.ui.updateConnectionStatus('Connection timed out. Make sure the host is in the lobby and try again.', 'join-connection-status');
+                console.warn('[P2P] Join timed out. If using default PeerJS server, try running a local server: npx peerjs --port 9000 and set PEER_SERVER in MultiplayerConnectionManager.js');
+            }, JOIN_TIMEOUT_MS);
+
+            const clearJoinTimeout = () => {
+                if (this._joinTimeoutId) {
+                    clearTimeout(this._joinTimeoutId);
+                    this._joinTimeoutId = null;
+                }
+                this._pendingJoinConn = null;
+            };
+
             // Set up connection
             conn.on('open', () => {
+                clearJoinTimeout();
                 this._joinAttemptRoomId = null; // join succeeded
                 console.warn('[P2P] Path established: Joiner ↔ Host. Connection open.');
                 this.multiplayerManager.ui.clearReconnectRetry();
@@ -222,6 +271,7 @@ export class MultiplayerConnectionManager {
             });
             
             conn.on('error', (err) => {
+                clearJoinTimeout();
                 console.error('Connection error:', err);
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
@@ -230,16 +280,22 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + err.message);
                 }
             });
-            
+
             conn.on('close', () => {
+                clearJoinTimeout();
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
                     this.multiplayerManager.ui.onJoinToHostFailed(roomId);
                 }
             });
-            
+
             return true;
         } catch (error) {
+            if (this._joinTimeoutId) {
+                clearTimeout(this._joinTimeoutId);
+                this._joinTimeoutId = null;
+            }
+            this._pendingJoinConn = null;
             console.error('Error joining game:', error);
             this._joinAttemptRoomId = null;
             this.multiplayerManager.ui.updateConnectionStatus('Error joining game: ' + error.message);
@@ -254,7 +310,7 @@ export class MultiplayerConnectionManager {
         if (this._joinListenerPeer || this.isHost || this.isConnected) return;
         const persistentId = this.multiplayerManager.getMyPersistentPeerId();
         try {
-            this._joinListenerPeer = new Peer(persistentId);
+            this._joinListenerPeer = new Peer(persistentId, getPeerOptions());
             this._joinListenerPeer.on('connection', (conn) => this._handleInviteFromHostConnection(conn));
             this._joinListenerPeer.on('error', () => { /* e.g. ID taken; ignore */ });
         } catch (_) {
