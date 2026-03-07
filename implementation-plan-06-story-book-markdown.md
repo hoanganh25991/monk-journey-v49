@@ -14,6 +14,12 @@
 - **Usage:** In `StoryBookUI.renderChapter()`, when `locale === 'vi'`, use `VUONG_LAM_STORY_VI_LONG[index]` when defined, else `VUONG_LAM_STORY[index].vi`. English always uses short `VUONG_LAM_STORY[index].en`.
 - **UI:** Story block has `max-height: 40vh` and `overflow-y: auto` so long text scrolls within the book.
 
+### 1.1 Chapter list & jump to chapter — implemented
+
+- **Chapters button:** In the story book header, a “Chapters” (EN) / “Chương” (VI) button toggles a table-of-contents panel.
+- **Panel:** Lists all chapters with number and **title** (from `getChapterQuestDisplay(quest, locale).title` or `.area` for each `CHAPTER_QUESTS` entry). Locale strings: `storyChaptersBtn`, `storyChaptersPanelTitle` in `chapter-quests-locales.js`.
+- **Jump:** Clicking a chapter in the list sets the current chapter, re-renders the page, scrolls content to top, and closes the panel. Current chapter is highlighted in the list.
+
 ---
 
 ## 2. Markdown implementation plan

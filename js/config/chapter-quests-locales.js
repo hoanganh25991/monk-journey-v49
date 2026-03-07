@@ -274,6 +274,8 @@ export const MAP_SELECTION_UI_STRINGS = {
         storySaveBook: 'Save',
         storySaveBookEmoji: '💾',
         storyVuongLamLabel: 'Tale of Vương Lâm (Renegade Immortal)',
+        storyChaptersBtn: 'Chapters',
+        storyChaptersPanelTitle: 'Jump to chapter',
     },
     vi: {
         selectMapTitle: 'Chọn bản đồ',
@@ -308,6 +310,8 @@ export const MAP_SELECTION_UI_STRINGS = {
         storySaveBook: 'Lưu',
         storySaveBookEmoji: '💾',
         storyVuongLamLabel: 'Câu chuyện Vương Lâm (Tiên Nghịch)',
+        storyChaptersBtn: 'Chương',
+        storyChaptersPanelTitle: 'Nhảy tới chương',
     },
 };
 

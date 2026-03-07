@@ -56,6 +56,60 @@
     gap: var(--padding-small);
 }
 
+/* Chapters (table of contents) panel — scrollable list, jump to chapter */
+.story-book-chapters-panel {
+    flex-shrink: 0;
+    max-height: 45vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.5);
+    border-bottom: 1px solid rgba(138, 109, 59, 0.4);
+    padding: var(--padding-small) var(--padding-large);
+}
+
+.story-book-chapters-panel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--theme-gold);
+    margin-bottom: var(--padding-small);
+    flex-shrink: 0;
+}
+
+.story-book-chapters-list {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-right: 4px;
+}
+
+.story-book-chapter-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(138, 109, 59, 0.2);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.story-book-chapter-item:hover {
+    background: rgba(138, 109, 59, 0.35);
+    border-color: rgba(138, 109, 59, 0.5);
+}
+
+.story-book-chapter-item-current {
+    background: rgba(var(--theme-gold-rgb, 255, 204, 0), 0.15);
+    border-color: var(--theme-amber);
+    color: var(--theme-gold);
+}
+
 .story-book-content {
     min-height: 0;
     overflow-y: auto;

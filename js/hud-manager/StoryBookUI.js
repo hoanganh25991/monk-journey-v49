@@ -39,6 +39,11 @@ export class StoryBookUI {
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveAndClose());
         }
+        const chaptersBtn = document.getElementById('story-book-chapters-btn');
+        const chaptersPanel = document.getElementById('story-book-chapters-panel');
+        if (chaptersBtn && chaptersPanel) {
+            chaptersBtn.addEventListener('click', () => this.toggleChaptersPanel());
+        }
         if (prevBtn) {
             prevBtn.addEventListener('click', () => this.prevChapter());
             prevBtn.addEventListener('touchend', (e) => { e.preventDefault(); if (!prevBtn.disabled) this.prevChapter(); }, { passive: false });
@@ -61,6 +66,8 @@ export class StoryBookUI {
         if (!this.overlay) return;
         this.currentIndex = this.getLastChapterIndex();
         this.updateLabels();
+        this.renderChaptersList();
+        this.closeChaptersPanel();
         this.renderChapter();
         this.scrollContentToTop();
         this.overlay.style.display = 'flex';
@@ -137,6 +144,76 @@ export class StoryBookUI {
             nextBtn.textContent = getMapSelectionUiString('storyNextChapter', locale);
             nextBtn.title = getMapSelectionUiString('storyNextChapter', locale);
         }
+        const chaptersBtn = document.getElementById('story-book-chapters-btn');
+        if (chaptersBtn) {
+            const chaptersLabel = getMapSelectionUiString('storyChaptersBtn', locale);
+            chaptersBtn.textContent = '📖';
+            chaptersBtn.title = chaptersLabel;
+            chaptersBtn.setAttribute('aria-label', chaptersLabel);
+        }
+        const chaptersPanelTitle = document.getElementById('story-book-chapters-panel-title');
+        if (chaptersPanelTitle) {
+            chaptersPanelTitle.textContent = getMapSelectionUiString('storyChaptersPanelTitle', locale);
+        }
+    }
+
+    /** Toggle the chapters (table of contents) panel. */
+    toggleChaptersPanel() {
+        const panel = document.getElementById('story-book-chapters-panel');
+        const btn = document.getElementById('story-book-chapters-btn');
+        if (!panel || !btn) return;
+        const isOpen = panel.getAttribute('aria-hidden') !== 'true';
+        if (isOpen) {
+            this.closeChaptersPanel();
+        } else {
+            this.openChaptersPanel();
+        }
+    }
+
+    openChaptersPanel() {
+        const panel = document.getElementById('story-book-chapters-panel');
+        const btn = document.getElementById('story-book-chapters-btn');
+        if (panel && btn) {
+            this.renderChaptersList(); // refresh so current chapter is highlighted
+            panel.style.display = 'block';
+            panel.setAttribute('aria-hidden', 'false');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    closeChaptersPanel() {
+        const panel = document.getElementById('story-book-chapters-panel');
+        const btn = document.getElementById('story-book-chapters-btn');
+        if (panel && btn) {
+            panel.style.display = 'none';
+            panel.setAttribute('aria-hidden', 'true');
+            btn.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    /** Build the chapter list (table of contents) with titles; used for jump-to-chapter. */
+    renderChaptersList() {
+        const listEl = document.getElementById('story-book-chapters-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+        const locale = this.getLocale();
+        CHAPTER_QUESTS.forEach((quest, index) => {
+            const display = getChapterQuestDisplay(quest, locale);
+            const title = display.title || display.area || quest?.title || quest?.area || `Chapter ${index + 1}`;
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = 'story-book-chapter-item' + (index === this.currentIndex ? ' story-book-chapter-item-current' : '');
+            item.setAttribute('role', 'listitem');
+            item.textContent = `${index + 1}. ${title}`;
+            item.addEventListener('click', () => {
+                this.currentIndex = index;
+                this.renderChapter();
+                this.scrollContentToTop();
+                this.closeChaptersPanel();
+                this.renderChaptersList(); // refresh current highlight
+            });
+            listEl.appendChild(item);
+        });
     }
 
     renderChapter() {

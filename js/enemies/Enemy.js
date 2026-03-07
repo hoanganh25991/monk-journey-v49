@@ -229,11 +229,16 @@ export class Enemy {
     }
 
     /**
-     * When enemy has no target: small wander in place so they look "live" (idle animation + tiny position drift).
-     * Used for enemies outside detection range and for enemies inside village (safe zone) who must not target player.
+     * When enemy has no target: small wander in place so they look "live" (go-around animation when idle/standing).
+     * Used for enemies outside detection range and when player is inside village fence (safe zone) — treat as hidden, no attack.
      */
     _updateIdleWander(delta) {
         if (!this.world || !this.allowTerrainHeightUpdates) return;
+        // Don't wander from invalid position — avoid NaN and TerrainManager errors
+        if (!isFinite(this.position.x) || !isFinite(this.position.z)) {
+            this._idleWanderCenter = undefined;
+            return;
+        }
         if (this._idleWanderCenter === undefined) {
             this._idleWanderCenter = { x: this.position.x, z: this.position.z };
         }
@@ -244,6 +249,7 @@ export class Enemy {
         const wanderSpeed = 0.6;
         const x = center.x + fastCos(time * wanderSpeed + phase) * wanderRadius;
         const z = center.z + fastSin(time * wanderSpeed * 0.9 + phase * 1.1) * wanderRadius;
+        if (!isFinite(x) || !isFinite(z)) return;
         const terrainY = this.world.getTerrainHeight(x, z);
         if (terrainY != null && isFinite(terrainY)) {
             this.setPosition(x, terrainY + this.heightOffset, z);
@@ -390,8 +396,10 @@ export class Enemy {
         // Update terrain height
         this.updateTerrainHeight();
         
-        // Periodically validate position (every ~2 seconds to avoid performance impact)
-        if (Math.random() < 0.01) { // ~1% chance per frame
+        // Validate position: always when invalid (NaN) so enemies don't disappear; otherwise periodically
+        if (!isFinite(this.position.x) || !isFinite(this.position.z)) {
+            this.validatePosition();
+        } else if (Math.random() < 0.01) {
             this.validatePosition();
         }
         
@@ -412,6 +420,13 @@ export class Enemy {
         // Enemies inside village (safe zone) must not target the player — treat as no target
         if (this.targetPlayer && this.world?.isInsideSafeZone?.(this.position.x, this.position.z)) {
             this.targetPlayer = null;
+        }
+        // When player is inside village fence (safe zone), treat as hidden — no targeting so enemies don't get stuck at fence
+        if (this.targetPlayer && this.world?.isInsideSafeZone) {
+            const targetPos = this.targetPlayer.getPosition();
+            if (isFinite(targetPos.x) && isFinite(targetPos.z) && this.world.isInsideSafeZone(targetPos.x, targetPos.z)) {
+                this.targetPlayer = null;
+            }
         }
 
         if (!this.targetPlayer) {
@@ -1284,6 +1299,8 @@ export class Enemy {
     }
 
     setPosition(x, y, z) {
+        // Reject NaN so enemies never get invalid positions and disappear
+        if (!isFinite(x) || !isFinite(y) || !isFinite(z)) return;
         // Special handling for bosses
         if (this.isBoss) {
             if (this.initialPositionSet && this.initialYPosition !== null) {
@@ -1398,18 +1415,31 @@ export class Enemy {
         if (!isFinite(this.position.x) || !isFinite(this.position.y) || !isFinite(this.position.z)) {
             console.warn(`Enemy ${this.id} has invalid position:`, this.position);
             
-            // Try to fix by resetting to a safe position
+            // Try to fix by resetting to a safe position (only if player position is valid)
             if (this.player) {
                 const playerPos = this.player.getPosition();
-                this.position.x = playerPos.x + (Math.random() - 0.5) * 10;
-                this.position.z = playerPos.z + (Math.random() - 0.5) * 10;
-                
-                // Recalculate terrain height
-                this.forceTerrainHeightUpdate();
-                
-                console.debug(`Enemy ${this.id} position reset near player`);
-                return false;
+                if (isFinite(playerPos.x) && isFinite(playerPos.z)) {
+                    this.position.x = playerPos.x + (Math.random() - 0.5) * 10;
+                    this.position.z = playerPos.z + (Math.random() - 0.5) * 10;
+                    if (this.world) {
+                        const th = this.world.getTerrainHeight(this.position.x, this.position.z);
+                        if (th != null && isFinite(th)) this.position.y = th + this.heightOffset;
+                        else this.position.y = this.heightOffset;
+                    } else {
+                        this.position.y = this.heightOffset;
+                    }
+                    if (this.modelGroup) this.modelGroup.position.copy(this.position);
+                    console.debug(`Enemy ${this.id} position reset near player`);
+                    return false;
+                }
             }
+            // Fallback: snap to origin so enemy doesn't stay NaN and disappear
+            this.position.x = 0;
+            this.position.z = 0;
+            this.position.y = this.heightOffset;
+            if (this.modelGroup) this.modelGroup.position.copy(this.position);
+            if (this.world) this.forceTerrainHeightUpdate();
+            return false;
         }
         
         // Check if enemy is too far underground or floating too high

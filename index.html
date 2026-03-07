@@ -538,8 +538,13 @@
                 <div class="story-book-header">
                     <h2 id="story-book-title" class="story-book-header-title">The Journey</h2>
                     <div class="story-book-header-buttons">
+                        <button type="button" id="story-book-chapters-btn" class="circle-btn story-book-chapters-btn" title="Chapters" aria-label="Chapters" aria-expanded="false" aria-controls="story-book-chapters-panel">📖</button>
                         <button type="button" id="story-book-save-btn" class="circle-btn" title="Save" aria-label="Save">💾</button>
                     </div>
+                </div>
+                <div id="story-book-chapters-panel" class="story-book-chapters-panel" role="dialog" aria-label="Jump to chapter" aria-hidden="true" style="display: none;">
+                    <div class="story-book-chapters-panel-title" id="story-book-chapters-panel-title"></div>
+                    <div class="story-book-chapters-list" id="story-book-chapters-list" role="list"></div>
                 </div>
                 <div class="story-book-content">
                     <div class="story-book-chapter-visual" id="story-book-chapter-image">
