@@ -10,11 +10,12 @@
  * in the map selector, the UI uses this area as the single display name (localized via
  * chapters-vi.js when locale is "vi") so players see one clear name per map, not both map name and area.
  *
- * Locale: EN is the default (this file). For other locales, chapter-quests.js auto-loads
- * chapters-{locale}.js (e.g. chapters-vi.js) when needed. Locale files are translation-only (like JSON).
+ * Locale: EN default comes from chapters-en.js; other locales from chapters-{locale}.js (e.g. chapters-vi.js).
+ * All locale files are translation-only (like JSON). This file holds logic only.
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
+import { EN_ENTRIES, reflectionUi as REFLECTION_UI_EN, questUi as QUEST_UI_EN, mapSelectionUi as MAP_SELECTION_UI_EN } from './chapters-en.js';
 
 /** Default map bounds (typical playable area); quest markers stay inside this range. */
 const QUEST_MAP_RADIUS = 280;
@@ -354,11 +355,11 @@ function slug(s) {
 })();
 
 /**
- * Life lessons by chapter (for reflection screen).
+ * Life lessons by chapter (for reflection screen). EN from chapters-en.js.
  * @type {Record<string, string>}
  */
 export const CHAPTER_LESSONS = Object.fromEntries(
-    CHAPTER_QUESTS.map((q) => [q.id, q.lesson])
+    CHAPTER_QUESTS.map((q, i) => [q.id, EN_ENTRIES[i]?.lesson ?? ''])
 );
 
 /**
@@ -379,93 +380,6 @@ export function getFirstChapterQuest() {
 }
 
 const DEFAULT_LOCALE = 'en';
-
-/** EN: reflection screen UI */
-const REFLECTION_UI_EN = {
-    continueJourney: 'Continue Journey',
-    enterPathOfMastery: 'Enter Path of Mastery',
-    reflectionQuestionPrompt: 'What did you notice?',
-    reflectionOption1: 'The struggle—and the chance to help.',
-    reflectionOption2: 'The calm that followed the storm.',
-    reflectionOption3: 'Both: action and peace together.',
-};
-
-/** EN: quest messages (placeholders: {label}, {current}, {count}, etc.) */
-const QUEST_UI_EN = {
-    travelToGetNextQuest: 'Travel to "{label}" to get your next quest.',
-    storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
-    journeyHint: 'Your journey: complete the objectives in the quest log, then face the chapter boss.',
-    questProgressCount: 'Quest: {current}/{count} {type}',
-    questProgressEnemiesDefeated: 'Quest progress: {current}/{count} enemies defeated',
-    questProgressFound: 'Quest progress: {current}/{count} {objectType}s found',
-    zoneDiscovered: 'Zone discovered: {zoneName}',
-    questCompletedTitle: 'Quest Completed: {title}',
-    questCompletedRewards: 'You have completed the quest and received your rewards!',
-    newQuestAvailable: 'New Quest Available: {name}',
-    newQuestAtLevel: 'New quest "{name}" will be available at level {level}.',
-    acceptQuestPrompt: 'Would you like to accept this quest?',
-    newQuestTitle: 'New Quest: {title}',
-    newMainQuestAvailable: 'New Main Quest Available: {name}',
-    newSideQuestAvailable: 'New Side Quest Available: {name}',
-    gainedExperience: 'Gained {xp} experience',
-    gainedSkillPoints: 'Gained {count} skill point(s)',
-    gainedGold: 'Gained {gold} gold',
-    equipped: 'Equipped {itemName}',
-    received: 'Received {itemName} x{amount}',
-    enemies: 'enemies',
-    boss: 'boss',
-    nextMapFallback: 'the next map',
-    otherPathsAvailable: 'Other paths await in the Story panel.',
-    choiceInQuestHint: 'You can help in more than one way; complete at least one path to progress.',
-    choiceCallout: 'Choice',
-    storyQuestAwaitsOnMap: 'A story quest awaits. Find the quest marker on the map (marked with !) to begin.',
-    findQuestMarkerHint: '→ Find the quest marker (yellow ! on the map) to start your journey.',
-    noActiveQuests: 'No active quests',
-    reviewMore: 'Review more ({count})',
-    showLess: 'Show less',
-    activeQuestsTitle: 'Active Quests',
-    lessonLabel: 'Lesson',
-    close: 'Close',
-};
-
-/** EN: map selection overlay */
-const MAP_SELECTION_UI_EN = {
-    selectMapTitle: 'Select Map',
-    currentMap: 'Current: {name}',
-    currentMapNone: 'Current: —',
-    returnToDefaultWorld: 'Returned to Default World.',
-    mapSetToReloading: 'Map set to "{mapName}". Reloading...',
-    selectMapPlaceholder: 'Select a map',
-    chooseMapPlaceholder: 'Choose a map from the list to view details',
-    statSize: 'Size:',
-    statStructures: 'Structures:',
-    statPaths: 'Paths:',
-    statEnvironment: 'Environment:',
-    statEnemies: 'Enemies:',
-    enemiesRandom: 'Random',
-    btnMapSelector: 'Map Selector',
-    btnReturnToProceduralWorld: 'Return to Procedural World',
-    btnGenerateNewMap: 'Generate New Map',
-    btnSaveAndClose: 'Save & Close',
-    btnApplyAndReload: 'Teleport',
-    btnApplyAndReloadTitle: 'Teleport to this map',
-    arrivedAtMap: 'You have arrived at {mapName}.',
-    teleporting: 'Teleporting…',
-    loadingMap: 'Loading map...',
-    teleportToOriginTitle: 'Teleport to Origin',
-    btnStoryBook: 'Story',
-    storyBookTitle: 'The Journey',
-    storyChapterLabel: 'Chapter {n}',
-    storyPrevChapter: '‹ Previous',
-    storyNextChapter: 'Next ›',
-    storyCloseBook: 'Close',
-    storySaveBook: 'Save',
-    storySaveBookEmoji: '💾',
-    storyVuongLamLabel: 'Tale of Vương Lâm (Renegade Immortal)',
-    storyNoLongStory: 'No long story for this chapter.',
-    storyChaptersBtn: 'Chapters',
-    storyChaptersPanelTitle: 'Jump to chapter',
-};
 
 // --- Locale loading (chapters-vi.js etc.). EN = default; others loaded on demand. ---
 /** @type {Record<string, { questOverlay: Record<string, { title: string, description: string, lesson: string, area: string, bossName: string }>, reflection: Record<string, string>, quest: Record<string, string>, mapSelection: Record<string, string> }>} */
@@ -518,12 +432,14 @@ export async function ensureLocaleLoaded(locale) {
  */
 export function getChapterQuestDisplay(quest, locale = DEFAULT_LOCALE) {
     const id = quest?.id;
+    const idx = quest ? CHAPTER_QUESTS.indexOf(quest) : -1;
+    const enEntry = idx >= 0 && EN_ENTRIES[idx] ? EN_ENTRIES[idx] : null;
     const en = {
-        title: quest?.title ?? '',
-        description: quest?.description ?? '',
-        lesson: quest?.lesson ?? '',
-        area: quest?.area ?? '',
-        bossName: quest?.boss?.name ?? '',
+        title: enEntry?.title ?? '',
+        description: enEntry?.description ?? '',
+        lesson: enEntry?.lesson ?? '',
+        area: enEntry?.area ?? '',
+        bossName: enEntry?.bossName ?? '',
     };
     if (locale === 'en' || !locale) return en;
     const cached = localeCache[locale];

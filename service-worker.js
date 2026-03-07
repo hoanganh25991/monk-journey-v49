@@ -23,6 +23,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/chapter-maps-zones.js",
     "js/config/chapter-quest-maps.js",
     "js/config/chapter-quests.js",
+    "js/config/chapters-en.js",
     "js/config/chapters-vi.js",
     "js/config/chapter-story-images.js",
     "js/config/coach.js",
