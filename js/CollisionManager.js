@@ -1,6 +1,6 @@
 import * as THREE from '../libs/three/three.module.js';
 import { distanceSq2D, normalize2D, tempVec2 } from 'utils/FastMath.js';
-import { HOME_VILLAGE_FENCE_HALF_EXTENT } from '../config/structure.js';
+import { HOME_VILLAGE_FENCE_HALF_EXTENT } from './config/structure.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {
