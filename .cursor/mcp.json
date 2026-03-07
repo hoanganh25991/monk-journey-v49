@@ -6,7 +6,7 @@
     },
     "freesound": {
       "command": "node",
-      "args": ["tools/freesound-mcp-server/dist/index.js"]
+      "args": ["~/tools/freesound-mcp-server/dist/index.js"]
     }
   }
 }
