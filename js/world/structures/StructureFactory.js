@@ -362,8 +362,8 @@ export class StructureFactory {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
 
-            // Scale: gate 3x — ~18 wide, ~19.5 tall; fence gap must match HOME_VILLAGE_GATE_GAP_HALF_EXTENT (9)
-            const S = 3;          // scale factor (3x)
+            // Scale: gate 1.5x base (half of previous 3x) — ~9 wide, ~9.75 tall; fence gap must match HOME_VILLAGE_GATE_GAP_HALF_EXTENT (5)
+            const S = 1.5;         // scale factor
             const W = 3 * S;      // half-width (total span 18)
             const H_CENTRAL = 5 * S;
             const H_SIDE = 3 * S;
