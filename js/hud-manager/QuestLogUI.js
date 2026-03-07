@@ -133,7 +133,7 @@ export class QuestLogUI extends UIComponent {
         const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
         const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
         const name = display ? display.title : (quest.title || quest.name);
-        const isMain = quest.isMainQuest || (quest.lesson != null);
+        const isMain = quest.isMainQuest || !!chapterTemplate;
         const hasChoice = chapterTemplate ? chapterQuestHasChoiceGroups(chapterTemplate) : false;
         let objectiveText;
         if (quest.objectives && Array.isArray(quest.objectives)) {
@@ -181,7 +181,7 @@ export class QuestLogUI extends UIComponent {
         const effectiveLocale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : (locale || 'en');
         const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
         const display = chapterTemplate ? getChapterQuestDisplay(quest, effectiveLocale) : null;
-        const name = display ? display.title : (quest.title || quest.name);
+        const name = display ? display.title : (quest.title || quest.name || '');
         const area = display ? display.area : (quest.area || '');
         const description = display ? display.description : (quest.description || '');
         const lesson = display ? display.lesson : (quest.lesson || '');

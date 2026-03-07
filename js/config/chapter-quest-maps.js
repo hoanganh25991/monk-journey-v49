@@ -26,16 +26,16 @@ export function getMapIdForChapterQuest(chapterQuestId) {
 
 /**
  * Get the next story map id (for "go to map 02" instruction) after the given chapter quest id.
+ * Map display name (area) comes from getChapterQuestDisplay(nextQuest, locale).area.
  * @param {string} completedChapterQuestId
  * @param {import('./chapter-quests.js').ChapterQuest[]} chapterQuests - CHAPTER_QUESTS
- * @returns {{ mapId: string, mapName?: string }|null}
+ * @returns {{ mapId: string }|null}
  */
 export function getNextStoryMapAfter(completedChapterQuestId, chapterQuests) {
   const idx = CHAPTER_QUEST_MAPS.findIndex((e) => e.chapterQuestId === completedChapterQuestId);
   if (idx < 0 || idx >= CHAPTER_QUEST_MAPS.length - 1) return null;
   const next = CHAPTER_QUEST_MAPS[idx + 1];
-  const nextQuest = chapterQuests.find((q) => q.id === next.chapterQuestId);
-  return { mapId: next.mapId, mapName: nextQuest?.area ?? next.mapId };
+  return { mapId: next.mapId };
 }
 
 /**

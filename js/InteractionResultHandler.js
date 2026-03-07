@@ -1,3 +1,5 @@
+import { getChapterQuestById, getChapterQuestDisplay } from './config/chapter-quests.js';
+
 /**
  * Handles the results of interactions with interactive objects
  */
@@ -55,9 +57,13 @@ export class InteractionResultHandler {
             if (this.game.hudManager.isDialogVisible && this.game.hudManager.isDialogVisible()) {
                 this.game.hudManager.hideDialog();
             } else if (this.game.hudManager.showDialog) {
+                const locale = this.game.questStoryLocale || 'en';
+                const isChapter = getChapterQuestById(result.quest.id);
+                const title = isChapter ? getChapterQuestDisplay(result.quest, locale).title : (result.quest.name || '');
+                const description = isChapter ? getChapterQuestDisplay(result.quest, locale).description : (result.quest.description || '');
                 this.game.hudManager.showDialog(
-                    `New Quest: ${result.quest.name}`,
-                    result.quest.description
+                    `New Quest: ${title}`,
+                    description
                 );
             }
         }

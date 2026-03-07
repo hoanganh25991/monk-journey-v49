@@ -2,7 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';
-import { getChapterQuestById } from '../../config/chapter-quests.js';
+import { getChapterQuestById, getChapterQuestDisplay } from '../../config/chapter-quests.js';
 import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
@@ -170,10 +170,12 @@ export class InteractiveObjectManager {
 
         (this.game?.getWorldGroup?.() || this.scene).add(markerGroup);
 
+        const locale = this.game?.questStoryLocale || 'en';
+        const display = getChapterQuestDisplay(quest, locale);
         this.interactiveObjects.push({
             type: 'chapter_quest',
             questId: quest.id,
-            name: quest.title || quest.id,
+            name: display.title || quest.id,
             mesh: markerGroup,
             position: new THREE.Vector3(x, y, z),
             interactionRadius: 3,

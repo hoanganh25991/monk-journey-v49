@@ -1,4 +1,4 @@
-import { getChapterQuestById } from '../../config/chapter-quests.js';
+import { getChapterQuestById, getChapterQuestDisplay } from '../../config/chapter-quests.js';
 
 /**
  * Handles serialization and deserialization of quest data
@@ -104,10 +104,11 @@ export class QuestSerializer {
                             ...o,
                             progress: savedQuest.objectives?.[i]?.progress ?? 0
                         }));
+                        const display = getChapterQuestDisplay(chapterTemplate, 'en');
                         const questWithProgress = {
                             ...chapterTemplate,
-                            title: chapterTemplate.title || chapterTemplate.name,
-                            name: chapterTemplate.title || chapterTemplate.name,
+                            title: display.title,
+                            name: display.title,
                             objectives
                         };
                         questManager.activeQuests.push(questWithProgress);

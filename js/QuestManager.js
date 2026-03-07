@@ -21,15 +21,13 @@ export class QuestManager {
 
     /** @returns {boolean} */
     isChapterQuest(quest) {
-        return quest && (quest.lesson != null && quest.boss != null);
+        return quest && !!getChapterQuestById(quest.id);
     }
 
     /** Deep clone objectives with progress 0 for starting a chapter quest */
     cloneChapterQuestForStart(quest) {
         return {
             ...quest,
-            title: quest.title || quest.name,
-            name: quest.title || quest.name,
             objectives: (quest.objectives || []).map(o => ({ ...o, progress: 0 })),
         };
     }
@@ -550,23 +548,21 @@ export class QuestManager {
             this.completedChapterQuestIds.add(quest.id);
         }
 
+        const locale = this.game.questStoryLocale || 'en';
+        const display = getChapterQuestDisplay(quest, locale);
         const doAfterReflection = () => {
             this.awardQuestRewards(quest);
             if (this.game && this.game.audioManager) {
                 this.game.audioManager.playSound('questComplete');
             }
             this.game.hudManager.updateQuestLog(this.activeQuests);
-            const title = quest.title || quest.name;
-            const locale = this.game.questStoryLocale || 'en';
-            this.game.hudManager.showNotification(getQuestUiString('questCompletedTitle', locale, { title }));
+            this.game.hudManager.showNotification(getQuestUiString('questCompletedTitle', locale, { title: display.title }));
             this.showRewardsIn3D(quest);
             this.checkForNextQuest(quest);
         };
 
         // GDD §11: post-boss reflection (life lesson + Continue Journey); §12 Path of Mastery after Ch5
-        if (this.isChapterQuest(quest) && quest.lesson) {
-            const locale = this.game.questStoryLocale || 'en';
-            const display = getChapterQuestDisplay(quest, locale);
+        if (this.isChapterQuest(quest) && display.lesson) {
             const isChapter5 = quest.id === 'chapter_5_inner_temple';
             const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
             const chapterNum = chMatch ? chMatch[1] : '';
@@ -621,7 +617,7 @@ export class QuestManager {
                 const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
                 setTimeout(() => {
                     if (this.game.hudManager) {
-                        const label = nextMap?.mapName ?? nextDisplay.area ?? getQuestUiString('nextMapFallback', locale);
+                        const label = nextDisplay.area || getQuestUiString('nextMapFallback', locale);
                         const msg = nextIds.length > 1
                             ? getQuestUiString('travelToGetNextQuest', locale, { label }) + ' ' + (getQuestUiString('otherPathsAvailable', locale) || 'Other paths await in the Story panel.')
                             : getQuestUiString('travelToGetNextQuest', locale, { label });
@@ -774,8 +770,8 @@ export class QuestManager {
             const locale = this.game.questStoryLocale || 'en';
             const display = getChapterQuestDisplay(q, locale);
             this.game.hudManager.showDialog(
-                getQuestUiString('newQuestTitle', locale, { title: display.title || q.title || q.name }),
-                `${display.description || q.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
+                getQuestUiString('newQuestTitle', locale, { title: display.title }),
+                `${display.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(q),
                 () => {
                     // Cancel = "not now"; do not mark as declined so popup shows again next time

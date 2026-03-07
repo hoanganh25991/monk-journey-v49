@@ -171,7 +171,7 @@ export class MapSelectionUI extends UIComponent {
         const quest = CHAPTER_QUESTS.find((q) => q.id === entry.chapterQuestId);
         if (!quest) return null;
         const display = getChapterQuestDisplay(quest, locale);
-        return display?.area ?? quest?.area ?? null;
+        return display?.area ?? null;
     }
 
     /** Display name for a map entry in the current locale (from map-locales, then manifest). */

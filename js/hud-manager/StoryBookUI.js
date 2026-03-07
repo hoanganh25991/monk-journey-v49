@@ -198,7 +198,7 @@ export class StoryBookUI {
         const locale = this.getLocale();
         CHAPTER_QUESTS.forEach((quest, index) => {
             const display = getChapterQuestDisplay(quest, locale);
-            const title = display.title || display.area || quest?.title || quest?.area || `Chapter ${index + 1}`;
+            const title = display.title || display.area || `Chapter ${index + 1}`;
             const item = document.createElement('button');
             item.type = 'button';
             item.className = 'story-book-chapter-item' + (index === this.currentIndex ? ' story-book-chapter-item-current' : '');
@@ -225,10 +225,10 @@ export class StoryBookUI {
         if (labelEl) labelEl.textContent = getMapSelectionUiString('storyChapterLabel', locale, { n: this.currentIndex + 1 });
 
         const titleEl = document.getElementById('story-book-chapter-title');
-        if (titleEl) titleEl.textContent = display.title || quest?.title || '';
+        if (titleEl) titleEl.textContent = display.title || '';
 
         const descEl = document.getElementById('story-book-chapter-description');
-        if (descEl) descEl.textContent = display.description || quest?.description || '';
+        if (descEl) descEl.textContent = display.description || '';
 
         const lessonEl = document.getElementById('story-book-lesson');
         if (lessonEl) lessonEl.textContent = display.lesson ? `"${display.lesson}"` : '';
@@ -263,7 +263,7 @@ export class StoryBookUI {
         if (imgEl && placeholderEl) {
             if (imgUrl) {
                 imgEl.src = imgUrl;
-                imgEl.alt = display.title || quest?.title || '';
+                imgEl.alt = display.title || '';
                 imgEl.style.display = 'block';
                 imgEl.onerror = () => {
                     imgEl.style.display = 'none';
