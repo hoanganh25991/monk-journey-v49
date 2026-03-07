@@ -122,12 +122,12 @@
     font-family: var(--font-primary, system-ui, sans-serif);
 }
 
-/* Top: chapter image or placeholder */
+/* Top: chapter image or placeholder — container grows with image to show whole image */
 .story-book-chapter-visual {
     flex-shrink: 0;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    max-height: 320px;
+    min-height: 120px;
+    max-height: 70vh;
     border-radius: 8px;
     overflow: hidden;
     background: linear-gradient(145deg, #2a2520 0%, #1a1510 100%);
@@ -152,8 +152,10 @@
 
 .story-book-chapter-img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    object-position: center;
     display: block;
 }
 
