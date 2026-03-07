@@ -1,5 +1,6 @@
 import * as THREE from '../libs/three/three.module.js';
 import { distanceSq2D, normalize2D, tempVec2 } from 'utils/FastMath.js';
+import { HOME_VILLAGE_FENCE_HALF_EXTENT } from '../config/structure.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {
@@ -124,21 +125,21 @@ export class CollisionManager {
     
     checkPlayerObjectCollisions() {
         const playerPosition = this.player.getPosition();
+        const px = playerPosition.x;
+        const pz = playerPosition.z;
+        const H = HOME_VILLAGE_FENCE_HALF_EXTENT;
+        // Inside the village fence square: player moves freely (like terrain). No structure check. Only enemies are restricted by safe zone.
+        if (Math.abs(px) <= H && Math.abs(pz) <= H) return;
+
         const playerRadius = this.player.getCollisionRadius();
         
-        // Check collision with structures if available
+        // Check collision with structures if available (only when outside the village fence)
         if (this.world && this.world.structureManager && this.world.structureManager.structures) {
             this.world.structureManager.structures.forEach(structureData => {
-                // Get the actual THREE.Object3D from the structure data
                 const object = structureData.object;
-                
-                // Skip if object is not valid
                 if (!object) return;
-                // Village is a group of buildings with one huge AABB; skip so player can walk in empty space between buildings
                 if (structureData.type === 'village') return;
-                // When inside the village, don't push from fence/gate so player can move freely and not get stuck inside buildings
-                if ((structureData.type === 'village_fence' || structureData.type === 'village_gate') &&
-                    this.world.isInsideSafeZone && this.world.isInsideSafeZone(playerPosition.x, playerPosition.z)) return;
+                if (structureData.type === 'village_fence' || structureData.type === 'village_gate') return;
                 
                 try {
                     // Cache bounding box if not already cached
