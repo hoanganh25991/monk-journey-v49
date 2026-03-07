@@ -271,11 +271,10 @@ export class AncientYetiModel extends EnemyModel {
         const finalScale = baseScale * 0.5; // Further reduction to fit in scene
         this.modelGroup.scale.setScalar(finalScale);
         
-        // Adjust heightOffset to match the actual model scale
-        // The model's highest point is around y=3.5, so with final scale we need proper offset
-        // Original heightOffset was 0.65 * scale, but our model is scaled down
-        // We need to reduce the heightOffset proportionally
-        this.enemy.heightOffset = 0.35 * baseScale * 0.5; // Adjusted for actual model size
+        // Legs extend down to y = -1.8 in model space; bottom in world = -1.8 * finalScale.
+        // Set heightOffset so the yeti stands above the ground with full legs visible.
+        const legDrop = 1.8 * finalScale;
+        this.enemy.heightOffset = legDrop + 0.15; // feet on ground + small lift so clearly above terrain
     }
     
     /**

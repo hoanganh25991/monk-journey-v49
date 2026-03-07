@@ -163,6 +163,9 @@ export class WorldManager {
         const environment = mapData.environment && Array.isArray(mapData.environment) ? mapData.environment : [];
 
         if (structures.length === 0 && environment.length === 0) {
+            if (mapData.id === 'default' && this.structureManager?.createHomeVillage) {
+                this.structureManager.createHomeVillage();
+            }
             console.debug(`Map applied: ${mapData.name || mapData.id}`);
             return;
         }
@@ -190,6 +193,10 @@ export class WorldManager {
             if (sIdx < structures.length || eIdx < environment.length) {
                 requestAnimationFrame(tick);
             } else {
+                // Default map has the home village at (0,0) with fence and gate — create it after loading map structures
+                if (mapData.id === 'default' && this.structureManager?.createHomeVillage) {
+                    this.structureManager.createHomeVillage();
+                }
                 console.debug(`Map applied: ${mapData.name || mapData.id} (${structures.length} structures, ${environment.length} environment)`);
             }
         };

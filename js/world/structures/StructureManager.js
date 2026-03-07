@@ -282,8 +282,8 @@ export class StructureManager {
     clear() {
         // Remove all structures from the scene
         this.structures.forEach(structureInfo => {
-            if (structureInfo.object && structureInfo.object.parent) {
-                this.scene.remove(structureInfo.object);
+            if (structureInfo.object?.parent) {
+                structureInfo.object.parent.remove(structureInfo.object);
             }
             
             // Dispose of geometries and materials to free memory
