@@ -986,6 +986,13 @@ export const BOSS_TYPES = ENEMY_CONFIG.BOSS_TYPES;
 
 // Combat balance settings
 export const COMBAT_BALANCE = {
+    // Skill cooldown design: tuned so primary attack DPS (damage/cooldown * skillDamageMultiplier)
+    // gives ~4–8s time-to-kill on early-game enemy health (50–80). Enemy spawn ~1 per 5s,
+    // so player can handle 1–2 enemies with primary + skills. Wisdom and skill-tree buffs reduce cooldowns further.
+    skills: {
+        // Base cooldown (s) for primary attack — reference only; actual values in config/skills.js
+        primaryAttackBaseCooldown: 0.8
+    },
     // Player combat settings
     player: {
         // Base damage multipliers for combo punches (5 punches total)
