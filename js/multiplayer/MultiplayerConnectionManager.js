@@ -206,6 +206,7 @@ export class MultiplayerConnectionManager {
                 if (this._joinAttemptRoomId !== roomId) return;
                 this._joinAttemptRoomId = null;
                 this._joinTimeoutId = null;
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 if (this._pendingJoinConn) {
                     try { this._pendingJoinConn.close(); } catch (_) {}
                     this._pendingJoinConn = null;
@@ -228,21 +229,19 @@ export class MultiplayerConnectionManager {
             };
 
             let joinConnectionOpened = false;
+            let joinRetryIntervalId = null;
+            const persistentId = this.multiplayerManager.getMyPersistentPeerId();
             const onJoinConnectionOpen = () => {
                 if (joinConnectionOpened) return;
                 joinConnectionOpened = true;
                 clearJoinTimeout();
+                if (joinRetryIntervalId) {
+                    clearInterval(joinRetryIntervalId);
+                    joinRetryIntervalId = null;
+                }
                 this._joinAttemptRoomId = null;
                 console.warn('[P2P] Path established: Joiner ↔ Host. Connection open.');
                 this.multiplayerManager.ui.clearReconnectRetry();
-                conn.on('data', data => {
-                    if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
-                        this._pendingRawQueue.push(data);
-                        return;
-                    }
-                    const decoded = this.processReceivedData(data);
-                    if (decoded) this._pendingJsonQueue.push(decoded);
-                });
                 conn.on('close', () => this.handleDisconnect(roomId));
 
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
@@ -258,21 +257,33 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.game.ensureAnimationLoopRunning();
                 }
                 this._startPingInterval();
-                this.sendToHost({
-                    type: 'requestStartGame',
-                    persistentId: this.multiplayerManager.getMyPersistentPeerId()
-                });
+                this.sendToHost({ type: 'requestStartGame', persistentId });
             };
 
-            conn.on('open', () => onJoinConnectionOpen());
-            conn.once('data', (data) => {
-                if (joinConnectionOpened) return;
-                const d = this.processReceivedData(typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return null; } })() : data);
-                if (d?.type === 'hostReady') onJoinConnectionOpen();
+            const CONN_OPEN_TYPES = ['hostReady', 'welcome', 'startGame', 'playerColors'];
+            conn.on('data', (data) => {
+                if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
+                    this._pendingRawQueue.push(data);
+                    return;
+                }
+                const decoded = this.processReceivedData(typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return null; } })() : data);
+                if (!decoded) return;
+                if (!joinConnectionOpened && CONN_OPEN_TYPES.includes(decoded.type)) {
+                    onJoinConnectionOpen();
+                    if (decoded.type !== 'hostReady') this._pendingJsonQueue.push(decoded);
+                } else {
+                    this._pendingJsonQueue.push(decoded);
+                }
             });
+            conn.on('open', () => onJoinConnectionOpen());
+            joinRetryIntervalId = setInterval(() => {
+                if (joinConnectionOpened || !this._pendingJoinConn) return;
+                try { conn.send({ type: 'requestStartGame', persistentId }); } catch (_) {}
+            }, 800);
             
             conn.on('error', (err) => {
                 clearJoinTimeout();
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 console.error('Connection error:', err);
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
@@ -284,6 +295,7 @@ export class MultiplayerConnectionManager {
 
             conn.on('close', () => {
                 clearJoinTimeout();
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
                     this.multiplayerManager.ui.onJoinToHostFailed(roomId);
