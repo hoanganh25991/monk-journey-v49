@@ -187,11 +187,17 @@ export class MapSelectionUI extends UIComponent {
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || DEFAULT_MAP_PATH)
             : DEFAULT_MAP_PATH;
 
-        const sorted = [...this.mapManifest].sort((a, b) =>
-            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+        // Build display name per map in current locale (chapter area or localized map name), then sort by that so the list order respects locale.
+        const withDisplayName = this.mapManifest.map((map) => {
+            const chapterArea = this.getChapterAreaForMap(map.id, locale);
+            const displayName = chapterArea || this.getMapDisplayName(map);
+            return { map, displayName };
+        });
+        const sorted = withDisplayName.sort((a, b) =>
+            (a.displayName || '').localeCompare(b.displayName || '', locale === 'vi' ? 'vi' : 'en', { sensitivity: 'base' })
         );
 
-        for (const map of sorted) {
+        for (const { map, displayName } of sorted) {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
@@ -199,10 +205,7 @@ export class MapSelectionUI extends UIComponent {
             const thumb = map.thumbnail
                 ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
                 : '<span class="map-icon">🗺️</span>';
-            const displayName = this.getMapDisplayName(map);
-            const chapterArea = this.getChapterAreaForMap(map.id, locale);
-            const subtitle = chapterArea ? `<span class="map-list-subtitle">${chapterArea}</span>` : '';
-            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${displayName}</span>${subtitle}</span>`;
+            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${displayName}</span></span>`;
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }

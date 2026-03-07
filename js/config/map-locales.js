@@ -162,10 +162,11 @@ export const MAP_TEXTS = {
 
 /**
  * Get a single localized string for a map.
+ * When locale is 'vi', only returns a value from MAP_TEXTS.vi (no fallback to EN) so UI stays fully in Vietnamese.
  * @param {string} mapId - Map id (e.g. 'default', 'forest')
  * @param {string} [locale] - 'en' | 'vi'; defaults to DEFAULT_LOCALE
  * @param {MapTextKey} key - 'name' | 'description'
- * @returns {string} Localized string, or fallback to EN, or empty string
+ * @returns {string} Localized string, or fallback to EN when locale is 'en', or empty string
  */
 export function getMapText(mapId, locale = DEFAULT_LOCALE, key) {
     if (!mapId || !key) return '';
@@ -173,21 +174,29 @@ export function getMapText(mapId, locale = DEFAULT_LOCALE, key) {
     const byLocale = MAP_TEXTS[loc];
     const byId = byLocale && byLocale[mapId];
     if (byId && typeof byId[key] === 'string') return byId[key];
+    if (loc === 'vi') return ''; // Never fall back to English when locale is vi
     const fallback = MAP_TEXTS.en && MAP_TEXTS.en[mapId];
     if (fallback && typeof fallback[key] === 'string') return fallback[key];
     return '';
 }
 
+/** When locale is 'vi' and no translation exists, use these instead of manifest (EN) to avoid mixed language in the list. */
+const VI_GENERIC_FALLBACK = { name: 'Bản đồ', description: '' };
+
 /**
  * Get display name and description for a map in the given locale.
  * Use this when showing map info in UI; fallback to manifest entry if no locale entry.
+ * When locale is 'vi', never use manifest (English) fallback so the list stays fully in Vietnamese.
  * @param {string} mapId - Map id
  * @param {string} [locale] - 'en' | 'vi'
- * @param {{ name?: string, description?: string }} [fallback] - Optional fallback from manifest
+ * @param {{ name?: string, description?: string }} [fallback] - Optional fallback from manifest (used only for 'en')
  * @returns {{ name: string, description: string }}
  */
 export function getMapDisplay(mapId, locale = DEFAULT_LOCALE, fallback = {}) {
-    const name = getMapText(mapId, locale, 'name') || fallback.name || '';
-    const description = getMapText(mapId, locale, 'description') || fallback.description || '';
+    const loc = locale === 'vi' ? 'vi' : 'en';
+    const nameFromLocale = getMapText(mapId, locale, 'name');
+    const descFromLocale = getMapText(mapId, locale, 'description');
+    const name = nameFromLocale || (loc === 'vi' ? VI_GENERIC_FALLBACK.name : (fallback.name || ''));
+    const description = descFromLocale || (loc === 'vi' ? VI_GENERIC_FALLBACK.description : (fallback.description || ''));
     return { name, description };
 }

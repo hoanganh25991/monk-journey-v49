@@ -24,8 +24,8 @@ export const PLAYER_PROGRESSION = {
         vitality: 10,
         wisdom: 10,
         
-        // Movement and combat
-        movementSpeed: 18,
+        // Movement and combat (movement tuned so level 13 is not excessively fast; cap in PlayerStats)
+        movementSpeed: 14,
         attackPower: 20
     },
 
@@ -103,7 +103,7 @@ export const PLAYER_PROGRESSION = {
         },
         movementSpeed: {
             get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.movementSpeed; },
-            growthFactor: 1.08
+            growthFactor: 1.02  // Slow growth so high-level player is not excessively fast (was 1.08)
         }
     }
 };
@@ -1014,12 +1014,12 @@ export const COMBAT_BALANCE = {
         elementalDamageMultiplier: 1.2 // 20% bonus for elemental damage
     },
     
-    // Enemy combat settings
+    // Enemy combat settings (Medium default: enemies should survive several skill hits)
     enemy: {
         // Base damage multiplier - increased to make enemies more threatening
         damageMultiplier: 1.5,
-        // Health multiplier - significantly increased to better match player health
-        healthMultiplier: 1.0,
+        // Health multiplier - higher so default enemies don't die in 1–2 skills at Medium
+        healthMultiplier: 1.85,
         // Experience multiplier
         experienceMultiplier: 1.0,
         // Level scaling factor (how much stronger enemies get per player level)

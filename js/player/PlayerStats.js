@@ -348,8 +348,11 @@ export class PlayerStats {
         return this.attackPower;
     }
     
+    /** Max movement speed cap so high-level player stays manageable (balance for Medium). */
+    static get MOVEMENT_SPEED_CAP() { return 22; }
+
     /**
-     * Get current movement speed
+     * Get current movement speed (capped so level scaling + items don't make player excessively fast)
      * @returns {number} Current movement speed
      */
     getMovementSpeed() {
@@ -357,7 +360,7 @@ export class PlayerStats {
         if (v === 0 || v === undefined || v === null || !isFinite(v)) {
             return DEFAULT_PLAYER_STATS.movementSpeed;
         }
-        return v;
+        return Math.min(v, PlayerStats.MOVEMENT_SPEED_CAP);
     }
     
     // Setters

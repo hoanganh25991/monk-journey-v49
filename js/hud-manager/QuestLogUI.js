@@ -288,21 +288,30 @@ export class QuestLogUI extends UIComponent {
         if (!objective) return '';
         const p = objective.progress ?? 0;
         const c = objective.count ?? 1;
+        let text = '';
         switch (objective.type) {
             case 'kill': {
                 const target = objective.target;
                 let label = (target && target !== 'any') ? this.getEnemyDisplayName(target) : 'enemies';
                 if (c > 1 && label !== 'enemies' && !label.endsWith('s')) label += 's';
-                return `Kill ${p}/${c} ${label}`;
+                text = `Kill ${p}/${c} ${label}`;
+                break;
             }
             case 'defeat_boss':
-                return `Defeat boss ${p}/${c}`;
+                text = `Defeat boss ${p}/${c}`;
+                break;
             case 'interact':
-                return `Find ${p}/${c} ${objective.target || 'target'}s`;
+                text = `Find ${p}/${c} ${objective.target || 'target'}s`;
+                break;
             case 'explore':
-                return `Discover ${p}/${c} zones`;
+                text = `Discover ${p}/${c} zones`;
+                break;
             default:
-                return objective.description || `${p}/${c}`;
+                text = objective.description || `${p}/${c}`;
         }
+        if (objective.label && objective.type !== 'defeat_boss') {
+            text = `${objective.label}: ${text}`;
+        }
+        return text;
     }
 }

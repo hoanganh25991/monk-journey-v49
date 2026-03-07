@@ -5,6 +5,10 @@
  * Tone (Phase 7.6): Quests are one-time help—the monk helps a place once, learns a lesson, moves on.
  * Lessons and quest text are kid/teen-friendly: life lessons about growth, harmony, and being better
  * (anger, fear, gratitude, connection, self-mastery) without heavy or scary content.
+ *
+ * Naming: Each quest has an `area` (e.g. "Mountain of Desire"). When this chapter's map is shown
+ * in the map selector, the UI uses this area as the single display name (localized via
+ * chapter-quests-locales.js) so players see one clear name per map, not both map name and area.
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
@@ -29,8 +33,9 @@ export function getQuestMarkerPositionForChapter(chapterIndex) {
     };
 }
 
-/** @typedef {{ type: string, target?: string, count: number, progress?: number, group?: string }} ChapterObjective */
+/** @typedef {{ type: string, target?: string, count: number, progress?: number, group?: string, label?: string }} ChapterObjective */
 // Optional `group`: objectives with the same group form a "choice group". Completion when requireChoiceGroupsAtLeast groups are fully complete (and all objectives without group are complete).
+// Optional `label`: short narrative label for UI (e.g. "Clear the outskirts").
 
 /**
  * Whether this chapter quest has choice groups (objectives with .group); used for UI callouts.
@@ -70,10 +75,11 @@ export const CHAPTER_QUESTS = [
         area: 'The Restless Village',
         position: getQuestMarkerPositionForChapter(0),
         objectives: [
-            { type: 'kill', target: 'skeleton', count: 2, progress: 0 },
-            { type: 'kill', target: 'shadow_beast', count: 1, progress: 0 },
+            { type: 'kill', target: 'skeleton', count: 3, progress: 0, group: 'clear', label: 'Clear the outskirts' },
+            { type: 'kill', target: 'shadow_beast', count: 2, progress: 0, group: 'silence', label: "Silence the beast's call" },
             { type: 'defeat_boss', target: 'skeleton_king', count: 1, progress: 0 },
         ],
+        requireChoiceGroupsAtLeast: 1,
         boss: { enemyType: 'skeleton_king', name: 'Rage Beast' },
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['basicRing', 'basicAmulet', 'basicTalisman'],
@@ -88,10 +94,12 @@ export const CHAPTER_QUESTS = [
         area: 'Forest of Doubt',
         position: getQuestMarkerPositionForChapter(1),
         objectives: [
-            { type: 'kill', target: 'zombie', count: 2, progress: 0 },
-            { type: 'kill', target: 'corrupted_treant', count: 1, progress: 0 },
+            { type: 'kill', target: 'zombie', count: 2, progress: 0, group: 'mist', label: 'Calm the mist' },
+            { type: 'kill', target: 'corrupted_treant', count: 1, progress: 0, group: 'mist' },
+            { type: 'kill', target: 'feral_wolf', count: 3, progress: 0, group: 'pack', label: "Face the serpent's pack" },
             { type: 'defeat_boss', target: 'demon_lord', count: 1, progress: 0 },
         ],
+        requireChoiceGroupsAtLeast: 1,
         boss: { enemyType: 'demon_lord', name: 'Doubt Serpent' },
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['elementalRing', 'enlightenedAmulet', 'chakraTalisman'],
@@ -106,10 +114,13 @@ export const CHAPTER_QUESTS = [
         area: 'Mountain of Desire',
         position: getQuestMarkerPositionForChapter(2),
         objectives: [
-            { type: 'kill', target: 'forest_spider', count: 2, progress: 0 },
-            { type: 'kill', target: 'feral_wolf', count: 1, progress: 0 },
+            { type: 'kill', target: 'forest_spider', count: 3, progress: 0, group: 'path', label: 'Clear the path' },
+            { type: 'kill', target: 'feral_wolf', count: 2, progress: 0, group: 'path' },
+            { type: 'kill', target: 'corrupted_treant', count: 1, progress: 0, group: 'sentinels', label: "Break the titan's sentinels" },
+            { type: 'kill', target: 'shadow_beast', count: 2, progress: 0, group: 'sentinels' },
             { type: 'defeat_boss', target: 'golden_titan', count: 1, progress: 0 },
         ],
+        requireChoiceGroupsAtLeast: 1,
         boss: { enemyType: 'golden_titan', name: 'Golden Titan' },
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['crescentMoonRing', 'spiritCoreAmulet', 'dragonscaleTalisman'],
@@ -124,10 +135,13 @@ export const CHAPTER_QUESTS = [
         area: 'Desert of Loneliness',
         position: getQuestMarkerPositionForChapter(3),
         objectives: [
-            { type: 'kill', target: 'skeleton', count: 2, progress: 0 },
-            { type: 'kill', target: 'necromancer', count: 1, progress: 0 },
+            { type: 'kill', target: 'skeleton', count: 2, progress: 0, group: 'echoes', label: 'Silence the echoes' },
+            { type: 'kill', target: 'necromancer', count: 2, progress: 0, group: 'echoes' },
+            { type: 'kill', target: 'ruin_crawler', count: 3, progress: 0, group: 'shadows', label: "Face the phantom's shadows" },
+            { type: 'kill', target: 'cursed_spirit', count: 1, progress: 0, group: 'shadows' },
             { type: 'defeat_boss', target: 'echo_phantom', count: 1, progress: 0 },
         ],
+        requireChoiceGroupsAtLeast: 1,
         boss: { enemyType: 'echo_phantom', name: 'Echo Phantom' },
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['infinityBand', 'celestialHeart', 'cosmicNexus'],

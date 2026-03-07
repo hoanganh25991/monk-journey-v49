@@ -169,18 +169,18 @@ export class GameplayTab extends SettingsTab {
                 this.difficultySelect.appendChild(option);
             }
             
-            // Set current difficulty synchronously (default to 'basic')
-            const currentDifficulty = this.loadSettingSync(STORAGE_KEYS.DIFFICULTY, 'basic');
+            // Set current difficulty synchronously (default to 'medium' = normal balance)
+            const currentDifficulty = this.loadSettingSync(STORAGE_KEYS.DIFFICULTY, 'medium');
             
             console.debug(`Loading difficulty setting: ${currentDifficulty}`);
             this.difficultySelect.value = currentDifficulty;
             
             // If the value wasn't set correctly (e.g., if the stored value is invalid),
-            // explicitly set it to 'basic'
+            // explicitly set it to 'medium'
             if (!this.difficultySelect.value) {
-                console.debug('Invalid difficulty setting detected, defaulting to basic');
-                this.difficultySelect.value = 'basic';
-                this.saveSetting(STORAGE_KEYS.DIFFICULTY, 'basic');
+                console.debug('Invalid difficulty setting detected, defaulting to medium');
+                this.difficultySelect.value = 'medium';
+                this.saveSetting(STORAGE_KEYS.DIFFICULTY, 'medium');
             }
             
             // Add change event listener

@@ -116,7 +116,7 @@ export class EnemyManager {
         // Import zone difficulty multipliers from config
         this.zoneDifficultyMultipliers = ZONE_DIFFICULTY_MULTIPLIERS;
         // Track current difficulty
-        this.currentDifficulty = 'basic'; // Default difficulty
+        this.currentDifficulty = 'medium'; // Default difficulty (Medium = normal balance)
         
         // Multiplayer support
         this.isMultiplayer = false;
