@@ -10,12 +10,12 @@
  * in the map selector, the UI uses this area as the single display name (localized via
  * chapters-vi.js when locale is "vi") so players see one clear name per map, not both map name and area.
  *
- * Locale: EN default comes from chapters-en.js; other locales from chapters-{locale}.js (e.g. chapters-vi.js).
+ * Locale: Default comes from chapters.js; other locales from chapters-{locale}.js (e.g. chapters-vi.js).
  * All locale files are translation-only (like JSON). This file holds logic only.
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
-import { EN_ENTRIES, reflectionUi as REFLECTION_UI_EN, questUi as QUEST_UI_EN, mapSelectionUi as MAP_SELECTION_UI_EN } from './chapters-en.js';
+import { EN_ENTRIES, reflectionUi as REFLECTION_UI_EN, questUi as QUEST_UI_EN, mapSelectionUi as MAP_SELECTION_UI_EN } from './chapters.js';
 
 /** Default map bounds (typical playable area); quest markers stay inside this range. */
 const QUEST_MAP_RADIUS = 280;
@@ -355,7 +355,7 @@ function slug(s) {
 })();
 
 /**
- * Life lessons by chapter (for reflection screen). EN from chapters-en.js.
+ * Life lessons by chapter (for reflection screen). From chapters.js.
  * @type {Record<string, string>}
  */
 export const CHAPTER_LESSONS = Object.fromEntries(

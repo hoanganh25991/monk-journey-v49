@@ -1,6 +1,6 @@
 /**
- * English locale — translations only (like JSON). Same shape as chapters-vi.js.
- * Used by chapter-quests.js for default (en) display. Logic stays in chapter-quests.js.
+ * Default locale (translations only, like JSON). Same shape as chapters-vi.js.
+ * Used by chapter-quests.js for default display. Logic stays in chapter-quests.js.
  */
 
 /** Boss names for chapters 6–100 (cycle). Index = chapter index % 8. */
@@ -129,7 +129,7 @@ export const EN_ENTRIES = [
     { title: 'Final Gate', area: 'Final Gate', description: 'The final gate before mastery. A Mirror of the Self is the last guardian. Transcend the untrained self and face the mirror to earn the Path of Mastery.', lesson: 'The untrained self is the only foe.', bossName: BOSS_EN[4] },
 ];
 
-/** Reflection screen UI (EN). */
+/** Reflection screen UI. */
 export const reflectionUi = {
     continueJourney: 'Continue Journey',
     enterPathOfMastery: 'Enter Path of Mastery',
@@ -139,7 +139,7 @@ export const reflectionUi = {
     reflectionOption3: 'Both: action and peace together.',
 };
 
-/** Quest messages UI (EN). Placeholders: {label}, {current}, {count}, etc. */
+/** Quest messages UI. Placeholders: {label}, {current}, {count}, etc. */
 export const questUi = {
     travelToGetNextQuest: 'Travel to "{label}" to get your next quest.',
     storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
@@ -177,7 +177,7 @@ export const questUi = {
     close: 'Close',
 };
 
-/** Map selection overlay UI (EN). */
+/** Map selection overlay UI. */
 export const mapSelectionUi = {
     selectMapTitle: 'Select Map',
     currentMap: 'Current: {name}',
