@@ -456,12 +456,14 @@
 #skill-tree-details {
     flex: 1;
     min-width: 0;
+    width: 0; /* forces flex child to not overflow */
     overflow-y: auto;
     overflow-x: hidden;
     background: rgba(9, 6, 2, 0.6);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
 }
 
 /* Skill header: name + description */
@@ -469,6 +471,8 @@
     padding: 24px 30px 20px;
     border-bottom: 1px solid rgba(90, 62, 14, 0.28);
     flex-shrink: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #skill-detail-name {
@@ -493,9 +497,10 @@
 
 /* ─── Node detail card ────────────────────────────────────────── */
 .skill-tree-node-detail-panel {
-    margin: 0 30px 0;
-    padding: 12px 0 16px;
+    padding: 12px 30px 16px;
     border-bottom: 1px solid rgba(90, 62, 14, 0.28);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #skill-node-level-line {
@@ -569,7 +574,8 @@
     flex-direction: column;
     gap: 0;
     padding: 18px 30px 32px;
-    max-width: 900px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* ─── Section labels ──────────────────────────────────────────── */
@@ -605,6 +611,8 @@
     border-right: 1px solid rgba(90, 62, 12, 0.14);
     border-radius: 0 7px 7px 0;
     margin-bottom: 22px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #skill-story-text {
@@ -619,31 +627,42 @@
 
 /* ─── Stats block ─────────────────────────────────────────────── */
 #skill-stats-block {
-    padding: 18px 22px;
+    padding: 10px 16px;
     background: rgba(8, 14, 28, 0.68);
     border: 1px solid rgba(55, 92, 175, 0.22);
     border-top: 2px solid rgba(80, 125, 210, 0.32);
     border-radius: 8px;
-    margin-bottom: 22px;
+    margin-bottom: 16px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 #skill-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 6px;
+    margin-top: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+#skill-stats-grid::-webkit-scrollbar {
+    display: none;
 }
 
 .skill-stat-item {
     display: flex;
     flex-direction: column;
     align-items: center;
+    flex: 1 0 0;
+    min-width: 56px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.07);
     border-top: 2px solid rgba(75, 120, 215, 0.32);
-    border-radius: 7px;
-    padding: 12px 8px 10px;
-    gap: 4px;
+    border-radius: 6px;
+    padding: 7px 4px 6px;
+    gap: 3px;
     transition: all 0.15s;
 }
 
@@ -651,7 +670,7 @@
     background: rgba(255, 255, 255, 0.07);
     border-color: rgba(255, 255, 255, 0.12);
     border-top-color: rgba(100, 155, 255, 0.5);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 /* Semantic stat colors */
@@ -664,20 +683,21 @@
 .skill-stat-item[data-stat="duration"] { border-top-color: rgba(200, 195, 65, 0.6); }
 
 .skill-stat-icon {
-    font-size: 22px;
+    font-size: 14px;
     line-height: 1;
 }
 
 .skill-stat-label {
-    font-size: 10px;
+    font-size: 8px;
     color: rgba(175, 175, 200, 0.65);
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .skill-stat-value {
-    font-size: 18px;
+    font-size: 13px;
     font-weight: 700;
     color: #eae0f8;
 }
@@ -687,6 +707,8 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Variants container — flex-wrap so instruction+button share one row */
@@ -700,6 +722,8 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Buffs container */
@@ -713,6 +737,8 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* Instruction text: flex:1 so it fills left side of first row */

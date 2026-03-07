@@ -262,6 +262,15 @@ export class VirtualJoystickUI extends UIComponent {
     }
     
     /**
+     * Check if an X coordinate is on the left half of the screen.
+     * @param {number} clientX - X position to check
+     * @returns {boolean} - True if position is on the left half
+     */
+    isOnLeftHalfOfScreen(clientX) {
+        return clientX < window.innerWidth / 2;
+    }
+
+    /**
      * Check if a position is inside the compact joystick overlay (bottom-left zone).
      * @param {number} clientX - X position to check
      * @param {number} clientY - Y position to check
