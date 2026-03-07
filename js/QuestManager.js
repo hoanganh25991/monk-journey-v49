@@ -571,22 +571,10 @@ export class QuestManager {
             const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
             const chapterNum = chMatch ? chMatch[1] : '';
             const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
-            const rewards = quest.reflectionRewards && Array.isArray(quest.reflectionRewards) ? quest.reflectionRewards : [];
-            const received = (quest.id && this.reflectionChoicesReceived[quest.id]) ? this.reflectionChoicesReceived[quest.id] : [];
-            const optionIndices = rewards.length ? [0, 1, 2].filter(i => i < rewards.length && !received.includes(i)) : [];
-            const showReflectionQuestion = optionIndices.length > 0;
+            // Reflection question ("What did you notice?") disabled: go straight to lesson + Continue
             const options = {
                 chapterTitle: chapterTitle || undefined,
-                reflectionQuestion: showReflectionQuestion,
-                optionIndices: showReflectionQuestion ? optionIndices : undefined,
-                onReflectionChoice: (choiceIndex) => {
-                    if (!rewards[choiceIndex] || received.includes(choiceIndex)) return;
-                    if (quest.id) {
-                        if (!this.reflectionChoicesReceived[quest.id]) this.reflectionChoicesReceived[quest.id] = [];
-                        this.reflectionChoicesReceived[quest.id].push(choiceIndex);
-                    }
-                    this.awardReflectionChoiceReward(quest, choiceIndex);
-                },
+                reflectionQuestion: false,
                 ...(isChapter5 ? {
                     isChapter5: true,
                     onEnterPathOfMastery: () => {
