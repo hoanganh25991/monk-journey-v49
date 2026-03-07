@@ -516,16 +516,17 @@ export class Enemy {
                     const moveSpeed = this.speed * delta * 1.5;
                     const newX = this.position.x + tempVec2.x * moveSpeed;
                     const newZ = this.position.z + tempVec2.z * moveSpeed;
-                    
-                    let newY = this.position.y;
-                    if (this.world && this.allowTerrainHeightUpdates) {
-                        const terrainHeight = this.world.getTerrainHeight(newX, newZ);
-                        if (terrainHeight !== null) {
-                            newY = terrainHeight + this.heightOffset;
+                    // Do not enter safe zones (e.g. village inside fence)
+                    if (!this.world?.isInsideSafeZone?.(newX, newZ)) {
+                        let newY = this.position.y;
+                        if (this.world && this.allowTerrainHeightUpdates) {
+                            const terrainHeight = this.world.getTerrainHeight(newX, newZ);
+                            if (terrainHeight !== null) {
+                                newY = terrainHeight + this.heightOffset;
+                            }
                         }
+                        this.setPosition(newX, newY, newZ);
                     }
-                    
-                    this.setPosition(newX, newY, newZ);
                 }
                 
                 // Refresh aggression timer
@@ -901,7 +902,7 @@ export class Enemy {
             const knockbackDistance = 1.0; // Knockback distance in units
             const newX = this.position.x + direction.x * knockbackDistance;
             const newZ = this.position.z + direction.z * knockbackDistance;
-            
+            if (this.world?.isInsideSafeZone?.(newX, newZ)) return;
             // Calculate proper Y position based on terrain height
             let newY = this.position.y;
             if (this.world && this.allowTerrainHeightUpdates) {
@@ -910,7 +911,6 @@ export class Enemy {
                     newY = terrainHeight + this.heightOffset;
                 }
             }
-            
             this.setPosition(newX, newY, newZ);
         }
     }

@@ -6,6 +6,11 @@
  * and their relationships to different biomes/themes.
  */
 
+/** Half extent of the square fence around the home village at (0,0,0) — fence runs from -H to +H on X and Z */
+export const HOME_VILLAGE_FENCE_HALF_EXTENT = 45;
+/** Radius of the safe zone circle (no enemy spawn, enemies cannot enter) for the home village */
+export const HOME_VILLAGE_SAFE_RADIUS = 45;
+
 /**
  * Structure objects dictionary
  * A single source of truth for all structure string literals

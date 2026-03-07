@@ -292,8 +292,8 @@ export class StructureFactory {
             return caveGroup;
         });
 
-        // Village fence segment (simple post + rail)
-        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE, (x, z) => {
+        // Village fence segment (simple post + rail); rotationY orients segment along perimeter
+        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE, (x, z, rotationY = 0) => {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
             const woodColor = 0x8B7355;
@@ -308,13 +308,14 @@ export class StructureFactory {
             rail.position.set(0, 1.7, 0);
             rail.castShadow = true;
             group.add(rail);
+            group.rotation.y = rotationY;
             group.position.set(x, y, z);
             (this.game?.getWorldGroup?.() || this.scene).add(group);
             return group;
         });
 
-        // Village gate (two posts + cross beam)
-        this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z) => {
+        // Village gate (two posts + cross beam); rotationY orients gate (e.g. 0 = opening along -Z)
+        this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z, rotationY = 0) => {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
             const woodColor = 0x6B5344;
@@ -333,6 +334,7 @@ export class StructureFactory {
             beam.position.set(0, 2.2, 0);
             beam.castShadow = true;
             group.add(beam);
+            group.rotation.y = rotationY;
             group.position.set(x, y, z);
             (this.game?.getWorldGroup?.() || this.scene).add(group);
             return group;
@@ -382,6 +384,8 @@ export class StructureFactory {
             result = creator(x, z, rotation);
         } else if (type === STRUCTURE_OBJECTS.VILLAGE) {
             result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout });
+        } else if (type === STRUCTURE_OBJECTS.VILLAGE_FENCE || type === STRUCTURE_OBJECTS.VILLAGE_GATE) {
+            result = creator(x, z, rotation);
         } else {
             result = creator(x, z);
         }
