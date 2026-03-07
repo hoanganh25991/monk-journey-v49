@@ -254,8 +254,14 @@
 }
 
 .quest-detail-lesson {
-    margin: 0;
-    padding: 8px 0 0;
+    margin: 0.75rem 0 0;
+    padding: 0.75rem 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-left: 4px solid var(--theme-gold, #ffcc00);
+    background: rgba(var(--theme-gold-rgb, 255, 204, 0), 0.06);
+    border-radius: 0 6px 6px 0;
+    font-size: 1rem;
     font-style: italic;
+    color: var(--theme-gold, #ffcc00);
+    opacity: 0.95;
 }
