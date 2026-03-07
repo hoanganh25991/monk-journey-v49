@@ -5,7 +5,7 @@
  *
  * @type {string[]}
  */
-export const VUONG_LAM_STORY_VI_LONG = [
+export const WANG_LIN_STORY_VI_LONG = [
     // Ch 1 — Anger burns the one who carries it.
     `Thuở nhỏ Vương Lâm sống trong một ngôi làng nhỏ bên rìa Hàm Sơn. Làng ấy không giàu, cũng chẳng có tu sĩ nào đoái hoài. Nhưng điều khiến làng tan hoang không phải nghèo đói—mà là sự giận dữ. Tranh chấp đất đai giữa các dòng họ, thù hận tích tụ từ đời cha ông, lời qua tiếng lại đầy độc địa. Có lần chàng chứng kiến hai nhà đánh nhau vì một con đường mòn, máu đổ, không ai chịu nhường. Khi bước chân vào Hằng Nhạc phái, chàng thấy không ít sư huynh đệ cũng để cơn giận làm chủ: tranh đan, tranh pháp khí, hận thù nối hận thù. Vương Lâm tự nhủ: kẻ để sự phẫn nộ dẫn lối sẽ là kẻ gục ngã trước. Chàng không quên làng cũ, nhưng chàng mang theo quyết tâm—để sống, để tu, để một ngày có thể thay đổi—chứ không phải ngọn lửa giận đốt cháy chính mình. Sự giận dữ đốt cháy chính kẻ mang nó; chàng chọn không mang nó.`,
 

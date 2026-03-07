@@ -8,9 +8,8 @@ import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
 import { getChapterQuestDisplay, getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 import { CHAPTER_STORY_IMAGES } from '../config/chapter-story-images.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
-import { VUONG_LAM_STORY } from '../config/vuong-lam-story.js';
-import { VUONG_LAM_STORY_EN_LONG } from '../config/vuong-lam-story-en-long.js';
-import { VUONG_LAM_STORY_VI_LONG } from '../config/vuong-lam-story-vi-long.js';
+import { WANG_LIN_STORY_EN_LONG } from '../config/wang-lin-story-en-long.js';
+import { WANG_LIN_STORY_VI_LONG } from '../config/wang-lin-story-vi-long.js';
 
 export class StoryBookUI {
     /**
@@ -234,24 +233,17 @@ export class StoryBookUI {
         const lessonEl = document.getElementById('story-book-lesson');
         if (lessonEl) lessonEl.textContent = display.lesson ? `"${display.lesson}"` : '';
 
-        // Vương Lâm story: long EN/VI when available for locale, else short from vuong-lam-story.js
+        // Story book body: long content only; fallback = "No long story for this chapter"
         const storyBlock = document.getElementById('story-book-story-block');
         const storyLabelEl = document.getElementById('story-book-story-label');
         const storyEl = document.getElementById('story-book-chapter-story');
         if (storyBlock && storyLabelEl && storyEl) {
-            const storyEntry = VUONG_LAM_STORY[this.currentIndex];
-            const longEn = VUONG_LAM_STORY_EN_LONG && VUONG_LAM_STORY_EN_LONG[this.currentIndex];
-            const longVi = VUONG_LAM_STORY_VI_LONG && VUONG_LAM_STORY_VI_LONG[this.currentIndex];
-            const storyText = storyEntry
-                ? (locale === 'en' && longEn ? longEn : locale === 'vi' && longVi ? longVi : (locale === 'vi' ? storyEntry.vi : storyEntry.en))
-                : '';
-            if (storyText) {
-                storyBlock.style.display = 'block';
-                storyLabelEl.textContent = getMapSelectionUiString('storyVuongLamLabel', locale);
-                storyEl.textContent = storyText;
-            } else {
-                storyBlock.style.display = 'none';
-            }
+            const longEn = WANG_LIN_STORY_EN_LONG && WANG_LIN_STORY_EN_LONG[this.currentIndex];
+            const longVi = WANG_LIN_STORY_VI_LONG && WANG_LIN_STORY_VI_LONG[this.currentIndex];
+            const storyText = (locale === 'en' ? longEn : longVi) || getMapSelectionUiString('storyNoLongStory', locale);
+            storyBlock.style.display = 'block';
+            storyLabelEl.textContent = getMapSelectionUiString('storyVuongLamLabel', locale);
+            storyEl.textContent = storyText;
         }
 
         const indicatorEl = document.getElementById('story-book-page-indicator');

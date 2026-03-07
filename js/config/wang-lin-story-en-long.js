@@ -5,7 +5,7 @@
  *
  * @type {string[]}
  */
-export const VUONG_LAM_STORY_EN_LONG = [
+export const WANG_LIN_STORY_EN_LONG = [
     // Ch 1 — Anger burns the one who carries it.
     `In his youth Wang Lin lived in a small village on the edge of Heng Shan. The village was not rich, and no cultivator cared for it. What destroyed it was not poverty—it was rage. Feuds over land between clans, hatred passed down from fathers and grandfathers, words sharp as blades. Once he saw two families fight over a footpath until blood ran and neither would yield. When he entered the Heng Yue Sect, he saw no shortage of fellow disciples ruled by anger: fighting over resources, over treasures, hatred breeding hatred. Wang Lin told himself: those who let wrath lead them are the first to fall. He did not forget the old village, but he carried resolve—to live, to cultivate, to one day change things—not the fire of anger burning himself. Anger burns the one who carries it; he chose not to carry it.`,
 

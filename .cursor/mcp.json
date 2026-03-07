@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "openrouter-image": {
+      "command": "npx",
+      "args": ["-y", "@mindbreaker81/openrouter-image", "server", "--stdio"]
+    },
+    "freesound": {
+      "command": "node",
+      "args": ["tools/freesound-mcp-server/dist/index.js"]
+    }
+  }
+}
