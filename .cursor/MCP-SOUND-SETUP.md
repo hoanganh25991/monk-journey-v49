@@ -16,9 +16,22 @@ cd ../..
 
 ## 2. Get a Freesound API key
 
+The MCP server uses **Token** authentication (not OAuth). You use a single API key.
+
+### If you already have an OAuth credential (e.g. "SereneAI Game")
+
+You don’t need to do the OAuth flow. The same credential has a **Client secret / API key** that works as the token:
+
+1. Go to [freesound.org/apiv2/apply](https://freesound.org/apiv2/apply) and log in.
+2. In the table of your API credentials, find the row for your app (e.g. "SereneAI Game").
+3. In that row, copy the value in the **"Client secret / Api key"** column (long alphanumeric string).
+4. Use that value as `FREESOUND_API_KEY` below. No callback, no OAuth steps—just this key.
+
+### If you don’t have a credential yet
+
 1. Create an account at [freesound.org](https://freesound.org) (free).
-2. Apply for an API key: [freesound.org/apiv2/apply](https://freesound.org/apiv2/apply).
-3. Copy the key once approved.
+2. Go to [freesound.org/apiv2/apply](https://freesound.org/apiv2/apply), fill the form (name, URL, callback can be the default `https://freesound.org/home/app_permissions/permission_granted/`), and apply.
+3. After approval, in the credentials table copy the **"Client secret / Api key"** for that app.
 
 ## 3. Set your API key
 

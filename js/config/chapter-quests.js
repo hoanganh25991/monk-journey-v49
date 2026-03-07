@@ -8,7 +8,10 @@
  *
  * Naming: Each quest has an `area` (e.g. "Mountain of Desire"). When this chapter's map is shown
  * in the map selector, the UI uses this area as the single display name (localized via
- * chapter-quests-vi.js) so players see one clear name per map, not both map name and area.
+ * chapters-vi.js when locale is "vi") so players see one clear name per map, not both map name and area.
+ *
+ * Locale: EN is the default (this file). For other locales, chapter-quests.js auto-loads
+ * chapters-{locale}.js (e.g. chapters-vi.js) when needed. Locale files are translation-only (like JSON).
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
@@ -375,8 +378,10 @@ export function getFirstChapterQuest() {
     return CHAPTER_QUESTS[0];
 }
 
-/** UI strings (EN default) for reflection screen */
-export const REFLECTION_UI_STRINGS_EN = {
+const DEFAULT_LOCALE = 'en';
+
+/** EN: reflection screen UI */
+const REFLECTION_UI_EN = {
     continueJourney: 'Continue Journey',
     enterPathOfMastery: 'Enter Path of Mastery',
     reflectionQuestionPrompt: 'What did you notice?',
@@ -385,8 +390,8 @@ export const REFLECTION_UI_STRINGS_EN = {
     reflectionOption3: 'Both: action and peace together.',
 };
 
-/** UI strings (EN default) for quest messages (placeholders: {label}, {current}, {count}, etc.) */
-export const QUEST_UI_STRINGS_EN = {
+/** EN: quest messages (placeholders: {label}, {current}, {count}, etc.) */
+const QUEST_UI_EN = {
     travelToGetNextQuest: 'Travel to "{label}" to get your next quest.',
     storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
     journeyHint: 'Your journey: complete the objectives in the quest log, then face the chapter boss.',
@@ -423,8 +428,8 @@ export const QUEST_UI_STRINGS_EN = {
     close: 'Close',
 };
 
-/** UI strings (EN default) for map selection overlay */
-export const MAP_SELECTION_UI_STRINGS_EN = {
+/** EN: map selection overlay */
+const MAP_SELECTION_UI_EN = {
     selectMapTitle: 'Select Map',
     currentMap: 'Current: {name}',
     currentMapNone: 'Current: —',
@@ -461,3 +466,151 @@ export const MAP_SELECTION_UI_STRINGS_EN = {
     storyChaptersBtn: 'Chapters',
     storyChaptersPanelTitle: 'Jump to chapter',
 };
+
+// --- Locale loading (chapters-vi.js etc.). EN = default; others loaded on demand. ---
+/** @type {Record<string, { questOverlay: Record<string, { title: string, description: string, lesson: string, area: string, bossName: string }>, reflection: Record<string, string>, quest: Record<string, string>, mapSelection: Record<string, string> }>} */
+const localeCache = {};
+/** @type {Record<string, Promise<void>>} */
+const localeLoadPromises = {};
+
+/**
+ * Load a locale module (e.g. chapters-vi.js). Cached after first load.
+ * @param {string} locale - 'en' | 'vi' | ...
+ * @returns {Promise<void>}
+ */
+export async function ensureLocaleLoaded(locale) {
+    if (locale === 'en' || !locale) return;
+    if (localeCache[locale]) return;
+    if (localeLoadPromises[locale]) return localeLoadPromises[locale];
+    const load = (async () => {
+        try {
+            const mod = await import(`./chapters-${locale}.js`);
+            const VI_ENTRIES = mod.VI_ENTRIES || [];
+            const BOSS_VI = mod.BOSS_VI || [];
+            const reflection = mod.reflectionUi || {};
+            const quest = mod.questUi || {};
+            const mapSelection = mod.mapSelectionUi || {};
+            const questOverlay = {};
+            for (let i = 0; i < VI_ENTRIES.length && i < CHAPTER_QUESTS.length; i++) {
+                const q = CHAPTER_QUESTS[i];
+                const vi = VI_ENTRIES[i];
+                questOverlay[q.id] = {
+                    title: vi.title,
+                    description: vi.description,
+                    lesson: vi.lesson,
+                    area: vi.area,
+                    bossName: vi.bossName ?? BOSS_VI[i % BOSS_VI.length],
+                };
+            }
+            localeCache[locale] = { questOverlay, reflection, quest, mapSelection };
+        } catch (_) {
+            localeCache[locale] = { questOverlay: {}, reflection: {}, quest: {}, mapSelection: {} };
+        }
+    })();
+    localeLoadPromises[locale] = load;
+    return load;
+}
+
+/**
+ * @param {import('./chapter-quests.js').ChapterQuest} quest
+ * @param {string} [locale]
+ * @returns {{ title: string, description: string, lesson: string, area: string, bossName: string }}
+ */
+export function getChapterQuestDisplay(quest, locale = DEFAULT_LOCALE) {
+    const id = quest?.id;
+    const en = {
+        title: quest?.title ?? '',
+        description: quest?.description ?? '',
+        lesson: quest?.lesson ?? '',
+        area: quest?.area ?? '',
+        bossName: quest?.boss?.name ?? '',
+    };
+    if (locale === 'en' || !locale) return en;
+    const cached = localeCache[locale];
+    if (!cached || !id) return en;
+    const overlay = cached.questOverlay[id];
+    if (!overlay) return en;
+    return {
+        title: overlay.title ?? en.title,
+        description: overlay.description ?? en.description,
+        lesson: overlay.lesson ?? en.lesson,
+        area: overlay.area ?? en.area,
+        bossName: overlay.bossName ?? en.bossName,
+    };
+}
+
+/** @typedef {'title'|'description'|'lesson'|'area'|'bossName'} QuestTextKey */
+
+/**
+ * @param {string} questId
+ * @param {string} [locale]
+ * @param {QuestTextKey} [key]
+ * @returns {string}
+ */
+export function getChapterQuestText(questId, locale = DEFAULT_LOCALE, key) {
+    const quest = getChapterQuestById(questId);
+    if (!quest || !key) return '';
+    const display = getChapterQuestDisplay(quest, locale);
+    const v = display[key];
+    return typeof v === 'string' ? v : '';
+}
+
+/**
+ * @param {string} key
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function getReflectionUiString(key, locale = DEFAULT_LOCALE) {
+    if (locale === 'en' || !locale) return REFLECTION_UI_EN[key] ?? '';
+    const cached = localeCache[locale];
+    const strings = cached?.reflection ?? {};
+    return strings[key] ?? REFLECTION_UI_EN[key] ?? '';
+}
+
+/**
+ * @param {string} key
+ * @param {string} [locale]
+ * @param {Record<string, string|number>} [params]
+ * @returns {string}
+ */
+export function getQuestUiString(key, locale = DEFAULT_LOCALE, params = {}) {
+    const en = QUEST_UI_EN[key] ?? '';
+    if (locale === 'en' || !locale) {
+        let s = en;
+        Object.keys(params).forEach((k) => {
+            s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+        });
+        return s;
+    }
+    const cached = localeCache[locale];
+    const strings = cached?.quest ?? {};
+    let s = strings[key] ?? en;
+    Object.keys(params).forEach((k) => {
+        s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+    });
+    return s;
+}
+
+/**
+ * @param {string} key
+ * @param {string} [locale]
+ * @param {Record<string, string|number>} [params]
+ * @returns {string}
+ */
+export function getMapSelectionUiString(key, locale = DEFAULT_LOCALE, params = {}) {
+    const en = MAP_SELECTION_UI_EN[key] ?? '';
+    if (locale === 'en' || !locale) {
+        let s = en;
+        Object.keys(params).forEach((k) => {
+            s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+        });
+        return s;
+    }
+    const cached = localeCache[locale];
+    const strings = cached?.mapSelection ?? {};
+    let s = strings[key] ?? en;
+    Object.keys(params).forEach((k) => {
+        s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
+    });
+    return s;
+}

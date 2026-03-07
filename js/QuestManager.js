@@ -1,5 +1,5 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from './config/chapter-quests-vi.js';
+import { getChapterQuestDisplay, getQuestUiString } from './config/chapter-quests.js';
 import { getNextStoryMapAfter } from './config/chapter-quest-maps.js';
 
 export class QuestManager {

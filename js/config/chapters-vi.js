@@ -1,8 +1,9 @@
 /**
- * Vietnamese short quest text for chapters 1–100 (title, description, lesson, area, bossName).
- * EN comes from chapter-quests.js; VI is this single file.
- * @type {{ title: string, description: string, lesson: string, area: string, bossName?: string }[]}
+ * Vietnamese locale — translations only (like JSON). No logic.
+ * Used by chapter-quests.js when locale is "vi". EN is defined in chapter-quests.js.
  */
+
+/** Chapter quest text (title, description, lesson, area, bossName). Index matches CHAPTER_QUESTS. */
 export const VI_ENTRIES = [
     // Ch 1–5
     { title: 'Làng Bất An', area: 'Làng Bất An', description: 'Một ngôi làng chìm trong sự giận dữ—tranh chấp đất đai, thù hận cũ. Một Con Thú Giận Dữ đã bám rễ và ăn sự tức giận của họ. Hãy xoa dịu xung đột và đối mặt con thú để làng tìm được bình yên.', lesson: 'Sự giận dữ đốt cháy chính kẻ mang nó.', bossName: 'Con Thú Giận Dữ' },
@@ -116,3 +117,96 @@ export const VI_ENTRIES = [
     { title: 'Tro Bại Trận', area: 'Tro Bại Trận', description: 'Tro thất bại trước. Bãi Lầy Hối Tiếc khuấy tro. Thở và bắt đầu lại; làm dịu bãi lầy.', lesson: 'Thở và bắt đầu lại.' },
     { title: 'Cầu Thang Chế Nhạo', area: 'Cầu Thang Chế Nhạo', description: 'Cầu thang mỗi bậc là khinh miệt. Trái Tim Băng Giá xây. Leo với lòng tốt và làm tan trái tim.', lesson: 'Lòng tốt là bước đầu.' },
 ];
+
+/** Fallback boss names when VI_ENTRIES[i].bossName is missing. */
+export const BOSS_VI = [
+    'Kẻ Canh Giữ Xung Đột', 'Bóng Nghi Ngờ', 'Hình Tượng Tham Lam', 'Linh Hồn Cô Đơn',
+    'Gương Bản Thể', 'Bãi Lầy Hối Tiếc', 'Trái Tim Băng Giá', 'Chúa Ảo Ảnh',
+];
+
+/** Reflection screen UI (VI only). */
+export const reflectionUi = {
+    continueJourney: 'Tiếp tục hành trình',
+    enterPathOfMastery: 'Vào Đường Tu Tập',
+    reflectionQuestionPrompt: 'Bạn đã nhận ra điều gì?',
+    reflectionOption1: 'Sự khó khăn—và cơ hội giúp đỡ.',
+    reflectionOption2: 'Sự bình yên sau cơn bão.',
+    reflectionOption3: 'Cả hai: hành động và bình an cùng nhau.',
+};
+
+/** Quest messages UI (VI only). Placeholders: {label}, {current}, {count}, etc. */
+export const questUi = {
+    travelToGetNextQuest: 'Đi tới "{label}" để nhận nhiệm vụ tiếp theo.',
+    storyQuestAvailable: 'Có nhiệm vụ cốt truyện. Hãy xem nhật ký nhiệm vụ bên trái.',
+    journeyHint: 'Hành trình của bạn: hoàn thành mục tiêu trong nhật ký nhiệm vụ, rồi đối mặt trùm chương.',
+    questProgressCount: 'Nhiệm vụ: {current}/{count} {type}',
+    questProgressEnemiesDefeated: 'Tiến độ: {current}/{count} kẻ địch đã hạ',
+    questProgressFound: 'Tiến độ: {current}/{count} {objectType} đã tìm',
+    zoneDiscovered: 'Đã khám phá: {zoneName}',
+    questCompletedTitle: 'Hoàn thành: {title}',
+    questCompletedRewards: 'Bạn đã hoàn thành nhiệm vụ và nhận phần thưởng!',
+    newQuestAvailable: 'Nhiệm vụ mới: {name}',
+    newQuestAtLevel: 'Nhiệm vụ "{name}" sẽ mở khi đạt cấp {level}.',
+    acceptQuestPrompt: 'Bạn có muốn nhận nhiệm vụ này không?',
+    newQuestTitle: 'Nhiệm vụ mới: {title}',
+    newMainQuestAvailable: 'Nhiệm vụ chính mới: {name}',
+    newSideQuestAvailable: 'Nhiệm vụ phụ mới: {name}',
+    gainedExperience: 'Nhận {xp} kinh nghiệm',
+    gainedSkillPoints: 'Nhận {count} điểm kỹ năng',
+    gainedGold: 'Nhận {gold} vàng',
+    equipped: 'Đã trang bị {itemName}',
+    received: 'Nhận {itemName} x{amount}',
+    enemies: 'kẻ địch',
+    boss: 'trùm',
+    nextMapFallback: 'bản đồ tiếp theo',
+    otherPathsAvailable: 'Các lối đi khác đang chờ trong bảng Câu chuyện.',
+    choiceInQuestHint: 'Bạn có thể giúp đỡ theo nhiều cách; hoàn thành ít nhất một lối để tiến bước.',
+    choiceCallout: 'Lựa chọn',
+    storyQuestAwaitsOnMap: 'Có nhiệm vụ cốt truyện đang chờ. Hãy tìm dấu nhiệm vụ trên bản đồ (ký hiệu !) để bắt đầu.',
+    findQuestMarkerHint: '→ Tìm dấu nhiệm vụ (dấu ! vàng trên bản đồ) để bắt đầu hành trình.',
+    noActiveQuests: 'Không có nhiệm vụ',
+    reviewMore: 'Xem thêm ({count})',
+    showLess: 'Thu gọn',
+    activeQuestsTitle: 'Nhiệm vụ',
+    lessonLabel: 'Bài học',
+    close: 'Đóng',
+};
+
+/** Map selection overlay UI (VI only). */
+export const mapSelectionUi = {
+    selectMapTitle: 'Chọn bản đồ',
+    currentMap: 'Hiện tại: {name}',
+    currentMapNone: 'Hiện tại: —',
+    returnToDefaultWorld: 'Đã về Thế giới mặc định.',
+    mapSetToReloading: 'Đã đặt bản đồ "{mapName}". Đang tải lại...',
+    selectMapPlaceholder: 'Chọn một bản đồ',
+    chooseMapPlaceholder: 'Chọn bản đồ trong danh sách để xem chi tiết',
+    statSize: 'Kích thước:',
+    statStructures: 'Công trình:',
+    statPaths: 'Đường đi:',
+    statEnvironment: 'Môi trường:',
+    statEnemies: 'Kẻ địch:',
+    enemiesRandom: 'Ngẫu nhiên',
+    btnMapSelector: 'Chọn bản đồ',
+    btnReturnToProceduralWorld: 'Về thế giới mặc định',
+    btnGenerateNewMap: 'Tạo bản đồ mới',
+    btnSaveAndClose: 'Lưu & Đóng',
+    btnApplyAndReload: 'Dịch chuyển',
+    btnApplyAndReloadTitle: 'Dịch chuyển tới bản đồ này',
+    arrivedAtMap: 'Bạn đã đến {mapName}.',
+    teleporting: 'Đang dịch chuyển…',
+    loadingMap: 'Đang tải bản đồ...',
+    teleportToOriginTitle: 'Dịch chuyển về gốc',
+    btnStoryBook: 'Truyện',
+    storyBookTitle: 'Hành Trình',
+    storyChapterLabel: 'Chương {n}',
+    storyPrevChapter: '‹ Trước',
+    storyNextChapter: 'Sau ›',
+    storyCloseBook: 'Đóng',
+    storySaveBook: 'Lưu',
+    storySaveBookEmoji: '💾',
+    storyVuongLamLabel: 'Câu chuyện Vương Lâm (Tiên Nghịch)',
+    storyNoLongStory: 'Chưa có truyện dài cho chương này.',
+    storyChaptersBtn: 'Chương',
+    storyChaptersPanelTitle: 'Nhảy tới chương',
+};
