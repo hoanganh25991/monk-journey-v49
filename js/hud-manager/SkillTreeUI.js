@@ -2,7 +2,7 @@ import { UIComponent } from "../UIComponent.js";
 import { SKILLS, PRIMARY_ATTACKS, NORMAL_SKILLS, SKILL_BY_NAME } from "../config/skills.js";
 import { getSkillIcon, getBuffIcon } from "../config/skill-icons.js";
 import { SKILL_TREES } from "../config/skill-tree.js";
-import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
+import { applyBuffsToVariants, buffLevelFromStorage } from "../utils/SkillTreeUtils.js";
 import { STORAGE_KEYS } from "../config/storage-keys.js";
 import storageService from "../save-manager/StorageService.js";
 import { SkillTreeGraphView } from "./SkillTreeGraphView.js";
@@ -734,10 +734,20 @@ export class SkillTreeUI extends UIComponent {
       if (savedSkillTreeData) {
         console.debug('Loaded skill tree data from storage in SkillTreeUI:', savedSkillTreeData);
         
-        // Merge saved data with initialized data structure
+        // Merge saved data and normalize buff values to levels (legacy true -> 1)
         Object.keys(savedSkillTreeData).forEach(skillName => {
           if (this.playerSkills[skillName]) {
-            this.playerSkills[skillName] = savedSkillTreeData[skillName];
+            const saved = savedSkillTreeData[skillName];
+            this.playerSkills[skillName] = { ...saved };
+            const skill = this.skillTrees[skillName];
+            if (this.playerSkills[skillName].buffs && skill?.buffs) {
+              const normalized = {};
+              for (const buffName of Object.keys(this.playerSkills[skillName].buffs)) {
+                const maxLevel = skill.buffs[buffName]?.maxLevel ?? 3;
+                normalized[buffName] = buffLevelFromStorage(this.playerSkills[skillName].buffs[buffName], maxLevel);
+              }
+              this.playerSkills[skillName].buffs = normalized;
+            }
           }
         });
       }
@@ -1253,67 +1263,67 @@ ${iconData.emoji}
         return;
       }
       
-      // Determine if this buff is active
-      const isActive =
-        playerSkillData &&
-        playerSkillData.buffs &&
-        playerSkillData.buffs[buffName];
-
-      // Get buff cost
-      const cost = buffData.cost || 5;
-
-      // Get icon for the buff
-      const iconData = getBuffIcon(
-        buffData.effects && buffData.effects.length > 0
-          ? buffData.effects[0]
-          : ""
+      const maxLevel = buffData.maxLevel ?? 3;
+      const currentLevel = buffLevelFromStorage(
+        playerSkillData?.buffs?.[buffName],
+        maxLevel
       );
+      const cost = buffData.cost ?? 5;
+      const iconData = getBuffIcon(
+        buffData.effects && buffData.effects.length > 0 ? buffData.effects[0] : ""
+      );
+      const desc = (buffData.levelBonuses && buffData.levelBonuses[currentLevel])
+        ? buffData.levelBonuses[currentLevel]
+        : (buffData.description || "No description available.");
+      const isActive = currentLevel > 0;
 
-      // Create the buff element
-      const buffHtml = `
-        <div class="skill-buff ${isActive ? "active" : ""}" data-buff="${buffName}">
-          <div class="buff-header">
-            <div class="buff-icon ${iconData.cssClass}" 
-                style="background-color: rgba(0, 0, 0, 0.7); 
-                        border: 2px solid ${iconData.color}; 
-                        box-shadow: 0 0 10px ${iconData.color}40;">
-              ${iconData.emoji}
-            </div>
-            <div class="buff-name">${buffName}</div>
-            <div class="buff-cost">${cost} points</div>
-          </div>
-          <div class="buff-description">
-            ${buffData.description || "No description available."}
-          </div>
-          <div class="buff-effects">
-            ${buffData.effects
-              ? buffData.effects
-                  .map((effect) => `<span class="effect-tag">${effect}</span>`)
-                  .join("")
-              : ""
-            }
-          </div>
-        </div>
-      `;
-
-      buffsHtml.push(buffHtml);
+      buffsHtml.push(this._buildBuffCardHtml(skillName, buffName, iconData, desc, buffData.effects, cost, currentLevel, maxLevel, isActive));
     });
 
-    // If no buffs are available for the base skill
     if (buffsHtml.length === 0) {
       this.elements.skillBuffs.innerHTML =
         '<div class="no-buffs">No buffs available for the base skill.</div>';
       return;
     }
-
-    // Add the buffs to the container
     this.elements.skillBuffs.innerHTML = buffsHtml.join("");
+    this._attachBuffLevelListeners(skillName);
+  }
 
-    // Add click event to buff containers
-    document.querySelectorAll(".skill-buff").forEach((buffContainer) => {
-      buffContainer.addEventListener("click", () => {
-        const buffName = buffContainer.dataset.buff;
-        this.selectBuff(skillName, buffName);
+  /**
+   * Build HTML for one buff card with level and +/- controls
+   */
+  _buildBuffCardHtml(skillName, buffName, iconData, description, effects, costPerLevel, currentLevel, maxLevel, isActive) {
+    return `
+      <div class="skill-buff ${isActive ? "active" : ""}" data-skill-name="${skillName}" data-buff="${buffName}">
+        <div class="buff-header">
+          <div class="buff-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">${iconData.emoji}</div>
+          <div class="buff-name">${buffName}</div>
+          <div class="buff-cost">${costPerLevel} pts/level</div>
+        </div>
+        <div class="buff-description">${description}</div>
+        <div class="buff-level-row">
+          <span class="buff-level-label">Level ${currentLevel} / ${maxLevel}</span>
+          <button type="button" class="buff-level-down" data-skill-name="${skillName}" data-buff="${buffName}" ${currentLevel <= 0 ? "disabled" : ""} aria-label="Remove level">−</button>
+          <button type="button" class="buff-level-up" data-skill-name="${skillName}" data-buff="${buffName}" ${currentLevel >= maxLevel ? "disabled" : ""} aria-label="Add level">+</button>
+        </div>
+        <div class="buff-effects">${effects ? effects.map((e) => `<span class="effect-tag">${e}</span>`).join("") : ""}</div>
+      </div>
+    `;
+  }
+
+  _attachBuffLevelListeners(skillName) {
+    const container = this.elements.skillBuffs;
+    if (!container) return;
+    container.querySelectorAll(".buff-level-up").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.addBuffLevel(btn.dataset.skillName, btn.dataset.buff);
+      });
+    });
+    container.querySelectorAll(".buff-level-down").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.removeBuffLevel(btn.dataset.skillName, btn.dataset.buff);
       });
     });
   }
@@ -1373,6 +1383,13 @@ ${iconData.emoji}
         this.elements.continueButton.style.display = 'block';
       }
       
+      return;
+    }
+
+    // Check point cost for non-base variant
+    const variantCost = this.getVariantCost(variantName);
+    if (variantCost > 0 && this.getAvailablePoints() < variantCost) {
+      this.game?.hudManager?.showNotification(`Not enough skill points. This variant costs ${variantCost} points.`);
       return;
     }
 
@@ -1459,129 +1476,87 @@ ${iconData.emoji}
     
     // Filter buffs that are applicable to this variant
     Object.entries(skillData.buffs).forEach(([buffName, buffData]) => {
-      // Check if this buff is applicable to this variant
       const requiredVariant = buffData.requiredVariant || "any";
-      if (requiredVariant !== "any" && requiredVariant !== variantName) {
-        return; // Skip buffs that don't apply to this variant
-      }
-      
-      // Determine if this buff is active
-      const isActive =
-        playerSkillData &&
-        playerSkillData.buffs &&
-        playerSkillData.buffs[buffName];
+      if (requiredVariant !== "any" && requiredVariant !== variantName) return;
 
-      // Get buff cost
-      const cost = buffData.cost || 5;
-
-      // Get icon for the buff
-      const iconData = getBuffIcon(
-        buffData.effects && buffData.effects.length > 0
-          ? buffData.effects[0]
-          : ""
+      const maxLevel = buffData.maxLevel ?? 3;
+      const currentLevel = buffLevelFromStorage(
+        playerSkillData?.buffs?.[buffName],
+        maxLevel
       );
+      const cost = buffData.cost ?? 5;
+      const iconData = getBuffIcon(
+        buffData.effects && buffData.effects.length > 0 ? buffData.effects[0] : ""
+      );
+      const desc = (buffData.levelBonuses && buffData.levelBonuses[currentLevel])
+        ? buffData.levelBonuses[currentLevel]
+        : (buffData.description || "No description available.");
+      const isActive = currentLevel > 0;
 
-      // Create the buff element
-      const buffHtml = `
-        <div class="skill-buff ${isActive ? "active" : ""}" data-buff="${buffName}">
-          <div class="buff-header">
-            <div class="buff-icon ${iconData.cssClass}" 
-                style="background-color: rgba(0, 0, 0, 0.7); 
-                        border: 2px solid ${iconData.color}; 
-                        box-shadow: 0 0 10px ${iconData.color}40;">
-              ${iconData.emoji}
-            </div>
-            <div class="buff-name">${buffName}</div>
-            <div class="buff-cost">${cost} points</div>
-          </div>
-          <div class="buff-description">
-            ${buffData.description || "No description available."}
-          </div>
-          <div class="buff-effects">
-            ${buffData.effects
-              ? buffData.effects
-                  .map((effect) => `<span class="effect-tag">${effect}</span>`)
-                  .join("")
-              : ""
-            }
-          </div>
-        </div>
-      `;
-
-      buffsHtml.push(buffHtml);
+      buffsHtml.push(this._buildBuffCardHtml(skillName, buffName, iconData, desc, buffData.effects, cost, currentLevel, maxLevel, isActive));
     });
 
-    // Add the buffs to the container
     this.elements.skillBuffs.innerHTML = buffsHtml.join("");
-
-    // Add click event to buff containers
-    document.querySelectorAll(".skill-buff").forEach((buffContainer) => {
-      buffContainer.addEventListener("click", () => {
-        const buffName = buffContainer.dataset.buff;
-        this.selectBuff(skillName, buffName);
-      });
-    });
+    this._attachBuffLevelListeners(skillName);
   }
 
   /**
-   * Select a buff for a skill
-   * @param {string} skillName - Name of the skill
-   * @param {string} buffName - Name of the buff
+   * Add one level to a buff if enough points and under max level
    */
-  selectBuff(skillName, buffName) {
-    // Update player skills data
-    if (this.playerSkills[skillName]) {
-      if (!this.playerSkills[skillName].buffs) {
-        this.playerSkills[skillName].buffs = {};
-      }
-      
-      // Toggle buff selection
-      const isAlreadyActive = this.playerSkills[skillName].buffs[buffName];
-      
-      if (isAlreadyActive) {
-        // Unselect the buff
-        delete this.playerSkills[skillName].buffs[buffName];
-        
-        // Update UI
-        const selectedBuff = document.querySelector(
-          `.skill-buff[data-buff="${buffName}"]`
-        );
-        if (selectedBuff) {
-          selectedBuff.classList.remove("active");
-        }
-        
-        // Update button
-        const button = document.querySelector(
-          `.buff-select-btn[data-buff="${buffName}"]`
-        );
-        if (button) {
-          button.disabled = false;
-          button.textContent = "Select Buff";
-        }
-      } else {
-        // Select the buff
-        this.playerSkills[skillName].buffs[buffName] = true;
-        
-        // Update UI
-        const selectedBuff = document.querySelector(
-          `.skill-buff[data-buff="${buffName}"]`
-        );
-        if (selectedBuff) {
-          selectedBuff.classList.add("active");
-        }
-        
-        // Update button
-        const button = document.querySelector(
-          `.buff-select-btn[data-buff="${buffName}"]`
-        );
-        if (button) {
-          button.disabled = true;
-          button.textContent = "Selected";
-        }
-      }
-      
-      // Update available points display
-      this.updateAvailablePoints();
+  addBuffLevel(skillName, buffName) {
+    const entry = this.playerSkills[skillName];
+    const skill = this.skillTrees[skillName];
+    const buffData = skill?.buffs?.[buffName];
+    if (!entry || !buffData) return;
+    const maxLevel = buffData.maxLevel ?? 3;
+    const cost = this.getBuffCost(skillName, buffName);
+    const currentLevel = buffLevelFromStorage(entry.buffs?.[buffName], maxLevel);
+    if (currentLevel >= maxLevel) return;
+    if (this.getAvailablePoints() < cost) {
+      this.game?.hudManager?.showNotification(`Not enough skill points. Each level costs ${cost} points.`);
+      return;
+    }
+    if (!entry.buffs) entry.buffs = {};
+    entry.buffs[buffName] = currentLevel + 1;
+    this._refreshBuffsView(skillName);
+    this.updateAvailablePoints();
+    this._persistSkillTreeData();
+    if (this.game?.player) this.game.player.loadSkillTreeData();
+  }
+
+  /**
+   * Remove one level from a buff
+   */
+  removeBuffLevel(skillName, buffName) {
+    const entry = this.playerSkills[skillName];
+    const skill = this.skillTrees[skillName];
+    const buffData = skill?.buffs?.[buffName];
+    if (!entry || !buffData) return;
+    const maxLevel = buffData.maxLevel ?? 3;
+    const currentLevel = buffLevelFromStorage(entry.buffs?.[buffName], maxLevel);
+    if (currentLevel <= 0) return;
+    if (!entry.buffs) entry.buffs = {};
+    entry.buffs[buffName] = currentLevel - 1;
+    this._refreshBuffsView(skillName);
+    this.updateAvailablePoints();
+    this._persistSkillTreeData();
+    if (this.game?.player) this.game.player.loadSkillTreeData();
+  }
+
+  _refreshBuffsView(skillName) {
+    const entry = this.playerSkills[skillName];
+    if (entry?.activeVariant) {
+      this.showVariantBuffs(skillName, entry.activeVariant);
+    } else {
+      this.showBaseSkillBuffs(skillName);
+    }
+  }
+
+  _persistSkillTreeData() {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SKILL_TREE_DATA, JSON.stringify(this.playerSkills));
+    } catch (e) {
+      console.warn("SkillTreeUI: failed to persist skill tree data", e);
     }
   }
 
@@ -1606,33 +1581,8 @@ ${iconData.emoji}
    * This method will save the player's skill selections and close the skill tree
    */
   async saveSkillTree() {
-    // Calculate total points spent
-    let totalPointsSpent = 0;
-    
-    // Count points spent on variants and buffs
-    Object.values(this.playerSkills).forEach(skill => {
-      if (skill.activeVariant) {
-        // Get the variant cost
-        const variantCost = this.getVariantCost(skill.activeVariant);
-        totalPointsSpent += variantCost;
-        
-        // Add costs of selected buffs
-        if (skill.buffs) {
-          Object.keys(skill.buffs).forEach(buffName => {
-            if (skill.buffs[buffName]) {
-              const buffCost = this.getBuffCost(skill.activeVariant, buffName);
-              totalPointsSpent += buffCost;
-            }
-          });
-        }
-      }
-    });
-    
-    // Check if player has enough points
-    const remainingPoints = this.skillPoints - totalPointsSpent;
-    if (remainingPoints < 0) {
-      // Show error message - not enough points
-      this.game && this.game.hudManager.showNotification("You don't have enough skill points! Please remove some skills or buffs.");
+    if (this.getAvailablePoints() < 0) {
+      this.game?.hudManager?.showNotification("You don't have enough skill points! Please remove some buff levels or variants.");
       return;
     }
     
@@ -1675,82 +1625,71 @@ ${iconData.emoji}
    * @returns {number} - Cost of the variant
    */
   getVariantCost(variantName) {
-    // Search for the variant in all skills
     for (const skillName in this.skillTrees) {
       const skill = this.skillTrees[skillName];
       if (skill.variants && skill.variants[variantName]) {
-        return skill.variants[variantName].cost || 5; // Default cost is 5
+        return skill.variants[variantName].cost ?? 5;
       }
     }
-    return 5; // Default cost if not found
+    return 5;
   }
-  
+
   /**
-   * Get the cost of a buff
-   * @param {string} variantName - Name of the variant
+   * Get the cost per level of a buff (from skill's buff definition).
+   * @param {string} skillName - Name of the skill
    * @param {string} buffName - Name of the buff
-   * @returns {number} - Cost of the buff
+   * @returns {number} - Cost per level
    */
-  getBuffCost(variantName, buffName) {
-    // Search for the buff in all skills
-    for (const skillName in this.skillTrees) {
+  getBuffCost(skillName, buffName) {
+    const skill = this.skillTrees[skillName];
+    if (!skill || !skill.buffs || !skill.buffs[buffName]) return 5;
+    return skill.buffs[buffName].cost ?? 5;
+  }
+
+  /**
+   * Get total points spent across all skills (variants + buff levels).
+   * Includes base-skill buffs when no variant is selected.
+   */
+  getTotalPointsSpent() {
+    let total = 0;
+    for (const skillName of Object.keys(this.playerSkills || {})) {
+      const entry = this.playerSkills[skillName];
       const skill = this.skillTrees[skillName];
-      if (skill.variants && 
-          skill.variants[variantName] && 
-          skill.variants[variantName].buffs && 
-          skill.variants[variantName].buffs[buffName]) {
-        return skill.variants[variantName].buffs[buffName].cost || 3; // Default cost is 3
+      if (!skill) continue;
+      if (entry.activeVariant) {
+        total += this.getVariantCost(entry.activeVariant);
+      }
+      if (entry.buffs && typeof entry.buffs === 'object') {
+        for (const buffName of Object.keys(entry.buffs)) {
+          const level = buffLevelFromStorage(entry.buffs[buffName], skill.buffs?.[buffName]?.maxLevel ?? 3);
+          if (level > 0) total += level * this.getBuffCost(skillName, buffName);
+        }
       }
     }
-    return 3; // Default cost if not found
+    return total;
+  }
+
+  /**
+   * Get current available points (player skill points minus total spent on variants/buffs).
+   */
+  getAvailablePoints() {
+    return Math.max(0, this.skillPoints - this.getTotalPointsSpent());
   }
   
   /**
    * Update the available points display
-   * Calculates points spent and updates the UI
+   * Calculates points spent (variants + buff levels) and updates the UI
    */
   updateAvailablePoints() {
-    // Check if the points element exists
-    if (!this.elements.skillPointsValue) {
-      console.error("Skill points value element not found in the DOM");
-      return;
-    }
-    
-    // Calculate total points spent
-    let totalPointsSpent = 0;
-    
-    // Count points spent on variants and buffs
-    Object.values(this.playerSkills).forEach(skill => {
-      if (skill.activeVariant) {
-        // Get the variant cost
-        const variantCost = this.getVariantCost(skill.activeVariant);
-        totalPointsSpent += variantCost;
-        
-        // Add costs of selected buffs
-        if (skill.buffs) {
-          Object.keys(skill.buffs).forEach(buffName => {
-            if (skill.buffs[buffName]) {
-              const buffCost = this.getBuffCost(skill.activeVariant, buffName);
-              totalPointsSpent += buffCost;
-            }
-          });
-        }
-      }
-    });
-    
-    // Calculate remaining points
-    const remainingPoints = this.skillPoints - totalPointsSpent;
-    
-    // Update the UI
-    this.elements.skillPointsValue.textContent = remainingPoints;
-    
-    // Add visual indicator if points are low or negative
-    if (remainingPoints < 0) {
-      this.elements.skillPointsValue.style.color = "#ff3333"; // Red for negative
-    } else if (remainingPoints < 5) {
-      this.elements.skillPointsValue.style.color = "#ffaa33"; // Orange for low
+    if (!this.elements.skillPointsValue) return;
+    const remaining = this.getAvailablePoints();
+    this.elements.skillPointsValue.textContent = remaining;
+    if (remaining < 0) {
+      this.elements.skillPointsValue.style.color = "#ff3333";
+    } else if (remaining < 5) {
+      this.elements.skillPointsValue.style.color = "#ffaa33";
     } else {
-      this.elements.skillPointsValue.style.color = "var(--theme-gold)"; // Default theme gold
+      this.elements.skillPointsValue.style.color = "var(--theme-gold)";
     }
   }
 }

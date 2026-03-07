@@ -947,6 +947,47 @@
     margin-bottom: 10px;
 }
 
+.buff-level-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.buff-level-label {
+    font-size: 12px;
+    color: rgba(195, 150, 38, 0.9);
+}
+
+.buff-level-up,
+.buff-level-down {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(195, 145, 28, 0.38);
+    background: rgba(95, 70, 16, 0.52);
+    color: #ddc870;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.buff-level-up:hover:not(:disabled),
+.buff-level-down:hover:not(:disabled) {
+    background: rgba(145, 105, 24, 0.72);
+    border-color: rgba(255, 195, 48, 0.6);
+    color: var(--theme-gold);
+}
+
+.buff-level-up:disabled,
+.buff-level-down:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .effect-tag {
     background: rgba(130, 100, 28, 0.22);
     border: 1px solid rgba(175, 132, 42, 0.32);

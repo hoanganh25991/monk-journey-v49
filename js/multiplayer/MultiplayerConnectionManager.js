@@ -11,14 +11,26 @@
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
 
-/** Optional: use a custom PeerServer for same-machine or unreliable cloud. e.g. run `npx peerjs --port 9000` then set:
- *  PEER_SERVER = { host: 'localhost', port: 9000, path: '/', secure: false };
- *  Leave null to use default 0.peerjs.com (can be flaky; connection may never open). */
-const PEER_SERVER = null;
+/** Custom PeerServer override. When null, we auto-use local server on localhost (run: npx peerjs --port 9000).
+ *  For same-network (two devices): run peerjs on one machine, then set e.g.
+ *  PEER_SERVER_OVERRIDE = { host: '192.168.1.2', port: 9000, path: '/', secure: false }; */
+const PEER_SERVER_OVERRIDE = null;
+
+const PEERJS_LOCAL_PORT = 9000;
+
+/** Resolve which signaling server to use. Same-machine/same-network often fails on default 0.peerjs.com. */
+function resolvePeerServer() {
+    if (PEER_SERVER_OVERRIDE) return PEER_SERVER_OVERRIDE;
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        return { host: 'localhost', port: PEERJS_LOCAL_PORT, path: '/', secure: false };
+    }
+    return null;
+}
 
 /** Options passed to every new Peer() so host and joiner use the same signaling server. */
 function getPeerOptions(overrides = {}) {
-    const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : {};
+    const server = resolvePeerServer();
+    const base = server ? { ...server, debug: 2 } : {};
     return { ...base, ...overrides };
 }
 
@@ -79,6 +91,16 @@ export class MultiplayerConnectionManager {
     /** Returns options for new Peer() so all Peer instances use the same server (e.g. custom PEER_SERVER). */
     getPeerOptions() {
         return getPeerOptions();
+    }
+
+    /** True when using local PeerServer (localhost). UI can show "Run: npx peerjs --port 9000". */
+    isUsingLocalPeerServer() {
+        return resolvePeerServer() !== null;
+    }
+
+    /** Port for local PeerServer when isUsingLocalPeerServer(); for UI hint. */
+    static getLocalPeerServerPort() {
+        return PEERJS_LOCAL_PORT;
     }
 
     /**
@@ -207,8 +229,11 @@ export class MultiplayerConnectionManager {
                     this.peer = null;
                 }
                 this.multiplayerManager.ui.onJoinToHostFailed(roomId);
-                this.multiplayerManager.ui.updateConnectionStatus('Connection timed out. Make sure the host is in the lobby and try again.', 'join-connection-status');
-                console.warn('[P2P] Join timed out. If using default PeerJS server, try running a local server: npx peerjs --port 9000 and set PEER_SERVER in MultiplayerConnectionManager.js');
+                const hint = this.isUsingLocalPeerServer()
+                    ? `Connection timed out. Run: npx peerjs --port ${MultiplayerConnectionManager.getLocalPeerServerPort()} in a terminal, then try again.`
+                    : 'Connection timed out. Make sure the host is in the lobby and try again.';
+                this.multiplayerManager.ui.updateConnectionStatus(hint, 'join-connection-status');
+                console.warn('[P2P] Join timed out.', hint);
             }, JOIN_TIMEOUT_MS);
 
             const clearJoinTimeout = () => {

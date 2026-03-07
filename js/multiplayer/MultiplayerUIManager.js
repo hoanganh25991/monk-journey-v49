@@ -1428,7 +1428,13 @@ export class MultiplayerUIManager {
         const state = this._joinMethodState;
         const max = this._maxJoinRetries;
         const emptyEl = document.getElementById('join-host-empty');
-        if (emptyEl) emptyEl.textContent = 'Use QR scan or Enter Code to join.';
+        if (emptyEl) {
+            emptyEl.textContent = 'Use QR scan or Enter Code to join.';
+            if (this.multiplayerManager.connection?.isUsingLocalPeerServer?.()) {
+                const port = this.multiplayerManager.connection.constructor.getLocalPeerServerPort?.() ?? 9000;
+                emptyEl.textContent += ` Run: npx peerjs --port ${port} (in a terminal) first.`;
+            }
+        }
 
         // NFC
         if (isNfcSupported()) {
