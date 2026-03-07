@@ -1,9 +1,29 @@
-/* Dialog Box — matches reflection-screen (chapter) style */
-#dialog-box {
+/* Dialog overlay: full-screen with blurred backdrop (same as other modals) */
+#dialog-overlay {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    pointer-events: auto;
+}
+
+.dialog-backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    cursor: pointer;
+}
+
+/* Dialog Box — matches reflection-screen (chapter) style; Header yellow / Body white / Footer buttons */
+#dialog-box {
+    position: relative;
+    z-index: 1;
     width: 80%;
     max-width: 640px;
     background: var(--modal-content-bg, rgba(20, 18, 15, 0.95));
@@ -11,7 +31,6 @@
     border-radius: var(--modal-content-radius, 12px);
     padding: var(--padding-x-large, 2rem);
     box-shadow: var(--modal-content-shadow, 0 8px 32px rgba(0, 0, 0, 0.5));
-    z-index: 150; /* Dialogs and Menus */
     color: white;
     pointer-events: auto;
 }

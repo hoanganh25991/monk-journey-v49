@@ -778,9 +778,7 @@ export class QuestManager {
                 `${display.description || q.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(q),
                 () => {
-                    // Mark as declined and persist
-                    this.declinedChapterQuestIds.add(q.id);
-                    this.persistQuestsAfterDecline();
+                    // Cancel = "not now"; do not mark as declined so popup shows again next time
                     remindLater();
                 }
             );

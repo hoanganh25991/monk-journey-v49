@@ -13,32 +13,56 @@
     padding: 1rem;
     box-sizing: border-box;
     background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 
+/* Modal structure: Header (yellow) > Body (white) > Footer (buttons) — consistent with quest/dialog modals */
 .login-modal-dialog {
     position: relative;
     width: 100%;
     max-width: 360px;
-    padding: var(--padding-large);
+    display: flex;
+    flex-direction: column;
+    padding: 0;
     background: var(--modal-content-bg);
     border: var(--modal-content-border);
     border-radius: var(--modal-content-radius);
     box-shadow: var(--modal-content-shadow);
+    overflow: hidden;
+}
+
+.login-modal-header {
+    flex-shrink: 0;
+    padding: var(--padding-large) var(--padding-large) var(--padding-medium);
+    border-bottom: 1px solid var(--theme-gold-border-subtle);
     text-align: center;
 }
 
 .login-modal-title {
-    margin: 0 0 var(--margin-medium);
+    margin: 0;
     font-size: 1.2em;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--theme-gold);
+}
+
+.login-modal-body {
+    flex: 1;
+    padding: var(--padding-large);
+    text-align: center;
 }
 
 .login-modal-message {
-    margin: 0 0 var(--margin-large);
+    margin: 0;
     font-size: 1rem;
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.95);
+}
+
+.login-modal-footer {
+    flex-shrink: 0;
+    padding: var(--padding-medium) var(--padding-large) var(--padding-large);
+    border-top: 1px solid var(--theme-gold-border-subtle);
 }
 
 .login-modal-buttons {
@@ -46,6 +70,7 @@
     gap: var(--margin-small);
     justify-content: center;
     flex-wrap: wrap;
+    margin: 0;
 }
 
 .login-modal-loader {
@@ -104,7 +129,6 @@
 @media (max-width: 480px) {
     .login-modal-dialog {
         width: 85%;
-        padding: var(--padding-medium);
     }
 }
 

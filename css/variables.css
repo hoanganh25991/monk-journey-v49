@@ -30,8 +30,9 @@
     /* Breakpoints */
     --breakpoint-mobile: 1024px;
 
-    /* In-game modal pattern: backdrop + content box */
+    /* In-game modal pattern: backdrop + content box; blur applied to all modal backdrops */
     --modal-backdrop: rgba(0, 0, 0, 0.85);
+    --modal-backdrop-blur: 6px;
     --modal-content-bg: var(--theme-bg-dark);
     --modal-content-border: 2px solid var(--theme-gold-border-subtle);
     --modal-content-radius: 12px;

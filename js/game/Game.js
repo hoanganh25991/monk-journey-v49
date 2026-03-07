@@ -295,11 +295,7 @@ export class Game {
                         }
                     },
                     () => {
-                        // Cancel/Decline: mark as declined and persist
-                        if (quest.id && this.questManager) {
-                            this.questManager.declinedChapterQuestIds.add(quest.id);
-                            this.questManager.persistQuestsAfterDecline();
-                        }
+                        // Cancel = "not now"; do not mark as declined so popup shows again when they reach the quest next time
                     }
                 );
             };

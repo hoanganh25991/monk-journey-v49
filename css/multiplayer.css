@@ -739,6 +739,8 @@
     position: absolute;
     inset: 0;
     background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .qr-scan-popup-box {
     position: relative;
@@ -1301,6 +1303,8 @@
     position: absolute;
     inset: 0;
     background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .invite-from-host-box {
     position: relative;

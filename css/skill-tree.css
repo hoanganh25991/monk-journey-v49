@@ -136,8 +136,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, 0.72);
-    backdrop-filter: blur(3px);
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 
 .skill-tree-slot-picker-backdrop {

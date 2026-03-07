@@ -10,7 +10,7 @@ export class DialogUI extends UIComponent {
      * @param {import('../game/Game.js').Game} game - Reference to the game instance
      */
     constructor(game) {
-        super('dialog-box', game);
+        super('dialog-overlay', game);
         this.dialogText = null;
         this.dialogContinue = null;
         this.dialogCancelBtn = null;
@@ -29,10 +29,10 @@ export class DialogUI extends UIComponent {
         this.dialogAcceptBtn = document.getElementById('dialog-accept-btn');
         this.dialogCancelBtn = document.getElementById('dialog-cancel-btn');
         
-        // Click on "Continue" or overlay: close (if no onAccept, or decline)
+        // Click on backdrop (blur area) or "Continue": close (if no onAccept, or decline)
         this.container.addEventListener('click', (e) => {
             if (e.target === this.dialogAcceptBtn || e.target === this.dialogCancelBtn) return;
-            this.hideDialog();
+            if (e.target.closest('[data-close]')) this.hideDialog();
         });
         if (this.dialogContinue) {
             this.dialogContinue.addEventListener('click', (e) => { e.stopPropagation(); this.hideDialog(); });
@@ -56,9 +56,10 @@ export class DialogUI extends UIComponent {
             });
         }
         
-        // Hide initially
+        // Hide initially; overlay uses flex for centering
+        this.setDisplayType('flex');
         this.hide();
-        
+
         return true;
     }
     

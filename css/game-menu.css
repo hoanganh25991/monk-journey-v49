@@ -74,7 +74,9 @@
 .help-modal-backdrop {
     position: absolute;
     inset: 0;
-    background: var(--modal-backdrop, rgba(0, 0, 0, 0.7));
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .help-modal-box {
     position: relative;
