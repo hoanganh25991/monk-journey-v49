@@ -22,7 +22,7 @@ const ASSETS_TO_CACHE =   [
     "js/config/camera-modes.js",
     "js/config/chapter-maps-zones.js",
     "js/config/chapter-quest-maps.js",
-    "js/config/chapter-quests-ui-strings.js",
+    "js/config/chapter-quests-vi.js",
     "js/config/chapter-quests.js",
     "js/config/chapter-story-images.js",
     "js/config/coach.js",

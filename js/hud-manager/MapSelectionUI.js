@@ -4,7 +4,7 @@ import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
-import { getMapSelectionUiString, getChapterQuestDisplay } from '../config/chapter-quests-ui-strings.js';
+import { getMapSelectionUiString, getChapterQuestDisplay } from '../config/chapter-quests-vi.js';
 import { getMapDisplay } from '../config/map-locales.js';
 import { StoryBookUI } from './StoryBookUI.js';
 

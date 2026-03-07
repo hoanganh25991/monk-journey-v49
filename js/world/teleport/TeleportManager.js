@@ -1,7 +1,7 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { MULTIPLIER_PORTALS, RETURN_PORTAL, DESTINATION_TERRAINS } from '../../config/teleport-portals.js';
 import { ZONE_ENEMIES } from '../../config/game-balance.js';
-import { getMapSelectionUiString } from '../../config/chapter-quests-ui-strings.js';
+import { getMapSelectionUiString } from '../../config/chapter-quests-vi.js';
 import { PortalModelFactory } from './PortalModelFactory.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { distanceSq2D, distanceApprox2D, fastSqrt } from '../../utils/FastMath.js';

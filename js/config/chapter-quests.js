@@ -8,7 +8,7 @@
  *
  * Naming: Each quest has an `area` (e.g. "Mountain of Desire"). When this chapter's map is shown
  * in the map selector, the UI uses this area as the single display name (localized via
- * chapter-quests-ui-strings.js) so players see one clear name per map, not both map name and area.
+ * chapter-quests-vi.js) so players see one clear name per map, not both map name and area.
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
@@ -374,3 +374,90 @@ export function getChapterQuestById(id) {
 export function getFirstChapterQuest() {
     return CHAPTER_QUESTS[0];
 }
+
+/** UI strings (EN default) for reflection screen */
+export const REFLECTION_UI_STRINGS_EN = {
+    continueJourney: 'Continue Journey',
+    enterPathOfMastery: 'Enter Path of Mastery',
+    reflectionQuestionPrompt: 'What did you notice?',
+    reflectionOption1: 'The struggle—and the chance to help.',
+    reflectionOption2: 'The calm that followed the storm.',
+    reflectionOption3: 'Both: action and peace together.',
+};
+
+/** UI strings (EN default) for quest messages (placeholders: {label}, {current}, {count}, etc.) */
+export const QUEST_UI_STRINGS_EN = {
+    travelToGetNextQuest: 'Travel to "{label}" to get your next quest.',
+    storyQuestAvailable: 'A story quest is available. Look for the quest log on the left.',
+    journeyHint: 'Your journey: complete the objectives in the quest log, then face the chapter boss.',
+    questProgressCount: 'Quest: {current}/{count} {type}',
+    questProgressEnemiesDefeated: 'Quest progress: {current}/{count} enemies defeated',
+    questProgressFound: 'Quest progress: {current}/{count} {objectType}s found',
+    zoneDiscovered: 'Zone discovered: {zoneName}',
+    questCompletedTitle: 'Quest Completed: {title}',
+    questCompletedRewards: 'You have completed the quest and received your rewards!',
+    newQuestAvailable: 'New Quest Available: {name}',
+    newQuestAtLevel: 'New quest "{name}" will be available at level {level}.',
+    acceptQuestPrompt: 'Would you like to accept this quest?',
+    newQuestTitle: 'New Quest: {title}',
+    newMainQuestAvailable: 'New Main Quest Available: {name}',
+    newSideQuestAvailable: 'New Side Quest Available: {name}',
+    gainedExperience: 'Gained {xp} experience',
+    gainedSkillPoints: 'Gained {count} skill point(s)',
+    gainedGold: 'Gained {gold} gold',
+    equipped: 'Equipped {itemName}',
+    received: 'Received {itemName} x{amount}',
+    enemies: 'enemies',
+    boss: 'boss',
+    nextMapFallback: 'the next map',
+    otherPathsAvailable: 'Other paths await in the Story panel.',
+    choiceInQuestHint: 'You can help in more than one way; complete at least one path to progress.',
+    choiceCallout: 'Choice',
+    storyQuestAwaitsOnMap: 'A story quest awaits. Find the quest marker on the map (marked with !) to begin.',
+    findQuestMarkerHint: '→ Find the quest marker (yellow ! on the map) to start your journey.',
+    noActiveQuests: 'No active quests',
+    reviewMore: 'Review more ({count})',
+    showLess: 'Show less',
+    activeQuestsTitle: 'Active Quests',
+    lessonLabel: 'Lesson',
+    close: 'Close',
+};
+
+/** UI strings (EN default) for map selection overlay */
+export const MAP_SELECTION_UI_STRINGS_EN = {
+    selectMapTitle: 'Select Map',
+    currentMap: 'Current: {name}',
+    currentMapNone: 'Current: —',
+    returnToDefaultWorld: 'Returned to Default World.',
+    mapSetToReloading: 'Map set to "{mapName}". Reloading...',
+    selectMapPlaceholder: 'Select a map',
+    chooseMapPlaceholder: 'Choose a map from the list to view details',
+    statSize: 'Size:',
+    statStructures: 'Structures:',
+    statPaths: 'Paths:',
+    statEnvironment: 'Environment:',
+    statEnemies: 'Enemies:',
+    enemiesRandom: 'Random',
+    btnMapSelector: 'Map Selector',
+    btnReturnToProceduralWorld: 'Return to Procedural World',
+    btnGenerateNewMap: 'Generate New Map',
+    btnSaveAndClose: 'Save & Close',
+    btnApplyAndReload: 'Teleport',
+    btnApplyAndReloadTitle: 'Teleport to this map',
+    arrivedAtMap: 'You have arrived at {mapName}.',
+    teleporting: 'Teleporting…',
+    loadingMap: 'Loading map...',
+    teleportToOriginTitle: 'Teleport to Origin',
+    btnStoryBook: 'Story',
+    storyBookTitle: 'The Journey',
+    storyChapterLabel: 'Chapter {n}',
+    storyPrevChapter: '‹ Previous',
+    storyNextChapter: 'Next ›',
+    storyCloseBook: 'Close',
+    storySaveBook: 'Save',
+    storySaveBookEmoji: '💾',
+    storyVuongLamLabel: 'Tale of Vương Lâm (Renegade Immortal)',
+    storyNoLongStory: 'No long story for this chapter.',
+    storyChaptersBtn: 'Chapters',
+    storyChaptersPanelTitle: 'Jump to chapter',
+};

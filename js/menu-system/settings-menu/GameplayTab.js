@@ -5,7 +5,7 @@
 
 import { SettingsTab } from './SettingsTab.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
-import { ensureViChaptersLoaded } from '../../config/chapter-quests-ui-strings.js';
+import { ensureViChaptersLoaded } from '../../config/chapter-quests-vi.js';
 import { DIFFICULTY_SCALING } from '../../config/game-balance.js';
 import { getSourceVersion } from '../../config/version.js';
 import storageService from '../../save-manager/StorageService.js';
