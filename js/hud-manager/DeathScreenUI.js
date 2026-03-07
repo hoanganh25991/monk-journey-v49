@@ -46,7 +46,6 @@ export class DeathScreenUI extends UIComponent {
                 </div>
 
                 <div class="death-stats" id="death-stats">
-                    <div class="death-stats-title">This run</div>
                     <div class="death-stats-item">
                         <span class="death-stats-label">Time survived</span>
                         <span class="death-stats-value" id="time-survived">--:--</span>
