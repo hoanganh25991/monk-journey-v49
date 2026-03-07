@@ -15,5 +15,13 @@
     "z": -13
   },
   "structures": [],
-  "environment": []
+  "environment": [],
+  "safeZones": [
+    {
+      "type": "circle",
+      "x": 0,
+      "z": 0,
+      "radius": 45
+    }
+  ]
 }
