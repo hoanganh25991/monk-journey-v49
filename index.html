@@ -269,7 +269,7 @@
             <div id="skill-tree-header">
                 <div id="skill-tree-title">Skill Tree</div>
                 <div id="skill-tree-points">Available Points: <span id="skill-points-value">0</span></div>
-                <button id="skill-tree-save-btn" class="circle-btn" title="Save &amp; Close">💾</button>
+                <button id="skill-tree-save-btn" class="circle-btn" title="Save &amp; Close"><span class="circle-btn-emoji">💾</span></button>
             </div>
             <!-- Loadout bar: 8 battle slots (h + 1–7), click to assign -->
             <div id="skill-tree-slot-bar" class="skill-tree-slot-bar">
@@ -334,7 +334,7 @@
             <div id="inventory-header">
                 <div id="inventory-title">Character Inventory</div>
                 <div id="inventory-gold">Gold: <span id="gold-value">0</span></div>
-                <button id="inventory-save" class="circle-btn" title="Save Inventory">💾</button>
+                <button id="inventory-save" class="circle-btn" title="Save Inventory"><span class="circle-btn-emoji">💾</span></button>
             </div>
             <div id="inventory-container">
                 <div id="character-equipment">
@@ -411,7 +411,7 @@
                                     <!-- Strength, Intelligence, Agility, Vitality, Wisdom rows with +/- -->
                                 </div>
                             </div>
-                            <button id="close-stats-overlay" class="circle-btn">💾</button>
+                            <button id="close-stats-overlay" class="circle-btn"><span class="circle-btn-emoji">💾</span></button>
                         </div>
                     </div>
                 </div>
@@ -437,14 +437,14 @@
 
         <!-- Top Right UI (Home Button, Full Screen Button and Mini Map) -->
         <div id="top-right-container">
-            <button id="hud-guide-button" class="circle-btn" title="HUD Guide">ℹ️</button>
-            <button id="map-selector-button" class="circle-btn" title="Map Selector">🗺️</button>
-            <button id="inventory-button" class="circle-btn" title="Inventory">🎒</button>
-            <button id="skill-selection-button" class="circle-btn" title="Skills">✨</button>
-            <button id="openStoryBookBtn" class="circle-btn" title="Story">📖</button>
+            <button id="hud-guide-button" class="circle-btn" title="HUD Guide"><span class="circle-btn-emoji">ℹ️</span></button>
+            <button id="map-selector-button" class="circle-btn" title="Map Selector"><span class="circle-btn-emoji">🗺️</span></button>
+            <button id="inventory-button" class="circle-btn" title="Inventory"><span class="circle-btn-emoji">🎒</span></button>
+            <button id="skill-selection-button" class="circle-btn" title="Skills"><span class="circle-btn-emoji">✨</span></button>
+            <button id="openStoryBookBtn" class="circle-btn" title="Story"><span class="circle-btn-emoji">📖</span></button>
 
             <span class="home-button-wrap">
-                <button id="home-button" class="circle-btn" title="Game Menu">⛩️</button>
+                <button id="home-button" class="circle-btn" title="Game Menu"><span class="circle-btn-emoji">⛩️</span></button>
                 <span id="invite-dot" class="invite-dot" style="display: none;" title="Someone wants to play multiplayer"></span>
             </span>
         </div>
@@ -471,7 +471,7 @@
                         <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
                     </div>
                     <div class="header-buttons">
-                        <button class="circle-btn" id="closeMapSelector" title="Save & Close">💾</button>
+                        <button class="circle-btn" id="closeMapSelector" title="Save & Close"><span class="circle-btn-emoji">💾</span></button>
                     </div>
                 </div>
                 
@@ -538,8 +538,8 @@
                 <div class="story-book-header">
                     <h2 id="story-book-title" class="story-book-header-title">The Journey</h2>
                     <div class="story-book-header-buttons">
-                        <button type="button" id="story-book-chapters-btn" class="circle-btn story-book-chapters-btn" title="Chapters" aria-label="Chapters" aria-expanded="false" aria-controls="story-book-chapters-panel">📖</button>
-                        <button type="button" id="story-book-save-btn" class="circle-btn" title="Save" aria-label="Save">💾</button>
+                        <button type="button" id="story-book-chapters-btn" class="circle-btn story-book-chapters-btn" title="Chapters" aria-label="Chapters" aria-expanded="false" aria-controls="story-book-chapters-panel"><span class="circle-btn-emoji">📖</span></button>
+                        <button type="button" id="story-book-save-btn" class="circle-btn" title="Save" aria-label="Save"><span class="circle-btn-emoji">💾</span></button>
                     </div>
                 </div>
                 <div id="story-book-chapters-panel" class="story-book-chapters-panel" role="dialog" aria-label="Jump to chapter" aria-hidden="true" style="display: none;">
@@ -718,7 +718,7 @@
             <div class="modal-header">
                 <h2>Play Together</h2>
                 <div id="multiplayer-initial-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="close-multiplayer-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <div id="resume-host-area" class="resume-host-area" style="display: none;">
                 <p class="resume-host-msg">Back after network issue? Host again with the same room so joiners can rejoin.</p>
@@ -737,7 +737,7 @@
             <div class="modal-header">
                 <h2>Join Game</h2>
                 <div id="join-game-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="back-from-join-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="back-from-join-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <!-- Permissions: one row — green (allowed), Allow button (denied), gray (not supported) -->
             <div id="join-permissions-row" class="join-permissions-row">
@@ -823,7 +823,7 @@
                 <div class="qr-scan-popup-box">
                     <div class="qr-scan-popup-header">
                         <span>Scan QR code</span>
-                        <button type="button" id="qr-scan-popup-close" class="circle-btn" title="Close">✕</button>
+                        <button type="button" id="qr-scan-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                     </div>
                     <div class="qr-scan-popup-body">
                         <div id="qr-scanner-view"></div>
@@ -840,7 +840,7 @@
                 <div class="qr-scan-popup-box">
                     <div class="qr-scan-popup-header">
                         <span>Enter Code</span>
-                        <button type="button" id="enter-code-popup-close" class="circle-btn" title="Close">✕</button>
+                        <button type="button" id="enter-code-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                     </div>
                     <div class="qr-scan-popup-body enter-code-popup-body">
                         <div class="manual-input-section">
@@ -862,7 +862,7 @@
             <div class="modal-header">
                 <h2>Multiplayer Connection</h2>
                 <div id="connection-info-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="close-connection-info-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="close-connection-info-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <div class="host-game-layout">
                 <div class="qr-section">
@@ -907,7 +907,7 @@
                         <button type="button" id="contacts-tab-list-btn" class="contacts-tab-btn contacts-tab-active" title="Host contacts">👥</button>
                         <button type="button" id="contacts-tab-manage-btn" class="contacts-tab-btn" title="Manage contacts">✏️</button>
                     </div>
-                    <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
+                    <button type="button" id="contacts-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                 </div>
                 <div class="contacts-popup-body">
                     <p id="contacts-popup-hint" class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
@@ -923,7 +923,7 @@
         <!-- Settings Icon in Top-Right -->
         <!-- <div class="settings-header-icon">⚙️</div> -->
         <div class="settings-header-icon">
-            <button id="settings-save-button" class="circle-btn" title="Save Settings">💾</button>
+            <button id="settings-save-button" class="circle-btn" title="Save Settings"><span class="circle-btn-emoji">💾</span></button>
         </div>
 
         <!-- Top Tabs with Right Actions Layout -->
