@@ -88,10 +88,14 @@ export class StructureManager {
         const gateZ = -H;
         const gateX = 0;
 
+        // Use most of the fenced area: radius so buildings spread to fill the square (leave margin from fence)
+        const villageRadius = H * 0.82;
         const homeVillage = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE, { 
             x: cx, 
             z: cz,
-            size: 'medium',
+            size: 'large',
+            buildingCount: 14,
+            radius: villageRadius,
             hasTower: true,
             hasWell: true,
             hasMarket: true,

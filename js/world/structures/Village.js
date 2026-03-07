@@ -101,9 +101,9 @@ export class Village {
      */
     createCircularLayout(villageGroup, buildingCount, radius) {
         for (let i = 0; i < buildingCount; i++) {
-            // Calculate position on circle
-            const angle = (i / buildingCount) * Math.PI * 2;
-            const distance = radius * (0.6 + Math.random() * 0.4); // Vary distance slightly
+            // Spread from inner to outer: 25%–95% of radius so buildings fill the space
+            const angle = (i / buildingCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+            const distance = radius * (0.25 + Math.random() * 0.7);
             
             const x = Math.cos(angle) * distance;
             const z = Math.sin(angle) * distance;
@@ -119,9 +119,10 @@ export class Village {
      * @param {number} buildingCount - Number of buildings
      */
     createGridLayout(villageGroup, buildingCount) {
-        // Calculate grid size
+        // Calculate grid size; spacing scales with village radius so layout fills the space
         const gridSize = Math.ceil(Math.sqrt(buildingCount));
-        const spacing = 8; // Space between buildings
+        const radius = this.options.radius || 20;
+        const spacing = Math.max(8, Math.min(14, (radius * 2) / gridSize));
         
         let buildingsPlaced = 0;
         
@@ -201,9 +202,10 @@ export class Village {
         const tower = new Tower(this.zoneType);
         const towerMesh = tower.createMesh();
         
-        // Position tower at center or slightly offset
-        const offsetX = (Math.random() - 0.5) * 5;
-        const offsetZ = (Math.random() - 0.5) * 5;
+        // Position tower near center but with small offset so it doesn't block paths
+        const r = this.options.radius || 20;
+        const offsetX = (Math.random() - 0.5) * Math.min(6, r * 0.15);
+        const offsetZ = (Math.random() - 0.5) * Math.min(6, r * 0.15);
         towerMesh.position.set(offsetX, 0, offsetZ);
         
         // Add to village group
@@ -285,9 +287,9 @@ export class Village {
         beamMesh.castShadow = true;
         wellGroup.add(beamMesh);
         
-        // Position well
+        // Position well in mid ring so it spreads with the village
         const angle = Math.random() * Math.PI * 2;
-        const distance = this.options.radius * 0.3;
+        const distance = this.options.radius * (0.35 + Math.random() * 0.25);
         wellGroup.position.set(
             Math.cos(angle) * distance,
             0,
@@ -330,9 +332,9 @@ export class Village {
             marketGroup.add(stallGroup);
         }
         
-        // Position market
+        // Position market in outer ring to fill space
         const angle = Math.random() * Math.PI * 2;
-        const distance = this.options.radius * 0.5;
+        const distance = this.options.radius * (0.5 + Math.random() * 0.35);
         marketGroup.position.set(
             Math.cos(angle) * distance,
             0,
