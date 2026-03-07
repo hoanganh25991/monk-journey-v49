@@ -5,6 +5,7 @@
  */
 
 import { getChapterQuestById } from './chapter-quests.js';
+import { buildChapterQuestViAsync } from './chapter-quests-vi.js';
 
 const DEFAULT_LOCALE = 'en';
 
@@ -49,44 +50,24 @@ export const CHAPTER_QUEST_TEXTS = {
             bossName: 'Shadow Self',
         },
     },
-    vi: {
-        chapter_1_restless_village: {
-            title: 'Làng Bất An',
-            description: 'Một ngôi làng chìm trong sự giận dữ—tranh chấp đất đai, thù hận cũ. Một Con Thú Giận Dữ đã bám rễ và ăn sự tức giận của họ. Hãy xoa dịu xung đột và đối mặt con thú để làng tìm được bình yên.',
-            lesson: 'Sự giận dữ đốt cháy chính kẻ mang nó.',
-            area: 'Làng Bất An',
-            bossName: 'Con Thú Giận Dữ',
-        },
-        chapter_2_forest_of_doubt: {
-            title: 'Rừng Nghi Ngờ',
-            description: 'Một khu rừng rậm, sương mù nơi lữ khách lạc lối và mất can đảm. Có gì đó thì thầm trong bóng tối. Hãy đối mặt Rắn Nghi Ngờ để rừng thoát khỏi nỗi sợ tê liệt.',
-            lesson: 'Sợ hãi lớn lên trong im lặng.',
-            area: 'Rừng Nghi Ngờ',
-            bossName: 'Rắn Nghi Ngờ',
-        },
-        chapter_3_mountain_of_desire: {
-            title: 'Núi Tham Vọng',
-            description: 'Ngọn núi nơi những kẻ săn báu bị ám ảnh bởi vàng và quyền lực. Một Titan Vàng canh giữ đỉnh. Vượt qua cám dỗ và đối mặt Titan để hiểu rằng lòng biết ơn—không phải tích lũy—mới mang lại bình yên.',
-            lesson: 'Lòng biết ơn chấm dứt cơn đói vô tận.',
-            area: 'Núi Tham Vọng',
-            bossName: 'Titan Vàng',
-        },
-        chapter_4_desert_of_loneliness: {
-            title: 'Sa Mạc Cô Đơn',
-            description: 'Sa mạc mênh mông nơi lữ khách cảm thấy cô lập—không mốc, không bạn đồng hành. Một Bóng Ma Tiếng Vọng khuếch đại nỗi cô đơn. Chịu đựng sự trống rỗng, tìm sự kết nối, rồi đối mặt Bóng Ma.',
-            lesson: 'Bạn không bao giờ thực sự cô đơn.',
-            area: 'Sa Mạc Cô Đơn',
-            bossName: 'Bóng Ma Tiếng Vọng',
-        },
-        chapter_5_inner_temple: {
-            title: 'Đền Nội Tâm',
-            description: 'Thử thách cuối cùng. Ở đây bài kiểm tra không phải quái vật bên ngoài mà là chính bản thân. Một Bóng Ta phản chiếu kỹ năng và lựa chọn của bạn. Đối mặt sự phản chiếu này và vượt qua bản thân chưa rèn luyện để đạt Chế Độ Giác Ngộ.',
-            lesson: 'Đối thủ lớn nhất của bạn là bản thân chưa rèn luyện.',
-            area: 'Đền Nội Tâm',
-            bossName: 'Bóng Ta',
-        },
-    },
+    vi: {}, // All chapter VI (1–100) loaded on demand via ensureViChaptersLoaded() from chapter-quests-vi.js packs
 };
+
+let viChaptersLoadPromise = null;
+
+/**
+ * Load VI for all chapters (1–100) from packs and merge into CHAPTER_QUEST_TEXTS.vi.
+ * Safe to call multiple times; loads only once.
+ * @returns {Promise<void>}
+ */
+export async function ensureViChaptersLoaded() {
+    if (viChaptersLoadPromise == null) {
+        viChaptersLoadPromise = buildChapterQuestViAsync().then((built) => {
+            Object.assign(CHAPTER_QUEST_TEXTS.vi, built);
+        });
+    }
+    return viChaptersLoadPromise;
+}
 
 /**
  * Get a single localized string for a chapter quest.

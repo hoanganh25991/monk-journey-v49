@@ -130,6 +130,9 @@ export class Game {
             const questStoryLocale = await storageService.loadData(STORAGE_KEYS.QUEST_STORY_LOCALE);
             this.questStoryLocale = questStoryLocale === 'vi' ? 'vi' : 'en';
             console.debug(`Game initialized with quest/story locale: ${this.questStoryLocale}`);
+            if (this.questStoryLocale === 'vi') {
+                import('../config/chapter-quests-locales.js').then((m) => m.ensureViChaptersLoaded()).catch(() => {});
+            }
         } catch (error) {
             console.error('Error loading initial settings:', error);
         }

@@ -179,7 +179,7 @@ const BOSS_CYCLE = [
 ];
 
 /** @type {{ lesson: string, title: string, area: string, description: string }[]} */
-const CHAPTERS_6_100_CONTENT = [
+export const CHAPTERS_6_100_CONTENT = [
     { lesson: 'A jug fills drop by drop.', title: 'Valley of Patience', area: 'Valley of Patience', description: 'A valley where farmers have forgotten that growth takes time. A Guardian of Strife feeds on their impatience. Help them wait with kindness and face the guardian.' },
     { lesson: 'Do not dwell in the past; concentrate on the present.', title: 'Meadow of the Present', area: 'Meadow of the Present', description: 'A meadow where spirits are trapped in yesterday. A Shadow of Doubt keeps them from seeing today. Free them by facing the shadow and living in the now.' },
     { lesson: 'Happiness never decreases by being shared.', title: 'Village of Open Hands', area: 'Village of Open Hands', description: 'A village that hoards its harvest. An Avatar of Greed guards the granary. Teach sharing by example and defeat the avatar so all may eat.' },

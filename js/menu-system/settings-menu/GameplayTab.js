@@ -5,6 +5,7 @@
 
 import { SettingsTab } from './SettingsTab.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
+import { ensureViChaptersLoaded } from '../../config/chapter-quests-locales.js';
 import { DIFFICULTY_SCALING } from '../../config/game-balance.js';
 import { getSourceVersion } from '../../config/version.js';
 import storageService from '../../save-manager/StorageService.js';
@@ -328,6 +329,7 @@ export class GameplayTab extends SettingsTab {
             this.saveSetting(STORAGE_KEYS.QUEST_STORY_LOCALE, value).catch(() => {});
             if (this.game) this.game.questStoryLocale = value;
             this.updateQuestLocaleToggleState(value);
+            if (value === 'vi') ensureViChaptersLoaded().catch(() => {});
             if (this.game?.hudManager?.questLogUI && this.game?.questManager) {
                 this.game.hudManager.questLogUI.updateQuestLog(this.game.questManager.getActiveQuests?.() ?? []);
             }

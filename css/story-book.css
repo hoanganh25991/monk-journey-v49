@@ -211,8 +211,6 @@
     color: rgba(255, 255, 255, 0.9);
     line-height: 1.65;
     font-style: normal;
-    max-height: 40vh;
-    overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     font-family: var(--font-primary, system-ui, sans-serif);
 }
