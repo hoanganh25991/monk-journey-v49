@@ -1036,6 +1036,11 @@ export const COMBAT_BALANCE = {
         championHealthMultiplier: 2.8, // Increased for better scaling
         // Champion enemy damage multiplier
         championDamageMultiplier: 1.6, // Increased for better scaling
+        // Enemy health scaling over time: start low (50–80 effective) and grow with player level
+        healthOverTime: {
+            startScale: 0.25,  // At level 1, enemy base health is scaled to ~25% so result is ~50–80
+            endLevel: 30       // By level 30, scale is 1.0 (full health)
+        },
         // Enemy health scaling formula parameters
         healthScaling: {
             base: 1.0,

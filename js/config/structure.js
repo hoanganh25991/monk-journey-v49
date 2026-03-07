@@ -130,9 +130,9 @@ export const STRUCTURE_PROPERTIES = {
         isBuilding: false
     },
     [STRUCTURE_OBJECTS.VILLAGE_GATE]: {
-        width: 4,
-        depth: 1,
-        height: 2.5,
+        width: 6,
+        depth: 2,
+        height: 6.5,
         isBuilding: false
     }
 };

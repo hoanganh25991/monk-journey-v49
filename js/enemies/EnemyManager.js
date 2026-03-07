@@ -1042,10 +1042,15 @@ export class EnemyManager {
                                      difficultySettings.healthMultiplier *
                                      strengthFactor;
         
+        // Health-over-time: start at ~50–80 max so player (4–10 dmg) feels effective; scale up with level
+        const healthOverTime = COMBAT_BALANCE.enemy.healthOverTime || { startScale: 0.25, endLevel: 30 };
+        const progress = Math.min(1, Math.max(0, (playerLevel - 1) / Math.max(1, healthOverTime.endLevel - 1)));
+        const healthTimeScale = healthOverTime.startScale + (1 - healthOverTime.startScale) * progress;
+        
         // Apply scaling to enemy stats using game-balance settings
-        // Apply base health multiplier from combat balance
+        // Apply base health multiplier from combat balance (with health-over-time so early game is 50–80)
         scaledType.baseHealth = scaledType.health; // Store original health for reference
-        scaledType.health = Math.round(scaledType.health * COMBAT_BALANCE.enemy.healthMultiplier * combinedScalingFactor);
+        scaledType.health = Math.round(scaledType.health * healthTimeScale * COMBAT_BALANCE.enemy.healthMultiplier * combinedScalingFactor);
         
         // Apply damage scaling (level + difficulty + strength)
         scaledType.damage = Math.round(scaledType.damage * 
