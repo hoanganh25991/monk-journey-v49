@@ -65,11 +65,19 @@ export function chapterQuestHasChoiceGroups(quest) {
  * @property {boolean} [replayable] - If true, chapter can be replayed after completion to pick a different reflection reward
  */
 
-/** @type {ChapterQuest[]} */
-export const CHAPTER_QUESTS = [
-    {
-        id: 'chapter_1_restless_village',
-        position: getQuestMarkerPositionForChapter(0),
+function slug(s) {
+    return s.toLowerCase().replace(/\s+/g, '_').replace(/['']/g, '');
+}
+
+/** Id and nextQuestId are always derived from chapter number + EN_ENTRIES.area (chapters.js). */
+function chapterId(chapterNum, entry) {
+    return entry && entry.area ? `chapter_${chapterNum}_${slug(entry.area)}` : null;
+}
+
+// Logic overrides for chapters 1–5 only (hand-crafted objectives, choice groups, reflection rewards). Chapters 6–100 use procedural logic below.
+/** @type {Record<number, Partial<ChapterQuest>>} */
+const CHAPTER_1_5_LOGIC = {
+    1: {
         objectives: [
             { type: 'kill', target: 'skeleton', count: 3, progress: 0, group: 'clear', label: 'Clear the outskirts' },
             { type: 'kill', target: 'shadow_beast', count: 2, progress: 0, group: 'silence', label: "Silence the beast's call" },
@@ -80,11 +88,8 @@ export const CHAPTER_QUESTS = [
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['basicRing', 'basicAmulet', 'basicTalisman'],
         replayable: true,
-        nextQuestId: 'chapter_2_forest_of_doubt',
     },
-    {
-        id: 'chapter_2_forest_of_doubt',
-        position: getQuestMarkerPositionForChapter(1),
+    2: {
         objectives: [
             { type: 'kill', target: 'zombie', count: 2, progress: 0, group: 'mist', label: 'Calm the mist' },
             { type: 'kill', target: 'corrupted_treant', count: 1, progress: 0, group: 'mist' },
@@ -96,11 +101,8 @@ export const CHAPTER_QUESTS = [
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['elementalRing', 'enlightenedAmulet', 'chakraTalisman'],
         replayable: true,
-        nextQuestId: 'chapter_3_mountain_of_desire',
     },
-    {
-        id: 'chapter_3_mountain_of_desire',
-        position: getQuestMarkerPositionForChapter(2),
+    3: {
         objectives: [
             { type: 'kill', target: 'forest_spider', count: 3, progress: 0, group: 'path', label: 'Clear the path' },
             { type: 'kill', target: 'feral_wolf', count: 2, progress: 0, group: 'path' },
@@ -113,11 +115,8 @@ export const CHAPTER_QUESTS = [
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['crescentMoonRing', 'spiritCoreAmulet', 'dragonscaleTalisman'],
         replayable: true,
-        nextQuestId: 'chapter_4_desert_of_loneliness',
     },
-    {
-        id: 'chapter_4_desert_of_loneliness',
-        position: getQuestMarkerPositionForChapter(3),
+    4: {
         objectives: [
             { type: 'kill', target: 'skeleton', count: 2, progress: 0, group: 'echoes', label: 'Silence the echoes' },
             { type: 'kill', target: 'necromancer', count: 2, progress: 0, group: 'echoes' },
@@ -130,11 +129,8 @@ export const CHAPTER_QUESTS = [
         rewards: { xp: 250, skillPoints: 1 },
         reflectionRewards: ['infinityBand', 'celestialHeart', 'cosmicNexus'],
         replayable: true,
-        nextQuestId: 'chapter_5_inner_temple',
     },
-    {
-        id: 'chapter_5_inner_temple',
-        position: getQuestMarkerPositionForChapter(4),
+    5: {
         objectives: [
             { type: 'defeat_boss', target: 'shadow_self', count: 1, progress: 0 },
         ],
@@ -142,11 +138,10 @@ export const CHAPTER_QUESTS = [
         rewards: { xp: 300, skillPoints: 1 },
         reflectionRewards: ['eternityLoop', 'soulNexus', 'cosmicNexus'],
         replayable: true,
-        nextQuestId: 'chapter_6_valley_of_patience',
     },
-];
+};
 
-// Boss enemy types for chapters 6–100 (cycle). Display names come from chapters.js EN_ENTRIES.
+// Boss enemy types for chapters 6–100 (cycle). Display names from chapters.js EN_ENTRIES.
 const BOSS_CYCLE = [
     { enemyType: 'skeleton_king' },
     { enemyType: 'demon_lord' },
@@ -158,27 +153,33 @@ const BOSS_CYCLE = [
     { enemyType: 'necromancer_lord' },
 ];
 
-function slug(s) {
-    return s.toLowerCase().replace(/\s+/g, '_').replace(/['']/g, '');
-}
-
-// Build chapters 6–100 from EN_ENTRIES (chapters.js). Content lives only in chapters.js / chapters-vi.js.
-// Kill objectives use enemy types that spawn on this chapter's map so the player must seek different (and sometimes rarer) types.
-(function () {
-    const list = CHAPTER_QUESTS;
-    const start = 6;
-    const end = 100;
-    for (let i = start; i <= end; i++) {
-        const entry = EN_ENTRIES[i - 1]; // chapter i → index i-1
+// Single loop: build all chapters from EN_ENTRIES. Id = chapter_N_slug(area); content lives in chapters.js / chapters-vi.js.
+/** @type {ChapterQuest[]} */
+export const CHAPTER_QUESTS = (function () {
+    const list = [];
+    const end = Math.min(100, EN_ENTRIES.length);
+    for (let i = 1; i <= end; i++) {
+        const entry = EN_ENTRIES[i - 1];
         if (!entry || !entry.area) break;
-        const chapterIndex = list.length; // 0-based index of this chapter in CHAPTER_QUESTS
+        const chapterIndex = list.length;
+        const id = chapterId(i, entry);
+        const nextEntry = EN_ENTRIES[i];
+        const nextQuestId = (i < end && chapterId(i + 1, nextEntry)) || null;
+
+        const override = CHAPTER_1_5_LOGIC[i];
+        if (override) {
+            list.push({
+                id,
+                position: getQuestMarkerPositionForChapter(chapterIndex),
+                nextQuestId,
+                ...override,
+            });
+            continue;
+        }
+
+        // Chapters 6–100: procedural objectives from map enemy types + boss cycle
         const enemyTypes = getEnemyTypesForChapterIndex(chapterIndex);
         const boss = BOSS_CYCLE[(i - 1) % BOSS_CYCLE.length];
-        const nextEntry = EN_ENTRIES[i]; // chapter i+1 when i < 100
-        const nextId = i < end && nextEntry && nextEntry.area ? `chapter_${i + 1}_${slug(nextEntry.area)}` : null;
-        const id = `chapter_${i}_${slug(entry.area)}`;
-
-        // Build kill objectives from map enemies: 2–3 common types + 1 rarer (later in list = harder to find on map)
         const killObjectives = [];
         if (enemyTypes.length >= 2) {
             const mid = Math.max(1, Math.floor(enemyTypes.length / 2));
@@ -205,12 +206,10 @@ function slug(s) {
             objectives: killObjectives,
             boss: { enemyType: boss.enemyType },
             rewards: { xp: 250 + (i % 3) * 25, skillPoints: i % 5 === 0 ? 1 : 0 },
-            nextQuestId: nextId,
+            nextQuestId,
         });
     }
-    // Fix nextQuestId for last chapter (100) to null
-    const last = list[list.length - 1];
-    if (last && last.id.startsWith('chapter_100_')) last.nextQuestId = null;
+    return list;
 })();
 
 /**
