@@ -1,6 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
 import { getChapterQuestById, chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-ui-strings.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 

@@ -1,95 +1,30 @@
 /**
- * Chapter quest & story strings by locale (EN / VI).
- * Consumers should use getChapterQuestText / getChapterQuestDisplay with game.questStoryLocale.
- * For chapters 6–100, text falls back to quest data from chapter-quests.js when no locale entry exists.
+ * Quest UI strings (reflection, map selection, quest messages). EN + VI.
+ * Quest display text: default EN from chapter-quests.js; VI from chapter-quests-vi.js (fallback to EN).
  */
 
 import { getChapterQuestById } from './chapter-quests.js';
-import { buildChapterQuestViAsync } from './chapter-quests-vi.js';
+import { getChapterQuestDisplay, ensureViChaptersLoaded } from './chapter-quests-vi.js';
+
+export { getChapterQuestDisplay, ensureViChaptersLoaded };
 
 const DEFAULT_LOCALE = 'en';
 
 /** @typedef {'title'|'description'|'lesson'|'area'|'bossName'} QuestTextKey */
 
-/** @type {Record<string, Record<string, { title: string, description: string, lesson: string, area: string, bossName: string }>>} */
-export const CHAPTER_QUEST_TEXTS = {
-    en: {
-        chapter_1_restless_village: {
-            title: 'The Restless Village',
-            description: 'A village consumed by anger—disputes over land, old grudges. A Rage Beast has taken root and feeds on their anger. Calm the conflicts and face the beast so the village can find peace.',
-            lesson: 'Anger burns the one who carries it.',
-            area: 'The Restless Village',
-            bossName: 'Rage Beast',
-        },
-        chapter_2_forest_of_doubt: {
-            title: 'Forest of Doubt',
-            description: 'A dense, misty forest where travelers lose their way and their courage. Something whispers in the dark. Face the Doubt Serpent so the forest can be free of paralyzing fear.',
-            lesson: 'Fear grows in silence.',
-            area: 'Forest of Doubt',
-            bossName: 'Doubt Serpent',
-        },
-        chapter_3_mountain_of_desire: {
-            title: 'Mountain of Desire',
-            description: 'A mountain where treasure hunters are obsessed with gold and power. A Golden Titan guards the peak. Navigate temptations and face the Titan to learn that gratitude—not accumulation—brings peace.',
-            lesson: 'Gratitude ends endless hunger.',
-            area: 'Mountain of Desire',
-            bossName: 'Golden Titan',
-        },
-        chapter_4_desert_of_loneliness: {
-            title: 'Desert of Loneliness',
-            description: 'A vast desert where travelers feel cut off—no landmarks, no companions. An Echo Phantom amplifies loneliness. Endure the emptiness, find connection, then face the Phantom.',
-            lesson: 'You are never truly alone.',
-            area: 'Desert of Loneliness',
-            bossName: 'Echo Phantom',
-        },
-        chapter_5_inner_temple: {
-            title: 'Inner Temple',
-            description: 'The final trial. Here the test is not an external monster but the self. A Shadow Self mirrors your skills and choices. Face this reflection and transcend the untrained self to earn Enlightenment Mode.',
-            lesson: 'Your greatest opponent is your untrained self.',
-            area: 'Inner Temple',
-            bossName: 'Shadow Self',
-        },
-    },
-    vi: {}, // All chapter VI (1–100) loaded on demand via ensureViChaptersLoaded() from chapter-quests-vi.js packs
-};
-
-let viChaptersLoadPromise = null;
-
-/**
- * Load VI for all chapters (1–100) from packs and merge into CHAPTER_QUEST_TEXTS.vi.
- * Safe to call multiple times; loads only once.
- * @returns {Promise<void>}
- */
-export async function ensureViChaptersLoaded() {
-    if (viChaptersLoadPromise == null) {
-        viChaptersLoadPromise = buildChapterQuestViAsync().then((built) => {
-            Object.assign(CHAPTER_QUEST_TEXTS.vi, built);
-        });
-    }
-    return viChaptersLoadPromise;
-}
-
 /**
  * Get a single localized string for a chapter quest.
- * @param {string} questId - Chapter quest id (e.g. 'chapter_1_restless_village')
- * @param {string} [locale] - 'en' | 'vi'; defaults to DEFAULT_LOCALE
- * @param {QuestTextKey} key - 'title' | 'description' | 'lesson' | 'area' | 'bossName'
- * @returns {string} Localized string, or fallback to EN, or empty string
+ * @param {string} questId
+ * @param {string} [locale] - 'en' | 'vi'
+ * @param {QuestTextKey} key
+ * @returns {string}
  */
 export function getChapterQuestText(questId, locale = DEFAULT_LOCALE, key) {
-    const loc = locale === 'vi' ? 'vi' : 'en';
-    const byLocale = CHAPTER_QUEST_TEXTS[loc];
-    const byId = byLocale && byLocale[questId];
-    if (byId && typeof byId[key] === 'string') return byId[key];
-    const fallback = CHAPTER_QUEST_TEXTS.en && CHAPTER_QUEST_TEXTS.en[questId];
-    if (fallback && typeof fallback[key] === 'string') return fallback[key];
-    // Chapters 6–100: fallback to quest data from chapter-quests.js
     const quest = getChapterQuestById(questId);
-    if (quest && key) {
-        if (key === 'bossName') return quest.boss?.name ?? '';
-        if (key in quest && typeof quest[key] === 'string') return quest[key];
-    }
-    return '';
+    if (!quest || !key) return '';
+    const display = getChapterQuestDisplay(quest, locale);
+    const value = display[key];
+    return typeof value === 'string' ? value : '';
 }
 
 /** UI strings for reflection screen (buttons, R-Q5 question) by locale */
@@ -315,24 +250,3 @@ export function getMapSelectionUiString(key, locale = DEFAULT_LOCALE, params = {
     return s;
 }
 
-/**
- * Get all display strings for a chapter quest in the given locale.
- * @param {import('./chapter-quests.js').ChapterQuest} quest - Chapter quest object (must have .id)
- * @param {string} [locale] - 'en' | 'vi'; defaults to DEFAULT_LOCALE
- * @returns {{ title: string, description: string, lesson: string, area: string, bossName: string }}
- */
-export function getChapterQuestDisplay(quest, locale = DEFAULT_LOCALE) {
-    const id = quest && quest.id;
-    const loc = locale === 'vi' ? 'vi' : 'en';
-    const byLocale = CHAPTER_QUEST_TEXTS[loc];
-    const byId = byLocale && id ? byLocale[id] : null;
-    const fallback = id && CHAPTER_QUEST_TEXTS.en ? CHAPTER_QUEST_TEXTS.en[id] : null;
-    const row = byId || fallback || {};
-    return {
-        title: row.title ?? quest?.title ?? '',
-        description: row.description ?? quest?.description ?? '',
-        lesson: row.lesson ?? quest?.lesson ?? '',
-        area: row.area ?? quest?.area ?? '',
-        bossName: row.bossName ?? quest?.boss?.name ?? '',
-    };
-}

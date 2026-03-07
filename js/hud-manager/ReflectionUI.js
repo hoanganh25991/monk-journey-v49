@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import { getReflectionUiString } from '../config/chapter-quests-locales.js';
+import { getReflectionUiString } from '../config/chapter-quests-ui-strings.js';
 
 /**
  * Reflection UI — post-boss life lesson (GDD §11).

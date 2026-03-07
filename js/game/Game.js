@@ -23,7 +23,7 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-ui-strings.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import storageService from '../save-manager/StorageService.js';
@@ -131,7 +131,7 @@ export class Game {
             this.questStoryLocale = questStoryLocale === 'vi' ? 'vi' : 'en';
             console.debug(`Game initialized with quest/story locale: ${this.questStoryLocale}`);
             if (this.questStoryLocale === 'vi') {
-                import('../config/chapter-quests-locales.js').then((m) => m.ensureViChaptersLoaded()).catch(() => {});
+                import('../config/chapter-quests-ui-strings.js').then((m) => m.ensureViChaptersLoaded()).catch(() => {});
             }
         } catch (error) {
             console.error('Error loading initial settings:', error);

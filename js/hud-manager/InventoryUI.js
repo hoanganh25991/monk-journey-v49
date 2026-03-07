@@ -1,7 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { UIComponent } from '../UIComponent.js';
 import { ModelPreview } from '../menu-system/ModelPreview.js';
-import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-ui-strings.js';
 import { ItemPreview } from '../menu-system/ItemPreview.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
 import { CONSUMABLE_SKILL_EFFECTS } from '../config/consumable-skills.js';

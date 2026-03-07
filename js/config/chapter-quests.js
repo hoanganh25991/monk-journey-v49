@@ -8,7 +8,7 @@
  *
  * Naming: Each quest has an `area` (e.g. "Mountain of Desire"). When this chapter's map is shown
  * in the map selector, the UI uses this area as the single display name (localized via
- * chapter-quests-locales.js) so players see one clear name per map, not both map name and area.
+ * chapter-quests-ui-strings.js) so players see one clear name per map, not both map name and area.
  */
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';

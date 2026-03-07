@@ -1,10 +1,12 @@
 /**
- * Vietnamese short quest text for chapters 1–100. Data in chapters-vi.js (single file).
- * EN comes from chapter-quests.js; no chapters-en — we use that as the base.
+ * Vietnamese locale for chapter quests (dedicated -vi file).
+ * Default is EN from chapter-quests.js; this file provides VI only. Fallback to EN when missing.
  */
 
 import { CHAPTER_QUESTS } from './chapter-quests.js';
 import { VI_ENTRIES } from './chapters-vi.js';
+
+const DEFAULT_LOCALE = 'en';
 
 const BOSS_VI = [
     'Kẻ Canh Giữ Xung Đột', 'Bóng Nghi Ngờ', 'Hình Tượng Tham Lam', 'Linh Hồn Cô Đơn',
@@ -12,9 +14,10 @@ const BOSS_VI = [
 ];
 
 let cached = null;
+let loadPromise = null;
 
 /**
- * Build quest map for chapters 1–100 from VI_ENTRIES. Cached after first call.
+ * Build VI quest map for chapters 1–100. Cached after first call.
  * @returns {Promise<Record<string, { title: string, description: string, lesson: string, area: string, bossName: string }>>}
  */
 export async function buildChapterQuestViAsync() {
@@ -35,6 +38,43 @@ export async function buildChapterQuestViAsync() {
     return out;
 }
 
+/**
+ * Load VI for all chapters. Safe to call multiple times; loads only once.
+ * @returns {Promise<void>}
+ */
+export async function ensureViChaptersLoaded() {
+    if (loadPromise == null) loadPromise = buildChapterQuestViAsync();
+    return loadPromise;
+}
+
 export function getCachedChapterQuestVi() {
     return cached;
+}
+
+/**
+ * Get display strings for a chapter quest. Default EN from quest; VI from this locale with fallback to EN.
+ * @param {import('./chapter-quests.js').ChapterQuest} quest
+ * @param {string} [locale] - 'en' | 'vi'
+ * @returns {{ title: string, description: string, lesson: string, area: string, bossName: string }}
+ */
+export function getChapterQuestDisplay(quest, locale = DEFAULT_LOCALE) {
+    const id = quest?.id;
+    const fromQuest = {
+        title: quest?.title ?? '',
+        description: quest?.description ?? '',
+        lesson: quest?.lesson ?? '',
+        area: quest?.area ?? '',
+        bossName: quest?.boss?.name ?? '',
+    };
+    if (locale !== 'vi') return fromQuest;
+    const viMap = getCachedChapterQuestVi();
+    if (!viMap || !id) return fromQuest;
+    const vi = viMap[id];
+    return {
+        title: vi?.title ?? fromQuest.title,
+        description: vi?.description ?? fromQuest.description,
+        lesson: vi?.lesson ?? fromQuest.lesson,
+        area: vi?.area ?? fromQuest.area,
+        bossName: vi?.bossName ?? fromQuest.bossName,
+    };
 }

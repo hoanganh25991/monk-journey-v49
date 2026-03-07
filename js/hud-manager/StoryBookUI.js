@@ -5,7 +5,7 @@
  */
 
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay, getMapSelectionUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getMapSelectionUiString } from '../config/chapter-quests-ui-strings.js';
 import { CHAPTER_STORY_IMAGES } from '../config/chapter-story-images.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { WANG_LIN_STORY_EN_LONG } from '../config/wang-lin-story-en-long.js';

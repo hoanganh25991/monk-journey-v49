@@ -16,7 +16,7 @@ import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
 import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
-import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-ui-strings.js';
 
 import { InventoryButton } from './InventoryButton.js';
 import './HUDGuide.js'; // startHUDGuide() for programmatic HUD tour
