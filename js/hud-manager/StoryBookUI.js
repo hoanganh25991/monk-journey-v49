@@ -61,6 +61,7 @@ export class StoryBookUI {
         this.currentIndex = this.getLastChapterIndex();
         this.updateLabels();
         this.renderChapter();
+        this.scrollContentToTop();
         this.overlay.style.display = 'flex';
         this.overlay.style.visibility = 'visible';
         this.overlay.setAttribute('aria-hidden', 'false');
@@ -221,12 +222,20 @@ export class StoryBookUI {
         if (this.currentIndex <= 0) return;
         this.currentIndex -= 1;
         this.renderChapter();
+        this.scrollContentToTop();
     }
 
     nextChapter() {
         if (this.currentIndex >= CHAPTER_QUESTS.length - 1) return;
         this.currentIndex += 1;
         this.renderChapter();
+        this.scrollContentToTop();
+    }
+
+    /** Scroll the story book content area back to top (e.g. after changing chapter). */
+    scrollContentToTop() {
+        const content = this.overlay?.querySelector('.story-book-content');
+        if (content) content.scrollTop = 0;
     }
 
     isVisible() {

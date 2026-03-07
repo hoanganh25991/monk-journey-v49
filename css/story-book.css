@@ -1,4 +1,4 @@
-/* Story Book — full-screen chapter reader (opened from Map) */
+/* Story Book — full-screen chapter reader (opened from Map). DAWN font for long vi text per chapter. */
 
 .story-book-overlay {
     position: fixed;
@@ -63,6 +63,7 @@
     flex-direction: column;
     gap: var(--padding-large);
     padding: var(--padding-large);
+    font-family: 'Dawning of a New Day', cursive;
 }
 
 /* Top: chapter image or placeholder */
@@ -150,13 +151,14 @@
 
 .story-book-chapter-story {
     margin: 0;
-    font-size: 0.98rem;
+    font-size: 1.1rem;
     color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
+    line-height: 1.65;
     font-style: normal;
     max-height: 40vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    font-family: 'Dawning of a New Day', cursive;
 }
 
 .story-book-lesson {
