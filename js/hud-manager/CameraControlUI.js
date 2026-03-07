@@ -25,6 +25,9 @@ export class CameraControlUI extends UIComponent {
             currentY: 0,
             rotationX: 0,
             rotationY: 0,
+            // Smoothed rotation applied each frame (lerped toward rotationX/Y to avoid jerky camera)
+            smoothedRotationX: null,
+            smoothedRotationY: null,
             // Store the original rotation values at the start of a drag
             originalRotationX: 0,
             originalRotationY: 0,
@@ -94,9 +97,11 @@ export class CameraControlUI extends UIComponent {
         this.cameraState.tapToResetCamera = false; // When true, next tap on button will reset camera to origin
         this.cameraOverlay = null; // Right-side overlay for drag-to-look when view control mode is on
         
-        // Drag sensitivity: multiplier so the same drag rotates the camera further (~3× per IMPLEMENTATION_PLAN 7.1)
-        this.DRAG_SENSITIVITY_MULTIPLIER = 3;
-        
+        // Drag sensitivity: lower = less twitchy, smoother feel (was 3; reduced to fix lag from instant jumps)
+        this.DRAG_SENSITIVITY_MULTIPLIER = 1.2;
+        // Smoothing: lerp applied rotation toward target each frame (0 = instant, ~0.2–0.3 = smooth)
+        this.CAMERA_SMOOTH_FACTOR = 0.25;
+
         console.debug("CameraControlUI initialized with camera mode support");
     }
     
@@ -794,7 +799,10 @@ export class CameraControlUI extends UIComponent {
             // Use existing rotation values for continuous dragging
             this.cameraState.originalRotationX = this.cameraState.rotationX;
             this.cameraState.originalRotationY = this.cameraState.rotationY;
-            
+            // Sync smoothed to current so smoothing starts from here
+            this.cameraState.smoothedRotationX = this.cameraState.rotationX;
+            this.cameraState.smoothedRotationY = this.cameraState.rotationY;
+
             console.debug("Using stored rotation for continuous drag:", {
                 originalX: this.cameraState.originalRotationX,
                 originalY: this.cameraState.originalRotationY,
@@ -816,7 +824,9 @@ export class CameraControlUI extends UIComponent {
             this.cameraState.originalRotationY = horizontalAngle;
             this.cameraState.rotationX = verticalAngle;
             this.cameraState.rotationY = horizontalAngle;
-            
+            this.cameraState.smoothedRotationX = verticalAngle;
+            this.cameraState.smoothedRotationY = horizontalAngle;
+
             console.debug("Initial camera rotation calculated:", {
                 x: this.cameraState.rotationX,
                 y: this.cameraState.rotationY,
@@ -831,7 +841,9 @@ export class CameraControlUI extends UIComponent {
             this.cameraState.originalRotationY = this.game.camera.rotation.y;
             this.cameraState.rotationX = this.game.camera.rotation.x;
             this.cameraState.rotationY = this.game.camera.rotation.y;
-            
+            this.cameraState.smoothedRotationX = this.cameraState.rotationX;
+            this.cameraState.smoothedRotationY = this.cameraState.rotationY;
+
             console.debug("Initial camera rotation (fallback):", {
                 x: this.cameraState.rotationX,
                 y: this.cameraState.rotationY,
@@ -1113,9 +1125,10 @@ export class CameraControlUI extends UIComponent {
             rotationY = this.cameraState.originalRotationY;
         }
 
-        // Store the new rotation values for next frame
+        // Store the new rotation values (target); update() will smooth toward these and apply
         this.cameraState.rotationX = newRotationX;
         this.cameraState.rotationY = rotationY;
+        this.cameraUpdatePending = true;
 
         // Log detailed information for debugging
         console.debug("Camera drag detected:", {
@@ -1129,10 +1142,7 @@ export class CameraControlUI extends UIComponent {
             horizontalDegrees: radToDeg(rotationY),
             dragAxisLock: this.cameraState.dragAxisLock
         });
-        
-        // Update camera position to orbit around the player
-        this.updateCameraOrbit(newRotationX, rotationY);
-        
+
         // Update visual indicator
         this.updateVisualIndicator(totalDeltaX, totalDeltaY);
         
@@ -1201,6 +1211,9 @@ export class CameraControlUI extends UIComponent {
                 console.error("Invalid rotation values:", {rotationX, rotationY});
                 return;
             }
+            // Keep smoothed in sync when applying directly (reset/settings) so no catch-up lerp
+            this.cameraState.smoothedRotationX = rotationX;
+            this.cameraState.smoothedRotationY = rotationY;
             const spherical = new THREE.Spherical(
                 distance,
                 Math.PI/2 - rotationX,
@@ -1379,37 +1392,51 @@ export class CameraControlUI extends UIComponent {
     update(delta) {
         // Check if we have a pending camera update from the last frame
         if (this.cameraUpdatePending && this.game && this.game.camera && this.game.player) {
-            // Get the current camera state
             const rotationX = this.cameraState.rotationX;
             const rotationY = this.cameraState.rotationY;
-            
-            // Only update if we have valid rotation values
-            if (rotationX !== undefined && rotationY !== undefined) {
-                // World rebasing: player is at (0,0,0) for rendering; orbit camera around origin for clean precision
-                const distance = this.cameraDistance;
-                const spherical = new THREE.Spherical(
-                    distance,
-                    Math.PI/2 - rotationX,
-                    rotationY
-                );
-                const cameraOffset = new THREE.Vector3();
-                cameraOffset.setFromSpherical(spherical);
-                const heightOffset = this.cameraHeightConfig.heightOffset;
-                const cameraPosition = new THREE.Vector3(
-                    cameraOffset.x,
-                    cameraOffset.y + heightOffset,
-                    cameraOffset.z
-                );
-                this.game.camera.position.copy(cameraPosition);
-                const rotationFactor = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? 15 : 25;
-                const verticalOffset = this.cameraHeightConfig.verticalLookOffset + (rotationX * rotationFactor);
-                const lookAtPosition = new THREE.Vector3(0, verticalOffset, 0);
-                this.game.camera.lookAt(lookAtPosition);
-                if (this.game.controls) {
-                    this.game.controls.target.copy(lookAtPosition);
-                }
-                this.game.camera.updateMatrixWorld(true);
+
+            if (rotationX === undefined || rotationY === undefined) return;
+
+            // Lerp smoothed rotation toward target for smooth camera motion (avoids jerky/laggy feel)
+            let smoothedX = this.cameraState.smoothedRotationX;
+            let smoothedY = this.cameraState.smoothedRotationY;
+            if (smoothedX == null || smoothedY == null) {
+                smoothedX = rotationX;
+                smoothedY = rotationY;
+                this.cameraState.smoothedRotationX = smoothedX;
+                this.cameraState.smoothedRotationY = smoothedY;
+            } else {
+                const t = this.CAMERA_SMOOTH_FACTOR;
+                smoothedX = smoothedX + (rotationX - smoothedX) * t;
+                smoothedY = smoothedY + (rotationY - smoothedY) * t;
+                this.cameraState.smoothedRotationX = smoothedX;
+                this.cameraState.smoothedRotationY = smoothedY;
             }
+
+            // Apply smoothed rotation to camera
+            const distance = this.cameraDistance;
+            const spherical = new THREE.Spherical(
+                distance,
+                Math.PI/2 - smoothedX,
+                smoothedY
+            );
+            const cameraOffset = new THREE.Vector3();
+            cameraOffset.setFromSpherical(spherical);
+            const heightOffset = this.cameraHeightConfig.heightOffset;
+            const cameraPosition = new THREE.Vector3(
+                cameraOffset.x,
+                cameraOffset.y + heightOffset,
+                cameraOffset.z
+            );
+            this.game.camera.position.copy(cameraPosition);
+            const rotationFactor = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? 15 : 25;
+            const verticalOffset = this.cameraHeightConfig.verticalLookOffset + (smoothedX * rotationFactor);
+            const lookAtPosition = new THREE.Vector3(0, verticalOffset, 0);
+            this.game.camera.lookAt(lookAtPosition);
+            if (this.game.controls) {
+                this.game.controls.target.copy(lookAtPosition);
+            }
+            this.game.camera.updateMatrixWorld(true);
         }
     }
     

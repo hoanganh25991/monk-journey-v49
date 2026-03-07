@@ -139,11 +139,18 @@ export class MultiplayerConnectionManager {
             
             // Set up connection handler
             this.peer.on('connection', conn => {
+                console.warn('[P2P] Host received connection from', conn.peer);
                 this.handleNewConnection(conn);
                 // Only show connection info screen when still in lobby (game never started). Once game has started (running or paused e.g. You Died), host stays on current screen — rejoiner gets startGame and drops in.
                 if (!this.multiplayerManager.game?.state?.hasStarted?.()) {
                     this.multiplayerManager.ui.showConnectionInfoScreen();
                 }
+            });
+            this.peer.on('disconnected', () => {
+                console.warn('[P2P] Host lost connection to signaling server. New joiners may not reach you until reconnected.');
+            });
+            this.peer.on('error', (err) => {
+                console.error('[P2P] Host peer error:', err);
             });
             
             // Show connection info screen immediately
@@ -181,6 +188,9 @@ export class MultiplayerConnectionManager {
                 this.peer.on('open', id => resolve());
                 this.peer.on('error', err => reject(err));
             });
+
+            // Brief delay so the signaling server has the joiner's peer registered before we connect (PeerJS timing)
+            await new Promise(r => setTimeout(r, 400));
 
             // Connect to host
             this.hostId = roomId;
