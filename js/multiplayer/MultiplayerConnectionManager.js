@@ -227,55 +227,48 @@ export class MultiplayerConnectionManager {
                 this._pendingJoinConn = null;
             };
 
-            // Set up connection
-            conn.on('open', () => {
+            let joinConnectionOpened = false;
+            const onJoinConnectionOpen = () => {
+                if (joinConnectionOpened) return;
+                joinConnectionOpened = true;
                 clearJoinTimeout();
-                this._joinAttemptRoomId = null; // join succeeded
+                this._joinAttemptRoomId = null;
                 console.warn('[P2P] Path established: Joiner ↔ Host. Connection open.');
                 this.multiplayerManager.ui.clearReconnectRetry();
-                // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
                 conn.on('data', data => {
                     if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
                         this._pendingRawQueue.push(data);
                         return;
                     }
-                    // Enqueue JSON so we never run heavy logic inside PeerJS callback; drain at frame start
                     const decoded = this.processReceivedData(data);
                     if (decoded) this._pendingJsonQueue.push(decoded);
                 });
                 conn.on('close', () => this.handleDisconnect(roomId));
 
-                // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
                 this.multiplayerManager.ui.clearPendingInviteFromHost();
                 this.multiplayerManager.ui.setLastRole('joiner');
                 this.multiplayerManager.ui.setHostStatus(roomId, 'online');
-                // Add to peers map
                 this.peers.set(roomId, conn);
-                
-                // Set connected flag
                 this.isConnected = true;
-                
-                // Update multiplayer button to show "Disconnect"
                 this.multiplayerManager.ui.updateMultiplayerButton(true);
-                
-                // Update connection status
                 this.multiplayerManager.ui.updateConnectionStatus('Connected to host! Waiting for game to start...', 'connection-info-status-bar');
-                
-                // Show the connection info screen (or rejoin overlay if silent rejoin)
                 this.multiplayerManager.ui.showConnectionInfoScreen();
-                // Start game loop so deferred binary decode can run (drainPendingMessages); avoids decoding in callback = better joiner FPS
                 if (this.multiplayerManager.game?.ensureAnimationLoopRunning) {
                     this.multiplayerManager.game.ensureAnimationLoopRunning();
                 }
-                // Start periodic ping (joiner only) for RTT and connection quality UI
                 this._startPingInterval();
-                // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
-                // Send persistentId so host can dedupe one player per device (off->on->off->on = same slot)
                 this.sendToHost({
                     type: 'requestStartGame',
                     persistentId: this.multiplayerManager.getMyPersistentPeerId()
                 });
+            };
+
+            conn.on('open', () => onJoinConnectionOpen());
+            conn.once('data', (data) => {
+                if (joinConnectionOpened) return;
+                const d = this.processReceivedData(typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return null; } })() : data);
+                if (d?.type === 'hostReady') onJoinConnectionOpen();
             });
             
             conn.on('error', (err) => {
@@ -355,9 +348,18 @@ export class MultiplayerConnectionManager {
     /**
      * Handle new connection from a member (host only).
      * First message may be statusRequest (ping for rejoin UI) or inviteRequest; otherwise add as game player.
+     * Host must listen for conn.on('open') and send first so the joiner's conn.open can fire (PeerJS quirk).
      * @param {DataConnection} conn - The PeerJS connection
      */
     handleNewConnection(conn) {
+        let hostReadySent = false;
+        const sendHostReady = () => {
+            if (hostReadySent) return;
+            hostReadySent = true;
+            try { conn.send({ type: 'hostReady' }); } catch (_) {}
+        };
+        conn.on('open', () => sendHostReady());
+        setTimeout(sendHostReady, 1500);
         conn.once('data', (data) => {
             let raw = data;
             if (typeof raw === 'string') {
