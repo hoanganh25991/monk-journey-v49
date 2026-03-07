@@ -1262,6 +1262,9 @@ export class Game {
             this.multiplayerManager.connection.processPendingGameState(delta);
         }
 
+        // Accumulate active game time (excludes paused frames)
+        this.gameTime = (this.gameTime || 0) + simDelta;
+
         // Update input handler for continuous skill casting
         this.inputHandler.update(simDelta);
         

@@ -137,3 +137,14 @@
         padding: var(--padding-small);
     }
 }
+
+/* Ensure stats body has at least 10px padding on small screens */
+@media (max-width: 1024px) {
+    #death-screen .death-stats {
+        padding: 10px;
+    }
+
+    #death-screen-content {
+        padding: 20px;
+    }
+}

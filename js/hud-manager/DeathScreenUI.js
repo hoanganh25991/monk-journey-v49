@@ -113,8 +113,8 @@ export class DeathScreenUI extends UIComponent {
         const seconds = Math.floor(gameTime % 60);
         const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
-        // Get enemies defeated (if available)
-        const enemiesDefeated = this.game.player.enemiesDefeated || 0;
+        // Get enemies defeated from EnemyManager kill counter
+        const enemiesDefeated = this.game.enemyManager?.enemyKillCount || 0;
         
         // Get player level
         const playerLevel = this.game.player.level ?? this.game.player.getLevel?.() ?? 1;
