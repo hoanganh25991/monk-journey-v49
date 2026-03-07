@@ -2,7 +2,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
-import { distanceSq2D, distanceApprox2D, fastAtan2, normalize2D, tempVec2 } from 'utils/FastMath.js';
+import { distanceSq2D, distanceApprox2D, fastAtan2, fastSin, fastCos, normalize2D, tempVec2 } from 'utils/FastMath.js';
 
 export class Enemy {
     // Static counter for generating unique IDs
@@ -227,7 +227,30 @@ export class Enemy {
             this.model.updateAnimations(delta);
         }
     }
-    
+
+    /**
+     * When enemy has no target: small wander in place so they look "live" (idle animation + tiny position drift).
+     * Used for enemies outside detection range and for enemies inside village (safe zone) who must not target player.
+     */
+    _updateIdleWander(delta) {
+        if (!this.world || !this.allowTerrainHeightUpdates) return;
+        if (this._idleWanderCenter === undefined) {
+            this._idleWanderCenter = { x: this.position.x, z: this.position.z };
+        }
+        const center = this._idleWanderCenter;
+        const time = Date.now() * 0.001;
+        const phase = (this.id ?? 0) * 0.7; // Per-enemy phase so they don't move in sync
+        const wanderRadius = 0.4;
+        const wanderSpeed = 0.6;
+        const x = center.x + fastCos(time * wanderSpeed + phase) * wanderRadius;
+        const z = center.z + fastSin(time * wanderSpeed * 0.9 + phase * 1.1) * wanderRadius;
+        const terrainY = this.world.getTerrainHeight(x, z);
+        if (terrainY != null && isFinite(terrainY)) {
+            this.setPosition(x, terrainY + this.heightOffset, z);
+        }
+        this.state.isMoving = true; // Slight movement so model can show walk-like idle
+    }
+
     /**
      * Play idle animation
      */
@@ -386,10 +409,18 @@ export class Enemy {
         // Find the closest alive player (local or remote); dead players are skipped
         this.findClosestPlayer();
 
+        // Enemies inside village (safe zone) must not target the player — treat as no target
+        if (this.targetPlayer && this.world?.isInsideSafeZone?.(this.position.x, this.position.z)) {
+            this.targetPlayer = null;
+        }
+
         if (!this.targetPlayer) {
+            this._updateIdleWander(delta);
             this.updateAnimations(delta);
             return;
         }
+
+        this._idleWanderCenter = undefined; // Next time they go idle, wander around where they are
 
         // Get squared distance to target player (avoids Math.sqrt in hot path)
         const playerPosition = this.targetPlayer.getPosition();

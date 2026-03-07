@@ -104,6 +104,7 @@ export class WorldManager {
     applyMap(mapData) {
         if (!mapData) {
             this.currentMap = null;
+            this._cachedSafeZones = null;
             this.structureManager?.clear();
             this.environmentManager?.clear();
             this._chunkGenCache.chunkX = -9999;
@@ -111,6 +112,7 @@ export class WorldManager {
             return;
         }
         this.currentMap = mapData;
+        this._cachedSafeZones = null;
         this.structureManager?.clear();
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
@@ -226,9 +228,11 @@ export class WorldManager {
      * @returns {Array<{ type: string, x: number, z: number, radius?: number }>}
      */
     getSafeZones() {
+        if (this._cachedSafeZones) return this._cachedSafeZones;
         const fromMap = this.currentMap?.safeZones ?? [];
         const homeVillage = [{ type: 'circle', x: 0, z: 0, radius: HOME_VILLAGE_SAFE_RADIUS }];
-        return [...fromMap, ...homeVillage];
+        this._cachedSafeZones = [...fromMap, ...homeVillage];
+        return this._cachedSafeZones;
     }
 
     /**
@@ -773,6 +777,8 @@ export class WorldManager {
             for (const structureData of this.structureManager.structures) {
                 const object = structureData.object;
                 if (!object) continue;
+                // Village is a group with one AABB covering the whole area; skip so ground in empty space is terrain, not tower top
+                if (structureData.type === 'village') continue;
                 
                 try {
                     // Cache bounding box if not already cached

@@ -134,6 +134,11 @@ export class CollisionManager {
                 
                 // Skip if object is not valid
                 if (!object) return;
+                // Village is a group of buildings with one huge AABB; skip so player can walk in empty space between buildings
+                if (structureData.type === 'village') return;
+                // When inside the village, don't push from fence/gate so player can move freely and not get stuck inside buildings
+                if ((structureData.type === 'village_fence' || structureData.type === 'village_gate') &&
+                    this.world.isInsideSafeZone && this.world.isInsideSafeZone(playerPosition.x, playerPosition.z)) return;
                 
                 try {
                     // Cache bounding box if not already cached

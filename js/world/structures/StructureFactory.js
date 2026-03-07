@@ -314,6 +314,49 @@ export class StructureFactory {
             return group;
         });
 
+        // Village fence run: dynamic loop of posts + continuous horizontal rail(s) connecting them
+        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, (params) => {
+            const { positions, rotation: rotationY = 0 } = params;
+            if (!positions || positions.length === 0) return null;
+            const group = new THREE.Group();
+            const woodColor = 0x8B7355;
+            const mat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const postGeo = new THREE.BoxGeometry(0.4, 1.8, 0.4);
+            const first = positions[0];
+            const firstY = this.getTerrainHeight(first.x, first.z);
+            group.position.set(first.x, firstY, first.z);
+            group.rotation.y = rotationY;
+            // Build posts in local space (relative to first position)
+            const localPoints = [];
+            for (let i = 0; i < positions.length; i++) {
+                const p = positions[i];
+                const py = this.getTerrainHeight(p.x, p.z);
+                const lx = p.x - first.x;
+                const lz = p.z - first.z;
+                localPoints.push({ x: lx, y: py - firstY, z: lz });
+                const post = new THREE.Mesh(postGeo, mat);
+                post.position.set(lx, 0.9 + (py - firstY), lz);
+                post.castShadow = true;
+                group.add(post);
+            }
+            // Rail segments between consecutive posts so the rail follows terrain height
+            for (let i = 0; i < localPoints.length - 1; i++) {
+                const a = localPoints[i];
+                const b = localPoints[i + 1];
+                const dx = b.x - a.x;
+                const dz = b.z - a.z;
+                const length = Math.sqrt(dx * dx + dz * dz) || 1;
+                const railGeo = new THREE.BoxGeometry(length, 0.2, 0.2);
+                const rail = new THREE.Mesh(railGeo, mat);
+                rail.position.set((a.x + b.x) / 2, 1.7 + (a.y + b.y) / 2, (a.z + b.z) / 2);
+                rail.rotation.y = Math.atan2(dz, dx);
+                rail.castShadow = true;
+                group.add(rail);
+            }
+            (this.game?.getWorldGroup?.() || this.scene).add(group);
+            return group;
+        });
+
         // Village gate (two posts + cross beam); rotationY orients gate (e.g. 0 = opening along -Z)
         this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z, rotationY = 0) => {
             const group = new THREE.Group();
@@ -367,7 +410,7 @@ export class StructureFactory {
         }
         
         // Extract common parameters
-        const { x, z, width, depth, height, style, scale, rotation, size, hasTower, hasWell, hasMarket, layout } = params;
+        const { x, z, width, depth, height, style, scale, rotation, size, hasTower, hasWell, hasMarket, layout, buildingCount, radius, minSpacing } = params;
         
         // Call the creator function with appropriate parameters
         let result;
@@ -383,9 +426,11 @@ export class StructureFactory {
         } else if (type === STRUCTURE_OBJECTS.BRIDGE) {
             result = creator(x, z, rotation);
         } else if (type === STRUCTURE_OBJECTS.VILLAGE) {
-            result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout });
+            result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout, buildingCount, radius, minSpacing });
         } else if (type === STRUCTURE_OBJECTS.VILLAGE_FENCE || type === STRUCTURE_OBJECTS.VILLAGE_GATE) {
             result = creator(x, z, rotation);
+        } else if (type === STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN) {
+            result = creator(params);
         } else {
             result = creator(x, z);
         }

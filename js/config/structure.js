@@ -33,6 +33,7 @@ export const STRUCTURE_OBJECTS = {
     ALTAR: 'altar',
     CAVE: 'cave',
     VILLAGE_FENCE: 'village_fence',
+    VILLAGE_FENCE_RUN: 'village_fence_run', // Connected fence: posts + horizontal rail(s) in one run
     VILLAGE_GATE: 'village_gate'
 };
 
@@ -123,6 +124,9 @@ export const STRUCTURE_PROPERTIES = {
         width: 2,
         depth: 1.5,
         height: 2,
+        isBuilding: false
+    },
+    [STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN]: {
         isBuilding: false
     },
     [STRUCTURE_OBJECTS.VILLAGE_GATE]: {

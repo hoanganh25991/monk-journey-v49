@@ -88,14 +88,15 @@ export class StructureManager {
         const gateZ = -H;
         const gateX = 0;
 
-        // Use most of the fenced area: radius so buildings spread to fill the square (leave margin from fence)
+        // Use most of the fenced area; fewer buildings with min spacing so they don't overlap
         const villageRadius = H * 0.82;
         const homeVillage = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE, { 
             x: cx, 
             z: cz,
-            size: 'large',
-            buildingCount: 14,
+            size: 'medium',
+            buildingCount: 8,
             radius: villageRadius,
+            minSpacing: 12,
             hasTower: true,
             hasWell: true,
             hasMarket: true,
@@ -119,36 +120,46 @@ export class StructureManager {
             console.debug("Home village created at spawn position (0,0,0)");
         }
 
-        // Place fence along the four sides of the square (big square tenant around the village)
-        const fenceSegments = [];
-        // South side: z = -H, x from -H to H; gate at (0, -H) — skip segment at gate
+        // Place fence as connected runs (one run per side): posts + horizontal rail linking them
+        const fenceRuns = [];
+        // South side: z = -H, x from -H to H; gate at (0, -H) — skip positions at gate
+        const southPositions = [];
         for (let x = -H; x <= H; x += spacing) {
-            if (x >= gateX - spacing && x <= gateX + spacing) continue; // gap for gate
-            const seg = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE, { x, z: gateZ, rotation: 0 });
-            if (seg) fenceSegments.push(seg);
+            if (x >= gateX - spacing && x <= gateX + spacing) continue;
+            southPositions.push({ x, z: gateZ });
+        }
+        if (southPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: southPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
         }
         // North side: z = H
-        for (let x = -H; x <= H; x += spacing) {
-            const seg = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE, { x, z: H, rotation: 0 });
-            if (seg) fenceSegments.push(seg);
+        const northPositions = [];
+        for (let x = -H; x <= H; x += spacing) northPositions.push({ x, z: H });
+        if (northPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: northPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
         }
-        // East side: x = H, fence rotated 90° so rail runs along Z
-        for (let z = -H; z <= H; z += spacing) {
-            const seg = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE, { x: H, z, rotation: Math.PI / 2 });
-            if (seg) fenceSegments.push(seg);
+        // East side: x = H, rail runs along Z (no group rotation — local run already along Z)
+        const eastPositions = [];
+        for (let z = -H; z <= H; z += spacing) eastPositions.push({ x: H, z });
+        if (eastPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: eastPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
         }
         // West side: x = -H
-        for (let z = -H; z <= H; z += spacing) {
-            const seg = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE, { x: -H, z, rotation: Math.PI / 2 });
-            if (seg) fenceSegments.push(seg);
+        const westPositions = [];
+        for (let z = -H; z <= H; z += spacing) westPositions.push({ x: -H, z });
+        if (westPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: westPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
         }
 
-        for (const seg of fenceSegments) {
+        for (const run of fenceRuns) {
             this.structures.push({
-                type: STRUCTURE_OBJECTS.VILLAGE_FENCE,
-                object: seg,
-                position: seg.position.clone(),
-                id: `home_fence_${seg.uuid || Math.random().toString(36).slice(2)}`
+                type: STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN,
+                object: run,
+                position: run.position.clone(),
+                id: `home_fence_run_${run.uuid || Math.random().toString(36).slice(2)}`
             });
         }
 
