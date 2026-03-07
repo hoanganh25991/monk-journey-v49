@@ -14,10 +14,18 @@ import { BinarySerializer } from './BinarySerializer.js';
 /** Optional: override to use a custom PeerServer. Leave null to use default PeerJS cloud (0.peerjs.com). */
 const PEER_SERVER = null;
 
+/** ICE servers for WebRTC; can help when the data channel stays "connecting". */
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
 /** Options passed to every new Peer() so host and joiner use the same signaling server. */
 function getPeerOptions(overrides = {}) {
     const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : {};
-    return { ...base, ...overrides };
+    const opts = { ...base, ...overrides };
+    opts.config = opts.config || {};
+    if (!opts.config.iceServers || opts.config.iceServers.length === 0) {
+        opts.config.iceServers = ICE_SERVERS;
+    }
+    return opts;
 }
 
 export class MultiplayerConnectionManager {
@@ -147,10 +155,23 @@ export class MultiplayerConnectionManager {
                 }
             });
             this.peer.on('disconnected', () => {
-                console.warn('[P2P] Host lost connection to signaling server. New joiners may not reach you until reconnected.');
+                console.warn('[P2P] Host lost connection to signaling server. Reconnecting...');
+                this.multiplayerManager.ui.updateConnectionStatus('Reconnecting to server...');
+                try {
+                    this.peer.reconnect();
+                } catch (e) {
+                    console.error('[P2P] Host reconnect failed:', e);
+                }
+            });
+            this.peer.on('reconnected', () => {
+                console.warn('[P2P] Host reconnected to signaling server.');
+                this.multiplayerManager.ui.updateConnectionStatus('Waiting for players to join...');
             });
             this.peer.on('error', (err) => {
                 console.error('[P2P] Host peer error:', err);
+                if (String(err?.message || err).toLowerCase().includes('lost connection') && this.peer?.disconnected) {
+                    try { this.peer.reconnect(); } catch (_) {}
+                }
             });
             
             // Show connection info screen immediately
@@ -200,8 +221,8 @@ export class MultiplayerConnectionManager {
             });
             this._pendingJoinConn = conn;
 
-            // Timeout if connection never opens (PeerJS cloud can hang; known issue)
-            const JOIN_TIMEOUT_MS = 20000;
+            // Timeout if connection never opens (PeerJS/WebRTC can be slow; allow time for ICE)
+            const JOIN_TIMEOUT_MS = 30000;
             this._joinTimeoutId = setTimeout(() => {
                 if (this._joinAttemptRoomId !== roomId) return;
                 this._joinAttemptRoomId = null;
@@ -368,16 +389,20 @@ export class MultiplayerConnectionManager {
         let hostReadySent = false;
         const sendHostReady = () => {
             if (hostReadySent) return;
-            if (conn.open !== true) return;
             hostReadySent = true;
-            try { conn.send({ type: 'hostReady' }); } catch (_) {}
+            try {
+                conn.send({ type: 'hostReady' });
+                console.warn('[P2P] Host sent hostReady to joiner', conn.peer);
+            } catch (_) {}
         };
-        conn.on('open', () => sendHostReady());
-        const hostReadyRetry = setInterval(() => {
-            sendHostReady();
-            if (hostReadySent) clearInterval(hostReadyRetry);
-        }, 500);
-        conn.once('open', () => clearInterval(hostReadyRetry));
+        const trySendHostReady = () => {
+            if (hostReadySent) return;
+            if (conn.open === true) sendHostReady();
+        };
+        try { conn.send({ type: 'hostReady' }); hostReadySent = true; } catch (_) {}
+        conn.on('open', () => trySendHostReady());
+        const hostReadyRetry = setInterval(() => { trySendHostReady(); if (hostReadySent) clearInterval(hostReadyRetry); }, 400);
+        conn.once('open', () => { trySendHostReady(); clearInterval(hostReadyRetry); });
         conn.once('close', () => clearInterval(hostReadyRetry));
         conn.once('data', (data) => {
             let raw = data;
