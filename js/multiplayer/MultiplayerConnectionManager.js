@@ -278,6 +278,7 @@ export class MultiplayerConnectionManager {
             conn.on('open', () => onJoinConnectionOpen());
             joinRetryIntervalId = setInterval(() => {
                 if (joinConnectionOpened || !this._pendingJoinConn) return;
+                if (conn.open !== true) return;
                 try { conn.send({ type: 'requestStartGame', persistentId }); } catch (_) {}
             }, 800);
             
@@ -367,11 +368,17 @@ export class MultiplayerConnectionManager {
         let hostReadySent = false;
         const sendHostReady = () => {
             if (hostReadySent) return;
+            if (conn.open !== true) return;
             hostReadySent = true;
             try { conn.send({ type: 'hostReady' }); } catch (_) {}
         };
         conn.on('open', () => sendHostReady());
-        setTimeout(sendHostReady, 1500);
+        const hostReadyRetry = setInterval(() => {
+            sendHostReady();
+            if (hostReadySent) clearInterval(hostReadyRetry);
+        }, 500);
+        conn.once('open', () => clearInterval(hostReadyRetry));
+        conn.once('close', () => clearInterval(hostReadyRetry));
         conn.once('data', (data) => {
             let raw = data;
             if (typeof raw === 'string') {
