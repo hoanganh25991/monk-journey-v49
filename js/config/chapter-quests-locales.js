@@ -204,7 +204,7 @@ export const QUEST_UI_STRINGS = {
         noActiveQuests: 'Không có nhiệm vụ',
         reviewMore: 'Xem thêm ({count})',
         showLess: 'Thu gọn',
-        activeQuestsTitle: 'Nhiệm vụ đang làm',
+        activeQuestsTitle: 'Nhiệm vụ', // Nhiệm vụ đang làm
         lessonLabel: 'Bài học',
         close: 'Đóng',
     },

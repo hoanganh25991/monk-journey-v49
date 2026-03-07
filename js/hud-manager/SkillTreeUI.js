@@ -372,6 +372,7 @@ export class SkillTreeUI extends UIComponent {
   syncSkillPointsFromPlayer() {
     const stats = this.game?.player?.stats;
     const points = (stats && typeof stats.skillPoints === 'number') ? stats.skillPoints : 0;
+    this.skillPoints = points;
     if (this.elements.skillPointsValue) this.elements.skillPointsValue.textContent = points;
     if (this.graphView) this.graphView.refresh();
   }
