@@ -1,6 +1,5 @@
 import * as THREE from '../libs/three/three.module.js';
 import { distanceSq2D, normalize2D, tempVec2 } from 'utils/FastMath.js';
-import { HOME_VILLAGE_FENCE_HALF_EXTENT } from './config/structure.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {
@@ -124,87 +123,7 @@ export class CollisionManager {
     }
     
     checkPlayerObjectCollisions() {
-        const playerPosition = this.player.getPosition();
-        const px = playerPosition.x;
-        const pz = playerPosition.z;
-        const H = HOME_VILLAGE_FENCE_HALF_EXTENT;
-        // Inside the village fence square: player moves freely (like terrain). No structure check. Only enemies are restricted by safe zone.
-        if (Math.abs(px) <= H && Math.abs(pz) <= H) return;
-
-        const playerRadius = this.player.getCollisionRadius();
-        
-        // Check collision with structures if available (only when outside the village fence)
-        if (this.world && this.world.structureManager && this.world.structureManager.structures) {
-            this.world.structureManager.structures.forEach(structureData => {
-                const object = structureData.object;
-                if (!object) return;
-                if (structureData.type === 'village') return;
-                if (structureData.type === 'village_fence' || structureData.type === 'village_gate') return;
-                
-                try {
-                    // Cache bounding box if not already cached
-                    if (!structureData.boundingBox) {
-                        structureData.boundingBox = new THREE.Box3().setFromObject(object);
-                    }
-                    
-                    const boundingBox = structureData.boundingBox;
-                    
-                    // Create a sphere that encompasses the bounding box (reuse scratch vectors)
-                    const center = this._boxCenter;
-                    const size = this._boxSize;
-                    boundingBox.getCenter(center);
-                    boundingBox.getSize(size);
-                    const objectRadius = Math.max(size.x, size.z) / 2;
-                    
-                    // Calculate squared distance using optimized function
-                    const distanceSq = distanceSq2D(playerPosition.x, playerPosition.z, center.x, center.z);
-                    const collisionRadiusSum = playerRadius + objectRadius;
-                    const collisionRadiusSumSq = collisionRadiusSum * collisionRadiusSum;
-                    
-                    // Check if collision occurred horizontally
-                    if (distanceSq < collisionRadiusSumSq) {
-                        // Check vertical relationship between player and structure
-                        const structureTop = boundingBox.max.y;
-                        const structureBottom = boundingBox.min.y;
-                        const playerBottom = playerPosition.y - this.player.getHeightOffset();
-                        const playerTop = playerPosition.y + this.player.getHeightOffset();
-                        
-                        // Calculate how far the player's feet are above the structure top
-                        const clearanceAbove = playerBottom - structureTop;
-                        
-                        // Also check if player is within the structure's horizontal bounds (with buffer)
-                        // This matches the logic in getPlayerGroundHeight
-                        const insetBuffer = 0.8;
-                        const minX = boundingBox.min.x + insetBuffer;
-                        const maxX = boundingBox.max.x - insetBuffer;
-                        const minZ = boundingBox.min.z + insetBuffer;
-                        const maxZ = boundingBox.max.z - insetBuffer;
-                        const isWithinStructureBounds = (
-                            playerPosition.x >= minX && playerPosition.x <= maxX &&
-                            playerPosition.z >= minZ && playerPosition.z <= maxZ
-                        );
-                        
-                        // Three cases:
-                        // 1. Player is clearly above structure AND within bounds - allow landing (no push)
-                        // 2. Player is above but outside bounds - push away (near edge)
-                        // 3. Player is at same level or below - push away (can't walk through walls)
-                        
-                        if (clearanceAbove > 0.5 && isWithinStructureBounds) {
-                            // Player is well above the structure AND centered - no horizontal collision
-                            // They will land on top via getPlayerGroundHeight
-                        } else {
-                            // Player is at structure level, near the edge, or trying to walk up
-                            // Push them away horizontally to prevent walking through or climbing
-                            this.handlePlayerObjectCollision(object, center);
-                        }
-                    }
-                } catch (error) {
-                    console.warn("Error checking collision with structure:", error);
-                }
-            });
-        }
-        
-        // Check collision with interactive objects
+        // No structure collision for player: move freely through village + village_fence (enemies still blocked by safe zone).
         this.checkPlayerInteractiveObjectsCollisions();
     }
     
