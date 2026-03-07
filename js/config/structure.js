@@ -8,6 +8,8 @@
 
 /** Half extent of the square fence around the home village at (0,0,0) — fence runs from -H to +H on X and Z */
 export const HOME_VILLAGE_FENCE_HALF_EXTENT = 45;
+/** Half extent of the gap in the fence for the village gate (south side). Fence stops at gateX ± this so it does not pass through the gate. */
+export const HOME_VILLAGE_GATE_GAP_HALF_EXTENT = 9;
 /** Radius of the safe zone circle (no enemy spawn, enemies cannot enter) for the home village */
 export const HOME_VILLAGE_SAFE_RADIUS = 45;
 
@@ -130,9 +132,9 @@ export const STRUCTURE_PROPERTIES = {
         isBuilding: false
     },
     [STRUCTURE_OBJECTS.VILLAGE_GATE]: {
-        width: 6,
-        depth: 2,
-        height: 6.5,
+        width: 18,
+        depth: 6,
+        height: 19.5,
         isBuilding: false
     }
 };

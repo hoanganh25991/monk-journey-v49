@@ -362,11 +362,12 @@ export class StructureFactory {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
 
-            // Scale: gate is ~6 wide, ~9 tall (fits fence gap, much bigger and more imposing)
-            const W = 3;           // half-width (total span 6)
-            const H_CENTRAL = 5;  // central opening height
-            const H_SIDE = 3;     // side opening height
-            const D = 0.8;        // depth (front-to-back)
+            // Scale: gate 3x — ~18 wide, ~19.5 tall; fence gap must match HOME_VILLAGE_GATE_GAP_HALF_EXTENT (9)
+            const S = 3;          // scale factor (3x)
+            const W = 3 * S;      // half-width (total span 18)
+            const H_CENTRAL = 5 * S;
+            const H_SIDE = 3 * S;
+            const D = 0.8 * S;
 
             // Materials — monk/temple palette
             const woodDark = 0x4A3728;
@@ -388,11 +389,11 @@ export class StructureFactory {
             };
 
             // —— Stone base (platform under entire gate)
-            const baseW = W * 2.4, baseD = D * 2.5, baseH = 0.35;
+            const baseW = W * 2.4, baseD = D * 2.5, baseH = 0.35 * S;
             addBox(group, baseW, baseH, baseD, matStone, 0, baseH / 2, 0);
 
             // —— Five pillars: left outer, left inner, center, right inner, right outer
-            const pillarW = 0.5, pillarD = 0.5;
+            const pillarW = 0.5 * S, pillarD = 0.5 * S;
             const positions = [-W, -W * 0.5, 0, W * 0.5, W];
             const heights = [H_SIDE, H_CENTRAL, H_CENTRAL, H_CENTRAL, H_SIDE];
             const pillars = [];
@@ -410,9 +411,9 @@ export class StructureFactory {
 
             // —— Pillar caps (lotus-style — tapered top)
             pillars.forEach(({ mesh, h, x }) => {
-                const capGeo = new THREE.CylinderGeometry(pillarW * 0.6, pillarW * 0.85, 0.25, 8);
+                const capGeo = new THREE.CylinderGeometry(pillarW * 0.6, pillarW * 0.85, 0.25 * S, 8);
                 const cap = new THREE.Mesh(capGeo, matAccent);
-                cap.position.set(x, baseH + h + 0.125, 0);
+                cap.position.set(x, baseH + h + 0.125 * S, 0);
                 cap.castShadow = true;
                 group.add(cap);
             });
@@ -420,22 +421,19 @@ export class StructureFactory {
             // —— Main horizontal beams (three tiers: top lintel, middle, lower)
             const beamDepth = D * 1.1;
             const fullSpan = W * 2 + pillarW;
-            // Top lintel (full width)
-            addBox(group, fullSpan, 0.4, beamDepth, matWoodDark, 0, baseH + H_CENTRAL + 0.2, 0);
-            // Middle beam (full width, below top)
-            addBox(group, fullSpan, 0.35, beamDepth * 0.95, matWood, 0, baseH + H_CENTRAL - 0.4, 0);
-            // Lower beam connecting side pillars only (above side openings)
+            addBox(group, fullSpan, 0.4 * S, beamDepth, matWoodDark, 0, baseH + H_CENTRAL + 0.2 * S, 0);
+            addBox(group, fullSpan, 0.35 * S, beamDepth * 0.95, matWood, 0, baseH + H_CENTRAL - 0.4 * S, 0);
             const sideBeamW = W * 0.5;
-            addBox(group, sideBeamW, 0.3, beamDepth * 0.9, matWood, -W * 0.75, baseH + H_SIDE + 0.15, 0);
-            addBox(group, sideBeamW, 0.3, beamDepth * 0.9, matWood, W * 0.75, baseH + H_SIDE + 0.15, 0);
+            addBox(group, sideBeamW, 0.3 * S, beamDepth * 0.9, matWood, -W * 0.75, baseH + H_SIDE + 0.15 * S, 0);
+            addBox(group, sideBeamW, 0.3 * S, beamDepth * 0.9, matWood, W * 0.75, baseH + H_SIDE + 0.15 * S, 0);
 
             // —— Central inscription panel (between middle and top beam)
-            const panelW = W * 0.7, panelH = 0.9, panelD = 0.08;
+            const panelW = W * 0.7, panelH = 0.9 * S, panelD = 0.08 * S;
             const panel = new THREE.Mesh(
                 new THREE.BoxGeometry(panelW, panelH, panelD),
                 matWoodDark
             );
-            panel.position.set(0, baseH + H_CENTRAL - 0.15, D * 0.55);
+            panel.position.set(0, baseH + H_CENTRAL - 0.15 * S, D * 0.55);
             panel.castShadow = true;
             group.add(panel);
             // Simple “glyph” strip (gold accent)
@@ -443,20 +441,20 @@ export class StructureFactory {
                 new THREE.PlaneGeometry(panelW * 0.85, panelH * 0.25),
                 matAccent
             );
-            strip.position.set(0, 0, panelD / 2 + 0.01);
+            strip.position.set(0, 0, panelD / 2 + 0.01 * S);
             strip.rotation.x = 0;
             panel.add(strip);
 
             // —— Temple roof (tiered over central opening)
-            const roofW = W * 1.4, roofD = D * 1.8, roofH = 0.5;
+            const roofW = W * 1.4, roofD = D * 1.8, roofH = 0.5 * S;
             const roof = new THREE.Mesh(new THREE.BoxGeometry(roofW, roofH, roofD), matRoof);
-            roof.position.set(0, baseH + H_CENTRAL + 0.45 + roofH / 2, 0);
+            roof.position.set(0, baseH + H_CENTRAL + 0.45 * S + roofH / 2, 0);
             roof.castShadow = true;
             group.add(roof);
             // Roof peak (narrower second tier)
-            const peakW = W * 1.0, peakD = D * 1.2, peakH = 0.35;
+            const peakW = W * 1.0, peakD = D * 1.2, peakH = 0.35 * S;
             const peak = new THREE.Mesh(new THREE.BoxGeometry(peakW, peakH, peakD), matWoodDark);
-            peak.position.set(0, baseH + H_CENTRAL + 0.45 + roofH + peakH / 2, 0);
+            peak.position.set(0, baseH + H_CENTRAL + 0.45 * S + roofH + peakH / 2, 0);
             peak.castShadow = true;
             group.add(peak);
 
@@ -466,7 +464,7 @@ export class StructureFactory {
             addBox(group, eaveW, eaveH, eaveD, matRoof, W * 0.85, baseH + H_SIDE + 0.5, 0);
 
             // —— Lantern-style blocks (small accents at sides)
-            const lampW = 0.35, lampH = 0.5, lampD = 0.35;
+            const lampW = 0.35 * S, lampH = 0.5 * S, lampD = 0.35 * S;
             addBox(group, lampW, lampH, lampD, matAccent, -W * 0.95, baseH + H_SIDE * 0.6, D * 0.6);
             addBox(group, lampW, lampH, lampD, matAccent, W * 0.95, baseH + H_SIDE * 0.6, D * 0.6);
 

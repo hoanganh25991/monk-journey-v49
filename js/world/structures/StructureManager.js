@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { STRUCTURE_OBJECTS, HOME_VILLAGE_FENCE_HALF_EXTENT } from '../../config/structure.js';
+import { STRUCTURE_OBJECTS, HOME_VILLAGE_FENCE_HALF_EXTENT, HOME_VILLAGE_GATE_GAP_HALF_EXTENT } from '../../config/structure.js';
 import { StructureFactory } from './StructureFactory.js';
 import { Building } from './Building.js';
 import { Tower } from './Tower.js';
@@ -122,10 +122,11 @@ export class StructureManager {
 
         // Place fence as connected runs (one run per side): posts + horizontal rail linking them
         const fenceRuns = [];
-        // South side: z = -H, x from -H to H; gate at (0, -H) — skip positions at gate
+        // South side: z = -H, x from -H to H; gate at (0, -H) — leave open gap so fence does not pass through gate
+        const gateGap = HOME_VILLAGE_GATE_GAP_HALF_EXTENT;
         const southPositions = [];
         for (let x = -H; x <= H; x += spacing) {
-            if (x >= gateX - spacing && x <= gateX + spacing) continue;
+            if (x >= gateX - gateGap && x <= gateX + gateGap) continue;
             southPositions.push({ x, z: gateZ });
         }
         if (southPositions.length > 0) {
