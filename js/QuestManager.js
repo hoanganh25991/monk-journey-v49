@@ -1,5 +1,5 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from './config/chapter-quests.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from './config/chapter-quests.js';
 import { getNextStoryMapAfter } from './config/chapter-quest-maps.js';
 
 export class QuestManager {
@@ -613,11 +613,10 @@ export class QuestManager {
             const nextChapter = getChapterQuestById(nextIds[0]);
             if (nextChapter) {
                 const locale = this.game.questStoryLocale || 'en';
-                const nextDisplay = getChapterQuestDisplay(nextChapter, locale);
                 const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
+                const label = getNextMapTravelLabel(nextChapter, nextMap?.mapId, locale);
                 setTimeout(() => {
                     if (this.game.hudManager) {
-                        const label = nextDisplay.area || getQuestUiString('nextMapFallback', locale);
                         const msg = nextIds.length > 1
                             ? getQuestUiString('travelToGetNextQuest', locale, { label }) + ' ' + (getQuestUiString('otherPathsAvailable', locale) || 'Other paths await in the Story panel.')
                             : getQuestUiString('travelToGetNextQuest', locale, { label });

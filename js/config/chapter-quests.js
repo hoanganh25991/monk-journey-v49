@@ -16,6 +16,7 @@
 
 import { getEnemyTypesForChapterIndex } from './chapter-maps-zones.js';
 import { EN_ENTRIES, reflectionUi as REFLECTION_UI_EN, questUi as QUEST_UI_EN, mapSelectionUi as MAP_SELECTION_UI_EN } from './chapters.js';
+import { getMapDisplay } from './map-locales.js';
 
 /** Default map bounds (typical playable area); quest markers stay inside this range. */
 const QUEST_MAP_RADIUS = 280;
@@ -363,6 +364,27 @@ export function getQuestUiString(key, locale = DEFAULT_LOCALE, params = {}) {
         s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), String(params[k]));
     });
     return s;
+}
+
+/**
+ * Display label for "Travel to [X] to get your next quest." Uses the same logic as MapSelectionUI:
+ * chapter area first, then localized map name from map-locales, then fallback. Strips a leading "to "
+ * so the message never reads "Travel to to \"X\"".
+ * @param {import('./chapter-quests.js').ChapterQuest} nextQuest - The next chapter quest (on the target map)
+ * @param {string} [nextMapId] - Map id that hosts the next quest
+ * @param {string} [locale]
+ * @returns {string}
+ */
+export function getNextMapTravelLabel(nextQuest, nextMapId, locale = DEFAULT_LOCALE) {
+    const display = getChapterQuestDisplay(nextQuest, locale);
+    let label = display?.area?.trim() || '';
+    if (!label && typeof nextMapId === 'string') {
+        const { name } = getMapDisplay(nextMapId, locale, {});
+        label = (name && name.trim()) || nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1);
+    }
+    if (!label) label = getQuestUiString('nextMapFallback', locale);
+    const stripped = label.replace(/^\s*to\s+/i, '').trim();
+    return stripped || label;
 }
 
 /**

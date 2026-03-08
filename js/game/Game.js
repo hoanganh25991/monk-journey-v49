@@ -23,7 +23,7 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from '../config/chapter-quests.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import storageService from '../save-manager/StorageService.js';
@@ -326,9 +326,8 @@ export class Game {
                     this.hudManager.showNotification(getQuestUiString('storyQuestAwaitsOnMap', locale));
                 } else {
                     const locale = this.questStoryLocale || 'en';
-                    const nextDisplay = getChapterQuestDisplay(next, locale);
-                    const nextMapLabel = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
-                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label: nextMapLabel }));
+                    const label = getNextMapTravelLabel(next, nextMapId, locale);
+                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label }));
                 }
                 this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
             };

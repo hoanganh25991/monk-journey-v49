@@ -1,6 +1,6 @@
 import { UIComponent } from '../UIComponent.js';
 import { getChapterQuestById, chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from '../config/chapter-quests.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 
@@ -56,13 +56,12 @@ export class QuestLogUI extends UIComponent {
         const next = this.game.questManager.getNextChapterQuestForMarker();
         if (!next) return '';
         const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
-        const nextDisplay = getChapterQuestDisplay(next, locale);
         const currentMapId = this.game.world?.currentMap?.id;
         const nextMapId = getMapIdForChapterQuest(next.id);
         if (nextMapId === currentMapId) {
             return getQuestUiString('findQuestMarkerHint', locale);
         }
-        const label = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+        const label = getNextMapTravelLabel(next, nextMapId, locale);
         return '→ ' + getQuestUiString('travelToGetNextQuest', locale, { label });
     }
 
