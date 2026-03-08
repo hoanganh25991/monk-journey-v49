@@ -4,27 +4,60 @@
  * This file contains styles for menus, dialogs, and UI controls
  */
 
-/* Dialog Components */
+/* Dialog Components — match reflection-screen (chapter) typography and layout */
 #dialog-text {
-    margin-bottom: 15px;
+    margin-bottom: var(--margin-x-large, 2rem);
+    text-align: center;
+}
+
+#dialog-text h3 {
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 var(--margin-medium, 0.75rem);
+}
+
+#dialog-text p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 18px;
+    line-height: 1.6;
+    font-style: italic;
+    margin: 0;
 }
 
 #dialog-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     align-items: center;
-    gap: 10px;
-    margin-top: 15px;
+    gap: 12px;
+    margin-top: 0;
 }
 
 #dialog-continue {
-    text-align: right;
-    color: #ff6600;
+    text-align: center;
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
     cursor: pointer;
 }
 
 #dialog-accept-btn.dialog-accept {
-    padding: 8px 20px;
+    padding: 8px 24px;
+    min-width: 140px;
+}
+
+#dialog-cancel-btn.dialog-cancel {
+    padding: 8px 24px;
+    min-width: 140px;
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 2px solid var(--theme-gold-border, rgba(255, 230, 150, 0.8));
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-weight: bold;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+}
+#dialog-cancel-btn.dialog-cancel:hover {
+    background-color: rgba(0, 0, 0, 0.55);
+    border-color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    color: rgba(255, 255, 255, 0.98);
 }
 
 /* Help modal (How to Play) */
@@ -41,10 +74,14 @@
 .help-modal-backdrop {
     position: absolute;
     inset: 0;
-    background: var(--modal-backdrop, rgba(0, 0, 0, 0.7));
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.85));
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .help-modal-box {
     position: relative;
+    display: flex;
+    flex-direction: column;
     width: 100%;
     max-width: 520px;
     max-height: 85vh;
@@ -54,17 +91,36 @@
     border-radius: 10px;
     box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
     color: white;
-    overflow-y: auto;
+}
+.help-modal-header {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
 }
 .help-modal-title {
-    margin: 0 0 1rem;
+    margin: 0;
     font-size: 1.4rem;
     color: #f0c14b;
 }
+.help-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin-bottom: 0;
+}
 .help-modal-content {
-    margin-bottom: 1.25rem;
     line-height: 1.5;
     font-size: 0.95rem;
+}
+.help-modal-footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0.5rem;
+    padding-top: 0.25rem;
 }
 .help-modal-content h3 {
     margin: 1rem 0 0.4rem;
@@ -78,9 +134,47 @@
     font-style: italic;
     margin-bottom: 0.75rem;
 }
+.help-modal-next,
 .help-modal-close {
-    display: block;
-    margin: 0 auto;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: unset;
+    width: auto;
+    margin: 0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+#help-modal-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+#help-modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+#help-modal-next-btn {
+    background-color: rgba(var(--theme-gold-rgb), 0.7);
+    border: 2px solid var(--theme-gold-border);
+    color: var(--theme-gold-text);
+}
+
+#help-modal-next-btn:hover {
+    background-color: var(--theme-gold-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--theme-gold-rgb), 0.4);
+}
+
+.help-modal-next:active,
+.help-modal-close:active {
+    transform: translateY(0);
+}
+.help-modal-content .help-control-line {
+    margin: 0.5rem 0;
 }
 
 .story-modal-content .story-journal-list {
@@ -141,6 +235,8 @@
     justify-content: center;
     align-items: center;
     z-index: 150; /* Game Menu */
+    border-radius: var(--panel-corner-radius);
+    overflow: hidden;
 }
 
 /* Settings Menu - Moved to settings-menu.css */

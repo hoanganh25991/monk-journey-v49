@@ -508,7 +508,8 @@ export class MultiplayerUIManager {
      */
     async sendInviteToHost(hostId) {
         try {
-            const peer = new Peer();
+            const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+            const peer = new Peer(opts);
             await new Promise((resolve, reject) => {
                 peer.on('open', () => resolve());
                 peer.on('error', err => reject(err));
@@ -550,7 +551,8 @@ export class MultiplayerUIManager {
         const roomId = conn?.isHost ? conn?.roomId : conn?.hostId;
         if (!roomId || !conn?.isConnected) return;
         try {
-            const peer = new Peer();
+            const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+            const peer = new Peer(opts);
             await new Promise((resolve, reject) => {
                 peer.on('open', () => resolve());
                 peer.on('error', err => reject(err));
@@ -595,7 +597,8 @@ export class MultiplayerUIManager {
         const now = Date.now();
         if (now - (this._lastStatusPingAt[hostId] || 0) < MultiplayerUIManager.HOST_STATUS_PING_DEBOUNCE_MS) return;
         this._lastStatusPingAt[hostId] = now;
-        const peer = new Peer();
+        const opts = this.multiplayerManager.connection?.getPeerOptions?.() ?? {};
+        const peer = new Peer(opts);
         const timeoutMs = 10000;
         let settled = false;
         const finish = (status) => {
@@ -903,7 +906,7 @@ export class MultiplayerUIManager {
             oneTouchJoinBtn.addEventListener('click', () => this.startOneTouchJoin());
         }
 
-        // Permission Allow buttons (Camera, Mic) – must run in same tick as click for browser prompt
+        // Permission Allow button (Camera for QR scan) – must run in same tick as click for browser prompt
         const permCameraAllow = document.getElementById('perm-camera-allow');
         if (permCameraAllow) {
             permCameraAllow.addEventListener('click', (e) => {
@@ -912,15 +915,6 @@ export class MultiplayerUIManager {
                 this.requestCameraPermissionFromClick();
             });
         }
-        const permMicAllow = document.getElementById('perm-microphone-allow');
-        if (permMicAllow) {
-            permMicAllow.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.requestMicrophonePermissionFromClick();
-            });
-        }
-        
         // Manual connect button
         const manualConnectBtn = document.getElementById('manual-connect-btn');
         if (manualConnectBtn) {
@@ -1514,7 +1508,7 @@ export class MultiplayerUIManager {
     }
 
     /**
-     * Refresh permission status for NFC, Camera, Microphone and update the one-row chips.
+     * Refresh permission status for NFC and Camera (for QR scan) and update the one-row chips.
      */
     async refreshJoinPermissions() {
         const nfcSupported = isNfcSupported();
@@ -1528,7 +1522,6 @@ export class MultiplayerUIManager {
         if (nfcAllowBtn) nfcAllowBtn.style.display = 'none';
 
         await this.updateCameraPermissionUI();
-        await this.updateMicrophonePermissionUI();
     }
 
     async updateCameraPermissionUI() {
@@ -1549,33 +1542,14 @@ export class MultiplayerUIManager {
         }
     }
 
-    async updateMicrophonePermissionUI() {
-        const chip = document.getElementById('perm-microphone');
-        const statusEl = document.getElementById('perm-microphone-status');
-        const allowBtn = document.getElementById('perm-microphone-allow');
-        if (!chip || !statusEl) return;
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(t => t.stop());
-            chip.className = 'join-perm-chip perm-allowed';
-            statusEl.textContent = 'On';
-            if (allowBtn) allowBtn.style.display = 'none';
-        } catch (e) {
-            chip.className = 'join-perm-chip perm-denied';
-            statusEl.textContent = '';
-            if (allowBtn) allowBtn.style.display = 'inline-block';
-        }
-    }
-
     /**
      * Message shown when media permission was denied so the user can allow in site
      * settings and click Allow again. Browsers do not re-prompt after a denial.
-     * @param {'microphone'|'camera'} mediaType
+     * @param {'camera'} mediaType
      * @returns {string}
      */
     getMediaPermissionDeniedHint(mediaType) {
-        const label = mediaType === 'microphone' ? 'Microphone' : 'Camera';
-        return `${label} was blocked. Allow it in your browser’s site settings (lock/info icon in the address bar), then click Allow again.`;
+        return `Camera was blocked. Allow it in your browser’s site settings (lock/info icon in the address bar), then click Allow again.`;
     }
 
     /**
@@ -1594,27 +1568,6 @@ export class MultiplayerUIManager {
             this.updateJoinPrimaryButton();
             const statusEl = document.getElementById('join-connection-status');
             if (statusEl) this.updateConnectionStatus(this.getMediaPermissionDeniedHint('camera'), 'join-connection-status');
-        });
-    }
-
-    /**
-     * Request microphone permission from a click. Must call getUserMedia synchronously
-     * in the click handler so the browser shows the permission prompt (user activation).
-     * If the user previously denied, the browser won't re-prompt; we show instructions
-     * so they can allow in site settings and click Allow again.
-     */
-    requestMicrophonePermissionFromClick() {
-        this.updateConnectionStatus('Requesting microphone access…', 'join-connection-status');
-        const p = navigator.mediaDevices.getUserMedia({ audio: true });
-        p.then(stream => {
-            stream.getTracks().forEach(t => t.stop());
-            this.updateMicrophonePermissionUI();
-            this.updateJoinPrimaryButton();
-            this.updateConnectionStatus('', 'join-connection-status');
-        }).catch(() => {
-            this.updateMicrophonePermissionUI();
-            this.updateJoinPrimaryButton();
-            this.updateConnectionStatus(this.getMediaPermissionDeniedHint('microphone'), 'join-connection-status');
         });
     }
 

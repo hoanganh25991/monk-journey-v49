@@ -1,6 +1,46 @@
 /**
  * Utility functions for skill tree management
  */
+import { BUFF_EFFECTS } from '../config/skill-tree.js';
+
+/**
+ * Normalize stored buff value to level (0..maxLevel). Handles legacy boolean true/false.
+ * @param {boolean|number} value
+ * @param {number} maxLevel
+ * @returns {number}
+ */
+export function buffLevelFromStorage(value, maxLevel = 3) {
+    if (value === true) return 1;
+    if (typeof value === 'number' && value >= 0) return Math.min(maxLevel, Math.floor(value));
+    return 0;
+}
+
+/**
+ * Apply buff scaling to a skill config. Modifies config in place.
+ * Buff levels are applied from BUFF_EFFECTS: multiply (e.g. radius) or add (e.g. cooldown).
+ * @param {string} skillName
+ * @param {Object} skillConfig - Mutable skill config (radius, cooldown, etc.)
+ * @param {Object.<string, number|boolean>} buffLevels - Buff name -> level (or true for 1)
+ */
+export function applyBuffScalingToSkillConfig(skillName, skillConfig, buffLevels) {
+    const effects = BUFF_EFFECTS[skillName];
+    if (!effects || !buffLevels || typeof buffLevels !== 'object') return;
+    for (const [buffName, levelOrBool] of Object.entries(buffLevels)) {
+        const level = buffLevelFromStorage(levelOrBool, 3);
+        if (level <= 0) continue;
+        const effect = effects[buffName];
+        if (!effect) continue;
+        const { property, type, perLevel } = effect;
+        const current = skillConfig[property];
+        if (type === 'multiply') {
+            const base = current !== undefined && current !== null ? Number(current) : 1;
+            skillConfig[property] = base * (1 + perLevel * level);
+        } else if (type === 'add') {
+            const base = current !== undefined && current !== null ? Number(current) : 0;
+            skillConfig[property] = base + perLevel * level;
+        }
+    }
+}
 
 /**
  * Clone buffs into each variant by reference

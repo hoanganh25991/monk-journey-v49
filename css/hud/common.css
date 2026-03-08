@@ -13,12 +13,25 @@
     border: 2px solid rgba(255, 230, 150, 0.8);
     color: var(--theme-gold-text);
     font-size: 24px;
+    line-height: 1;
+    padding: 0;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     pointer-events: auto; /* Enable click events */
     transition: all 0.3s ease;
+}
+
+/* Inner wrapper so emoji is truly centered (avoids font/baseline offset) */
+.circle-btn .circle-btn-emoji {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    line-height: 0;        /* collapse line box so emoji glyph isn't pushed by baseline */
+    font-size: inherit;    /* use button's font-size so metrics are consistent */
 }
 
 .circle-btn:hover {

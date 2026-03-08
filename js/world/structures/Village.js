@@ -23,7 +23,8 @@ export class Village {
             hasWell: options.hasWell !== undefined ? options.hasWell : Math.random() > 0.3,
             hasMarket: options.hasMarket !== undefined ? options.hasMarket : Math.random() > 0.5,
             layout: options.layout || 'circular', // circular, grid, random
-            radius: options.radius || 15 + Math.random() * 10
+            radius: options.radius || 15 + Math.random() * 10,
+            minSpacing: options.minSpacing ?? 6 // minimum distance between building centers to avoid overlap
         };
     }
     
@@ -94,22 +95,38 @@ export class Village {
     }
     
     /**
-     * Create a circular layout for buildings
-     * @param {THREE.Group} villageGroup - The village group
-     * @param {number} buildingCount - Number of buildings
-     * @param {number} radius - Village radius
+     * Create a circular layout for buildings with minimum spacing to avoid overlap.
+     * Places buildings on concentric rings so they stay well separated.
      */
     createCircularLayout(villageGroup, buildingCount, radius) {
+        const minSpacing = this.options.minSpacing ?? 6;
+        const positions = [];
+
         for (let i = 0; i < buildingCount; i++) {
-            // Calculate position on circle
-            const angle = (i / buildingCount) * Math.PI * 2;
-            const distance = radius * (0.6 + Math.random() * 0.4); // Vary distance slightly
-            
-            const x = Math.cos(angle) * distance;
-            const z = Math.sin(angle) * distance;
-            
-            // Create building
-            this.addBuilding(villageGroup, x, z);
+            const maxAttempts = 25;
+            let x = 0, z = 0, placed = false;
+
+            for (let attempt = 0; attempt < maxAttempts && !placed; attempt++) {
+                // Prefer concentric rings: inner 45%, mid 65%, outer 85% of radius
+                const ring = attempt < 8 ? Math.floor(i / 3) % 3 : Math.floor(Math.random() * 3);
+                const ringDist = [0.42, 0.65, 0.88][ring];
+                const distance = radius * (ringDist + (Math.random() - 0.5) * 0.12);
+                const angle = (i / buildingCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5 + (attempt * 0.7);
+                x = Math.cos(angle) * distance;
+                z = Math.sin(angle) * distance;
+
+                const tooClose = positions.some(p => {
+                    const dx = p.x - x, dz = p.z - z;
+                    return (dx * dx + dz * dz) < minSpacing * minSpacing;
+                });
+                if (!tooClose) {
+                    positions.push({ x, z });
+                    placed = true;
+                }
+            }
+            if (placed) {
+                this.addBuilding(villageGroup, x, z);
+            }
         }
     }
     
@@ -119,27 +136,19 @@ export class Village {
      * @param {number} buildingCount - Number of buildings
      */
     createGridLayout(villageGroup, buildingCount) {
-        // Calculate grid size
+        const minSpacing = this.options.minSpacing ?? 6;
         const gridSize = Math.ceil(Math.sqrt(buildingCount));
-        const spacing = 8; // Space between buildings
-        
+        const radius = this.options.radius || 20;
+        const spacing = Math.max(minSpacing + 2, Math.min(16, (radius * 2) / gridSize));
+
         let buildingsPlaced = 0;
-        
         for (let row = 0; row < gridSize && buildingsPlaced < buildingCount; row++) {
             for (let col = 0; col < gridSize && buildingsPlaced < buildingCount; col++) {
-                // Add some randomness to grid positions
-                const offsetX = (Math.random() - 0.5) * 2;
-                const offsetZ = (Math.random() - 0.5) * 2;
-                
+                const offsetX = (Math.random() - 0.5) * 1.5;
+                const offsetZ = (Math.random() - 0.5) * 1.5;
                 const x = (col - gridSize / 2 + 0.5) * spacing + offsetX;
                 const z = (row - gridSize / 2 + 0.5) * spacing + offsetZ;
-                
-                // Skip some positions randomly for more natural look
-                if (Math.random() > 0.8) {
-                    continue;
-                }
-                
-                // Create building
+                if (Math.random() > 0.85) continue;
                 this.addBuilding(villageGroup, x, z);
                 buildingsPlaced++;
             }
@@ -147,22 +156,28 @@ export class Village {
     }
     
     /**
-     * Create a random layout for buildings
-     * @param {THREE.Group} villageGroup - The village group
-     * @param {number} buildingCount - Number of buildings
-     * @param {number} radius - Village radius
+     * Create a random layout for buildings with minimum spacing
      */
     createRandomLayout(villageGroup, buildingCount, radius) {
+        const minSpacing = this.options.minSpacing ?? 6;
+        const positions = [];
         for (let i = 0; i < buildingCount; i++) {
-            // Random position within radius
-            const angle = Math.random() * Math.PI * 2;
-            const distance = radius * Math.sqrt(Math.random()); // Square root for even distribution
-            
-            const x = Math.cos(angle) * distance;
-            const z = Math.sin(angle) * distance;
-            
-            // Create building
-            this.addBuilding(villageGroup, x, z);
+            let x = 0, z = 0, placed = false;
+            for (let attempt = 0; attempt < 30 && !placed; attempt++) {
+                const distance = radius * (0.3 + Math.sqrt(Math.random()) * 0.65);
+                const angle = Math.random() * Math.PI * 2;
+                x = Math.cos(angle) * distance;
+                z = Math.sin(angle) * distance;
+                const tooClose = positions.some(p => {
+                    const dx = p.x - x, dz = p.z - z;
+                    return (dx * dx + dz * dz) < minSpacing * minSpacing;
+                });
+                if (!tooClose) {
+                    positions.push({ x, z });
+                    placed = true;
+                }
+            }
+            if (placed) this.addBuilding(villageGroup, x, z);
         }
     }
     
@@ -201,9 +216,10 @@ export class Village {
         const tower = new Tower(this.zoneType);
         const towerMesh = tower.createMesh();
         
-        // Position tower at center or slightly offset
-        const offsetX = (Math.random() - 0.5) * 5;
-        const offsetZ = (Math.random() - 0.5) * 5;
+        // Position tower near center but with small offset so it doesn't block paths
+        const r = this.options.radius || 20;
+        const offsetX = (Math.random() - 0.5) * Math.min(6, r * 0.15);
+        const offsetZ = (Math.random() - 0.5) * Math.min(6, r * 0.15);
         towerMesh.position.set(offsetX, 0, offsetZ);
         
         // Add to village group
@@ -285,9 +301,9 @@ export class Village {
         beamMesh.castShadow = true;
         wellGroup.add(beamMesh);
         
-        // Position well
+        // Position well in mid ring so it spreads with the village
         const angle = Math.random() * Math.PI * 2;
-        const distance = this.options.radius * 0.3;
+        const distance = this.options.radius * (0.35 + Math.random() * 0.25);
         wellGroup.position.set(
             Math.cos(angle) * distance,
             0,
@@ -330,9 +346,9 @@ export class Village {
             marketGroup.add(stallGroup);
         }
         
-        // Position market
+        // Position market in outer ring to fill space
         const angle = Math.random() * Math.PI * 2;
-        const distance = this.options.radius * 0.5;
+        const distance = this.options.radius * (0.5 + Math.random() * 0.35);
         marketGroup.position.set(
             Math.cos(angle) * distance,
             0,

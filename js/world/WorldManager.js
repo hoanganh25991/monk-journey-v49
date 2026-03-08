@@ -10,7 +10,7 @@ import { FogManager } from './environment/FogManager.js';
 import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
 import { PathManager } from './PathManager.js';
-import { STRUCTURE_OBJECTS } from '../config/structure.js';
+import { STRUCTURE_OBJECTS, HOME_VILLAGE_SAFE_RADIUS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
@@ -104,6 +104,7 @@ export class WorldManager {
     applyMap(mapData) {
         if (!mapData) {
             this.currentMap = null;
+            this._cachedSafeZones = null;
             this.structureManager?.clear();
             this.environmentManager?.clear();
             this._chunkGenCache.chunkX = -9999;
@@ -111,6 +112,7 @@ export class WorldManager {
             return;
         }
         this.currentMap = mapData;
+        this._cachedSafeZones = null;
         this.structureManager?.clear();
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
@@ -163,6 +165,9 @@ export class WorldManager {
         const environment = mapData.environment && Array.isArray(mapData.environment) ? mapData.environment : [];
 
         if (structures.length === 0 && environment.length === 0) {
+            if (mapData.id === 'default' && this.structureManager?.createHomeVillage) {
+                this.structureManager.createHomeVillage();
+            }
             console.debug(`Map applied: ${mapData.name || mapData.id}`);
             return;
         }
@@ -190,6 +195,10 @@ export class WorldManager {
             if (sIdx < structures.length || eIdx < environment.length) {
                 requestAnimationFrame(tick);
             } else {
+                // Default map has the home village at (0,0) with fence and gate — create it after loading map structures
+                if (mapData.id === 'default' && this.structureManager?.createHomeVillage) {
+                    this.structureManager.createHomeVillage();
+                }
                 console.debug(`Map applied: ${mapData.name || mapData.id} (${structures.length} structures, ${environment.length} environment)`);
             }
         };
@@ -214,11 +223,34 @@ export class WorldManager {
     }
     
     /**
-     * Get safe zones where enemies must not spawn (e.g. village interior)
+     * Get safe zones where enemies must not spawn and must not enter (e.g. village interior).
+     * Always includes the home village circle at (0,0) so the fenced village is protected.
      * @returns {Array<{ type: string, x: number, z: number, radius?: number }>}
      */
     getSafeZones() {
-        return this.currentMap?.safeZones ?? [];
+        if (this._cachedSafeZones) return this._cachedSafeZones;
+        const fromMap = this.currentMap?.safeZones ?? [];
+        const homeVillage = [{ type: 'circle', x: 0, z: 0, radius: HOME_VILLAGE_SAFE_RADIUS }];
+        this._cachedSafeZones = [...fromMap, ...homeVillage];
+        return this._cachedSafeZones;
+    }
+
+    /**
+     * Check if (x, z) is inside any safe zone (village interior — no enemy spawn, enemies cannot enter).
+     * @param {number} x
+     * @param {number} z
+     * @returns {boolean}
+     */
+    isInsideSafeZone(x, z) {
+        const safeZones = this.getSafeZones();
+        for (const zone of safeZones) {
+            if (zone.type === 'circle' && zone.radius != null) {
+                const dx = x - (zone.x ?? 0);
+                const dz = z - (zone.z ?? 0);
+                if (dx * dx + dz * dz <= zone.radius * zone.radius) return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -745,6 +777,8 @@ export class WorldManager {
             for (const structureData of this.structureManager.structures) {
                 const object = structureData.object;
                 if (!object) continue;
+                // Village is a group with one AABB covering the whole area; skip so ground in empty space is terrain, not tower top
+                if (structureData.type === 'village') continue;
                 
                 try {
                     // Cache bounding box if not already cached

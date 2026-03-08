@@ -1,4 +1,4 @@
-import { getChapterQuestById } from '../../config/chapter-quests.js';
+import { getChapterQuestById, getChapterQuestDisplay } from '../../config/chapter-quests.js';
 
 /**
  * Handles serialization and deserialization of quest data
@@ -41,11 +41,21 @@ export class QuestSerializer {
         const completedChapterQuestIds = questManager.completedChapterQuestIds
             ? Array.from(questManager.completedChapterQuestIds)
             : [];
+        // Reflection choices received per chapter (for replay: which reward items already claimed)
+        const reflectionChoicesReceived = questManager.reflectionChoicesReceived
+            ? { ...questManager.reflectionChoicesReceived }
+            : {};
+        // Declined chapter quest IDs (so they won't be auto-offered again)
+        const declinedChapterQuestIds = questManager.declinedChapterQuestIds
+            ? Array.from(questManager.declinedChapterQuestIds)
+            : [];
         
         return {
             activeQuests: activeQuestsData,
             completedQuestIds: completedQuestIds,
-            completedChapterQuestIds: completedChapterQuestIds
+            completedChapterQuestIds: completedChapterQuestIds,
+            reflectionChoicesReceived,
+            declinedChapterQuestIds
         };
     }
     
@@ -71,6 +81,15 @@ export class QuestSerializer {
             questManager.completedChapterQuestIds.clear();
             questData.completedChapterQuestIds.forEach(id => questManager.completedChapterQuestIds.add(id));
         }
+        // Restore reflection choices received (for replay rewards)
+        if (questData.reflectionChoicesReceived && typeof questData.reflectionChoicesReceived === 'object') {
+            questManager.reflectionChoicesReceived = { ...questData.reflectionChoicesReceived };
+        }
+        // Restore declined chapter quest IDs (so they won't be auto-offered again)
+        if (questData.declinedChapterQuestIds && Array.isArray(questData.declinedChapterQuestIds)) {
+            questManager.declinedChapterQuestIds.clear();
+            questData.declinedChapterQuestIds.forEach(id => questManager.declinedChapterQuestIds.add(id));
+        }
         
         // Load active quests with their progress
         if (questData.activeQuests && Array.isArray(questData.activeQuests)) {
@@ -85,10 +104,11 @@ export class QuestSerializer {
                             ...o,
                             progress: savedQuest.objectives?.[i]?.progress ?? 0
                         }));
+                        const display = getChapterQuestDisplay(chapterTemplate, 'en');
                         const questWithProgress = {
                             ...chapterTemplate,
-                            title: chapterTemplate.title || chapterTemplate.name,
-                            name: chapterTemplate.title || chapterTemplate.name,
+                            title: display.title,
+                            name: display.title,
                             objectives
                         };
                         questManager.activeQuests.push(questWithProgress);

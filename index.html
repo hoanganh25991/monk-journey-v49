@@ -56,68 +56,92 @@
         <p id="loading-info">Downloading game assets...</p>
     </div>
 
-    <!-- Login Modal -->
+    <!-- Login Modal — Header (yellow) / Body (white) / Footer (buttons) -->
     <div id="login-modal" class="login-modal-overlay">
         <div class="login-modal-dialog">
-            <h3 class="login-modal-title">Login Required</h3>
-            <p class="login-modal-message" id="login-modal-message">
-                You previously logged in with Google to save your progress. Would you like to login again to load your saved data?
-            </p>
-            <div class="login-modal-loader"></div>
-            <p class="login-modal-status" id="login-modal-status"></p>
-            <div class="login-modal-buttons" id="login-modal-buttons">
-                <button type="button" class="settings-button" id="login-modal-login-btn">Login</button>
-                <button type="button" class="settings-button secondary-button" id="login-modal-cancel-btn">Start New Game</button>
+            <header class="login-modal-header">
+                <h3 class="login-modal-title">Login Required</h3>
+            </header>
+            <div class="login-modal-body">
+                <p class="login-modal-message" id="login-modal-message">
+                    You previously logged in with Google to save your progress. Would you like to login again to load your saved data?
+                </p>
+                <div class="login-modal-loader"></div>
+                <p class="login-modal-status" id="login-modal-status"></p>
             </div>
+            <footer class="login-modal-footer">
+                <div class="login-modal-buttons" id="login-modal-buttons">
+                    <button type="button" class="settings-button" id="login-modal-login-btn">Login</button>
+                    <button type="button" class="settings-button secondary-button" id="login-modal-cancel-btn">Start New Game</button>
+                </div>
+            </footer>
         </div>
     </div>
     
-    <!-- Conflict Resolution Modal -->
+    <!-- Conflict Resolution Modal — Header / Body / Footer -->
     <div id="conflict-modal" class="login-modal-overlay">
         <div class="login-modal-dialog">
-            <h3 class="login-modal-title">Save Data Conflict</h3>
-            <p class="login-modal-message">
-                We found different save data on your device and in the cloud. Which version would you like to keep?
-            </p>
-            <div class="conflict-data-preview">
-                <div class="conflict-data-label">Local Save:</div>
-                <div id="conflict-local-data"></div>
+            <header class="login-modal-header">
+                <h3 class="login-modal-title">Save Data Conflict</h3>
+            </header>
+            <div class="login-modal-body">
+                <p class="login-modal-message">
+                    We found different save data on your device and in the cloud. Which version would you like to keep?
+                </p>
+                <div class="conflict-data-preview">
+                    <div class="conflict-data-label">Local Save:</div>
+                    <div id="conflict-local-data"></div>
+                </div>
+                <div class="conflict-data-preview">
+                    <div class="conflict-data-label">Cloud Save:</div>
+                    <div id="conflict-cloud-data"></div>
+                </div>
             </div>
-            <div class="conflict-data-preview">
-                <div class="conflict-data-label">Cloud Save:</div>
-                <div id="conflict-cloud-data"></div>
-            </div>
-            <div class="login-modal-buttons">
-                <button type="button" class="settings-button" id="conflict-use-cloud-btn">Use Cloud Version</button>
-                <button type="button" class="settings-button secondary-button" id="conflict-use-local-btn">Use Local Version</button>
-            </div>
+            <footer class="login-modal-footer">
+                <div class="login-modal-buttons">
+                    <button type="button" class="settings-button" id="conflict-use-cloud-btn">Use Cloud Version</button>
+                    <button type="button" class="settings-button secondary-button" id="conflict-use-local-btn">Use Local Version</button>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <!-- Map Selection Modal -->
+    <!-- Map Selection Modal — Header / Body / Footer -->
     <div id="map-selection-modal" class="login-modal-overlay">
         <div class="login-modal-dialog">
-            <h3 class="login-modal-title">Map Selection</h3>
-            <p class="login-modal-message">
-                Map selection feature is coming soon! Stay tuned for exciting new worlds to explore.
-            </p>
-            <div class="login-modal-buttons">
-                <button type="button" class="settings-button" id="map-selection-ok-btn">OK</button>
+            <header class="login-modal-header">
+                <h3 class="login-modal-title">Map Selection</h3>
+            </header>
+            <div class="login-modal-body">
+                <p class="login-modal-message">
+                    Map selection feature is coming soon! Stay tuned for exciting new worlds to explore.
+                </p>
             </div>
+            <footer class="login-modal-footer">
+                <div class="login-modal-buttons">
+                    <button type="button" class="settings-button" id="map-selection-ok-btn">OK</button>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <!-- New Game Confirm Modal -->
+    <!-- New Game Confirm Modal — Header (yellow) / Body (white) / Footer (buttons) -->
     <div id="new-game-confirm-modal" class="login-modal-overlay" style="display: none;">
         <div class="login-modal-dialog">
-            <h3 class="login-modal-title">Start New Game?</h3>
-            <p class="login-modal-message">
-                Are you sure you want to start a new game? Your current progress will be lost.
-            </p>
-            <div class="login-modal-buttons">
-                <button type="button" class="settings-button secondary-button" id="new-game-confirm-cancel-btn">Cancel</button>
-                <button type="button" class="settings-button" id="new-game-confirm-start-btn">Start New Game</button>
+            <header class="login-modal-header">
+                <h3 class="login-modal-title">Start New Game?</h3>
+            </header>
+            <div class="login-modal-body">
+                <p class="login-modal-message">
+                    Are you sure you want to start a new game? Your current progress will be lost.
+                </p>
             </div>
+            <footer class="login-modal-footer">
+                <div class="login-modal-buttons">
+                    <button type="button" class="settings-button secondary-button" id="new-game-confirm-cancel-btn">Cancel</button>
+                    <button type="button" class="settings-button" id="new-game-confirm-start-btn">Start New Game</button>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -212,7 +236,6 @@
                         🚀
                         <div class="jump-key">_</div>
                     </button>
-                    <span id="jump-info-label" class="jump-info-label" title="Jump: press Space or tap 🚀. Up to 3 jumps in the air. Hold jump at peak to hover briefly." aria-label="Jump info">INFO</span>
                 </div>
                 <div id="camera-control-button">
                     <div class="camera-icon">🎥</div>
@@ -244,13 +267,13 @@
         <!-- Skill Tree UI Container (combined with 8-slot skill pick) -->
         <div id="skill-tree">
             <div id="skill-tree-header">
-                <div id="skill-tree-title">Monk Skill Tree</div>
+                <div id="skill-tree-title">Skill Tree</div>
                 <div id="skill-tree-points">Available Points: <span id="skill-points-value">0</span></div>
-                <button id="skill-tree-save-btn" class="circle-btn" title="Save Skill Tree">💾</button>
+                <button id="skill-tree-save-btn" class="circle-btn" title="Save &amp; Close"><span class="circle-btn-emoji">💾</span></button>
             </div>
-            <!-- 8-slot battle bar: pick/unpick skills (h + 1–7) -->
+            <!-- Loadout bar: 8 battle slots (h + 1–7), click to assign -->
             <div id="skill-tree-slot-bar" class="skill-tree-slot-bar">
-                <div class="skill-tree-slot-bar-label">Battle slots — click to assign or clear</div>
+                <div class="skill-tree-slot-bar-label">Loadout</div>
                 <div id="skill-tree-slots" class="battle-layout"></div>
             </div>
             <!-- Picker overlay when clicking a slot -->
@@ -259,25 +282,38 @@
                 <div class="skill-tree-slot-picker-panel">
                     <div class="skill-tree-slot-picker-title"></div>
                     <div id="skill-tree-slot-picker-list" class="skill-tree-slot-picker-list"></div>
-                    <button type="button" class="skill-tree-slot-picker-clear">Clear slot</button>
+                    <button type="button" class="skill-tree-slot-picker-clear">Remove from slot</button>
                 </div>
             </div>
             <div id="skill-tree-container">
+                <!-- Left: interactive skill graph -->
                 <div id="skill-tree-view">
                     <div id="skill-tree-graph-mount"></div>
                     <div id="skill-tree-skills" style="display: none;"></div>
                 </div>
+                <!-- Right: node detail & customization -->
                 <div id="skill-tree-details">
                     <div id="skill-detail-header">
-                        <div id="skill-detail-name">Select a node</div>
-                        <div id="skill-detail-description">Click a node on the graph to view details and spend skill points.</div>
+                        <div id="skill-detail-name">Select a skill</div>
+                        <div id="skill-detail-description">Tap a node on the tree to view details and spend skill points.</div>
                     </div>
                     <div id="skill-tree-node-detail" class="skill-tree-node-detail-panel">
                         <div id="skill-node-level-line"></div>
                         <div id="skill-node-requirements"></div>
-                        <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">Level Up</button>
+                        <button id="skill-tree-level-up-btn" class="skill-tree-level-up-btn" style="display: none;">⬆ Level Up</button>
                     </div>
                     <div id="skill-detail-content">
+                        <!-- Skill stats — shown when a node links to a skill -->
+                        <div id="skill-stats-block" style="display: none;">
+                            <div class="skill-section-label">Skill: <span id="skill-stats-name"></span></div>
+                            <div id="skill-stats-grid"></div>
+                        </div>
+                        <!-- Lore — shown when a node has a story -->
+                        <div id="skill-story-block" style="display: none;">
+                            <div class="skill-section-label">Lore</div>
+                            <div id="skill-story-text"></div>
+                        </div>
+                        <!-- Variants + Buffs — shown when a skill has customization options -->
                         <div id="skill-customization-container" style="display: none;">
                             <div id="skill-variants-container">
                                 <h3>Variants</h3>
@@ -298,7 +334,7 @@
             <div id="inventory-header">
                 <div id="inventory-title">Character Inventory</div>
                 <div id="inventory-gold">Gold: <span id="gold-value">0</span></div>
-                <button id="inventory-save" class="circle-btn" title="Save Inventory">💾</button>
+                <button id="inventory-save" class="circle-btn" title="Save Inventory"><span class="circle-btn-emoji">💾</span></button>
             </div>
             <div id="inventory-container">
                 <div id="character-equipment">
@@ -375,7 +411,7 @@
                                     <!-- Strength, Intelligence, Agility, Vitality, Wisdom rows with +/- -->
                                 </div>
                             </div>
-                            <button id="close-stats-overlay" class="circle-btn">💾</button>
+                            <button id="close-stats-overlay" class="circle-btn"><span class="circle-btn-emoji">💾</span></button>
                         </div>
                     </div>
                 </div>
@@ -386,24 +422,29 @@
             </div>
         </div>
 
-        <!-- Dialog Box -->
-        <div id="dialog-box" style="display: none;">
-            <div id="dialog-text"></div>
-            <div id="dialog-actions">
-                <span id="dialog-continue">Click to continue...</span>
-                <button id="dialog-accept-btn" class="menu-button dialog-accept" style="display: none;">Accept</button>
+        <!-- Dialog overlay: backdrop (blur) + dialog box (Header yellow / Body white / Footer buttons) -->
+        <div id="dialog-overlay" style="display: none;">
+            <div class="dialog-backdrop" data-close></div>
+            <div id="dialog-box">
+                <div id="dialog-text"></div>
+                <div id="dialog-actions">
+                    <span id="dialog-continue">Click to continue...</span>
+                    <button id="dialog-cancel-btn" class="menu-button dialog-cancel" style="display: none;">Cancel</button>
+                    <button id="dialog-accept-btn" class="menu-button dialog-accept" style="display: none;">Accept</button>
+                </div>
             </div>
         </div>
 
         <!-- Top Right UI (Home Button, Full Screen Button and Mini Map) -->
         <div id="top-right-container">
-            <button id="hud-guide-button" class="circle-btn" title="HUD Guide">ℹ️</button>
-            <button id="map-selector-button" class="circle-btn" title="Map Selector">🗺️</button>
-            <button id="inventory-button" class="circle-btn" title="Inventory">🎒</button>
-            <button id="skill-selection-button" class="circle-btn" title="Skills">✨</button>
+            <button id="hud-guide-button" class="circle-btn" title="HUD Guide"><span class="circle-btn-emoji">ℹ️</span></button>
+            <button id="map-selector-button" class="circle-btn" title="Map Selector"><span class="circle-btn-emoji">🗺️</span></button>
+            <button id="inventory-button" class="circle-btn" title="Inventory"><span class="circle-btn-emoji">🎒</span></button>
+            <button id="skill-selection-button" class="circle-btn" title="Skills"><span class="circle-btn-emoji">✨</span></button>
+            <button id="openStoryBookBtn" class="circle-btn" title="Story"><span class="circle-btn-emoji">📖</span></button>
 
             <span class="home-button-wrap">
-                <button id="home-button" class="circle-btn" title="Game Menu">⛩️</button>
+                <button id="home-button" class="circle-btn" title="Game Menu"><span class="circle-btn-emoji">⛩️</span></button>
                 <span id="invite-dot" class="invite-dot" style="display: none;" title="Someone wants to play multiplayer"></span>
             </span>
         </div>
@@ -430,7 +471,7 @@
                         <p id="map-selector-current-label" class="map-selector-current-label" aria-live="polite">Current: —</p>
                     </div>
                     <div class="header-buttons">
-                        <button class="circle-btn" id="closeMapSelector" title="Save & Close">💾</button>
+                        <button class="circle-btn" id="closeMapSelector" title="Save & Close"><span class="circle-btn-emoji">💾</span></button>
                     </div>
                 </div>
                 
@@ -487,6 +528,48 @@
                 <div class="loading-overlay" id="mapLoadingOverlay" style="display: none;">
                     <div class="loading-spinner"></div>
                     <div class="loading-text" id="mapLoadingOverlayText">Loading map...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Story Book (full-screen chapter reader, opened from Map) -->
+        <div id="story-book-overlay" class="story-book-overlay" style="display: none;" aria-label="Story book">
+            <div class="story-book-container">
+                <div class="story-book-header">
+                    <h2 id="story-book-title" class="story-book-header-title">The Journey</h2>
+                    <div class="story-book-header-buttons">
+                        <button type="button" id="story-book-chapters-btn" class="circle-btn story-book-chapters-btn" title="Chapters" aria-label="Chapters" aria-expanded="false" aria-controls="story-book-chapters-panel"><span class="circle-btn-emoji">📖</span></button>
+                        <button type="button" id="story-book-save-btn" class="circle-btn" title="Save" aria-label="Save"><span class="circle-btn-emoji">💾</span></button>
+                    </div>
+                </div>
+                <div id="story-book-chapters-panel" class="story-book-chapters-panel" role="dialog" aria-label="Jump to chapter" aria-hidden="true" style="display: none;">
+                    <div class="story-book-chapters-panel-title" id="story-book-chapters-panel-title"></div>
+                    <div class="story-book-chapters-list" id="story-book-chapters-list" role="list"></div>
+                </div>
+                <div class="story-book-content">
+                    <div class="story-book-content-header">
+                        <div class="story-book-content-header-text">
+                            <p class="story-book-chapter-label" id="story-book-chapter-label">Chapter 1</p>
+                            <h3 class="story-book-chapter-title" id="story-book-chapter-title"></h3>
+                            <p class="story-book-chapter-description" id="story-book-chapter-description"></p>
+                        </div>
+                        <div class="story-book-chapter-visual" id="story-book-chapter-image">
+                            <div class="story-book-image-placeholder" id="story-book-image-placeholder"></div>
+                            <img id="story-book-chapter-img" class="story-book-chapter-img" alt="" style="display: none;" />
+                        </div>
+                    </div>
+                    <div class="story-book-main-body">
+                        <div class="story-book-story-block" id="story-book-story-block">
+                            <p class="story-book-story-label" id="story-book-story-label"></p>
+                            <p class="story-book-chapter-story" id="story-book-chapter-story"></p>
+                        </div>
+                        <blockquote class="story-book-lesson" id="story-book-lesson"></blockquote>
+                    </div>
+                </div>
+                <div class="story-book-nav">
+                    <button type="button" id="story-book-prev-btn" class="story-book-nav-btn" title="Previous chapter">‹ Previous</button>
+                    <span class="story-book-page-indicator" id="story-book-page-indicator">1 / 5</span>
+                    <button type="button" id="story-book-next-btn" class="story-book-nav-btn" title="Next chapter">Next ›</button>
                 </div>
             </div>
         </div>
@@ -575,29 +658,22 @@
         <div class="menu-button-container">
             <button id="load-game-button" class="menu-button">Play</button>
             <button id="multiplayer-button" class="menu-button">Multiplayer</button>
-            <button id="help-menu-button" class="menu-button">Help</button>
-            <button id="story-menu-button" class="menu-button">Story</button>
             <button id="settings-menu-button" class="menu-button">Settings</button>
         </div>
     </div>
 
-    <!-- Help / How to Play modal -->
+    <!-- Help / How to Play modal (opened by Info button; paged content, Next + Close) -->
     <div id="help-modal" class="help-modal" style="display: none;">
         <div class="help-modal-backdrop"></div>
         <div class="help-modal-box">
-            <h2 class="help-modal-title">How to Play</h2>
-            <div id="help-modal-content" class="help-modal-content">
-                <p class="help-intro">A peaceful monk travels a fragmented world, facing inner struggles—anger, fear, greed, loneliness—to restore harmony and find peace.</p>
-                <h3>Controls</h3>
-                <p><strong>WASD</strong> — Move. <strong>Mouse / touch drag</strong> — Rotate camera. Use the <strong>skill buttons</strong> (or number keys) to cast abilities.</p>
-                <h3>Quests</h3>
-                <p>Accept the <strong>story quest</strong> when it is offered at the start of a new or loaded game. You can also find <strong>interactive objects</strong> in the world that give quests.</p>
-                <h3>Quest log</h3>
-                <p>The <strong>quest log</strong> on the left shows your current objectives. Complete them, then face the <strong>chapter boss</strong>. Sometimes the path offers more than one way; your choices still lead to the lesson.</p>
-                <h3>After each chapter</h3>
-                <p>Defeat the chapter boss, then read the <strong>life lesson</strong> and tap <strong>Continue Journey</strong> to move on.</p>
-            </div>
-            <button type="button" id="help-modal-close-btn" class="menu-button help-modal-close">Close</button>
+            <header class="help-modal-header">
+                <h2 class="help-modal-title">How to Play</h2>
+            </header>
+            <div id="help-modal-content" class="help-modal-body help-modal-content"></div>
+            <footer class="help-modal-footer guide-nav">
+                <button type="button" id="help-modal-close-btn">Close</button>
+                <button type="button" id="help-modal-next-btn">Next</button>
+            </footer>
         </div>
     </div>
 
@@ -642,7 +718,7 @@
             <div class="modal-header">
                 <h2>Play Together</h2>
                 <div id="multiplayer-initial-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="close-multiplayer-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="close-multiplayer-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <div id="resume-host-area" class="resume-host-area" style="display: none;">
                 <p class="resume-host-msg">Back after network issue? Host again with the same room so joiners can rejoin.</p>
@@ -661,7 +737,7 @@
             <div class="modal-header">
                 <h2>Join Game</h2>
                 <div id="join-game-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="back-from-join-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="back-from-join-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <!-- Permissions: one row — green (allowed), Allow button (denied), gray (not supported) -->
             <div id="join-permissions-row" class="join-permissions-row">
@@ -674,11 +750,6 @@
                     <span class="perm-label">Camera</span>
                     <span id="perm-camera-status" class="perm-status"></span>
                     <button type="button" id="perm-camera-allow" class="perm-allow-chip">Allow</button>
-                </div>
-                <div id="perm-microphone" class="join-perm-chip" data-perm="microphone">
-                    <span class="perm-label">Mic</span>
-                    <span id="perm-microphone-status" class="perm-status"></span>
-                    <button type="button" id="perm-microphone-allow" class="perm-allow-chip">Allow</button>
                 </div>
             </div>
             <!-- Join via QR or code (no auto-discovery) -->
@@ -747,7 +818,7 @@
                 <div class="qr-scan-popup-box">
                     <div class="qr-scan-popup-header">
                         <span>Scan QR code</span>
-                        <button type="button" id="qr-scan-popup-close" class="circle-btn" title="Close">✕</button>
+                        <button type="button" id="qr-scan-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                     </div>
                     <div class="qr-scan-popup-body">
                         <div id="qr-scanner-view"></div>
@@ -764,7 +835,7 @@
                 <div class="qr-scan-popup-box">
                     <div class="qr-scan-popup-header">
                         <span>Enter Code</span>
-                        <button type="button" id="enter-code-popup-close" class="circle-btn" title="Close">✕</button>
+                        <button type="button" id="enter-code-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                     </div>
                     <div class="qr-scan-popup-body enter-code-popup-body">
                         <div class="manual-input-section">
@@ -786,7 +857,7 @@
             <div class="modal-header">
                 <h2>Multiplayer Connection</h2>
                 <div id="connection-info-player-info" class="multiplayer-header-player-info" aria-live="polite"></div>
-                <button id="close-connection-info-btn" class="circle-btn" title="Close">↩️</button>
+                <button id="close-connection-info-btn" class="circle-btn" title="Close"><span class="circle-btn-emoji">↩️</span></button>
             </div>
             <div class="host-game-layout">
                 <div class="qr-section">
@@ -831,7 +902,7 @@
                         <button type="button" id="contacts-tab-list-btn" class="contacts-tab-btn contacts-tab-active" title="Host contacts">👥</button>
                         <button type="button" id="contacts-tab-manage-btn" class="contacts-tab-btn" title="Manage contacts">✏️</button>
                     </div>
-                    <button type="button" id="contacts-popup-close" class="circle-btn" title="Close">✕</button>
+                    <button type="button" id="contacts-popup-close" class="circle-btn" title="Close"><span class="circle-btn-emoji">✕</span></button>
                 </div>
                 <div class="contacts-popup-body">
                     <p id="contacts-popup-hint" class="contacts-popup-hint">Pick a host and tap Join to reconnect.</p>
@@ -847,7 +918,7 @@
         <!-- Settings Icon in Top-Right -->
         <!-- <div class="settings-header-icon">⚙️</div> -->
         <div class="settings-header-icon">
-            <button id="settings-save-button" class="circle-btn" title="Save Settings">💾</button>
+            <button id="settings-save-button" class="circle-btn" title="Save Settings"><span class="circle-btn-emoji">💾</span></button>
         </div>
 
         <!-- Top Tabs with Right Actions Layout -->

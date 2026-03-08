@@ -28,6 +28,9 @@ const DAMAGE_NUMBER_CONFIG = {
     // Animation parameters — fast up and disappear for strong-attack feel (2x longer visible)
     DURATION: 0.9,
     FLOAT_SPEED: 6.0,
+    // Quest reward text stays visible longer and floats slower
+    REWARD_DURATION: 2.8,
+    REWARD_FLOAT_SPEED: 2.5,
     SCALE_NORMAL: 0.5, // 10x bigger - was 0.05
     SCALE_CRITICAL: 0.6, // 10x bigger - was 0.06
     SCALE_KILL: 0.8, // 10x bigger - was 0.08
@@ -56,7 +59,7 @@ export class DamageNumberSpriteEffect {
      * @param {Object} game - Game instance (for scene)
      * @param {number} amount - Damage value to display
      * @param {THREE.Vector3} worldPosition - Position in world (cloned; effect stays here)
-     * @param {Object} options - { isPlayerDamage, isCritical, isKill, isExperience, isBonus }
+     * @param {Object} options - { isPlayerDamage, isCritical, isKill, isExperience, isBonus, customText, rewardType: 'xp'|'gold'|'item' }
      */
     constructor(game, amount, worldPosition, options = {}) {
         this.game = game;
@@ -67,8 +70,11 @@ export class DamageNumberSpriteEffect {
         this.isKill = options.isKill || false;
         this.isExperience = options.isExperience || false;
         this.isBonus = options.isBonus || false;
-        this.duration = DAMAGE_NUMBER_CONFIG.DURATION;
-        this.floatSpeed = DAMAGE_NUMBER_CONFIG.FLOAT_SPEED;
+        this.customText = options.customText || null;
+        this.rewardType = options.rewardType || null;
+        const isRewardText = this.customText || this.rewardType;
+        this.duration = isRewardText ? DAMAGE_NUMBER_CONFIG.REWARD_DURATION : DAMAGE_NUMBER_CONFIG.DURATION;
+        this.floatSpeed = isRewardText ? DAMAGE_NUMBER_CONFIG.REWARD_FLOAT_SPEED : DAMAGE_NUMBER_CONFIG.FLOAT_SPEED;
         this.elapsed = 0;
         this.isActive = true;
         this.group = null;
@@ -189,6 +195,12 @@ export class DamageNumberSpriteEffect {
         } else if (type === 'exp') {
             color = 0xffcc00;
             emissiveColor = 0xffaa00;
+        } else if (type === 'gold') {
+            color = 0xffdd44;
+            emissiveColor = 0xffbb00;
+        } else if (type === 'item') {
+            color = 0x88ddff;
+            emissiveColor = 0x44aaff;
         } else if (type === 'bonus') {
             color = 0x44ff88;
             emissiveColor = 0x22cc66;
@@ -250,21 +262,27 @@ export class DamageNumberSpriteEffect {
             if (!font) return null;
 
             let text;
-            if (this.isExperience) text = `+${this.amount} EXP`;
-            else if (this.isBonus) text = `+${this.amount} BONUS!`;
-            else text = this.isPlayerDamage ? `-${this.amount.toLocaleString()}` : this.amount.toLocaleString();
+            if (this.customText) {
+                text = this.customText;
+            } else if (this.isExperience) {
+                text = `+${this.amount} EXP`;
+            } else if (this.isBonus) {
+                text = `+${this.amount} BONUS!`;
+            } else {
+                text = this.isPlayerDamage ? `-${this.amount.toLocaleString()}` : this.amount.toLocaleString();
+            }
             
             // Get cached geometry (or create new one)
             const geometry = DamageNumberSpriteEffect.getCachedGeometry(text, font);
             this.usingCachedGeometry = true;
             
-            // Get material type
-            const materialType = this.isBonus ? 'bonus'
+            // Get material type (reward types for quest rewards in 3D)
+            const materialType = this.rewardType || (this.isBonus ? 'bonus'
                 : this.isExperience ? 'exp'
                 : this.isPlayerDamage ? 'playerDamage'
                 : this.isKill ? 'kill'
                 : this.isCritical ? 'critical'
-                : 'normal';
+                : 'normal');
             
             // Get cached materials and clone so each effect has its own opacity (shared material would make all numbers fade together)
             const material = DamageNumberSpriteEffect.getCachedMaterial(materialType).clone();

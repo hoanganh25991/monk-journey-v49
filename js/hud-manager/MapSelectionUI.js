@@ -4,7 +4,9 @@ import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
 import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
-import { getMapSelectionUiString, getChapterQuestDisplay, MAP_DISPLAY_NAMES_VI } from '../config/chapter-quests-locales.js';
+import { getMapSelectionUiString, getChapterQuestDisplay } from '../config/chapter-quests.js';
+import { getMapDisplay } from '../config/map-locales.js';
+import { StoryBookUI } from './StoryBookUI.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -38,6 +40,7 @@ export class MapSelectionUI extends UIComponent {
         this.selectedMapId = null;
         this.mapManifest = [];
         this.mapDataCache = new Map(); // path -> full map JSON
+        this.storyBookUI = null;
     }
 
     /** @returns {'en'|'vi'} */
@@ -64,6 +67,8 @@ export class MapSelectionUI extends UIComponent {
         if (this.mapSelectorButton) this.mapSelectorButton.title = getMapSelectionUiString('btnMapSelector', locale);
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) closeBtn.title = getMapSelectionUiString('btnSaveAndClose', locale);
+        const storyBtn = document.getElementById('openStoryBookBtn');
+        if (storyBtn) storyBtn.title = getMapSelectionUiString('btnStoryBook', locale);
         const playBtn = document.getElementById('playMapButton');
         if (playBtn) {
             playBtn.title = getMapSelectionUiString('btnApplyAndReloadTitle', locale);
@@ -88,6 +93,9 @@ export class MapSelectionUI extends UIComponent {
                 return false;
             }
 
+            this.storyBookUI = new StoryBookUI(this.game);
+            this.storyBookUI.init();
+            this.storyBookUI.onClose = () => {};
             this.setupEventListeners();
             this.updateMapSelectorLabels();
             this.loadManifest().then(() => this.populateMapList());
@@ -132,6 +140,15 @@ export class MapSelectionUI extends UIComponent {
             this.show();
         });
 
+        const openStoryBtn = document.getElementById('openStoryBookBtn');
+        if (openStoryBtn) {
+            openStoryBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.storyBookUI) this.storyBookUI.show();
+            });
+        }
+
         const closeBtn = document.getElementById('closeMapSelector');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => this.hide());
@@ -154,17 +171,13 @@ export class MapSelectionUI extends UIComponent {
         const quest = CHAPTER_QUESTS.find((q) => q.id === entry.chapterQuestId);
         if (!quest) return null;
         const display = getChapterQuestDisplay(quest, locale);
-        return display?.area ?? quest?.area ?? null;
+        return display?.area ?? null;
     }
 
-    /** Display name for a map entry in the current locale (name_vi from manifest or MAP_DISPLAY_NAMES_VI fallback). */
+    /** Display name for a map entry in the current locale (from map-locales, then manifest). */
     getMapDisplayName(mapEntry) {
-        const locale = this.getLocale();
-        if (locale === 'vi') {
-            if (mapEntry.name_vi) return mapEntry.name_vi;
-            if (MAP_DISPLAY_NAMES_VI[mapEntry.id]) return MAP_DISPLAY_NAMES_VI[mapEntry.id];
-        }
-        return mapEntry.name || '';
+        const { name } = getMapDisplay(mapEntry.id, this.getLocale(), { name: mapEntry.name, description: mapEntry.description });
+        return name || mapEntry.name || '';
     }
 
     populateMapList() {
@@ -174,11 +187,17 @@ export class MapSelectionUI extends UIComponent {
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || DEFAULT_MAP_PATH)
             : DEFAULT_MAP_PATH;
 
-        const sorted = [...this.mapManifest].sort((a, b) =>
-            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+        // Build display name per map in current locale (chapter area or localized map name), then sort by that so the list order respects locale.
+        const withDisplayName = this.mapManifest.map((map) => {
+            const chapterArea = this.getChapterAreaForMap(map.id, locale);
+            const displayName = chapterArea || this.getMapDisplayName(map);
+            return { map, displayName };
+        });
+        const sorted = withDisplayName.sort((a, b) =>
+            (a.displayName || '').localeCompare(b.displayName || '', locale === 'vi' ? 'vi' : 'en', { sensitivity: 'base' })
         );
 
-        for (const map of sorted) {
+        for (const { map, displayName } of sorted) {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
@@ -186,10 +205,7 @@ export class MapSelectionUI extends UIComponent {
             const thumb = map.thumbnail
                 ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
                 : '<span class="map-icon">🗺️</span>';
-            const displayName = this.getMapDisplayName(map);
-            const chapterArea = this.getChapterAreaForMap(map.id, locale);
-            const subtitle = chapterArea ? `<span class="map-list-subtitle">${chapterArea}</span>` : '';
-            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${displayName}</span>${subtitle}</span>`;
+            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${displayName}</span></span>`;
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }
@@ -214,8 +230,8 @@ export class MapSelectionUI extends UIComponent {
     updateDetailPanel(mapEntry) {
         const nameEl = document.getElementById('selectedMapName');
         const descEl = document.getElementById('selectedMapDescription');
-        const displayName = this.getMapDisplayName(mapEntry);
-        const displayDesc = (this.getLocale() === 'vi' && mapEntry.description_vi) ? mapEntry.description_vi : (mapEntry.description || '');
+        const fallback = { name: mapEntry.name, description: mapEntry.description };
+        const { name: displayName, description: displayDesc } = getMapDisplay(mapEntry.id, this.getLocale(), fallback);
         if (nameEl) {
             nameEl.textContent = displayName;
             nameEl.dataset.filled = '1';

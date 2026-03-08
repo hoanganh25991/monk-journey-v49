@@ -11,6 +11,23 @@
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
 
+/** Optional: override to use a custom PeerServer. Leave null to use default PeerJS cloud (0.peerjs.com). */
+const PEER_SERVER = null;
+
+/** ICE servers for WebRTC; can help when the data channel stays "connecting". */
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+
+/** Options passed to every new Peer() so host and joiner use the same signaling server. */
+function getPeerOptions(overrides = {}) {
+    const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : {};
+    const opts = { ...base, ...overrides };
+    opts.config = opts.config || {};
+    if (!opts.config.iceServers || opts.config.iceServers.length === 0) {
+        opts.config.iceServers = ICE_SERVERS;
+    }
+    return opts;
+}
+
 export class MultiplayerConnectionManager {
     /**
      * Initialize the multiplayer connection manager
@@ -59,6 +76,15 @@ export class MultiplayerConnectionManager {
         this.peerIdToPingMs = new Map();
         /** Host: interval id for pinging all joiners; cleared on dispose. */
         this._hostPingIntervalId = null;
+        /** Joiner: timeout id for join attempt; cleared when connection opens or fails. */
+        this._joinTimeoutId = null;
+        /** Joiner: reference to pending DataConnection so timeout can close it. */
+        this._pendingJoinConn = null;
+    }
+
+    /** Returns options for new Peer() so all Peer instances use the same server (e.g. custom PEER_SERVER). */
+    getPeerOptions() {
+        return getPeerOptions();
     }
 
     /**
@@ -92,7 +118,7 @@ export class MultiplayerConnectionManager {
         const myId = this.multiplayerManager.getMyPersistentPeerId();
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');
-            this.peer = new Peer(myId);
+            this.peer = new Peer(myId, getPeerOptions());
             
             // Wait for peer to open
             await new Promise((resolve, reject) => {
@@ -121,10 +147,30 @@ export class MultiplayerConnectionManager {
             
             // Set up connection handler
             this.peer.on('connection', conn => {
+                console.warn('[P2P] Host received connection from', conn.peer);
                 this.handleNewConnection(conn);
                 // Only show connection info screen when still in lobby (game never started). Once game has started (running or paused e.g. You Died), host stays on current screen — rejoiner gets startGame and drops in.
                 if (!this.multiplayerManager.game?.state?.hasStarted?.()) {
                     this.multiplayerManager.ui.showConnectionInfoScreen();
+                }
+            });
+            this.peer.on('disconnected', () => {
+                console.warn('[P2P] Host lost connection to signaling server. Reconnecting...');
+                this.multiplayerManager.ui.updateConnectionStatus('Reconnecting to server...');
+                try {
+                    this.peer.reconnect();
+                } catch (e) {
+                    console.error('[P2P] Host reconnect failed:', e);
+                }
+            });
+            this.peer.on('reconnected', () => {
+                console.warn('[P2P] Host reconnected to signaling server.');
+                this.multiplayerManager.ui.updateConnectionStatus('Waiting for players to join...');
+            });
+            this.peer.on('error', (err) => {
+                console.error('[P2P] Host peer error:', err);
+                if (String(err?.message || err).toLowerCase().includes('lost connection') && this.peer?.disconnected) {
+                    try { this.peer.reconnect(); } catch (_) {}
                 }
             });
             
@@ -156,72 +202,110 @@ export class MultiplayerConnectionManager {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
             // Joiner uses a new random Peer so we never get "ID is taken" (e.g. after hosting or reconnect on same device).
             // Host keeps persistent room ID; joiners get a new connection ID each time.
-            this.peer = new Peer();
-            
+            this.peer = new Peer(getPeerOptions());
+
             // Wait for peer to open
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => resolve());
                 this.peer.on('error', err => reject(err));
             });
-            
+
+            // Brief delay so the signaling server has the joiner's peer registered before we connect (PeerJS timing)
+            await new Promise(r => setTimeout(r, 400));
+
             // Connect to host
             this.hostId = roomId;
             console.warn(`[P2P] Joiner → signaling server → Host (${roomId.substring(0, 8)}…). Establishing connection...`);
             const conn = this.peer.connect(roomId, {
                 reliable: true
             });
-            
-            // Set up connection
-            conn.on('open', () => {
-                this._joinAttemptRoomId = null; // join succeeded
+            this._pendingJoinConn = conn;
+
+            // Timeout if connection never opens (PeerJS/WebRTC can be slow; allow time for ICE)
+            const JOIN_TIMEOUT_MS = 30000;
+            this._joinTimeoutId = setTimeout(() => {
+                if (this._joinAttemptRoomId !== roomId) return;
+                this._joinAttemptRoomId = null;
+                this._joinTimeoutId = null;
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
+                if (this._pendingJoinConn) {
+                    try { this._pendingJoinConn.close(); } catch (_) {}
+                    this._pendingJoinConn = null;
+                }
+                if (this.peer) {
+                    try { this.peer.destroy(); } catch (_) {}
+                    this.peer = null;
+                }
+                this.multiplayerManager.ui.onJoinToHostFailed(roomId);
+                this.multiplayerManager.ui.updateConnectionStatus('Connection timed out. Make sure the host is in the lobby and try again.', 'join-connection-status');
+                console.warn('[P2P] Join timed out.');
+            }, JOIN_TIMEOUT_MS);
+
+            const clearJoinTimeout = () => {
+                if (this._joinTimeoutId) {
+                    clearTimeout(this._joinTimeoutId);
+                    this._joinTimeoutId = null;
+                }
+                this._pendingJoinConn = null;
+            };
+
+            let joinConnectionOpened = false;
+            let joinRetryIntervalId = null;
+            const persistentId = this.multiplayerManager.getMyPersistentPeerId();
+            const onJoinConnectionOpen = () => {
+                if (joinConnectionOpened) return;
+                joinConnectionOpened = true;
+                clearJoinTimeout();
+                if (joinRetryIntervalId) {
+                    clearInterval(joinRetryIntervalId);
+                    joinRetryIntervalId = null;
+                }
+                this._joinAttemptRoomId = null;
                 console.warn('[P2P] Path established: Joiner ↔ Host. Connection open.');
                 this.multiplayerManager.ui.clearReconnectRetry();
-                // Attach data handler first so we don't miss startGame (host sends it immediately on rejoin)
-                conn.on('data', data => {
-                    if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
-                        this._pendingRawQueue.push(data);
-                        return;
-                    }
-                    // Enqueue JSON so we never run heavy logic inside PeerJS callback; drain at frame start
-                    const decoded = this.processReceivedData(data);
-                    if (decoded) this._pendingJsonQueue.push(decoded);
-                });
                 conn.on('close', () => this.handleDisconnect(roomId));
 
-                // Auto-store host roomID into Contacts so joiner can rejoin or use Contacts list
                 this.multiplayerManager.ui.addJoinedHostId(roomId);
                 this.multiplayerManager.ui.clearPendingInviteFromHost();
                 this.multiplayerManager.ui.setLastRole('joiner');
                 this.multiplayerManager.ui.setHostStatus(roomId, 'online');
-                // Add to peers map
                 this.peers.set(roomId, conn);
-                
-                // Set connected flag
                 this.isConnected = true;
-                
-                // Update multiplayer button to show "Disconnect"
                 this.multiplayerManager.ui.updateMultiplayerButton(true);
-                
-                // Update connection status
                 this.multiplayerManager.ui.updateConnectionStatus('Connected to host! Waiting for game to start...', 'connection-info-status-bar');
-                
-                // Show the connection info screen (or rejoin overlay if silent rejoin)
                 this.multiplayerManager.ui.showConnectionInfoScreen();
-                // Start game loop so deferred binary decode can run (drainPendingMessages); avoids decoding in callback = better joiner FPS
                 if (this.multiplayerManager.game?.ensureAnimationLoopRunning) {
                     this.multiplayerManager.game.ensureAnimationLoopRunning();
                 }
-                // Start periodic ping (joiner only) for RTT and connection quality UI
                 this._startPingInterval();
-                // Ask host for startGame now that we're ready to receive (avoids race where host sent startGame before we attached handler)
-                // Send persistentId so host can dedupe one player per device (off->on->off->on = same slot)
-                this.sendToHost({
-                    type: 'requestStartGame',
-                    persistentId: this.multiplayerManager.getMyPersistentPeerId()
-                });
+                this.sendToHost({ type: 'requestStartGame', persistentId });
+            };
+
+            const CONN_OPEN_TYPES = ['hostReady', 'welcome', 'startGame', 'playerColors'];
+            conn.on('data', (data) => {
+                if (this.useBinaryFormat && (data instanceof Uint8Array || data instanceof ArrayBuffer)) {
+                    this._pendingRawQueue.push(data);
+                    return;
+                }
+                const decoded = this.processReceivedData(typeof data === 'string' ? (() => { try { return JSON.parse(data); } catch (_) { return null; } })() : data);
+                if (!decoded) return;
+                if (!joinConnectionOpened && CONN_OPEN_TYPES.includes(decoded.type)) {
+                    onJoinConnectionOpen();
+                    if (decoded.type !== 'hostReady') this._pendingJsonQueue.push(decoded);
+                } else {
+                    this._pendingJsonQueue.push(decoded);
+                }
             });
+            conn.on('open', () => onJoinConnectionOpen());
+            joinRetryIntervalId = setInterval(() => {
+                if (joinConnectionOpened || !this._pendingJoinConn) return;
+                if (conn.open !== true) return;
+                try { conn.send({ type: 'requestStartGame', persistentId }); } catch (_) {}
+            }, 800);
             
             conn.on('error', (err) => {
+                clearJoinTimeout();
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 console.error('Connection error:', err);
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
@@ -230,16 +314,23 @@ export class MultiplayerConnectionManager {
                     this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + err.message);
                 }
             });
-            
+
             conn.on('close', () => {
+                clearJoinTimeout();
+                if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
                     this.multiplayerManager.ui.onJoinToHostFailed(roomId);
                 }
             });
-            
+
             return true;
         } catch (error) {
+            if (this._joinTimeoutId) {
+                clearTimeout(this._joinTimeoutId);
+                this._joinTimeoutId = null;
+            }
+            this._pendingJoinConn = null;
             console.error('Error joining game:', error);
             this._joinAttemptRoomId = null;
             this.multiplayerManager.ui.updateConnectionStatus('Error joining game: ' + error.message);
@@ -254,7 +345,7 @@ export class MultiplayerConnectionManager {
         if (this._joinListenerPeer || this.isHost || this.isConnected) return;
         const persistentId = this.multiplayerManager.getMyPersistentPeerId();
         try {
-            this._joinListenerPeer = new Peer(persistentId);
+            this._joinListenerPeer = new Peer(persistentId, getPeerOptions());
             this._joinListenerPeer.on('connection', (conn) => this._handleInviteFromHostConnection(conn));
             this._joinListenerPeer.on('error', () => { /* e.g. ID taken; ignore */ });
         } catch (_) {
@@ -291,9 +382,28 @@ export class MultiplayerConnectionManager {
     /**
      * Handle new connection from a member (host only).
      * First message may be statusRequest (ping for rejoin UI) or inviteRequest; otherwise add as game player.
+     * Host must listen for conn.on('open') and send first so the joiner's conn.open can fire (PeerJS quirk).
      * @param {DataConnection} conn - The PeerJS connection
      */
     handleNewConnection(conn) {
+        let hostReadySent = false;
+        const sendHostReady = () => {
+            if (hostReadySent) return;
+            hostReadySent = true;
+            try {
+                conn.send({ type: 'hostReady' });
+                console.warn('[P2P] Host sent hostReady to joiner', conn.peer);
+            } catch (_) {}
+        };
+        const trySendHostReady = () => {
+            if (hostReadySent) return;
+            if (conn.open === true) sendHostReady();
+        };
+        try { conn.send({ type: 'hostReady' }); hostReadySent = true; } catch (_) {}
+        conn.on('open', () => trySendHostReady());
+        const hostReadyRetry = setInterval(() => { trySendHostReady(); if (hostReadySent) clearInterval(hostReadyRetry); }, 400);
+        conn.once('open', () => { trySendHostReady(); clearInterval(hostReadyRetry); });
+        conn.once('close', () => clearInterval(hostReadyRetry));
         conn.once('data', (data) => {
             let raw = data;
             if (typeof raw === 'string') {

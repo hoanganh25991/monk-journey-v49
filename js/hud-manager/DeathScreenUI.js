@@ -1,8 +1,9 @@
 import { UIComponent } from '../UIComponent.js';
+import { DEATH_SCREEN_ACTIONS, getRespawnExpLoss } from '../config/death-screen-actions.js';
 
 /**
  * Death Screen UI component
- * Displays death screen with respawn and quit options
+ * Single option: respawn (lose XP scaling with level). Message: "Your journey... Lose XXX XP to respawn."
  */
 export class DeathScreenUI extends UIComponent {
     /**
@@ -13,49 +14,68 @@ export class DeathScreenUI extends UIComponent {
         super('death-screen', game);
         this.isDeathScreenOpen = false;
     }
+
+    /**
+     * Execute logic for the given death-screen action (only respawn).
+     * Deducts XP (scaling with level) then revives the player.
+     * @param {string} actionId - 'respawn'
+     */
+    runAction(actionId) {
+        if (actionId !== 'respawn') return;
+        const level = this.game.player.getLevel ? this.game.player.getLevel() : 1;
+        const expLoss = getRespawnExpLoss(level);
+        const currentExp = this.game.player.getExperience ? this.game.player.getExperience() : 0;
+        const newExp = Math.max(0, currentExp - expLoss);
+        this.game.player.stats.setExperience(newExp);
+        this.game.player.revive();
+    }
     
     /**
      * Initialize the component
      * @returns {boolean} - True if initialization was successful
      */
     init() {
+        const buttonPlaceholder = DEATH_SCREEN_ACTIONS.filter(a => a.enabled)
+            .map(a => `<button class="menu-button death-action-btn" data-action-id="${a.id}" type="button">${a.label}</button>`)
+            .join('');
         const template = `
             <div id="death-screen-content">
                 <h1>You Died</h1>
-                <div class="death-message">
-                    Your journey has come to an end, but your spirit lives on.
+                <div class="death-message" id="death-message">
+                    Your journey has come to an end. Lose <span id="respawn-exp-loss">200</span> XP to respawn.
+                </div>
+
+                <div class="death-stats" id="death-stats">
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Time survived</span>
+                        <span class="death-stats-value" id="time-survived">--:--</span>
+                    </div>
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Enemies defeated</span>
+                        <span class="death-stats-value" id="enemies-defeated">0</span>
+                    </div>
+                    <div class="death-stats-item">
+                        <span class="death-stats-label">Level reached</span>
+                        <span class="death-stats-value" id="level-reached">1</span>
+                    </div>
                 </div>
 
                 <div class="menu-button-container">
-                    <button class="menu-button" id="respawn-button">Respawn</button>
-                    <button class="menu-button" id="quit-button">Quit Game</button>
+                    ${buttonPlaceholder}
                 </div>
             </div>
         `;
         
-        // Render the template
         this.render(template);
-        
-        // Create bound event handler methods to make them easier to remove later
-        this.handleRespawn = () => {
-            this.game.player.revive();
+        this.boundClickHandler = (e) => {
+            const btn = e.target.closest('.death-action-btn');
+            if (!btn || btn.disabled) return;
+            const actionId = btn.getAttribute('data-action-id');
+            if (actionId) this.runAction(actionId);
         };
-        
-        this.handleQuit = () => {
-            // Reload page to restart game
-            window.location.reload();
-        };
-        
-        // Add event listeners
-        const respawnButton = document.getElementById('respawn-button');
-        respawnButton.addEventListener('click', this.handleRespawn);
-        
-        const quitButton = document.getElementById('quit-button');
-        quitButton.addEventListener('click', this.handleQuit);
-        
-        // Hide initially
+        const container = this.container?.querySelector('.menu-button-container');
+        if (container) container.addEventListener('click', this.boundClickHandler);
         this.hide();
-        
         return true;
     }
     
@@ -67,7 +87,7 @@ export class DeathScreenUI extends UIComponent {
         if (this.isDeathScreenOpen) {
             return;
         }
-        // Update statistics
+        // Update statistics and respawn XP loss text
         this.updateDeathStats();
         
         // Show death screen
@@ -92,16 +112,21 @@ export class DeathScreenUI extends UIComponent {
         const seconds = Math.floor(gameTime % 60);
         const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
-        // Get enemies defeated (if available)
-        const enemiesDefeated = this.game.player.enemiesDefeated || 0;
+        // Get enemies defeated from EnemyManager kill counter
+        const enemiesDefeated = this.game.enemyManager?.enemyKillCount || 0;
         
         // Get player level
-        const playerLevel = this.game.player.level || 1;
+        const playerLevel = this.game.player.level ?? this.game.player.getLevel?.() ?? 1;
         
-        // Update UI elements
-        // document.getElementById('time-survived').textContent = timeString;
-        // document.getElementById('enemies-defeated').textContent = enemiesDefeated.toString();
-        // document.getElementById('level-reached').textContent = playerLevel.toString();
+        // Update UI elements (session recap and respawn XP cost)
+        const timeEl = document.getElementById('time-survived');
+        const enemiesEl = document.getElementById('enemies-defeated');
+        const levelEl = document.getElementById('level-reached');
+        const expLossEl = document.getElementById('respawn-exp-loss');
+        if (timeEl) timeEl.textContent = timeString;
+        if (enemiesEl) enemiesEl.textContent = enemiesDefeated.toString();
+        if (levelEl) levelEl.textContent = playerLevel.toString();
+        if (expLossEl) expLossEl.textContent = getRespawnExpLoss(playerLevel).toString();
     }
     
     /**
@@ -121,15 +146,9 @@ export class DeathScreenUI extends UIComponent {
      * Overrides the base class method
      */
     removeEventListeners() {
-        // Remove event listeners from buttons if they exist
-        const respawnButton = document.getElementById('respawn-button');
-        if (respawnButton && this.handleRespawn) {
-            respawnButton.removeEventListener('click', this.handleRespawn);
-        }
-        
-        const quitButton = document.getElementById('quit-button');
-        if (quitButton && this.handleQuit) {
-            quitButton.removeEventListener('click', this.handleQuit);
+        const container = this.container?.querySelector('.menu-button-container');
+        if (container && this.boundClickHandler) {
+            container.removeEventListener('click', this.boundClickHandler);
         }
     }
 }

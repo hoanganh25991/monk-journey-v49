@@ -1,5 +1,5 @@
 import * as THREE from '../../../libs/three/three.module.js';
-import { STRUCTURE_OBJECTS } from '../../config/structure.js';
+import { STRUCTURE_OBJECTS, HOME_VILLAGE_FENCE_HALF_EXTENT, HOME_VILLAGE_GATE_GAP_HALF_EXTENT } from '../../config/structure.js';
 import { StructureFactory } from './StructureFactory.js';
 import { Building } from './Building.js';
 import { Tower } from './Tower.js';
@@ -78,13 +78,25 @@ export class StructureManager {
     }
     
     /**
-     * Create a village at the home position (0,0,0)
+     * Create a village at the home position (0,0,0) with a square fence and one gate.
+     * Fence forms a big square boundary; gate is on the south side. Enemies are blocked by safe zone logic.
      */
     createHomeVillage() {
+        const cx = 0, cz = 0;
+        const H = HOME_VILLAGE_FENCE_HALF_EXTENT;
+        const spacing = 3;
+        const gateZ = -H;
+        const gateX = 0;
+
+        // Use most of the fenced area; fewer buildings with min spacing so they don't overlap
+        const villageRadius = H * 0.82;
         const homeVillage = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE, { 
-            x: 0, 
-            z: 0,
+            x: cx, 
+            z: cz,
             size: 'medium',
+            buildingCount: 8,
+            radius: villageRadius,
+            minSpacing: 12,
             hasTower: true,
             hasWell: true,
             hasMarket: true,
@@ -95,17 +107,74 @@ export class StructureManager {
             this.structures.push({
                 type: STRUCTURE_OBJECTS.VILLAGE,
                 object: homeVillage,
-                position: new THREE.Vector3(0, 0, 0),
+                position: new THREE.Vector3(cx, 0, cz),
                 id: 'home_village'
             });
             
             this.specialStructures['home_village'] = { 
-                x: 0, 
-                z: 0, 
+                x: cx, 
+                z: cz, 
                 type: STRUCTURE_OBJECTS.VILLAGE 
             };
             
             console.debug("Home village created at spawn position (0,0,0)");
+        }
+
+        // Place fence as connected runs (one run per side): posts + horizontal rail linking them
+        const fenceRuns = [];
+        // South side: z = -H, x from -H to H; gate at (0, -H) — leave open gap so fence does not pass through gate
+        const gateGap = HOME_VILLAGE_GATE_GAP_HALF_EXTENT;
+        const southPositions = [];
+        for (let x = -H; x <= H; x += spacing) {
+            if (x >= gateX - gateGap && x <= gateX + gateGap) continue;
+            southPositions.push({ x, z: gateZ });
+        }
+        if (southPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: southPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
+        }
+        // North side: z = H
+        const northPositions = [];
+        for (let x = -H; x <= H; x += spacing) northPositions.push({ x, z: H });
+        if (northPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: northPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
+        }
+        // East side: x = H, rail runs along Z (no group rotation — local run already along Z)
+        const eastPositions = [];
+        for (let z = -H; z <= H; z += spacing) eastPositions.push({ x: H, z });
+        if (eastPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: eastPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
+        }
+        // West side: x = -H
+        const westPositions = [];
+        for (let z = -H; z <= H; z += spacing) westPositions.push({ x: -H, z });
+        if (westPositions.length > 0) {
+            const run = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, { positions: westPositions, rotation: 0 });
+            if (run) fenceRuns.push(run);
+        }
+
+        for (const run of fenceRuns) {
+            this.structures.push({
+                type: STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN,
+                object: run,
+                position: run.position.clone(),
+                id: `home_fence_run_${run.uuid || Math.random().toString(36).slice(2)}`
+            });
+        }
+
+        // Gate on south side (one place on the fence path)
+        const gate = this.structureFactory.createStructure(STRUCTURE_OBJECTS.VILLAGE_GATE, { x: gateX, z: gateZ, rotation: 0 });
+        if (gate) {
+            this.structures.push({
+                type: STRUCTURE_OBJECTS.VILLAGE_GATE,
+                object: gate,
+                position: new THREE.Vector3(gateX, 0, gateZ),
+                id: 'home_village_gate'
+            });
+            this.specialStructures['home_village_gate'] = { x: gateX, z: gateZ, type: STRUCTURE_OBJECTS.VILLAGE_GATE };
+            console.debug("Home village gate placed at south fence (0, " + gateZ + ")");
         }
     }
     
@@ -229,8 +298,8 @@ export class StructureManager {
     clear() {
         // Remove all structures from the scene
         this.structures.forEach(structureInfo => {
-            if (structureInfo.object && structureInfo.object.parent) {
-                this.scene.remove(structureInfo.object);
+            if (structureInfo.object?.parent) {
+                structureInfo.object.parent.remove(structureInfo.object);
             }
             
             // Dispose of geometries and materials to free memory

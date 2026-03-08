@@ -6,6 +6,13 @@
  * and their relationships to different biomes/themes.
  */
 
+/** Half extent of the square fence around the home village at (0,0,0) — fence runs from -H to +H on X and Z */
+export const HOME_VILLAGE_FENCE_HALF_EXTENT = 45;
+/** Half extent of the gap in the fence for the village gate (south side). Fence stops at gateX ± this so it does not pass through the gate. */
+export const HOME_VILLAGE_GATE_GAP_HALF_EXTENT = 5;
+/** Radius of the safe zone circle (no enemy spawn, enemies cannot enter) for the home village */
+export const HOME_VILLAGE_SAFE_RADIUS = 45;
+
 /**
  * Structure objects dictionary
  * A single source of truth for all structure string literals
@@ -28,6 +35,7 @@ export const STRUCTURE_OBJECTS = {
     ALTAR: 'altar',
     CAVE: 'cave',
     VILLAGE_FENCE: 'village_fence',
+    VILLAGE_FENCE_RUN: 'village_fence_run', // Connected fence: posts + horizontal rail(s) in one run
     VILLAGE_GATE: 'village_gate'
 };
 
@@ -120,10 +128,13 @@ export const STRUCTURE_PROPERTIES = {
         height: 2,
         isBuilding: false
     },
+    [STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN]: {
+        isBuilding: false
+    },
     [STRUCTURE_OBJECTS.VILLAGE_GATE]: {
-        width: 4,
-        depth: 1,
-        height: 2.5,
+        width: 9,
+        depth: 3,
+        height: 9.75,
         isBuilding: false
     }
 };

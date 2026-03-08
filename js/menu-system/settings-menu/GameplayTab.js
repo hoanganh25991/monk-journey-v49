@@ -5,6 +5,7 @@
 
 import { SettingsTab } from './SettingsTab.js';
 import { STORAGE_KEYS } from '../../config/storage-keys.js';
+import { ensureLocaleLoaded } from '../../config/chapter-quests.js';
 import { DIFFICULTY_SCALING } from '../../config/game-balance.js';
 import { getSourceVersion } from '../../config/version.js';
 import storageService from '../../save-manager/StorageService.js';
@@ -169,18 +170,18 @@ export class GameplayTab extends SettingsTab {
                 this.difficultySelect.appendChild(option);
             }
             
-            // Set current difficulty synchronously (default to 'basic')
-            const currentDifficulty = this.loadSettingSync(STORAGE_KEYS.DIFFICULTY, 'basic');
+            // Set current difficulty synchronously (default to 'medium' = normal balance)
+            const currentDifficulty = this.loadSettingSync(STORAGE_KEYS.DIFFICULTY, 'medium');
             
             console.debug(`Loading difficulty setting: ${currentDifficulty}`);
             this.difficultySelect.value = currentDifficulty;
             
             // If the value wasn't set correctly (e.g., if the stored value is invalid),
-            // explicitly set it to 'basic'
+            // explicitly set it to 'medium'
             if (!this.difficultySelect.value) {
-                console.debug('Invalid difficulty setting detected, defaulting to basic');
-                this.difficultySelect.value = 'basic';
-                this.saveSetting(STORAGE_KEYS.DIFFICULTY, 'basic');
+                console.debug('Invalid difficulty setting detected, defaulting to medium');
+                this.difficultySelect.value = 'medium';
+                this.saveSetting(STORAGE_KEYS.DIFFICULTY, 'medium');
             }
             
             // Add change event listener
@@ -328,6 +329,7 @@ export class GameplayTab extends SettingsTab {
             this.saveSetting(STORAGE_KEYS.QUEST_STORY_LOCALE, value).catch(() => {});
             if (this.game) this.game.questStoryLocale = value;
             this.updateQuestLocaleToggleState(value);
+            if (value === 'vi') ensureLocaleLoaded('vi').catch(() => {});
             if (this.game?.hudManager?.questLogUI && this.game?.questManager) {
                 this.game.hudManager.questLogUI.updateQuestLog(this.game.questManager.getActiveQuests?.() ?? []);
             }

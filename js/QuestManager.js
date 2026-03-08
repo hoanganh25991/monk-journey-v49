@@ -1,5 +1,5 @@
 import { CHAPTER_QUESTS, getChapterQuestById } from './config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from './config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from './config/chapter-quests.js';
 import { getNextStoryMapAfter } from './config/chapter-quest-maps.js';
 
 export class QuestManager {
@@ -10,6 +10,10 @@ export class QuestManager {
         this.completedQuests = [];
         /** @type {Set<string>} Completed chapter quest ids (GDD story) */
         this.completedChapterQuestIds = new Set();
+        /** @type {Object.<string, number[]>} Chapter id -> reflection choice indices already received (for replay) */
+        this.reflectionChoicesReceived = Object.create(null);
+        /** @type {Set<string>} Declined chapter quest ids (persisted, so quest won't be auto-offered again) */
+        this.declinedChapterQuestIds = new Set();
 
         // Initialize with some default quests
         this.initializeQuests();
@@ -17,20 +21,18 @@ export class QuestManager {
 
     /** @returns {boolean} */
     isChapterQuest(quest) {
-        return quest && (quest.lesson != null && quest.boss != null);
+        return quest && !!getChapterQuestById(quest.id);
     }
 
     /** Deep clone objectives with progress 0 for starting a chapter quest */
     cloneChapterQuestForStart(quest) {
         return {
             ...quest,
-            title: quest.title || quest.name,
-            name: quest.title || quest.name,
             objectives: (quest.objectives || []).map(o => ({ ...o, progress: 0 })),
         };
     }
 
-    /** @returns {Object[]} Chapter quests available to start (linear next or branched via nextQuestIds). */
+    /** @returns {Object[]} Chapter quests available to start (linear next, branched, or replayable completed). */
     getAvailableChapterQuests() {
         const completed = this.completedChapterQuestIds;
         const availableIds = new Set();
@@ -38,21 +40,25 @@ export class QuestManager {
             if (completed.has(q.id)) {
                 if (q.nextQuestId) availableIds.add(q.nextQuestId);
                 if (q.nextQuestIds && Array.isArray(q.nextQuestIds)) q.nextQuestIds.forEach(id => availableIds.add(id));
+                if (q.replayable) availableIds.add(q.id);
             }
         }
         const firstNotCompleted = CHAPTER_QUESTS.find(q => !completed.has(q.id));
         if (firstNotCompleted) availableIds.add(firstNotCompleted.id);
         return [...availableIds]
-            .filter(id => !completed.has(id) && !this.activeQuests.some(a => a.id === id))
+            .filter(id => !this.activeQuests.some(a => a.id === id))
             .map(id => getChapterQuestById(id))
             .filter(Boolean)
             .map(q => this.cloneChapterQuestForStart(q));
     }
 
-    /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) */
+    /** @returns {Object|null} Next chapter quest that should have a marker in the world (or null if none / already active) 
+     * Note: This includes declined quests so the marker stays visible for manual acceptance.
+     */
     getNextChapterQuestForMarker() {
         if (this.getActiveChapterQuest()) return null;
         const available = this.getAvailableChapterQuests();
+        // Include declined quests for marker placement (player can still manually accept from marker)
         return available.length > 0 ? available[0] : null;
     }
 
@@ -380,6 +386,10 @@ export class QuestManager {
             if (this.activeQuests.some(q => q.id === quest.id)) return false;
             const copy = this.cloneChapterQuestForStart(quest);
             this.activeQuests.push(copy);
+            // Remove from declined list if it was previously declined
+            if (quest.id && this.declinedChapterQuestIds.has(quest.id)) {
+                this.declinedChapterQuestIds.delete(quest.id);
+            }
             this.game.hudManager.updateQuestLog(this.activeQuests);
             // First-time hint (Phase 9.2): one-time tip after accepting a chapter quest
             if (this.game && !this.game._hasShownQuestHintThisSession) {
@@ -387,6 +397,7 @@ export class QuestManager {
                 const locale = this.game.questStoryLocale || 'en';
                 this.game.hudManager.showNotification(getQuestUiString('journeyHint', locale));
             }
+            this.persistQuestsAfterAccept();
             return true;
         }
 
@@ -397,10 +408,31 @@ export class QuestManager {
                 this.activeQuests.push(questToStart);
                 this.quests = this.quests.filter(q => q.id !== questToStart.id);
                 this.game.hudManager.updateQuestLog(this.activeQuests);
+                this.persistQuestsAfterAccept();
                 return true;
             }
         }
         return false;
+    }
+
+    /**
+     * Trigger a background save so accepted quests persist across reload.
+     * Called when a quest is successfully added to activeQuests.
+     */
+    persistQuestsAfterAccept() {
+        if (this.game?.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+            this.game.saveManager.saveGame(false, true).catch(() => {});
+        }
+    }
+
+    /**
+     * Trigger a background save so declined quests persist across reload.
+     * Called when a quest is declined.
+     */
+    persistQuestsAfterDecline() {
+        if (this.game?.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+            this.game.saveManager.saveGame(false, true).catch(() => {});
+        }
     }
     
     updateEnemyKill(enemy) {
@@ -512,37 +544,33 @@ export class QuestManager {
         this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
         this.completedQuests.push(quest);
 
-        if (quest.id) this.completedChapterQuestIds.add(quest.id);
+        if (quest.id && !this.completedChapterQuestIds.has(quest.id)) {
+            this.completedChapterQuestIds.add(quest.id);
+        }
 
+        const locale = this.game.questStoryLocale || 'en';
+        const display = getChapterQuestDisplay(quest, locale);
         const doAfterReflection = () => {
             this.awardQuestRewards(quest);
             if (this.game && this.game.audioManager) {
                 this.game.audioManager.playSound('questComplete');
             }
             this.game.hudManager.updateQuestLog(this.activeQuests);
-            const title = quest.title || quest.name;
-            const locale = this.game.questStoryLocale || 'en';
-            this.game.hudManager.showDialog(
-                getQuestUiString('questCompletedTitle', locale, { title }),
-                getQuestUiString('questCompletedRewards', locale)
-            );
+            this.game.hudManager.showNotification(getQuestUiString('questCompletedTitle', locale, { title: display.title }));
+            this.showRewardsIn3D(quest);
             this.checkForNextQuest(quest);
         };
 
         // GDD §11: post-boss reflection (life lesson + Continue Journey); §12 Path of Mastery after Ch5
-        if (this.isChapterQuest(quest) && quest.lesson) {
-            const locale = this.game.questStoryLocale || 'en';
-            const display = getChapterQuestDisplay(quest, locale);
+        if (this.isChapterQuest(quest) && display.lesson) {
             const isChapter5 = quest.id === 'chapter_5_inner_temple';
             const chMatch = quest.id && quest.id.match(/chapter_(\d)_/);
             const chapterNum = chMatch ? chMatch[1] : '';
             const chapterTitle = (chapterNum && display.area) ? `Chapter ${chapterNum} — ${display.area}` : (display.area || '');
+            // Reflection question ("What did you notice?") disabled: go straight to lesson + Continue
             const options = {
                 chapterTitle: chapterTitle || undefined,
-                reflectionQuestion: true,
-                onReflectionChoice: (choiceIndex) => {
-                    if (this.game.saveReflectionChoice) this.game.saveReflectionChoice(quest.id, choiceIndex);
-                },
+                reflectionQuestion: false,
                 ...(isChapter5 ? {
                     isChapter5: true,
                     onEnterPathOfMastery: () => {
@@ -556,6 +584,25 @@ export class QuestManager {
             doAfterReflection();
         }
     }
+
+    /**
+     * Award the item for a reflection choice (tied to quest.reflectionRewards[choiceIndex] template ID).
+     * @param {Object} quest - Chapter quest with reflectionRewards
+     * @param {number} choiceIndex - 0, 1, or 2
+     */
+    awardReflectionChoiceReward(quest, choiceIndex) {
+        const templateId = quest.reflectionRewards && quest.reflectionRewards[choiceIndex];
+        if (!templateId || !this.game.player || !this.game.itemGenerator) return;
+        const item = this.game.itemGenerator.generateItemFromTemplateId(templateId);
+        if (!item) return;
+        const locale = this.game.questStoryLocale || 'en';
+        const equipResult = this.game.player.addToInventory(item);
+        if (equipResult === 'equipped') {
+            this.game.hudManager.showNotification(getQuestUiString('equipped', locale, { itemName: item.name }), 'equip', { item });
+        } else {
+            this.game.hudManager.showNotification(getQuestUiString('received', locale, { itemName: item.name, amount: item.amount || 1 }));
+        }
+    }
     
     checkForNextQuest(completedQuest) {
         // Chapter story: instruct player to go to the next map for the next quest (marker is on that map)
@@ -566,11 +613,10 @@ export class QuestManager {
             const nextChapter = getChapterQuestById(nextIds[0]);
             if (nextChapter) {
                 const locale = this.game.questStoryLocale || 'en';
-                const nextDisplay = getChapterQuestDisplay(nextChapter, locale);
                 const nextMap = getNextStoryMapAfter(completedQuest.id, CHAPTER_QUESTS);
+                const label = getNextMapTravelLabel(nextChapter, nextMap?.mapId, locale);
                 setTimeout(() => {
                     if (this.game.hudManager) {
-                        const label = nextMap?.mapName ?? nextDisplay.area ?? getQuestUiString('nextMapFallback', locale);
                         const msg = nextIds.length > 1
                             ? getQuestUiString('travelToGetNextQuest', locale, { label }) + ' ' + (getQuestUiString('otherPathsAvailable', locale) || 'Other paths await in the Story panel.')
                             : getQuestUiString('travelToGetNextQuest', locale, { label });
@@ -604,6 +650,44 @@ export class QuestManager {
         }
     }
     
+    /**
+     * Show quest rewards as floating 3D text above the player (no popup).
+     * @param {Object} quest - Completed quest with rewards
+     */
+    showRewardsIn3D(quest) {
+        if (!this.game?.player?.getPosition || !this.game?.effectsManager) return;
+        const pos = this.game.player.getPosition().clone();
+        const rewards = quest.rewards || quest.reward;
+        let yOffset = 0;
+        const step = 1.2;
+
+        const addRewardText = (text, rewardType) => {
+            const p = { x: pos.x, y: pos.y + yOffset, z: pos.z };
+            yOffset += step;
+            this.game.effectsManager.createRewardTextSprite(text, p, rewardType);
+        };
+
+        if (rewards) {
+            const xp = rewards.xp ?? rewards.experience;
+            if (xp) addRewardText(`+${xp} EXP`, 'xp');
+            const skillPoints = rewards.skillPoints;
+            if (skillPoints) {
+                addRewardText(`+${skillPoints} Skill Point${skillPoints !== 1 ? 's' : ''}`, 'xp');
+            }
+        }
+        if (quest.reward) {
+            if (quest.reward.gold) {
+                addRewardText(`+${quest.reward.gold} Gold`, 'gold');
+            }
+            if (quest.reward.items) {
+                for (const item of quest.reward.items) {
+                    const amount = item.amount || 1;
+                    addRewardText(`+ ${item.name}${amount > 1 ? ' x' + amount : ''}`, 'item');
+                }
+            }
+        }
+    }
+
     awardQuestRewards(quest) {
         const locale = this.game.questStoryLocale || 'en';
         // GDD rewards (chapter quests): rewards.xp, rewards.skillPoints
@@ -679,16 +763,19 @@ export class QuestManager {
             }, 8000);
         };
         const availableQuests = this.getAvailableQuests();
-        const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q));
+        const chapterQuests = availableQuests.filter(q => this.isChapterQuest(q) && !this.declinedChapterQuestIds.has(q.id));
         if (chapterQuests.length > 0) {
             const q = chapterQuests[0];
             const locale = this.game.questStoryLocale || 'en';
             const display = getChapterQuestDisplay(q, locale);
             this.game.hudManager.showDialog(
-                getQuestUiString('newQuestTitle', locale, { title: display.title || q.title || q.name }),
-                `${display.description || q.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
+                getQuestUiString('newQuestTitle', locale, { title: display.title }),
+                `${display.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(q),
-                remindLater
+                () => {
+                    // Cancel = "not now"; do not mark as declined so popup shows again next time
+                    remindLater();
+                }
             );
             return;
         }
@@ -699,7 +786,7 @@ export class QuestManager {
                 getQuestUiString('newMainQuestAvailable', locale, { name: mainQuest.name }),
                 `${mainQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(mainQuest),
-                remindLater
+                () => {} // Legacy quests don't track decline (not persisted)
             );
             return;
         }
@@ -710,7 +797,7 @@ export class QuestManager {
                 getQuestUiString('newSideQuestAvailable', locale, { name: sideQuest.name }),
                 `${sideQuest.description}\n\n${getQuestUiString('acceptQuestPrompt', locale)}`,
                 () => this.startQuest(sideQuest),
-                remindLater
+                () => {} // Legacy quests don't track decline (not persisted)
             );
         }
     }

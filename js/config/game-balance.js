@@ -24,8 +24,8 @@ export const PLAYER_PROGRESSION = {
         vitality: 10,
         wisdom: 10,
         
-        // Movement and combat
-        movementSpeed: 18,
+        // Movement and combat (movement tuned so level 13 is not excessively fast; cap in PlayerStats)
+        movementSpeed: 14,
         attackPower: 20
     },
 
@@ -103,7 +103,7 @@ export const PLAYER_PROGRESSION = {
         },
         movementSpeed: {
             get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.movementSpeed; },
-            growthFactor: 1.08
+            growthFactor: 1.02  // Slow growth so high-level player is not excessively fast (was 1.08)
         }
     }
 };
@@ -986,6 +986,13 @@ export const BOSS_TYPES = ENEMY_CONFIG.BOSS_TYPES;
 
 // Combat balance settings
 export const COMBAT_BALANCE = {
+    // Skill cooldown design: tuned so primary attack DPS (damage/cooldown * skillDamageMultiplier)
+    // gives ~4–8s time-to-kill on early-game enemy health (50–80). Enemy spawn ~1 per 5s,
+    // so player can handle 1–2 enemies with primary + skills. Wisdom and skill-tree buffs reduce cooldowns further.
+    skills: {
+        // Base cooldown (s) for primary attack — reference only; actual values in config/skills.js
+        primaryAttackBaseCooldown: 0.8
+    },
     // Player combat settings
     player: {
         // Base damage multipliers for combo punches (5 punches total)
@@ -1014,12 +1021,12 @@ export const COMBAT_BALANCE = {
         elementalDamageMultiplier: 1.2 // 20% bonus for elemental damage
     },
     
-    // Enemy combat settings
+    // Enemy combat settings (Medium default: enemies should survive several skill hits)
     enemy: {
         // Base damage multiplier - increased to make enemies more threatening
         damageMultiplier: 1.5,
-        // Health multiplier - significantly increased to better match player health
-        healthMultiplier: 1.0,
+        // Health multiplier - higher so default enemies don't die in 1–2 skills at Medium
+        healthMultiplier: 1.85,
         // Experience multiplier
         experienceMultiplier: 1.0,
         // Level scaling factor (how much stronger enemies get per player level)
@@ -1036,6 +1043,11 @@ export const COMBAT_BALANCE = {
         championHealthMultiplier: 2.8, // Increased for better scaling
         // Champion enemy damage multiplier
         championDamageMultiplier: 1.6, // Increased for better scaling
+        // Enemy health scaling over time: start low (50–80 effective) and grow with player level
+        healthOverTime: {
+            startScale: 0.25,  // At level 1, enemy base health is scaled to ~25% so result is ~50–80
+            endLevel: 30       // By level 30, scale is 1.0 (full health)
+        },
         // Enemy health scaling formula parameters
         healthScaling: {
             base: 1.0,

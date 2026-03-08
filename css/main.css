@@ -73,6 +73,7 @@
 /* Import difficulty menu styles */
 @import 'difficulty-menu.css';
 @import 'map-selector.css';
+@import 'story-book.css';
 @import 'guide.css';
 
 /* Import status effects styles */

@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import { getReflectionUiString } from '../config/chapter-quests-locales.js';
+import { getReflectionUiString } from '../config/chapter-quests.js';
 
 /**
  * Reflection UI — post-boss life lesson (GDD §11).
@@ -68,7 +68,7 @@ export class ReflectionUI extends UIComponent {
         const questionView = document.getElementById('reflection-question-view');
         const lessonView = document.getElementById('reflection-lesson-view');
 
-        if (options.reflectionQuestion && questionView && lessonView) {
+        if (options.reflectionQuestion && questionView && lessonView && (options.optionIndices == null || options.optionIndices.length > 0)) {
             questionView.style.display = '';
             lessonView.style.display = 'none';
             const promptEl = document.getElementById('reflection-question-prompt');
@@ -76,9 +76,11 @@ export class ReflectionUI extends UIComponent {
             const optionsContainer = document.getElementById('reflection-question-options');
             if (optionsContainer) {
                 const optionKeys = ['reflectionOption1', 'reflectionOption2', 'reflectionOption3'];
-                optionsContainer.innerHTML = optionKeys
-                    .map((key, i) => {
-                        const label = getReflectionUiString(key, locale);
+                const indices = Array.isArray(options.optionIndices) ? options.optionIndices : [0, 1, 2];
+                optionsContainer.innerHTML = indices
+                    .map((i) => {
+                        const key = optionKeys[i];
+                        const label = key ? getReflectionUiString(key, locale) : '';
                         return `<button type="button" class="menu-button reflection-question-option" data-choice="${i}">${this.escapeHtml(label)}</button>`;
                     })
                     .join('');

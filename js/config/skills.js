@@ -18,7 +18,7 @@ export const PRIMARY_ATTACKS = [
         type: 'teleport',
         damage: 20, // Balanced primary attack damage
         manaCost: 0,
-        cooldown: 0.2, // Very short cooldown for basic attack
+        cooldown: 0.8, // Tuned for DPS vs early enemy health (~50–80); Swift Fist / Wisdom reduce further
         range: 15, // Teleport range
         radius: 3, // Increased area of effect for more reliable hits
         duration: 0.5, // Short duration
@@ -37,7 +37,7 @@ export const PRIMARY_ATTACKS = [
         type: "projectile",
         damage: 10, // Keeping this the same as it's already balanced
         manaCost: 5,
-        cooldown: 0.2,
+        cooldown: 0.7, // Slightly faster than Fist of Thunder; costs mana; Quick Release reduces further
         range: 25, // Increased range for a proper ranged attack
         radius: 1, // Small area of effect at impact point
         duration: 1.5, // Duration for the beam to extend and retract
@@ -65,7 +65,7 @@ export const NORMAL_SKILLS = [
         type: 'wave',
         damage: 35, // Reduced from 50 for better balance
         manaCost: 25, // Increased from 20 to match damage output
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 4, // Swift Wave -1s in skill tree
         range: 25,
         radius: 5,
         duration: 15.0, // 5x increased duration (was 3.0) to allow bell to fall from high altitude
@@ -83,7 +83,7 @@ export const NORMAL_SKILLS = [
         type: 'buff',
         damage: 2, // This is a defensive skill, low damage is appropriate
         manaCost: 25, // Reduced from 30 as it's a defensive skill
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 10, // Harmonious Defense -2s in skill tree
         range: 0, // Self-cast
         radius: 3, // Area of effect around player
         duration: 8, // 10 seconds duration
@@ -102,7 +102,7 @@ export const NORMAL_SKILLS = [
         damage: 5, // Low damage is appropriate for a healing skill
         healing: 15, // Increased from 10 to make healing more effective
         manaCost: 25, // Increased from 20 to balance the improved healing
-        cooldown: 0.2, // Longer cooldown for healing ability
+        cooldown: 8, // Quick Recovery -1/2/3s in skill tree
         range: 0, // Centered on player
         radius: 8, // Large radius to affect multiple allies/enemies
         duration: 5, // Duration in seconds
@@ -120,7 +120,7 @@ export const NORMAL_SKILLS = [
         type: 'ranged',
         damage: 25, // Increased from 20 to make it more effective
         manaCost: 20, // Kept the same as it's balanced
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 3, // Rapid Waves -1s in skill tree
         range: 25,
         radius: 3,
         duration: 3.5, // Further increased duration from 2.5 to 3.5
@@ -138,7 +138,7 @@ export const NORMAL_SKILLS = [
         type: 'aoe',
         damage: 30, // Kept the same as it's balanced
         manaCost: 35, // Reduced from 40 to make it more usable
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 5,
         range: 0,
         radius: 4,
         get duration() { return 1.5 + Math.log(this.radius) },
@@ -156,7 +156,7 @@ export const NORMAL_SKILLS = [
         type: 'multi',
         damage: 40, // Reduced from 50 for better balance
         manaCost: 35, // Increased from 30 to match the power
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 8, // Rapid Strikes -2s in skill tree
         range: 0,
         radius: 5,
         duration: 2.5,
@@ -175,7 +175,7 @@ export const NORMAL_SKILLS = [
         type: 'buff',
         damage: 5, // Low damage is appropriate for a defensive skill
         manaCost: 25, // Increased from 20 to match the utility
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 12, // Quick Setup -2s in skill tree
         range: 0,
         radius: 5,
         duration: 10, // Further increased duration from 7 to 10
@@ -193,7 +193,7 @@ export const NORMAL_SKILLS = [
         type: 'summon',
         damage: 30, // Reduced from 50 for better balance
         manaCost: 40, // Increased from 0 to match the power (summoning should cost mana)
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 25, // Quick Summon -1s in skill tree
         range: 0, // Increased range for summoning
         radius: 10, // Increased radius for summoning circle
         duration: 8, // Increased duration to 30 seconds
@@ -212,7 +212,7 @@ export const NORMAL_SKILLS = [
         type: 'mark',
         damage: 45, // Reduced from 55 for better balance
         manaCost: 45, // Reduced from 50 to match the adjusted damage
-        cooldown: 0.2, // Reduced cooldown
+        cooldown: 10, // Rapid Palm -1/2/3s in skill tree
         range: 30,
         radius: 3,
         duration: 3, // Further increased duration from 15 to 20 seconds
@@ -230,7 +230,7 @@ export const NORMAL_SKILLS = [
         type: 'dash',
         damage: 100, // Significantly reduced from 120 for better balance
         manaCost: 60, // Reduced from 100 to match the adjusted damage
-        cooldown: 0.2,
+        cooldown: 25, // Swift Descent -1/2/3s in skill tree
         range: 30, // Increased range for fast forward movement
         radius: 5, // Adjusted radius for the area of effect
         duration: 3, // Slightly reduced duration for a faster, more impactful attack
@@ -252,7 +252,7 @@ export const NORMAL_SKILLS = [
         type: 'dash',
         damage: 30, // Kept the same as it's balanced
         manaCost: 25, // Increased from 20 to match other mobility skills
-        cooldown: 0.2,
+        cooldown: 5, // Swift Recovery -1/2/3s in skill tree
         radius: 2,
         // Configuration parameters for the kick effect:
         range: 30,       // Maximum distance the kick can travel (in units)
@@ -272,7 +272,7 @@ export const NORMAL_SKILLS = [
         type: 'dash',
         damage: 35,
         manaCost: 25,
-        cooldown: 0.2,
+        cooldown: 5, // Quickened Strikes -1s in skill tree
         range: 25,
         radius: 3,
         duration: 4,
@@ -294,7 +294,7 @@ export const NORMAL_SKILLS = [
         range: 10,
         radius: 5,
         moveSpeed: 30, // Speed at which the effect moves forward
-        cooldown: 0.2,
+        cooldown: 8, // Swift Recovery -1s in skill tree
         lockDuration: 5,
         get duration() { return this.lockDuration + (this.range / this.moveSpeed) },
         get color() { return SKILL_ICONS[this.name].color; },
@@ -334,7 +334,7 @@ export const NORMAL_SKILLS = [
             }
             return 50;
         }, // Increased from 25 to match the power
-        cooldown: 0.2, // Moderate cooldown
+        cooldown: 6, // Swift Palms -0.5/1/1.5s in skill tree
         range: 40, // Long range
         radius: 3, // Explosion radius
         // Rain variant configuration
@@ -379,7 +379,7 @@ export const NORMAL_SKILLS = [
         damage: 5, // Low damage is appropriate for a utility skill
         healing: 20, // Increased from 10 to match the enhanced effect
         manaCost: 35, // Increased from 25 to match the enhanced effect
-        cooldown: 0.2, // Moderate cooldown
+        cooldown: 10,
         range: 0, // Self-cast
         radius: 5, // Large radius to affect multiple allies/enemies
         duration: 5, // Duration in seconds
@@ -400,7 +400,7 @@ export const NORMAL_SKILLS = [
         type: 'summon',
         damage: 25, // Moderate damage for each clone
         manaCost: 45, // Higher mana cost for powerful ability
-        cooldown: 0.2, // Standard cooldown
+        cooldown: 40,
         range: 0, // Centered on player
         radius: 5, // Large radius for clones to operate in
         duration: 20, // Duration in seconds

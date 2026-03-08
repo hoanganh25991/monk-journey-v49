@@ -292,8 +292,8 @@ export class StructureFactory {
             return caveGroup;
         });
 
-        // Village fence segment (simple post + rail)
-        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE, (x, z) => {
+        // Village fence segment (simple post + rail); rotationY orients segment along perimeter
+        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE, (x, z, rotationY = 0) => {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
             const woodColor = 0x8B7355;
@@ -308,31 +308,167 @@ export class StructureFactory {
             rail.position.set(0, 1.7, 0);
             rail.castShadow = true;
             group.add(rail);
+            group.rotation.y = rotationY;
             group.position.set(x, y, z);
             (this.game?.getWorldGroup?.() || this.scene).add(group);
             return group;
         });
 
-        // Village gate (two posts + cross beam)
-        this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z) => {
+        // Village fence run: dynamic loop of posts + continuous horizontal rail(s) connecting them
+        this.register(STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN, (params) => {
+            const { positions, rotation: rotationY = 0 } = params;
+            if (!positions || positions.length === 0) return null;
+            const group = new THREE.Group();
+            const woodColor = 0x8B7355;
+            const mat = new THREE.MeshLambertMaterial({ color: woodColor });
+            const postGeo = new THREE.BoxGeometry(0.4, 1.8, 0.4);
+            const first = positions[0];
+            const firstY = this.getTerrainHeight(first.x, first.z);
+            group.position.set(first.x, firstY, first.z);
+            group.rotation.y = rotationY;
+            // Build posts in local space (relative to first position)
+            const localPoints = [];
+            for (let i = 0; i < positions.length; i++) {
+                const p = positions[i];
+                const py = this.getTerrainHeight(p.x, p.z);
+                const lx = p.x - first.x;
+                const lz = p.z - first.z;
+                localPoints.push({ x: lx, y: py - firstY, z: lz });
+                const post = new THREE.Mesh(postGeo, mat);
+                post.position.set(lx, 0.9 + (py - firstY), lz);
+                post.castShadow = true;
+                group.add(post);
+            }
+            // Rail segments between consecutive posts so the rail follows terrain height
+            for (let i = 0; i < localPoints.length - 1; i++) {
+                const a = localPoints[i];
+                const b = localPoints[i + 1];
+                const dx = b.x - a.x;
+                const dz = b.z - a.z;
+                const length = Math.sqrt(dx * dx + dz * dz) || 1;
+                const railGeo = new THREE.BoxGeometry(length, 0.2, 0.2);
+                const rail = new THREE.Mesh(railGeo, mat);
+                rail.position.set((a.x + b.x) / 2, 1.7 + (a.y + b.y) / 2, (a.z + b.z) / 2);
+                rail.rotation.y = Math.atan2(dz, dx);
+                rail.castShadow = true;
+                group.add(rail);
+            }
+            (this.game?.getWorldGroup?.() || this.scene).add(group);
+            return group;
+        });
+
+        // Village gate — monk/temple theme: three openings, layered beams, stone base, roof
+        this.register(STRUCTURE_OBJECTS.VILLAGE_GATE, (x, z, rotationY = 0) => {
             const group = new THREE.Group();
             const y = this.getTerrainHeight(x, z);
-            const woodColor = 0x6B5344;
-            const mat = new THREE.MeshLambertMaterial({ color: woodColor });
-            const postGeo = new THREE.BoxGeometry(0.5, 2.2, 0.5);
-            const postL = new THREE.Mesh(postGeo, mat);
-            postL.position.set(-0.8, 1.1, 0);
-            postL.castShadow = true;
-            group.add(postL);
-            const postR = new THREE.Mesh(postGeo, mat);
-            postR.position.set(0.8, 1.1, 0);
-            postR.castShadow = true;
-            group.add(postR);
-            const beamGeo = new THREE.BoxGeometry(2, 0.25, 0.3);
-            const beam = new THREE.Mesh(beamGeo, mat);
-            beam.position.set(0, 2.2, 0);
-            beam.castShadow = true;
-            group.add(beam);
+
+            // Scale: gate 1.5x base (half of previous 3x) — ~9 wide, ~9.75 tall; fence gap must match HOME_VILLAGE_GATE_GAP_HALF_EXTENT (5)
+            const S = 1.5;         // scale factor
+            const W = 3 * S;      // half-width (total span 18)
+            const H_CENTRAL = 5 * S;
+            const H_SIDE = 3 * S;
+            const D = 0.8 * S;
+
+            // Materials — monk/temple palette
+            const woodDark = 0x4A3728;
+            const woodMain = 0x5C4033;
+            const stoneColor = 0x5A5A5A;
+            const accentGold = 0xB8860B;
+            const roofColor = 0x3D2817;
+            const matWood = new THREE.MeshLambertMaterial({ color: woodMain });
+            const matWoodDark = new THREE.MeshLambertMaterial({ color: woodDark });
+            const matStone = new THREE.MeshLambertMaterial({ color: stoneColor });
+            const matAccent = new THREE.MeshLambertMaterial({ color: accentGold });
+            const matRoof = new THREE.MeshLambertMaterial({ color: roofColor });
+
+            const addBox = (g, w, h, d, mat, px, py, pz) => {
+                const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+                mesh.position.set(px, py, pz);
+                mesh.castShadow = true;
+                g.add(mesh);
+            };
+
+            // —— Stone base (platform under entire gate)
+            const baseW = W * 2.4, baseD = D * 2.5, baseH = 0.35 * S;
+            addBox(group, baseW, baseH, baseD, matStone, 0, baseH / 2, 0);
+
+            // —— Five pillars: left outer, left inner, center, right inner, right outer
+            const pillarW = 0.5 * S, pillarD = 0.5 * S;
+            const positions = [-W, -W * 0.5, 0, W * 0.5, W];
+            const heights = [H_SIDE, H_CENTRAL, H_CENTRAL, H_CENTRAL, H_SIDE];
+            const pillars = [];
+            for (let i = 0; i < 5; i++) {
+                const h = heights[i];
+                const pillar = new THREE.Mesh(
+                    new THREE.BoxGeometry(pillarW, h, pillarD),
+                    matWoodDark
+                );
+                pillar.position.set(positions[i], baseH + h / 2, 0);
+                pillar.castShadow = true;
+                group.add(pillar);
+                pillars.push({ mesh: pillar, h, x: positions[i] });
+            }
+
+            // —— Pillar caps (lotus-style — tapered top)
+            pillars.forEach(({ mesh, h, x }) => {
+                const capGeo = new THREE.CylinderGeometry(pillarW * 0.6, pillarW * 0.85, 0.25 * S, 8);
+                const cap = new THREE.Mesh(capGeo, matAccent);
+                cap.position.set(x, baseH + h + 0.125 * S, 0);
+                cap.castShadow = true;
+                group.add(cap);
+            });
+
+            // —— Main horizontal beams (three tiers: top lintel, middle, lower)
+            const beamDepth = D * 1.1;
+            const fullSpan = W * 2 + pillarW;
+            addBox(group, fullSpan, 0.4 * S, beamDepth, matWoodDark, 0, baseH + H_CENTRAL + 0.2 * S, 0);
+            addBox(group, fullSpan, 0.35 * S, beamDepth * 0.95, matWood, 0, baseH + H_CENTRAL - 0.4 * S, 0);
+            const sideBeamW = W * 0.5;
+            addBox(group, sideBeamW, 0.3 * S, beamDepth * 0.9, matWood, -W * 0.75, baseH + H_SIDE + 0.15 * S, 0);
+            addBox(group, sideBeamW, 0.3 * S, beamDepth * 0.9, matWood, W * 0.75, baseH + H_SIDE + 0.15 * S, 0);
+
+            // —— Central inscription panel (between middle and top beam)
+            const panelW = W * 0.7, panelH = 0.9 * S, panelD = 0.08 * S;
+            const panel = new THREE.Mesh(
+                new THREE.BoxGeometry(panelW, panelH, panelD),
+                matWoodDark
+            );
+            panel.position.set(0, baseH + H_CENTRAL - 0.15 * S, D * 0.55);
+            panel.castShadow = true;
+            group.add(panel);
+            // Simple “glyph” strip (gold accent)
+            const strip = new THREE.Mesh(
+                new THREE.PlaneGeometry(panelW * 0.85, panelH * 0.25),
+                matAccent
+            );
+            strip.position.set(0, 0, panelD / 2 + 0.01 * S);
+            strip.rotation.x = 0;
+            panel.add(strip);
+
+            // —— Temple roof (tiered over central opening)
+            const roofW = W * 1.4, roofD = D * 1.8, roofH = 0.5 * S;
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(roofW, roofH, roofD), matRoof);
+            roof.position.set(0, baseH + H_CENTRAL + 0.45 * S + roofH / 2, 0);
+            roof.castShadow = true;
+            group.add(roof);
+            // Roof peak (narrower second tier)
+            const peakW = W * 1.0, peakD = D * 1.2, peakH = 0.35 * S;
+            const peak = new THREE.Mesh(new THREE.BoxGeometry(peakW, peakH, peakD), matWoodDark);
+            peak.position.set(0, baseH + H_CENTRAL + 0.45 * S + roofH + peakH / 2, 0);
+            peak.castShadow = true;
+            group.add(peak);
+
+            // —— Side “eaves” (short overhangs on left/right of central roof)
+            const eaveW = 0.6, eaveD = roofD * 0.6, eaveH = 0.2;
+            addBox(group, eaveW, eaveH, eaveD, matRoof, -W * 0.85, baseH + H_SIDE + 0.5, 0);
+            addBox(group, eaveW, eaveH, eaveD, matRoof, W * 0.85, baseH + H_SIDE + 0.5, 0);
+
+            // —— Lantern-style blocks (small accents at sides)
+            const lampW = 0.35 * S, lampH = 0.5 * S, lampD = 0.35 * S;
+            addBox(group, lampW, lampH, lampD, matAccent, -W * 0.95, baseH + H_SIDE * 0.6, D * 0.6);
+            addBox(group, lampW, lampH, lampD, matAccent, W * 0.95, baseH + H_SIDE * 0.6, D * 0.6);
+
+            group.rotation.y = rotationY;
             group.position.set(x, y, z);
             (this.game?.getWorldGroup?.() || this.scene).add(group);
             return group;
@@ -365,7 +501,7 @@ export class StructureFactory {
         }
         
         // Extract common parameters
-        const { x, z, width, depth, height, style, scale, rotation, size, hasTower, hasWell, hasMarket, layout } = params;
+        const { x, z, width, depth, height, style, scale, rotation, size, hasTower, hasWell, hasMarket, layout, buildingCount, radius, minSpacing } = params;
         
         // Call the creator function with appropriate parameters
         let result;
@@ -381,7 +517,11 @@ export class StructureFactory {
         } else if (type === STRUCTURE_OBJECTS.BRIDGE) {
             result = creator(x, z, rotation);
         } else if (type === STRUCTURE_OBJECTS.VILLAGE) {
-            result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout });
+            result = creator(x, z, { size, hasTower, hasWell, hasMarket, layout, buildingCount, radius, minSpacing });
+        } else if (type === STRUCTURE_OBJECTS.VILLAGE_FENCE || type === STRUCTURE_OBJECTS.VILLAGE_GATE) {
+            result = creator(x, z, rotation);
+        } else if (type === STRUCTURE_OBJECTS.VILLAGE_FENCE_RUN) {
+            result = creator(params);
         } else {
             result = creator(x, z);
         }

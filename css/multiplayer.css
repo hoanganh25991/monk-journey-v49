@@ -328,7 +328,7 @@
     right: 0;
     margin: 0;
     z-index: 100;
-    border-radius: 0;
+    border-radius: 0 0 var(--panel-corner-radius, 12px) var(--panel-corner-radius, 12px);
 }
 .join-pending-invite-msg {
     margin: 0;
@@ -739,6 +739,8 @@
     position: absolute;
     inset: 0;
     background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .qr-scan-popup-box {
     position: relative;
@@ -1243,7 +1245,7 @@
     color: rgba(255, 255, 255, 0.9);
     border: 1px solid rgba(255, 255, 255, 0.2);
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 15px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -1301,6 +1303,8 @@
     position: absolute;
     inset: 0;
     background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px));
 }
 .invite-from-host-box {
     position: relative;

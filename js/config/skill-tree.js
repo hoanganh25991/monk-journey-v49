@@ -141,10 +141,10 @@ const TREE_DATA = {
             'Circle of Wrath': { description: 'Enemies within the sanctuary take damage over time.', effects: ['Damage over time to enemies'], unlockedBy: 'Legendary item Wrathful Circle' },
         },
         buffs: {
-            'Extended Sanctuary': BUFF('Increases the radius of Inner Sanctuary by 20%.', ['Increased radius']),
-            'Empowered Sanctuary': BUFF('Increases the damage reduction effect by an additional 10%.', ['Additional damage reduction']),
-            'Quick Setup': BUFF('Reduces the cooldown of Inner Sanctuary by 2 seconds.', ['Cooldown reduction']),
-            'Resilient Barrier': BUFF('Increases the duration of the shield provided by Safe Haven.', ['Increased shield duration']),
+            'Extended Sanctuary': BUFF('Increases the radius of Inner Sanctuary by 20%.', ['Increased radius'], { levelBonuses: ['Radius +20%', 'Radius +40%', 'Radius +60%'] }),
+            'Empowered Sanctuary': BUFF('Increases the damage reduction effect by an additional 10%.', ['Additional damage reduction'], { levelBonuses: ['Damage reduction +10%', 'Damage reduction +20%', 'Damage reduction +30%'] }),
+            'Quick Setup': BUFF('Reduces the cooldown of Inner Sanctuary by 2 seconds.', ['Cooldown reduction'], { levelBonuses: ['Cooldown -2s', 'Cooldown -4s', 'Cooldown -6s'] }),
+            'Resilient Barrier': BUFF('Increases the duration of the shield provided by Safe Haven.', ['Increased shield duration'], { levelBonuses: ['Shield duration +1s', 'Shield duration +2s', 'Shield duration +3s'] }),
         },
     },
     'Mystic Allies': {
@@ -266,3 +266,17 @@ const BASE_SKILL_TREES = buildSkillTrees();
 applyBuffsToVariants(BASE_SKILL_TREES);
 
 export const SKILL_TREES = BASE_SKILL_TREES;
+
+/**
+ * Defines how each buff scales skill stats per level.
+ * type: 'multiply' -> value *= (1 + perLevel * level); 'add' -> value += perLevel * level
+ * @type {Object.<string, Object.<string, { property: string, type: 'multiply'|'add', perLevel: number }>>}
+ */
+export const BUFF_EFFECTS = {
+    'Inner Sanctuary': {
+        'Extended Sanctuary': { property: 'radius', type: 'multiply', perLevel: 0.2 },
+        'Empowered Sanctuary': { property: 'damageReduction', type: 'add', perLevel: 0.1 },
+        'Quick Setup': { property: 'cooldown', type: 'add', perLevel: -2 },
+        'Resilient Barrier': { property: 'safeHavenShieldDurationBonus', type: 'add', perLevel: 1 },
+    },
+};

@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffectFactory } from './SkillEffectFactory.js';
 import { applyElementalOverlay, updateElementalOverlay } from './ElementalOverlay.js';
+import { COMBAT_BALANCE } from '../config/game-balance.js';
 
 /**
  * Base class for all skills
@@ -466,6 +467,9 @@ export class Skill {
             
             // Round to integer
             damage = Math.round(damage);
+            // Apply global skill damage multiplier (balance: so player can't win by only spamming skills)
+            const mult = COMBAT_BALANCE?.player?.skillDamageMultiplier ?? 1;
+            damage = Math.round(damage * mult);
             console.debug(`Calculated skill damage: ${damage} (base: ${this.damage}, attackPower: ${player.stats.getAttackPower()}, strength: ${player.stats.strength})`);
         }
 

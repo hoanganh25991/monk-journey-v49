@@ -5,6 +5,8 @@ import { SKILLS, BATTLE_SKILLS, STARTING_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ATTACK_ANIMATION_DURATION_MS } from '../config/input.js';
 import { getUnlockedSkillNames } from '../config/skill-unlocks.js';
+import { applyBuffScalingToSkillConfig } from '../utils/SkillTreeUtils.js';
+import { SKILL_BY_NAME } from '../config/skills.js';
 
 /**
  * @typedef {Object} SkillTreeEntry
@@ -182,10 +184,19 @@ export class PlayerSkills {
                     skill.variant = skillTreeEntry.activeVariant;
                 }
                 
-                // Apply buffs if any are selected
+                // Apply buffs if any are selected and refresh scaled stats
                 if (skillTreeEntry.buffs && Object.keys(skillTreeEntry.buffs).length > 0) {
                     console.debug(`Applying buffs to skill ${skillName}:`, skillTreeEntry.buffs);
                     skill.buffs = skillTreeEntry.buffs;
+                    const baseConfig = SKILL_BY_NAME[skillName];
+                    if (baseConfig) {
+                        const configCopy = JSON.parse(JSON.stringify(baseConfig));
+                        applyBuffScalingToSkillConfig(skillName, configCopy, skillTreeEntry.buffs);
+                        if (configCopy.radius !== undefined) skill.radius = configCopy.radius;
+                        if (configCopy.cooldown !== undefined) skill.cooldown = configCopy.cooldown;
+                        if (configCopy.damageReduction !== undefined) skill.damageReduction = configCopy.damageReduction;
+                        if (configCopy.safeHavenShieldDurationBonus !== undefined) skill.safeHavenShieldDurationBonus = configCopy.safeHavenShieldDurationBonus;
+                    }
                 }
             }
         });
@@ -262,10 +273,11 @@ export class PlayerSkills {
                         skillConfigCopy.variant = skillTreeEntry.activeVariant;
                     }
                     
-                    // Apply buffs if any are selected
+                    // Apply buffs if any are selected and scale stats by buff level
                     if (skillTreeEntry.buffs && Object.keys(skillTreeEntry.buffs).length > 0) {
                         console.debug(`Applying buffs to skill ${id} during initialization:`, skillTreeEntry.buffs);
                         skillConfigCopy.buffs = skillTreeEntry.buffs;
+                        applyBuffScalingToSkillConfig(id, skillConfigCopy, skillTreeEntry.buffs);
                     }
                 }
                 
@@ -470,10 +482,11 @@ export class PlayerSkills {
                 skillConfigCopy.variant = skillTreeEntry.activeVariant;
             }
             
-            // Apply buffs if any are selected
+            // Apply buffs if any are selected and scale stats by buff level
             if (skillTreeEntry.buffs && Object.keys(skillTreeEntry.buffs).length > 0) {
                 console.debug(`Applying buffs to new instance of ${skillTemplate.name}:`, skillTreeEntry.buffs);
                 skillConfigCopy.buffs = skillTreeEntry.buffs;
+                applyBuffScalingToSkillConfig(skillTemplate.name, skillConfigCopy, skillTreeEntry.buffs);
             }
         }
         

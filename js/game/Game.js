@@ -23,7 +23,7 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from '../config/chapter-quests.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import storageService from '../save-manager/StorageService.js';
@@ -130,6 +130,9 @@ export class Game {
             const questStoryLocale = await storageService.loadData(STORAGE_KEYS.QUEST_STORY_LOCALE);
             this.questStoryLocale = questStoryLocale === 'vi' ? 'vi' : 'en';
             console.debug(`Game initialized with quest/story locale: ${this.questStoryLocale}`);
+            if (this.questStoryLocale === 'vi') {
+                import('../config/chapter-quests.js').then((m) => m.ensureLocaleLoaded('vi')).catch(() => {});
+            }
         } catch (error) {
             console.error('Error loading initial settings:', error);
         }
@@ -294,7 +297,9 @@ export class Game {
                             this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
                         }
                     },
-                    null
+                    () => {
+                        // Cancel = "not now"; do not mark as declined so popup shows again when they reach the quest next time
+                    }
                 );
             };
 
@@ -317,12 +322,12 @@ export class Game {
                     this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
                 }
                 if (nextMapId === currentMapId) {
-                    this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
+                    const locale = this.questStoryLocale || 'en';
+                    this.hudManager.showNotification(getQuestUiString('storyQuestAwaitsOnMap', locale));
                 } else {
                     const locale = this.questStoryLocale || 'en';
-                    const nextDisplay = getChapterQuestDisplay(next, locale);
-                    const nextMapLabel = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
-                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label: nextMapLabel }));
+                    const label = getNextMapTravelLabel(next, nextMapId, locale);
+                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label }));
                 }
                 this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
             };
@@ -1254,6 +1259,9 @@ export class Game {
         if (this.multiplayerManager?.connection?.processPendingGameState) {
             this.multiplayerManager.connection.processPendingGameState(delta);
         }
+
+        // Accumulate active game time (excludes paused frames)
+        this.gameTime = (this.gameTime || 0) + simDelta;
 
         // Update input handler for continuous skill casting
         this.inputHandler.update(simDelta);

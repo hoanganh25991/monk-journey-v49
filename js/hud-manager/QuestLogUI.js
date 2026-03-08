@@ -1,7 +1,8 @@
 import { UIComponent } from '../UIComponent.js';
 import { getChapterQuestById, chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
-import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
+import { getChapterQuestDisplay, getNextMapTravelLabel, getQuestUiString } from '../config/chapter-quests.js';
 import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
+import { ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
 
 /**
  * Quest Log UI component
@@ -55,13 +56,12 @@ export class QuestLogUI extends UIComponent {
         const next = this.game.questManager.getNextChapterQuestForMarker();
         if (!next) return '';
         const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
-        const nextDisplay = getChapterQuestDisplay(next, locale);
         const currentMapId = this.game.world?.currentMap?.id;
         const nextMapId = getMapIdForChapterQuest(next.id);
         if (nextMapId === currentMapId) {
-            return '→ Find the quest marker (yellow ! on the map) to start your journey.';
+            return getQuestUiString('findQuestMarkerHint', locale);
         }
-        const label = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+        const label = getNextMapTravelLabel(next, nextMapId, locale);
         return '→ ' + getQuestUiString('travelToGetNextQuest', locale, { label });
     }
 
@@ -77,11 +77,13 @@ export class QuestLogUI extends UIComponent {
 
         // Always use current game locale so language matches Settings (VI/EN) even after async load
         const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        const titleEl = this.element?.querySelector('.quest-title');
+        if (titleEl) titleEl.textContent = getQuestUiString('activeQuestsTitle', locale);
 
         if (activeQuests.length === 0) {
             const noQuests = document.createElement('div');
             noQuests.className = 'no-quests';
-            noQuests.textContent = 'No active quests';
+            noQuests.textContent = getQuestUiString('noActiveQuests', locale);
             this.questList.appendChild(noQuests);
             const hint = this.getWhatToDoHint();
             if (hint) {
@@ -105,8 +107,8 @@ export class QuestLogUI extends UIComponent {
             const reviewMore = document.createElement('button');
             reviewMore.type = 'button';
             reviewMore.className = 'quest-review-more';
-            reviewMore.textContent = `Review more (${activeQuests.length - maxVisible})`;
-            reviewMore.setAttribute('aria-label', `Show ${activeQuests.length - maxVisible} more quests`);
+            reviewMore.textContent = getQuestUiString('reviewMore', locale, { count: activeQuests.length - maxVisible });
+            reviewMore.setAttribute('aria-label', getQuestUiString('reviewMore', locale, { count: activeQuests.length - maxVisible }));
             reviewMore.addEventListener('click', () => this.toggleReviewMore(reviewMore));
             this.questList.appendChild(reviewMore);
 
@@ -130,7 +132,7 @@ export class QuestLogUI extends UIComponent {
         const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
         const display = chapterTemplate ? getChapterQuestDisplay(quest, locale) : null;
         const name = display ? display.title : (quest.title || quest.name);
-        const isMain = quest.isMainQuest || (quest.lesson != null);
+        const isMain = quest.isMainQuest || !!chapterTemplate;
         const hasChoice = chapterTemplate ? chapterQuestHasChoiceGroups(chapterTemplate) : false;
         let objectiveText;
         if (quest.objectives && Array.isArray(quest.objectives)) {
@@ -178,7 +180,7 @@ export class QuestLogUI extends UIComponent {
         const effectiveLocale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : (locale || 'en');
         const chapterTemplate = quest.id ? getChapterQuestById(quest.id) : null;
         const display = chapterTemplate ? getChapterQuestDisplay(quest, effectiveLocale) : null;
-        const name = display ? display.title : (quest.title || quest.name);
+        const name = display ? display.title : (quest.title || quest.name || '');
         const area = display ? display.area : (quest.area || '');
         const description = display ? display.description : (quest.description || '');
         const lesson = display ? display.lesson : (quest.lesson || '');
@@ -204,13 +206,13 @@ export class QuestLogUI extends UIComponent {
                 <div class="quest-detail-header">
                     <h2 class="quest-detail-title">${this.escapeHtml(name)}</h2>
                     ${area ? `<div class="quest-detail-area">${this.escapeHtml(area)}</div>` : ''}
-                    <button type="button" class="quest-detail-close" aria-label="Close">×</button>
+                    <button type="button" class="quest-detail-close" aria-label="${this.escapeHtml(getQuestUiString('close', effectiveLocale))}">×</button>
                 </div>
                 <div class="quest-detail-body">
                     ${description ? `<p class="quest-detail-description">${this.escapeHtml(description)}</p>` : ''}
                     ${choiceHintHtml}
                     ${objectiveHtml}
-                    ${lesson ? `<p class="quest-detail-lesson"><strong>Lesson:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
+                    ${lesson ? `<p class="quest-detail-lesson"><strong>${this.escapeHtml(getQuestUiString('lessonLabel', effectiveLocale))}:</strong> ${this.escapeHtml(lesson)}</p>` : ''}
                 </div>
             </div>
         `;
@@ -247,7 +249,8 @@ export class QuestLogUI extends UIComponent {
         if (!container) return;
         container.hidden = !container.hidden;
         const n = (this.activeQuests || []).length - QuestLogUI.MAX_VISIBLE_QUESTS;
-        button.textContent = container.hidden ? `Review more (${n})` : 'Show less';
+        const locale = (this.game && this.game.questStoryLocale) ? this.game.questStoryLocale : 'en';
+        button.textContent = container.hidden ? getQuestUiString('reviewMore', locale, { count: n }) : getQuestUiString('showLess', locale);
     }
 
     /**
@@ -264,6 +267,18 @@ export class QuestLogUI extends UIComponent {
     }
 
     /**
+     * Get display name for an enemy type id (e.g. 'skeleton' → 'Skeleton').
+     * @param {string} enemyTypeId
+     * @returns {string}
+     */
+    getEnemyDisplayName(enemyTypeId) {
+        if (!enemyTypeId) return '';
+        const all = [...(ENEMY_TYPES || []), ...(BOSS_TYPES || [])];
+        const entry = all.find((e) => e && e.type === enemyTypeId);
+        return entry?.name ?? enemyTypeId.replace(/_/g, ' ');
+    }
+
+    /**
      * Format quest objective based on type
      * @param {Object} objective - Quest objective (may have type, target, progress, count)
      * @returns {string} - Formatted objective text
@@ -272,17 +287,30 @@ export class QuestLogUI extends UIComponent {
         if (!objective) return '';
         const p = objective.progress ?? 0;
         const c = objective.count ?? 1;
+        let text = '';
         switch (objective.type) {
-            case 'kill':
-                return `Kill ${p}/${c} enemies`;
+            case 'kill': {
+                const target = objective.target;
+                let label = (target && target !== 'any') ? this.getEnemyDisplayName(target) : 'enemies';
+                if (c > 1 && label !== 'enemies' && !label.endsWith('s')) label += 's';
+                text = `Kill ${p}/${c} ${label}`;
+                break;
+            }
             case 'defeat_boss':
-                return `Defeat boss ${p}/${c}`;
+                text = `Defeat boss ${p}/${c}`;
+                break;
             case 'interact':
-                return `Find ${p}/${c} ${objective.target || 'target'}s`;
+                text = `Find ${p}/${c} ${objective.target || 'target'}s`;
+                break;
             case 'explore':
-                return `Discover ${p}/${c} zones`;
+                text = `Discover ${p}/${c} zones`;
+                break;
             default:
-                return objective.description || `${p}/${c}`;
+                text = objective.description || `${p}/${c}`;
         }
+        if (objective.label && objective.type !== 'defeat_boss') {
+            text = `${objective.label}: ${text}`;
+        }
+        return text;
     }
 }

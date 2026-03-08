@@ -164,6 +164,30 @@ export class EffectsManager {
         pos.y += 1.2;
         return this.createDamageNumberSprite(amount, pos, { isExperience: true, isBonus: options.isBonus || false });
     }
+
+    /**
+     * Create floating reward text in 3D (e.g. "+50 Gold", "+ Health Potion x2") for quest completion.
+     * @param {string} text - Text to show (e.g. "+100 XP", "+50 Gold", "+ Health Potion x2")
+     * @param {THREE.Vector3|Object} position - World position {x, y, z}; caller can offset Y for stacking
+     * @param {string} rewardType - 'xp' | 'gold' | 'item' for color
+     * @returns {Promise<DamageNumberSpriteEffect|null>}
+     */
+    async createRewardTextSprite(text, position, rewardType = 'exp') {
+        if (!this.game?.scene || !text) return null;
+        while (this.spriteDamageNumbers.length >= this.maxSpriteDamageNumbers) {
+            const oldest = this.spriteDamageNumbers.shift();
+            if (oldest) oldest.dispose();
+        }
+        const pos = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(position.x, position.y, position.z);
+        pos.y += 1.0;
+        const effect = new DamageNumberSpriteEffect(this.game, 0, pos, { customText: text, rewardType });
+        const created = await effect.create();
+        if (created) {
+            this.spriteDamageNumbers.push(effect);
+            return effect;
+        }
+        return null;
+    }
     
     /**
      * Used when the game is paused

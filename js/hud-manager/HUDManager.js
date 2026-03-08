@@ -16,10 +16,11 @@ import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
 import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
-import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
+import { getMapSelectionUiString } from '../config/chapter-quests.js';
 
 import { InventoryButton } from './InventoryButton.js';
-import './HUDGuide.js'; // Registers click handler for hud-guide-button
+import './HUDGuide.js'; // startHUDGuide() for programmatic HUD tour
+import './HelpModalController.js'; // Info button opens How to Play modal (paged, Next/Close)
 
 /**
  * HUD Manager

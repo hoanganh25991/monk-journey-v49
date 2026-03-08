@@ -116,7 +116,7 @@ export class EnemyManager {
         // Import zone difficulty multipliers from config
         this.zoneDifficultyMultipliers = ZONE_DIFFICULTY_MULTIPLIERS;
         // Track current difficulty
-        this.currentDifficulty = 'basic'; // Default difficulty
+        this.currentDifficulty = 'medium'; // Default difficulty (Medium = normal balance)
         
         // Multiplayer support
         this.isMultiplayer = false;
@@ -1042,10 +1042,15 @@ export class EnemyManager {
                                      difficultySettings.healthMultiplier *
                                      strengthFactor;
         
+        // Health-over-time: start at ~50–80 max so player (4–10 dmg) feels effective; scale up with level
+        const healthOverTime = COMBAT_BALANCE.enemy.healthOverTime || { startScale: 0.25, endLevel: 30 };
+        const progress = Math.min(1, Math.max(0, (playerLevel - 1) / Math.max(1, healthOverTime.endLevel - 1)));
+        const healthTimeScale = healthOverTime.startScale + (1 - healthOverTime.startScale) * progress;
+        
         // Apply scaling to enemy stats using game-balance settings
-        // Apply base health multiplier from combat balance
+        // Apply base health multiplier from combat balance (with health-over-time so early game is 50–80)
         scaledType.baseHealth = scaledType.health; // Store original health for reference
-        scaledType.health = Math.round(scaledType.health * COMBAT_BALANCE.enemy.healthMultiplier * combinedScalingFactor);
+        scaledType.health = Math.round(scaledType.health * healthTimeScale * COMBAT_BALANCE.enemy.healthMultiplier * combinedScalingFactor);
         
         // Apply damage scaling (level + difficulty + strength)
         scaledType.damage = Math.round(scaledType.damage * 
@@ -1652,13 +1657,22 @@ export class EnemyManager {
             
             let groupX, groupZ;
             
-            // 50% chance to spawn group near a cave when caves exist
+            // 50% chance to spawn group near a cave when caves exist (never inside village fence)
             if (caves.length > 0 && Math.random() < 0.5) {
                 const cave = caves[Math.floor(Math.random() * caves.length)];
-                const spreadRadius = 15 + Math.random() * 25;
-                const angle = Math.random() * Math.PI * 2;
-                groupX = cave.x + fastCos(angle) * spreadRadius;
-                groupZ = cave.z + fastSin(angle) * spreadRadius;
+                for (let attempt = 0; attempt < 8; attempt++) {
+                    const spreadRadius = 15 + Math.random() * 25;
+                    const angle = Math.random() * Math.PI * 2;
+                    groupX = cave.x + fastCos(angle) * spreadRadius;
+                    groupZ = cave.z + fastSin(angle) * spreadRadius;
+                    if (!this.isInsideSafeZone(groupX, groupZ)) break;
+                }
+                if (this.isInsideSafeZone(groupX, groupZ)) {
+                    const groupAngle = inMultiplierZone ? startAngle + (angleStep * g) : Math.random() * Math.PI * 2;
+                    const groupDistance = inMultiplierZone ? 60 + Math.random() * 30 : 75 + Math.random() * 30;
+                    groupX = groupAnchor.x + fastCos(groupAngle) * groupDistance;
+                    groupZ = groupAnchor.z + fastSin(groupAngle) * groupDistance;
+                }
             } else {
                 // Determine group position around chosen anchor (host or a joiner)
                 let groupAngle;
@@ -1674,28 +1688,22 @@ export class EnemyManager {
                 groupZ = groupAnchor.z + fastSin(groupAngle) * groupDistance;
             }
             
-            // Spawn the group of enemies
+            // Spawn the group of enemies (never inside village fence)
             for (let i = 0; i < enemiesPerGroup; i++) {
-                // Skip if we've reached max enemies
-                if (this.enemies.size >= this.maxEnemies) {
-                    break;
-                }
-                // Random skip: ~15% chance to spawn one fewer in this slot (so group sizes vary)
+                if (this.enemies.size >= this.maxEnemies) break;
                 if (enemiesPerGroup > 2 && Math.random() < 0.15) continue;
-                
-                // Calculate position within group (random spread)
-                // Tighter groups in multiplier zones
-                const spreadRadius = inMultiplierZone ?
-                    3 + Math.random() * 4 : // Tighter groups in multiplier zones
-                    5 + Math.random() * 5;  // Normal spread
-                    
-                const angle = Math.random() * Math.PI * 2;
-                const distance = Math.random() * spreadRadius;
-                const x = groupX + fastCos(angle) * distance;
-                const z = groupZ + fastSin(angle) * distance;
-                
-                // Don't set Y position here - let the spawnEnemy method handle terrain height
-                // This ensures consistent terrain height calculation
+
+                const spreadRadius = inMultiplierZone ? 3 + Math.random() * 4 : 5 + Math.random() * 5;
+                let x, z;
+                for (let attempt = 0; attempt < 6; attempt++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * spreadRadius;
+                    x = groupX + fastCos(angle) * distance;
+                    z = groupZ + fastSin(angle) * distance;
+                    if (!this.isInsideSafeZone(x, z)) break;
+                }
+                if (this.isInsideSafeZone(x, z)) continue;
+
                 const position = new THREE.Vector3(x, 0, z);
                 await this.spawnEnemy(groupEnemyType, position);
             }
@@ -1819,6 +1827,12 @@ export class EnemyManager {
     markEnemyForRemoval(enemy) {
         enemy.state.isDead = true;
         
+        // Stop boss music as soon as boss is defeated
+        if (enemy.isBoss && this.game?.audioManager?.getCurrentMusic() === 'bossTheme') {
+            const inCombat = this.enemies.size > 1;
+            this.game.audioManager.setMusicContext(inCombat ? 'combat' : 'exploration');
+        }
+        
         if (!this.enemiesToRemove.includes(enemy)) {
             this.enemiesToRemove.push(enemy);
         }
@@ -1928,10 +1942,15 @@ export class EnemyManager {
         const zoneEnemyTypes = this.zoneEnemies[randomZone];
 
         for (let i = 0; i < groupSize && this.enemies.size < this.maxEnemies; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const dist = Math.random() * spreadRadius;
-            const x = cave.x + fastCos(angle) * dist;
-            const z = cave.z + fastSin(angle) * dist;
+            let x, z;
+            for (let attempt = 0; attempt < 10; attempt++) {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * spreadRadius;
+                x = cave.x + fastCos(angle) * dist;
+                z = cave.z + fastSin(angle) * dist;
+                if (!this.isInsideSafeZone(x, z)) break;
+            }
+            if (this.isInsideSafeZone(x, z)) continue; // Skip this spawn if all attempts inside fence
             const enemyType = zoneEnemyTypes[Math.floor(Math.random() * zoneEnemyTypes.length)];
             const position = new THREE.Vector3(x, 0, z);
             await this.spawnEnemy(enemyType, position, null, caveKey);

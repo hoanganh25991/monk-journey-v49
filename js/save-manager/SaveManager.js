@@ -342,13 +342,13 @@ export class SaveManager extends ISaveSystem {
             
             console.debug('Hero data loaded successfully');
             
-            // Update UI elements
-            if (this.game.isRunning && this.game.hudManager) {
-                // Update player UI by accessing the PlayerUI component directly
-                if (this.game.hudManager.components && this.game.hudManager.components.playerUI) {
-                    this.game.hudManager.components.playerUI.update();
-                }
+            // Always refresh quest log so active quests show after reload (load runs before game.start(), so isRunning may be false)
+            if (this.game.hudManager) {
                 this.game.hudManager.updateQuestLog(this.game.questManager.activeQuests);
+            }
+            // Update player UI when already running (e.g. resume); when loading from menu, start() runs after this
+            if (this.game.isRunning && this.game.hudManager?.components?.playerUI) {
+                this.game.hudManager.components.playerUI.update();
             }
             
             // Complete the progress indicator

@@ -5,6 +5,8 @@
     height: 100vh;
     transition: opacity 0.2s ease-out;
     display: none;
+    border-radius: var(--panel-corner-radius, 12px);
+    overflow: hidden;
 }
 
 #game-container.game-visible {

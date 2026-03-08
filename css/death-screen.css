@@ -41,9 +41,22 @@
 
 #death-screen .menu-button-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
+    gap: var(--margin-medium, 1rem);
     width: 100%;
+}
+
+#death-screen .death-action-btn {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+#death-screen .death-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 #death-screen .death-message {
@@ -62,14 +75,6 @@
     margin-bottom: var(--margin-x-large);
     width: 100%;
     color: rgba(255, 255, 255, 0.85);
-}
-
-#death-screen .death-stats-title {
-    color: var(--theme-gold);
-    font-size: 16px;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    font-weight: bold;
 }
 
 #death-screen .death-stats-item {
@@ -122,5 +127,16 @@
     #death-screen .death-stats {
         margin-bottom: var(--margin-medium);
         padding: var(--padding-small);
+    }
+}
+
+/* Ensure stats body has at least 10px padding on small screens */
+@media (max-width: 1024px) {
+    #death-screen .death-stats {
+        padding: 10px;
+    }
+
+    #death-screen-content {
+        padding: 20px;
     }
 }
