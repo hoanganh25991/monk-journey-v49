@@ -15,11 +15,14 @@ import { BinarySerializer } from './BinarySerializer.js';
 const PEER_SERVER = null;
 
 /** ICE servers for WebRTC; can help when the data channel stays "connecting". */
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+const ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+];
 
 /** Options passed to every new Peer() so host and joiner use the same signaling server. */
 function getPeerOptions(overrides = {}) {
-    const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : {};
+    const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : { debug: 1 };
     const opts = { ...base, ...overrides };
     opts.config = opts.config || {};
     if (!opts.config.iceServers || opts.config.iceServers.length === 0) {
@@ -124,6 +127,7 @@ export class MultiplayerConnectionManager {
             await new Promise((resolve, reject) => {
                 this.peer.on('open', id => {
                     this.roomId = id;
+                    console.warn('[P2P] Host peer open, listening as:', id);
                     this.multiplayerManager.ui.setLastHostRoomId(id);
                     this.multiplayerManager.ui.setLastRole('host');
                     resolve();
@@ -196,6 +200,11 @@ export class MultiplayerConnectionManager {
      * @param {string} roomId - The room ID to join
      */
     async joinGame(roomId) {
+        roomId = (roomId && typeof roomId === 'string') ? roomId.trim() : '';
+        if (!roomId) {
+            this.multiplayerManager.ui.updateConnectionStatus('Please enter a connection code', 'join-connection-status');
+            return false;
+        }
         this.stopJoinListener();
         this._joinAttemptRoomId = roomId; // track so we can detect host-unavailable on error/close
         try {
@@ -213,9 +222,10 @@ export class MultiplayerConnectionManager {
             // Brief delay so the signaling server has the joiner's peer registered before we connect (PeerJS timing)
             await new Promise(r => setTimeout(r, 500));
 
-            // Connect to host
+            // Connect to host (roomId must match host's Peer ID exactly — one wrong character = wrong peer)
             this.hostId = roomId;
-            console.warn(`[P2P] Joiner → signaling server → Host (${roomId.substring(0, 8)}…). Establishing connection...`);
+            const roomIdPreview = roomId.length >= 12 ? roomId.substring(0, 12) + '…' : roomId;
+            console.warn(`[P2P] Joiner → Host (${roomIdPreview}). Establishing connection...`);
             const conn = this.peer.connect(roomId, {
                 reliable: true
             });
@@ -237,8 +247,11 @@ export class MultiplayerConnectionManager {
                     this.peer = null;
                 }
                 this.multiplayerManager.ui.onJoinToHostFailed(roomId);
-                this.multiplayerManager.ui.updateConnectionStatus('Connection timed out. Make sure the host is in the lobby and try again.', 'join-connection-status');
-                console.warn('[P2P] Join timed out.');
+                this.multiplayerManager.ui.updateConnectionStatus(
+                    'Connection timed out. Check that the code matches the host exactly (e.g. 7714ba01… not 7714ba81…). Host must be on the connection screen.',
+                    'join-connection-status'
+                );
+                console.warn('[P2P] Join timed out. Attempted ID:', roomIdPreview);
             }, JOIN_TIMEOUT_MS);
 
             const clearJoinTimeout = () => {
@@ -309,12 +322,17 @@ export class MultiplayerConnectionManager {
             conn.on('error', (err) => {
                 clearJoinTimeout();
                 if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
-                console.error('Connection error:', err);
+                console.error('[P2P] Connection error:', err);
+                const msg = (err?.message || String(err)).toLowerCase();
+                const hint = (msg.includes('not found') || msg.includes('unavailable') || msg.includes('could not connect'))
+                    ? ' Check that the connection code matches the host exactly.'
+                    : '';
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
                     this.multiplayerManager.ui.onJoinToHostFailed(roomId);
+                    this.multiplayerManager.ui.updateConnectionStatus('Connection failed.' + hint, 'join-connection-status');
                 } else {
-                    this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + err.message);
+                    this.multiplayerManager.ui.updateConnectionStatus('Connection error: ' + (err?.message || err) + hint);
                 }
             });
 
@@ -421,6 +439,7 @@ export class MultiplayerConnectionManager {
                 try { raw = JSON.parse(raw); } catch (_) {}
             }
             const d = this.processReceivedData(raw);
+            console.warn('[P2P] Host received first message from', conn.peer, 'type:', d?.type);
             if (d?.type === 'statusRequest') {
                 conn.send({ type: 'status', status: this._getHostStatusForPing() });
                 conn.close();

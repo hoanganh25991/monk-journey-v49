@@ -919,7 +919,7 @@ export class MultiplayerUIManager {
         const manualConnectBtn = document.getElementById('manual-connect-btn');
         if (manualConnectBtn) {
             manualConnectBtn.addEventListener('click', () => {
-                const code = document.getElementById('manual-connection-input').value;
+                const code = document.getElementById('manual-connection-input')?.value?.trim();
                 if (code) {
                     // Update button text and disable it
                     manualConnectBtn.textContent = 'Connecting...';
