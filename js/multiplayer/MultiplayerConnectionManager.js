@@ -14,11 +14,35 @@ import { BinarySerializer } from './BinarySerializer.js';
 /** Optional: override to use a custom PeerServer. Leave null to use default PeerJS cloud (0.peerjs.com). */
 const PEER_SERVER = null;
 
-/** ICE servers for WebRTC; can help when the data channel stays "connecting". */
-const ICE_SERVERS = [
+/** STUN servers for NAT discovery. Usually enough when host and joiner are on same WiFi. */
+const STUN_SERVERS = [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' }
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
 ];
+
+/**
+ * Optional extra TURN server (e.g. your own or Metered Open Relay with credentials).
+ * Set to { urls: 'turn:host:443', username: '...', credential: '...' } or leave null.
+ * See https://www.metered.ca/tools/openrelay/ for a free tier with higher limits.
+ */
+const OPTIONAL_TURN_SERVER = null;
+
+/** Free TURN relay for development (fixes ICE failed when host/joiner on different networks). */
+const FREE_TURN_RELAY = {
+    urls: 'turn:freeturn.net:3478',
+    username: 'free',
+    credential: 'free'
+};
+
+function getIceServers() {
+    const list = [...STUN_SERVERS];
+    list.push(FREE_TURN_RELAY);
+    if (OPTIONAL_TURN_SERVER && OPTIONAL_TURN_SERVER.urls) {
+        list.push(OPTIONAL_TURN_SERVER);
+    }
+    return list;
+}
 
 /** Options passed to every new Peer() so host and joiner use the same signaling server. */
 function getPeerOptions(overrides = {}) {
@@ -26,7 +50,7 @@ function getPeerOptions(overrides = {}) {
     const opts = { ...base, ...overrides };
     opts.config = opts.config || {};
     if (!opts.config.iceServers || opts.config.iceServers.length === 0) {
-        opts.config.iceServers = ICE_SERVERS;
+        opts.config.iceServers = getIceServers();
     }
     return opts;
 }
@@ -324,9 +348,12 @@ export class MultiplayerConnectionManager {
                 if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 console.error('[P2P] Connection error:', err);
                 const msg = (err?.message || String(err)).toLowerCase();
-                const hint = (msg.includes('not found') || msg.includes('unavailable') || msg.includes('could not connect'))
-                    ? ' Check that the connection code matches the host exactly.'
-                    : '';
+                let hint = '';
+                if (msg.includes('ice') || msg.includes('negotiation')) {
+                    hint = ' Use same WiFi, or add a TURN server (see OPTIONAL_TURN_SERVER in MultiplayerConnectionManager.js; free at metered.ca/tools/openrelay).';
+                } else if (msg.includes('not found') || msg.includes('unavailable') || msg.includes('could not connect')) {
+                    hint = ' Check that the connection code matches the host exactly.';
+                }
                 if (this._joinAttemptRoomId === roomId) {
                     this._joinAttemptRoomId = null;
                     this.multiplayerManager.ui.onJoinToHostFailed(roomId);
