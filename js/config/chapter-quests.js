@@ -291,7 +291,8 @@ export async function ensureLocaleLoaded(locale) {
  */
 export function getChapterQuestDisplay(quest, locale = DEFAULT_LOCALE) {
     const id = quest?.id;
-    const idx = quest ? CHAPTER_QUESTS.indexOf(quest) : -1;
+    // Resolve index by id so copies (active/restored quests) get correct title/description/lesson
+    const idx = id ? CHAPTER_QUESTS.findIndex((q) => q.id === id) : -1;
     const enEntry = idx >= 0 && EN_ENTRIES[idx] ? EN_ENTRIES[idx] : null;
     const en = {
         title: enEntry?.title ?? '',
