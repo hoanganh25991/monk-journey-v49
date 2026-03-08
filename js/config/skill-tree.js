@@ -1,8 +1,9 @@
 /**
  * Skill tree configuration - FOLLOWS skills.js (source of truth).
  * Defines variants and buffs per skill. baseDescription comes from skills.js.
+ * Primary attacks are included so skill-tree and skill-variant work together (§8 refinement).
  */
-import { NORMAL_SKILLS } from './skills.js';
+import { PRIMARY_ATTACKS, NORMAL_SKILLS } from './skills.js';
 import { applyBuffsToVariants } from '../utils/SkillTreeUtils.js';
 
 const BUFF = (desc, effects, opts = {}) => ({
@@ -15,8 +16,37 @@ const BUFF = (desc, effects, opts = {}) => ({
     ...opts,
 });
 
-/** Variants and buffs per skill - baseDescription comes from skills.js */
+/** Variants and buffs per skill - baseDescription comes from skills.js. Primary attacks included for §8 (primary attack focus). */
 const TREE_DATA = {
+    // —— Primary attacks (slot 1 / KeyH) — many players like primary; tree + variants improve it ——
+    'Fist of Thunder': {
+        variants: {
+            'Thunder Strike': { description: 'A single, powerful lightning strike. Increased damage, same teleport.', effects: ['Increased damage'], unlockedBy: 'Default', cost: 0, requiredPoints: 0 },
+            'Chain Lightning': { description: 'Lightning chains to a nearby enemy after the first hit.', effects: ['Chain damage', 'Area of effect'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+            'Storm Step': { description: 'Teleport range increased; brief speed boost after striking.', effects: ['Extended range', 'Movement speed'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+            'Life Surge': { description: 'Heal a small amount on hit.', effects: ['Life steal', 'Sustain'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+        },
+        buffs: {
+            'Swift Fist': BUFF('Reduces primary attack cooldown by 10%.', ['Cooldown reduction'], { levelBonuses: ['Cooldown reduced by 10%', 'Cooldown reduced by 20%', 'Cooldown reduced by 30%'] }),
+            'Empowered Thunder': BUFF('Increases Fist of Thunder damage by 15%.', ['Increased damage'], { levelBonuses: ['Damage +15%', 'Damage +30%', 'Damage +45%'] }),
+            'Wider Impact': BUFF('Increases strike radius so more enemies are hit.', ['Increased radius'], { levelBonuses: ['Radius +20%', 'Radius +40%', 'Radius +60%'] }),
+            'Resonant Strike': BUFF('Chance to cast a second strike on the same target.', ['Chance for double hit'], { levelBonuses: ['10% chance', '20% chance', '30% chance'] }),
+        },
+    },
+    'Deadly Reach': {
+        variants: {
+            'Extended Reach': { description: 'Increases range and projectile speed.', effects: ['Extended range', 'Faster projectile'], unlockedBy: 'Default', cost: 0, requiredPoints: 0 },
+            'Piercing Beam': { description: 'Beam pierces through more enemies and deals extra damage to the last.', effects: ['Piercing', 'Increased damage'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+            'Stunning Palm': { description: 'Final hit has a chance to stun enemies.', effects: ['Stun chance', 'Crowd control'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+            'Spirit Drain': { description: 'Restore a small amount of mana on hit.', effects: ['Mana on hit', 'Sustain'], unlockedBy: 'Skill points or progression', cost: 5, requiredPoints: 0 },
+        },
+        buffs: {
+            'Quick Release': BUFF('Reduces Deadly Reach cooldown by 10%.', ['Cooldown reduction'], { levelBonuses: ['Cooldown -10%', 'Cooldown -20%', 'Cooldown -30%'] }),
+            'Focused Beam': BUFF('Increases Deadly Reach damage by 15%.', ['Increased damage'], { levelBonuses: ['Damage +15%', 'Damage +30%', 'Damage +45%'] }),
+            'Long Arm': BUFF('Increases range of Deadly Reach.', ['Extended range'], { levelBonuses: ['Range +15%', 'Range +30%', 'Range +45%'] }),
+            'Knockback Force': BUFF('Increases knockback strength.', ['Knockback'], { levelBonuses: ['Knockback +20%', 'Knockback +40%', 'Knockback +60%'] }),
+        },
+    },
     'Wave of Light': {
         variants: {
             'Explosive Light': { description: 'The wave explodes on impact, dealing area damage.', effects: ['Area damage'], unlockedBy: 'Legendary item Explosive Light', cost: 5, requiredPoints: 0 },
@@ -215,10 +245,11 @@ const TREE_DATA = {
     'Bul Shadow Clone': { variants: {}, buffs: {} },
 };
 
-/** Build SKILL_TREES from skills.js order, merging baseDescription from skills */
+/** Build SKILL_TREES from skills.js: primary attacks first, then normal skills. Merges baseDescription from skills. */
 function buildSkillTrees() {
     const trees = {};
-    for (const skill of NORMAL_SKILLS) {
+    const allSkills = [...PRIMARY_ATTACKS, ...NORMAL_SKILLS];
+    for (const skill of allSkills) {
         const data = TREE_DATA[skill.name];
         if (data) {
             trees[skill.name] = {

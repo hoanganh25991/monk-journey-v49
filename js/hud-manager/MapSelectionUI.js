@@ -2,6 +2,9 @@ import { UIComponent } from '../UIComponent.js';
 import { MAP_MANIFEST } from '../config/maps.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { ZONE_ENEMIES, ENEMY_TYPES, BOSS_TYPES } from '../config/game-balance.js';
+import { CHAPTER_QUEST_MAPS } from '../config/chapter-quest-maps.js';
+import { CHAPTER_QUESTS } from '../config/chapter-quests.js';
+import { getMapSelectionUiString, getChapterQuestDisplay, MAP_DISPLAY_NAMES_VI } from '../config/chapter-quests-locales.js';
 
 /** Relative path to manifest so app works when loaded from a subpath */
 const MAP_MANIFEST_PATH = 'maps/index.json';
@@ -37,6 +40,43 @@ export class MapSelectionUI extends UIComponent {
         this.mapDataCache = new Map(); // path -> full map JSON
     }
 
+    /** @returns {'en'|'vi'} */
+    getLocale() {
+        return (this.game && this.game.questStoryLocale === 'vi') ? 'vi' : 'en';
+    }
+
+    /** Apply translated labels to overlay (title, stat labels, button titles, placeholders). */
+    updateMapSelectorLabels() {
+        const locale = this.getLocale();
+        const titleEl = document.getElementById('map-selector-title');
+        if (titleEl) titleEl.textContent = getMapSelectionUiString('selectMapTitle', locale);
+        const labels = [
+            { id: 'mapStatLabelSize', key: 'statSize' },
+            { id: 'mapStatLabelStructures', key: 'statStructures' },
+            { id: 'mapStatLabelPaths', key: 'statPaths' },
+            { id: 'mapStatLabelEnvironment', key: 'statEnvironment' },
+            { id: 'mapStatLabelEnemies', key: 'statEnemies' },
+        ];
+        labels.forEach(({ id, key }) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = getMapSelectionUiString(key, locale);
+        });
+        if (this.mapSelectorButton) this.mapSelectorButton.title = getMapSelectionUiString('btnMapSelector', locale);
+        const closeBtn = document.getElementById('closeMapSelector');
+        if (closeBtn) closeBtn.title = getMapSelectionUiString('btnSaveAndClose', locale);
+        const playBtn = document.getElementById('playMapButton');
+        if (playBtn) {
+            playBtn.title = getMapSelectionUiString('btnApplyAndReloadTitle', locale);
+            playBtn.textContent = getMapSelectionUiString('btnApplyAndReload', locale);
+        }
+        const loadingEl = document.getElementById('mapLoadingOverlayText');
+        if (loadingEl) loadingEl.textContent = getMapSelectionUiString('loadingMap', locale);
+        const namePlaceholder = document.getElementById('selectedMapName');
+        const descPlaceholder = document.getElementById('selectedMapDescription');
+        if (namePlaceholder && !namePlaceholder.dataset.filled) namePlaceholder.textContent = getMapSelectionUiString('selectMapPlaceholder', locale);
+        if (descPlaceholder && !descPlaceholder.dataset.filled) descPlaceholder.textContent = getMapSelectionUiString('chooseMapPlaceholder', locale);
+    }
+
     init() {
         try {
             this.mapSelectorButton = document.getElementById('map-selector-button');
@@ -49,6 +89,7 @@ export class MapSelectionUI extends UIComponent {
             }
 
             this.setupEventListeners();
+            this.updateMapSelectorLabels();
             this.loadManifest().then(() => this.populateMapList());
             this.forceHide();
             return true;
@@ -96,11 +137,6 @@ export class MapSelectionUI extends UIComponent {
             closeBtn.addEventListener('click', () => this.hide());
         }
 
-        const clearBtn = document.getElementById('clearCurrentMap');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearCurrentMap());
-        }
-
         const playBtn = document.getElementById('playMapButton');
         if (playBtn) {
             playBtn.addEventListener('click', () => this.playSelectedMap());
@@ -111,13 +147,38 @@ export class MapSelectionUI extends UIComponent {
         });
     }
 
+    /** Get chapter area label for a map if it hosts a chapter quest, in the given locale. */
+    getChapterAreaForMap(mapId, locale) {
+        const entry = CHAPTER_QUEST_MAPS.find((e) => e.mapId === mapId);
+        if (!entry) return null;
+        const quest = CHAPTER_QUESTS.find((q) => q.id === entry.chapterQuestId);
+        if (!quest) return null;
+        const display = getChapterQuestDisplay(quest, locale);
+        return display?.area ?? quest?.area ?? null;
+    }
+
+    /** Display name for a map entry in the current locale (name_vi from manifest or MAP_DISPLAY_NAMES_VI fallback). */
+    getMapDisplayName(mapEntry) {
+        const locale = this.getLocale();
+        if (locale === 'vi') {
+            if (mapEntry.name_vi) return mapEntry.name_vi;
+            if (MAP_DISPLAY_NAMES_VI[mapEntry.id]) return MAP_DISPLAY_NAMES_VI[mapEntry.id];
+        }
+        return mapEntry.name || '';
+    }
+
     populateMapList() {
         this.mapListEl.innerHTML = '';
+        const locale = this.getLocale();
         const storedPath = typeof localStorage !== 'undefined'
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || DEFAULT_MAP_PATH)
             : DEFAULT_MAP_PATH;
 
-        for (const map of this.mapManifest) {
+        const sorted = [...this.mapManifest].sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' })
+        );
+
+        for (const map of sorted) {
             const li = document.createElement('div');
             li.className = 'map-list-item';
             li.dataset.mapId = map.id;
@@ -125,7 +186,10 @@ export class MapSelectionUI extends UIComponent {
             const thumb = map.thumbnail
                 ? `<img class="map-list-thumb" src="${map.thumbnail}" alt="" />`
                 : '<span class="map-icon">🗺️</span>';
-            li.innerHTML = `${thumb} <span class="map-list-name">${map.name}</span>`;
+            const displayName = this.getMapDisplayName(map);
+            const chapterArea = this.getChapterAreaForMap(map.id, locale);
+            const subtitle = chapterArea ? `<span class="map-list-subtitle">${chapterArea}</span>` : '';
+            li.innerHTML = `${thumb} <span class="map-list-text"><span class="map-list-name">${displayName}</span>${subtitle}</span>`;
             li.addEventListener('click', () => this.selectMap(map));
             this.mapListEl.appendChild(li);
         }
@@ -148,8 +212,18 @@ export class MapSelectionUI extends UIComponent {
     }
 
     updateDetailPanel(mapEntry) {
-        document.getElementById('selectedMapName').textContent = mapEntry.name;
-        document.getElementById('selectedMapDescription').textContent = mapEntry.description || '';
+        const nameEl = document.getElementById('selectedMapName');
+        const descEl = document.getElementById('selectedMapDescription');
+        const displayName = this.getMapDisplayName(mapEntry);
+        const displayDesc = (this.getLocale() === 'vi' && mapEntry.description_vi) ? mapEntry.description_vi : (mapEntry.description || '');
+        if (nameEl) {
+            nameEl.textContent = displayName;
+            nameEl.dataset.filled = '1';
+        }
+        if (descEl) {
+            descEl.textContent = displayDesc;
+            descEl.dataset.filled = '1';
+        }
         document.getElementById('mapSizeStat').textContent = mapEntry.size || '-';
         document.getElementById('structuresStat').textContent = mapEntry.structures ?? 'NA';
         document.getElementById('pathsStat').textContent = mapEntry.paths ?? 'NA';
@@ -213,7 +287,8 @@ export class MapSelectionUI extends UIComponent {
      * @returns {string} Display text for Enemies stat
      */
     getEnemiesText(mapEntry, mapData) {
-        if (mapData?.enemies === 'random') return 'Random';
+        const locale = this.getLocale();
+        if (mapData?.enemies === 'random') return getMapSelectionUiString('enemiesRandom', locale);
         if (Array.isArray(mapData?.enemies) && mapData.enemies.length > 0) {
             const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
             const names = mapData.enemies.map(t => {
@@ -223,10 +298,10 @@ export class MapSelectionUI extends UIComponent {
             return names.join(', ');
         }
         const zoneStyle = mapData?.zoneStyle || mapEntry.zoneStyle;
-        if (!zoneStyle) return 'Random';
+        if (!zoneStyle) return getMapSelectionUiString('enemiesRandom', locale);
         const key = (typeof zoneStyle === 'string' ? zoneStyle.toLowerCase() : '').replace(/\s+/g, '_');
         const zoneKey = ZONE_STYLE_TO_KEY[key] || ZONE_STYLE_TO_KEY[zoneStyle?.toLowerCase?.()] || null;
-        if (!zoneKey || !ZONE_ENEMIES[zoneKey]) return 'Random';
+        if (!zoneKey || !ZONE_ENEMIES[zoneKey]) return getMapSelectionUiString('enemiesRandom', locale);
         const types = ZONE_ENEMIES[zoneKey];
         const allTypes = [...ENEMY_TYPES, ...BOSS_TYPES];
         const names = types.map(t => {
@@ -240,39 +315,69 @@ export class MapSelectionUI extends UIComponent {
         const entry = this.mapManifest.find(m => m.id === this.selectedMapId);
         if (!entry || !this.game) return;
 
+        const locale = this.getLocale();
+        const mapName = this.getMapDisplayName(entry) || entry.id || 'Map';
+        const path = entry.path || DEFAULT_MAP_PATH;
+
         try {
-            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, entry.path || DEFAULT_MAP_PATH);
+            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, path);
         } catch (e) {
             console.warn('Could not save map preference:', e);
         }
 
-        const mapName = entry.name || entry.id || 'Map';
-        if (this.game.hudManager?.showNotification) {
-            this.game.hudManager.showNotification(`Map set to "${mapName}". Reloading...`, 3000);
-        }
         this.hide();
-        setTimeout(() => location.reload(), 800);
+        await this.runTeleportEffect(locale, async () => {
+            const mapData = await this.game.loadAndApplyMap(path);
+            const spawn = mapData?.spawn || { x: 0, y: 1, z: -13 };
+            if (this.game.player?.setPosition) {
+                this.game.player.setPosition(spawn.x ?? 0, spawn.y ?? 1, spawn.z ?? -13);
+            }
+            if (this.game.enemyManager?.removeAllEnemies) {
+                this.game.enemyManager.removeAllEnemies();
+            }
+            if (this.game.worldGroup && this.game.player?.movement?.getPosition) {
+                const pos = this.game.player.movement.getPosition();
+                this.game.worldGroup.position.copy(pos).negate();
+            }
+            if (this.game.hudManager?.showNotification) {
+                this.game.hudManager.showNotification(getMapSelectionUiString('arrivedAtMap', locale, { mapName }), 3000);
+            }
+        });
     }
 
-    clearCurrentMap() {
+    /**
+     * Show shared "Đang dịch chuyển" / "Teleporting…" overlay with countdown 3 → 2 → 1, then run the teleport action.
+     * @param {string} locale - For label text (VI/EN)
+     * @param {() => Promise<void>} doTeleport - Async function to load map, move player, etc.
+     */
+    async runTeleportEffect(locale, doTeleport) {
+        if (this.game?.hudManager?.runTeleportOverlay) {
+            await this.game.hudManager.runTeleportOverlay(locale, doTeleport);
+            return;
+        }
         try {
-            localStorage.setItem(STORAGE_KEYS.SELECTED_MAP_PATH, DEFAULT_MAP_PATH);
+            await doTeleport();
         } catch (e) {
-            console.warn('Could not save map preference:', e);
+            console.warn('Teleport failed:', e);
+            if (this.game?.hudManager?.showNotification) {
+                this.game.hudManager.showNotification(getMapSelectionUiString('loadingMap', locale) + ' Failed.', 3000);
+            }
         }
-        if (this.game?.hudManager?.showNotification) {
-            this.game.hudManager.showNotification('Returned to Default World. Reloading...', 3000);
-        }
-        this.hide();
-        setTimeout(() => location.reload(), 800);
     }
 
     show() {
         if (this.overlay) {
+            this.updateMapSelectorLabels();
+            this.populateMapList();
             const currentLabel = document.getElementById('map-selector-current-label');
             if (currentLabel) {
+                const locale = this.getLocale();
                 const currentMap = this.game?.world?.currentMap;
-                currentLabel.textContent = currentMap?.name ? `Current: ${currentMap.name}` : 'Current: —';
+                const entry = currentMap?.id ? this.mapManifest.find(m => m.id === currentMap.id) : null;
+                const name = entry ? this.getMapDisplayName(entry) : (currentMap?.name || '');
+                currentLabel.textContent = name
+                    ? getMapSelectionUiString('currentMap', locale, { name })
+                    : getMapSelectionUiString('currentMapNone', locale);
             }
             this.overlay.style.display = 'flex';
             this.overlay.style.visibility = 'visible';

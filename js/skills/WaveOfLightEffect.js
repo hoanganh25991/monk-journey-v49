@@ -276,7 +276,7 @@ export class WaveOfLightEffect extends SkillEffect {
      * @param {number} delta - Time since last update in seconds
      */
     update(delta) {
-        if (!this.isActive || !this.effect) return;
+        if (!this.isActive || !this.effect || !this.bellState) return;
         
         try {
             this.elapsedTime += delta;
@@ -326,6 +326,7 @@ export class WaveOfLightEffect extends SkillEffect {
      * @private
      */
     updateWaveEffect(delta) {
+        if (!this.bellState) return;
         // Get bell group (first child of effect group)
         const bellGroup = this.effect.children[0];
         

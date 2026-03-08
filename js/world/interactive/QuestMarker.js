@@ -6,12 +6,14 @@ import * as THREE from '../../../libs/three/three.module.js';
 export class QuestMarker {
     /**
      * Create a new quest marker
-     * @param {string} questName - Name of the quest
+     * @param {string} questName - Name of the quest (or chapter quest id)
      * @param {Object} game - Reference to the game instance
+     * @param {{ chapterQuest?: Object }} [options] - If chapterQuest is set, clicking opens accept dialog for that quest
      */
-    constructor(questName, game) {
+    constructor(questName, game, options = {}) {
         this.questName = questName;
         this.game = game;
+        this.chapterQuest = options.chapterQuest || null;
         this.isInteractive = true;
     }
     
@@ -78,6 +80,7 @@ export class QuestMarker {
         markerGroup.userData = {
             type: 'questMarker',
             questName: this.questName,
+            chapterQuest: this.chapterQuest,
             interactive: true,
             onClick: () => this.handleClick()
         };
@@ -243,6 +246,7 @@ export class QuestMarker {
         collider.userData = {
             type: 'questMarkerCollider',
             questName: this.questName,
+            chapterQuest: this.chapterQuest,
             interactive: true,
             onClick: () => this.handleClick()
         };
@@ -254,13 +258,13 @@ export class QuestMarker {
      * Handle click/touch interaction with the quest marker
      */
     handleClick() {
-        if (this.isInteractive && this.game) {
-            // Call the toggleQuest function to open the quest UI
+        if (!this.isInteractive || !this.game) return;
+        if (this.chapterQuest && typeof this.game.showChapterQuestAcceptDialog === 'function') {
+            this.game.showChapterQuestAcceptDialog(this.chapterQuest);
+        } else if (typeof this.game.toggleQuest === 'function') {
             this.game.toggleQuest(this.questName);
-            
-            // Visual feedback for interaction
-            this.playInteractionEffect();
         }
+        this.playInteractionEffect();
     }
     
     /**

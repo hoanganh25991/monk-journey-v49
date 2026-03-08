@@ -4,7 +4,7 @@
  */
 
 const CACHE_NAME = 'monk-journey-cache';
-const CACHE_VERSION = '20260302T172220';
+const CACHE_VERSION = '20260306T130338';
 const CACHE_KEY = CACHE_NAME + '-v' + CACHE_VERSION;
 
 const ASSETS_TO_CACHE =   [
@@ -20,6 +20,9 @@ const ASSETS_TO_CACHE =   [
     "js/QuestManager.js",
     "js/UIComponent.js",
     "js/config/camera-modes.js",
+    "js/config/chapter-quest-maps.js",
+    "js/config/chapter-quests-locales.js",
+    "js/config/chapter-quests.js",
     "js/config/coach.js",
     "js/config/colors.js",
     "js/config/consumable-skills.js",
@@ -40,7 +43,9 @@ const ASSETS_TO_CACHE =   [
     "js/config/render.js",
     "js/config/skill-icons.js",
     "js/config/skill-preview.js",
+    "js/config/skill-tree-graph.js",
     "js/config/skill-tree.js",
+    "js/config/skill-unlocks.js",
     "js/config/skills.js",
     "js/config/sounds.js",
     "js/config/storage-keys.js",
@@ -105,10 +110,12 @@ const ASSETS_TO_CACHE =   [
     "js/hud-manager/NotificationsUI.js",
     "js/hud-manager/PlayerUI.js",
     "js/hud-manager/PortalButton.js",
+    "js/hud-manager/QuestDirectionIndicator.js",
     "js/hud-manager/QuestLogUI.js",
+    "js/hud-manager/ReflectionUI.js",
     "js/hud-manager/SkillSelectionButton.js",
-    "js/hud-manager/SkillSelectionUI.js",
     "js/hud-manager/SkillTreeButton.js",
+    "js/hud-manager/SkillTreeGraphView.js",
     "js/hud-manager/SkillTreeUI.js",
     "js/hud-manager/SkillsUI.js",
     "js/hud-manager/VirtualJoystickUI.js",
@@ -177,6 +184,7 @@ const ASSETS_TO_CACHE =   [
     "js/player/PlayerStats.js",
     "js/player/PlayerStatusEffects.js",
     "js/player/PlayerTomb.js",
+    "js/player/models/NativeMonkModel.js",
     "js/save-manager/GoogleAuthManager.js",
     "js/save-manager/GoogleDriveAdapter.js",
     "js/save-manager/ISaveSystem.js",
@@ -417,6 +425,7 @@ const ASSETS_TO_CACHE =   [
     "css/hud/layout.css",
     "css/hud/minimap.css",
     "css/hud/player-stats.css",
+    "css/hud/quest-direction-indicator.css",
     "css/hud/quest-log.css",
     "css/hud/skills.css",
     "css/hud/status-effects.css",
@@ -430,6 +439,7 @@ const ASSETS_TO_CACHE =   [
     "css/multiplayer.css",
     "css/notifications.css",
     "css/orientation-message.css",
+    "css/reflection-screen.css",
     "css/reset.css",
     "css/settings/base.css",
     "css/settings/buttons.css",
@@ -443,7 +453,6 @@ const ASSETS_TO_CACHE =   [
     "css/settings/tabs.css",
     "css/settings-menu.css",
     "css/skill-preview.css",
-    "css/skill-selection.css",
     "css/skill-tree.css",
     "css/teleport-manager.css",
     "css/utilities.css",

@@ -243,7 +243,7 @@ export class PortalButton extends UIComponent {
             const iconElement = this.portalButton.querySelector('.portal-icon');
             if (iconElement) {
                 // Use the spiral emoji with proper centering
-                iconElement.textContent = '𖣐';
+                iconElement.textContent = '🏕️';
                 
                 // Remove CSS-spiral class if it was previously added
                 iconElement.classList.remove('css-spiral');

@@ -24,6 +24,7 @@ import * as AnimationUtils from '../utils/AnimationUtils.js';
 import { PlayerAttackEffect } from './PlayerAttackEffect.js';
 import { PlayerEquipmentVisuals } from './PlayerEquipmentVisuals.js';
 import { PlayerCoachVisuals } from './PlayerCoachVisuals.js';
+import { createNativeMonkGroup, updateNativeMonkAnimations } from './models/NativeMonkModel.js';
 
 /**
  * @typedef {Object} ModelAdjustment
@@ -105,6 +106,8 @@ export class PlayerModel {
         this.sizeMultiplier = this.currentModel.multiplier; // Size multiplier
         this.modelScale = this.baseScale * this.sizeMultiplier; // Effective scale
         this.modelPath = this.currentModel.path; // Path to the 3D model
+        /** @type {THREE.Group|null} When using native monk, the procedural model root */
+        this.nativeMonkRoot = null;
     }
     
     // setGame method removed - game is now passed in constructor
@@ -127,7 +130,43 @@ export class PlayerModel {
     async createModel() {
         // Create a group for the player
         this.modelGroup = new THREE.Group();
-        
+        this.nativeMonkRoot = null;
+
+        // Native monk: procedural Three.js model (no GLB)
+        if (this.currentModel.native === true) {
+            const nativeRoot = createNativeMonkGroup({ includeDefaultStaff: false });
+            nativeRoot.traverse((node) => {
+                if (node.isMesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    node.userData = node.userData || {};
+                    node.userData.isPlayerModel = true;
+                }
+            });
+            nativeRoot.position.set(0, 0, 0);
+            nativeRoot.scale.setScalar(this.modelScale);
+            this.modelGroup.add(nativeRoot);
+            this.nativeMonkRoot = nativeRoot;
+            this.gltfModel = null;
+            this.mixer = null;
+            this.animations = {};
+
+            this.scene.add(this.modelGroup);
+            if (this.equipmentVisuals) {
+                this.equipmentVisuals.initAttachmentPoints();
+                const equipment = this.game?.player?.inventory?.equipment;
+                if (equipment) {
+                    this.equipmentVisuals.updateEquipmentVisuals(equipment);
+                }
+            }
+            if (this.coachVisuals) {
+                const equipment = this.game?.player?.inventory?.equipment;
+                this.coachVisuals.updateFromWeapon(equipment?.weapon);
+            }
+            console.debug('Native monk model added to scene:', this.modelGroup);
+            return this.modelGroup;
+        }
+
         try {
             // Load the 3D model specified in the configuration
             const loader = getGLTFLoader();
@@ -234,6 +273,16 @@ export class PlayerModel {
             const equipment = this.game?.player?.inventory?.equipment;
             this.coachVisuals.updateFromWeapon(equipment?.weapon);
             this.coachVisuals.update(delta);
+        }
+
+        // Native monk: procedural idle/walk/attack animation
+        if (this.nativeMonkRoot) {
+            const state = {
+                isMoving: playerState ? playerState.isMoving() : false,
+                isAttacking: playerState ? playerState.isAttacking() : false
+            };
+            updateNativeMonkAnimations(this.nativeMonkRoot, delta, state);
+            return;
         }
         
         // If we have a loaded GLB model with animations
@@ -373,6 +422,14 @@ export class PlayerModel {
         // Store the vertical look direction
         this.verticalLookDirection = verticalDirection;
         
+        // Native monk: simple head tilt
+        if (this.nativeMonkRoot && this.nativeMonkRoot.userData.nativeMonk && this.nativeMonkRoot.userData.nativeMonk.head) {
+            const head = this.nativeMonkRoot.userData.nativeMonk.head;
+            const maxAngle = THREE.MathUtils.degToRad(25);
+            head.rotation.x = -verticalDirection * maxAngle;
+            return;
+        }
+        
         // Apply vertical rotation to the model's head/neck if possible
         if (this.gltfModel) {
             // Find head/neck bones in the model if they exist
@@ -447,6 +504,28 @@ export class PlayerModel {
     cloneModel(opacity = 0.7, emissiveColor = 0x00ffff, emissiveIntensity = 0.8) {
         // Create a new group for the cloned model
         const clonedGroup = new THREE.Group();
+        
+        // Native monk: clone procedural model and apply spirit appearance
+        if (this.nativeMonkRoot) {
+            const clone = this.nativeMonkRoot.clone(true);
+            clone.traverse(child => {
+                if (child.isMesh && child.material) {
+                    const mat = child.material;
+                    const mats = Array.isArray(mat) ? mat : [mat];
+                    const newMats = mats.map(m => {
+                        const nm = m.clone();
+                        nm.transparent = true;
+                        nm.opacity = opacity;
+                        nm.emissive = new THREE.Color(emissiveColor);
+                        nm.emissiveIntensity = emissiveIntensity;
+                        return nm;
+                    });
+                    child.material = Array.isArray(mat) ? newMats : newMats[0];
+                }
+            });
+            clonedGroup.add(clone);
+            return clonedGroup;
+        }
         
         // If using fallback model, delegate to it
         if (this.usingFallbackModel && this.fallbackModel) {

@@ -1,6 +1,7 @@
 import * as THREE from '../../../libs/three/three.module.js';
 import { MULTIPLIER_PORTALS, RETURN_PORTAL, DESTINATION_TERRAINS } from '../../config/teleport-portals.js';
 import { ZONE_ENEMIES } from '../../config/game-balance.js';
+import { getMapSelectionUiString } from '../../config/chapter-quests-locales.js';
 import { PortalModelFactory } from './PortalModelFactory.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { distanceSq2D, distanceApprox2D, fastSqrt } from '../../utils/FastMath.js';
@@ -625,7 +626,7 @@ export class TeleportManager {
                     
                     // Show teleport prompt with spiral symbols
                     if (this.game && this.game.hudManager) {
-                        const spiralSymbols = ['🌀', '🍥', '𖦹', '𖣐'];
+                        const spiralSymbols = ['🌀', '🍥', '𖦹', '🏕️'];
                         const randomSpiral = spiralSymbols[Math.floor(Math.random() * spiralSymbols.length)];
                         this.game.hudManager.showNotification(
                             `${randomSpiral} ${portal.targetName} ${randomSpiral}`,
@@ -726,142 +727,122 @@ export class TeleportManager {
             this.activeMultiplier = 1;
             console.debug(`Returning from multiplier zone, resetting multiplier to 1x`);
         }
-        
-        // Show teleport effect
-        this.showTeleportEffect(portal);
-        
-        // Teleport the player after a short delay
-        setTimeout(() => {
-            // Ensure target position has correct terrain height
-            let targetY = portal.targetPosition.y;
-            
-            // If we have terrain height information, use it
-            if (this.worldManager && this.worldManager.getTerrainHeight) {
-                targetY = this.worldManager.getTerrainHeight(portal.targetPosition.x, portal.targetPosition.z) + 0.5;
-                console.debug(`Adjusted target height to terrain: ${targetY}`);
-            }
-            
-            try {
-                // Move player to target position
-                // Extract x, y, z coordinates from the Vector3 object
-                targetPlayer.setPosition(
+
+        // Use the same "Đang dịch chuyển" / "Teleporting…" overlay as map selection (consistent with VI)
+        const locale = this.game.questStoryLocale === 'vi' ? 'vi' : 'en';
+        if (this.game.hudManager && typeof this.game.hudManager.runTeleportOverlay === 'function') {
+            this.game.hudManager.runTeleportOverlay(locale, async () => {
+                await this.executePortalTeleport(portal, targetPlayer, isMultiplierPortal, isReturnPortal);
+            });
+            return;
+        }
+
+        // Fallback: no overlay (e.g. HUD not ready), execute immediately
+        this.executePortalTeleport(portal, targetPlayer, isMultiplierPortal, isReturnPortal);
+    }
+
+    /**
+     * Execute the actual portal teleport (move player, notifications, minimap, wave mode).
+     * Used after the shared teleport overlay countdown or when overlay is unavailable.
+     */
+    async executePortalTeleport(portal, targetPlayer, isMultiplierPortal, isReturnPortal) {
+        // Play teleport sound
+        if (this.game && this.game.audioManager) {
+            const sp = portal.sourcePosition, tp = portal.targetPosition;
+            const distance = distanceApprox2D(sp.x, sp.z, tp.x, tp.z);
+            const isExtremeDistance = distance > 5000;
+            const volume = isExtremeDistance ? 0.8 : (distance > 1000 ? 0.7 : 0.5);
+            this.game.audioManager.playSound('teleport', volume);
+        }
+
+        // Ensure target position has correct terrain height
+        let targetY = portal.targetPosition.y;
+        if (this.worldManager && this.worldManager.getTerrainHeight) {
+            targetY = this.worldManager.getTerrainHeight(portal.targetPosition.x, portal.targetPosition.z) + 0.5;
+            console.debug(`Adjusted target height to terrain: ${targetY}`);
+        }
+
+        try {
+            targetPlayer.setPosition(
+                portal.targetPosition.x,
+                targetY,
+                portal.targetPosition.z
+            );
+            if (targetPlayer.movement && targetPlayer.movement.targetPosition) {
+                targetPlayer.movement.targetPosition.set(
                     portal.targetPosition.x,
                     targetY,
                     portal.targetPosition.z
                 );
-                
-                // Force update the player's target position if it has one
-                if (targetPlayer.movement && targetPlayer.movement.targetPosition) {
-                    targetPlayer.movement.targetPosition.set(
-                        portal.targetPosition.x,
-                        targetY,
-                        portal.targetPosition.z
-                    );
-                }
-                if (typeof targetPlayer.clearTransientMovementEffects === 'function') {
-                    targetPlayer.clearTransientMovementEffects();
-                }
-                
-                // Also update the player's model position directly if available
-                if (targetPlayer.model && typeof targetPlayer.model.setPosition === 'function') {
-                    const position = new THREE.Vector3(portal.targetPosition.x, targetY, portal.targetPosition.z);
-                    targetPlayer.model.setPosition(position);
-                    console.debug('Updated player model position directly');
-                }
-                
-                console.debug(`Successfully teleported player to: ${portal.targetPosition.x}, ${targetY}, ${portal.targetPosition.z}`);
-            } catch (error) {
-                console.error("Error teleporting player:", error);
-                return;
             }
-            
-            // Only update camera and show notifications if this is the local player
-            const isLocalPlayer = targetPlayer === this.game.player;
-            
-            if (isLocalPlayer) {
-                // Multiplayer (joiner): tell host our new position so we don't get snapped back by sync
-                if (this.game.multiplayerManager?.connection && !this.game.multiplayerManager.connection.isHost && this.game.multiplayerManager.connection.isConnected) {
-                    this.game.multiplayerManager.notifyLocalTeleport();
-                }
-                // Force an immediate camera update if the player has a movement component
-                if (targetPlayer.movement && typeof targetPlayer.movement.updateCamera === 'function') {
-                    targetPlayer.movement.updateCamera();
-                    console.debug('Forced camera update after teleport');
-                }
-                
-                // Show arrival notification with spiral effects
-                if (this.game && this.game.hudManager) {
-                    const spiralSymbols = ['🌀', '🍥', '𖦹', '𖣐'];
-                    const randomSpiral = spiralSymbols[Math.floor(Math.random() * spiralSymbols.length)];
-                    this.game.hudManager.showNotification(
-                        `✨ Teleported to ${portal.targetName} ${randomSpiral}`,
-                        3000
-                    );
-                    
-                    // If this is a multiplier portal, show additional notification
-                    if (isMultiplierPortal) {
-                        this.game.hudManager.showNotification(
-                            `⚡ Enemy spawn rate: ${portal.multiplier}x ${randomSpiral}`,
-                            5000
-                        );
-                    }
-                }
+            if (typeof targetPlayer.clearTransientMovementEffects === 'function') {
+                targetPlayer.clearTransientMovementEffects();
             }
-            
-            // Zoom out minimap temporarily to show both locations (only for local player)
-            if (isLocalPlayer && this.game && this.game.hudManager && 
-                this.game.hudManager.components && 
-                this.game.hudManager.components.miniMapUI) {
-                
-                const miniMap = this.game.hudManager.components.miniMapUI;
-                
-                // Store original scale
-                const originalScale = miniMap.scale;
-                
-                // Calculate zoom factor based on distance
-                const sp = portal.sourcePosition, tp = portal.targetPosition;
-                const dx = tp.x - sp.x, dz = tp.z - sp.z;
-                const distance = distanceApprox2D(sp.x, sp.z, tp.x, tp.z);
-                const zoomFactor = Math.min(10, Math.max(3, Math.floor(distance / 500)));
-                
-                console.debug(`Teleport distance: ${distance.toFixed(2)}, using zoom factor: ${zoomFactor}`);
-                
-                // Zoom out based on distance
-                miniMap.setScale(originalScale * zoomFactor);
-                
-                // Zoom back in after 8 seconds for longer distances
-                setTimeout(() => {
-                    miniMap.setScale(originalScale);
-                }, 8000);
+            if (targetPlayer.model && typeof targetPlayer.model.setPosition === 'function') {
+                const position = new THREE.Vector3(portal.targetPosition.x, targetY, portal.targetPosition.z);
+                targetPlayer.model.setPosition(position);
+                console.debug('Updated player model position directly');
             }
-            
-            // If this is a multiplier portal, create a return portal and start wave mode
-            if (isMultiplierPortal && !isReturnPortal) {
-                this.createReturnPortal(
-                    new THREE.Vector3(
-                        portal.targetPosition.x + 10, // Offset slightly
-                        portal.targetPosition.y,
-                        portal.targetPosition.z + 10
-                    ),
-                    this.lastPlayerPosition
+            console.debug(`Successfully teleported player to: ${portal.targetPosition.x}, ${targetY}, ${portal.targetPosition.z}`);
+        } catch (error) {
+            console.error("Error teleporting player:", error);
+            return;
+        }
+
+        const isLocalPlayer = targetPlayer === this.game.player;
+        if (isLocalPlayer) {
+            if (this.game.multiplayerManager?.connection && !this.game.multiplayerManager.connection.isHost && this.game.multiplayerManager.connection.isConnected) {
+                this.game.multiplayerManager.notifyLocalTeleport();
+            }
+            if (targetPlayer.movement && typeof targetPlayer.movement.updateCamera === 'function') {
+                targetPlayer.movement.updateCamera();
+                console.debug('Forced camera update after teleport');
+            }
+            if (this.game && this.game.hudManager) {
+                const spiralSymbols = ['🌀', '🍥', '𖦹', '🏕️'];
+                const randomSpiral = spiralSymbols[Math.floor(Math.random() * spiralSymbols.length)];
+                this.game.hudManager.showNotification(
+                    `✨ Teleported to ${portal.targetName} ${randomSpiral}`,
+                    3000
                 );
-                
-                // Start wave-based enemy spawning with portal difficulty
-                const difficulty = portal.difficulty || 1.0;
-                const portalName = portal.sourceName || `${portal.multiplier}x Mode`;
-                
-                // Pass the destination position as the wave area center
-                this.waveManager.startWaveMode(difficulty, portalName, portal.targetPosition);
-                
-                // Modify terrain if we have a destination terrain type
-                if (portal.destinationTerrain && this.worldManager && this.worldManager.terrainManager) {
-                    this.modifyDestinationTerrain(portal.targetPosition, portal.destinationTerrain);
+                if (isMultiplierPortal) {
+                    this.game.hudManager.showNotification(
+                        `⚡ Enemy spawn rate: ${portal.multiplier}x ${randomSpiral}`,
+                        5000
+                    );
                 }
-            } else if (isReturnPortal) {
-                // Stop wave mode when returning
-                this.waveManager.stopWaveMode();
             }
-        }, this.effectDuration);
+        }
+
+        if (isLocalPlayer && this.game && this.game.hudManager?.components?.miniMapUI) {
+            const miniMap = this.game.hudManager.components.miniMapUI;
+            const originalScale = miniMap.scale;
+            const sp = portal.sourcePosition, tp = portal.targetPosition;
+            const distance = distanceApprox2D(sp.x, sp.z, tp.x, tp.z);
+            const zoomFactor = Math.min(10, Math.max(3, Math.floor(distance / 500)));
+            console.debug(`Teleport distance: ${distance.toFixed(2)}, using zoom factor: ${zoomFactor}`);
+            miniMap.setScale(originalScale * zoomFactor);
+            setTimeout(() => miniMap.setScale(originalScale), 8000);
+        }
+
+        if (isMultiplierPortal && !isReturnPortal) {
+            this.createReturnPortal(
+                new THREE.Vector3(
+                    portal.targetPosition.x + 10,
+                    portal.targetPosition.y,
+                    portal.targetPosition.z + 10
+                ),
+                this.lastPlayerPosition
+            );
+            const difficulty = portal.difficulty || 1.0;
+            const portalName = portal.sourceName || `${portal.multiplier}x Mode`;
+            this.waveManager.startWaveMode(difficulty, portalName, portal.targetPosition);
+            if (portal.destinationTerrain && this.worldManager?.terrainManager) {
+                this.modifyDestinationTerrain(portal.targetPosition, portal.destinationTerrain);
+            }
+        } else if (isReturnPortal) {
+            this.waveManager.stopWaveMode();
+        }
     }
     
     /**
@@ -1343,10 +1324,13 @@ export class TeleportManager {
         // Reset any previous state
         spiralContainer.classList.remove('extreme-spiral');
         spiralContainer.style.animation = '';
-        
+        const locale = this.game?.questStoryLocale === 'vi' ? 'vi' : 'en';
+        const spiralTextEl = spiralContainer.querySelector('.spiral-text');
+        if (spiralTextEl) {
+            spiralTextEl.textContent = getMapSelectionUiString('teleporting', locale).toUpperCase();
+        }
         // Show the container
         spiralContainer.style.display = 'block';
-        
         // Enhanced effect for extreme distances
         if (isExtremeDistance) {
             spiralContainer.classList.add('extreme-spiral');

@@ -1,10 +1,13 @@
 import { UIComponent } from "../UIComponent.js";
-import { SKILLS } from "../config/skills.js";
+import { SKILLS, PRIMARY_ATTACKS, NORMAL_SKILLS } from "../config/skills.js";
 import { getSkillIcon, getBuffIcon } from "../config/skill-icons.js";
 import { SKILL_TREES } from "../config/skill-tree.js";
 import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
 import { STORAGE_KEYS } from "../config/storage-keys.js";
 import storageService from "../save-manager/StorageService.js";
+import { SkillTreeGraphView } from "./SkillTreeGraphView.js";
+import { getSkillTreeNodeById, canLevelSkillTreeNode } from "../config/skill-tree-graph.js";
+import { getUnlockedSkillNames } from "../config/skill-unlocks.js";
 
 /**
  * Skill Tree UI component
@@ -35,6 +38,15 @@ export class SkillTreeUI extends UIComponent {
     // Initialize player skills data structure
     this.playerSkills = {};
     
+    // GDD graph view (skill-tree-graph.js)
+    this.graphView = null;
+
+    // 8-slot battle bar (combined with skill pick): slot 0 = primary (h), slots 1–7 = normal (1–7)
+    this.slotPrimary = null;
+    this.slotNormal = Array(7).fill(null);
+    this.orderedSkills = null;
+    this.pickerSlotIndex = null;
+
     // DOM elements
     this.elements = {
       skillPointsValue: null,
@@ -44,8 +56,12 @@ export class SkillTreeUI extends UIComponent {
       skillVariants: null,
       skillBuffs: null,
       saveButton: null,
-      continueButton: null, // New button to continue from variants to buffs
-      backButton: null      // New button to go back from buffs to variants
+      continueButton: null,
+      backButton: null,
+      nodeDetailPanel: null,
+      nodeLevelLine: null,
+      nodeRequirements: null,
+      levelUpButton: null,
     };
   }
   
@@ -58,13 +74,220 @@ export class SkillTreeUI extends UIComponent {
     // All skills always enabled
     return skills;
   }
+
+  /**
+   * Get skills ordered by SKILL_TREES (for slot bar picker).
+   * @returns {{ primaryAttacks: import('../config/skills.js').SkillConfig[], normalSkills: import('../config/skills.js').SkillConfig[] }}
+   */
+  getOrderedSkills() {
+    const skillTreeNames = Object.keys(SKILL_TREES);
+    const orderedPrimaryAttacks = PRIMARY_ATTACKS.slice().sort((a, b) => {
+      const aIndex = skillTreeNames.indexOf(a.name);
+      const bIndex = skillTreeNames.indexOf(b.name);
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return 0;
+    });
+    const orderedNormalSkills = NORMAL_SKILLS.slice().sort((a, b) => {
+      const aIndex = skillTreeNames.indexOf(a.name);
+      const bIndex = skillTreeNames.indexOf(b.name);
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return 0;
+    });
+    return { primaryAttacks: orderedPrimaryAttacks, normalSkills: orderedNormalSkills };
+  }
+
+  /** @returns {Set<string>} Unlocked skill names by story progress. */
+  getUnlockedSet() {
+    const completed = this.game?.questManager?.completedChapterQuestIds;
+    return getUnlockedSkillNames(completed || new Set());
+  }
+
+  /** Load slot assignment from localStorage (SELECTED_SKILLS). */
+  loadSlotSelectionFromStorage() {
+    const unlocked = this.getUnlockedSet();
+    this.slotPrimary = null;
+    this.slotNormal = Array(7).fill(null);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.SELECTED_SKILLS);
+      if (!raw) {
+        const primary = this.orderedSkills.primaryAttacks.find(s => unlocked.has(s.name));
+        this.slotPrimary = primary ? primary.name : (this.orderedSkills.primaryAttacks[0]?.name || null);
+        this.slotNormal = this.orderedSkills.normalSkills
+          .filter(s => unlocked.has(s.name))
+          .map(s => s.name)
+          .slice(0, 7);
+        return;
+      }
+      const saved = JSON.parse(raw);
+      if (saved.length > 0 && saved[0].id) {
+        const primary = saved.find(s => s.isPrimary);
+        this.slotPrimary = (primary && unlocked.has(primary.id)) ? primary.id : null;
+        saved.filter(s => !s.isPrimary && unlocked.has(s.id)).forEach((s, i) => {
+          if (i < 7) this.slotNormal[i] = s.id;
+        });
+      } else {
+        const primary = saved.find(s => s.primaryAttack);
+        this.slotPrimary = (primary && unlocked.has(primary.name)) ? primary.name : null;
+        saved.filter(s => !s.primaryAttack && unlocked.has(s.name)).forEach((s, i) => {
+          if (i < 7) this.slotNormal[i] = s.name;
+        });
+      }
+      if (!this.slotPrimary) {
+        const primary = this.orderedSkills.primaryAttacks.find(s => unlocked.has(s.name));
+        this.slotPrimary = primary ? primary.name : null;
+      }
+    } catch (e) {
+      console.warn('SkillTreeUI: loadSlotSelectionFromStorage failed', e);
+    }
+  }
+
+  /**
+   * Render the 8-slot battle bar (h + 1–7). Same visual as SkillsUI / skill selection preview.
+   */
+  renderSlotBar() {
+    const container = this.elements.slotBar;
+    if (!container) return;
+    const keys = ['h', '1', '2', '3', '4', '5', '6', '7'];
+    const battleSkills = [];
+    if (this.slotPrimary) {
+      const skill = this.orderedSkills.primaryAttacks.find(s => s.name === this.slotPrimary);
+      if (skill) {
+        const iconData = getSkillIcon(skill.name);
+        battleSkills.push({ name: skill.name, keyDisplay: 'h', iconData, isEmpty: false, isPrimary: true });
+      }
+    } else {
+      battleSkills.push({ name: 'Empty', keyDisplay: 'h', iconData: {}, isEmpty: true, isPrimary: true });
+    }
+    for (let i = 0; i < 7; i++) {
+      const name = this.slotNormal[i];
+      if (name) {
+        const skill = this.orderedSkills.normalSkills.find(s => s.name === name);
+        if (skill) {
+          const iconData = getSkillIcon(skill.name);
+          battleSkills.push({ name: skill.name, keyDisplay: String(i + 1), iconData, isEmpty: false, isPrimary: false });
+        } else {
+          battleSkills.push({ name: 'Empty', keyDisplay: String(i + 1), iconData: {}, isEmpty: true, isPrimary: false });
+        }
+      } else {
+        battleSkills.push({ name: 'Empty', keyDisplay: String(i + 1), iconData: {}, isEmpty: true, isPrimary: false });
+      }
+    }
+    const html = battleSkills.map((s, idx) => {
+      const color = s.isEmpty ? '#555555' : (s.iconData.color || '#ffffff');
+      const icon = s.isEmpty ? '+' : (s.iconData.emoji || '✨');
+      const cssClass = s.isEmpty ? '' : (s.iconData.cssClass || '');
+      const boxShadow = s.isEmpty ? '' : `box-shadow: 0 0 10px ${color}40;`;
+      const nameDiv = s.isEmpty ? '' : `<div class="skill-name">${s.name}</div>`;
+      const extraClass = s.isEmpty ? 'empty-slot ' : '';
+      return `<div class="skill-button skill-tree-slot ${extraClass}" data-slot-index="${idx}" style="border-color: ${color}; ${boxShadow}">
+        ${nameDiv}<div class="skill-icon ${cssClass}">${icon}</div><div class="skill-key">${s.keyDisplay}</div>
+      </div>`;
+    }).join('');
+    container.innerHTML = html;
+  }
+
+  /** Show picker for slot (0 = primary, 1–7 = normal). */
+  showPickerForSlot(slotIndex) {
+    this.pickerSlotIndex = slotIndex;
+    const picker = this.elements.slotPicker;
+    const titleEl = this.elements.slotPickerTitle;
+    const listEl = this.elements.slotPickerList;
+    if (!picker || !listEl) return;
+    const unlocked = this.getUnlockedSet();
+    if (slotIndex === 0) {
+      titleEl.textContent = 'Primary attack (key: h)';
+      const skills = this.orderedSkills.primaryAttacks.filter(s => unlocked.has(s.name));
+      listEl.innerHTML = skills.map(s => {
+        const iconData = getSkillIcon(s.name);
+        return `<div class="skill-tree-picker-item" data-skill-name="${s.name}">${iconData.emoji || '✨'} ${s.name}</div>`;
+      }).join('');
+    } else {
+      titleEl.textContent = `Normal skill (key: ${slotIndex})`;
+      const skills = this.orderedSkills.normalSkills.filter(s => unlocked.has(s.name));
+      listEl.innerHTML = skills.map(s => {
+        const iconData = getSkillIcon(s.name);
+        return `<div class="skill-tree-picker-item" data-skill-name="${s.name}">${iconData.emoji || '✨'} ${s.name}</div>`;
+      }).join('');
+    }
+    listEl.querySelectorAll('.skill-tree-picker-item').forEach(el => {
+      el.addEventListener('click', () => {
+        this.applySkillToSlot(slotIndex, el.getAttribute('data-skill-name'));
+        this.hideSlotPicker();
+        this.renderSlotBar();
+      });
+    });
+    if (this.elements.slotPickerClear) {
+      this.elements.slotPickerClear.onclick = () => {
+        this.clearSlot(slotIndex);
+        this.hideSlotPicker();
+        this.renderSlotBar();
+      };
+    }
+    if (this.elements.slotPickerBackdrop) {
+      this.elements.slotPickerBackdrop.onclick = () => this.hideSlotPicker();
+    }
+    picker.style.display = 'flex';
+  }
+
+  hideSlotPicker() {
+    this.pickerSlotIndex = null;
+    if (this.elements.slotPicker) this.elements.slotPicker.style.display = 'none';
+  }
+
+  applySkillToSlot(slotIndex, skillName) {
+    if (slotIndex === 0) {
+      this.slotPrimary = skillName;
+    } else if (slotIndex >= 1 && slotIndex <= 7) {
+      this.slotNormal[slotIndex - 1] = skillName;
+    }
+  }
+
+  clearSlot(slotIndex) {
+    if (slotIndex === 0) this.slotPrimary = null;
+    else if (slotIndex >= 1 && slotIndex <= 7) this.slotNormal[slotIndex - 1] = null;
+  }
+
+  /** Persist slot selection to localStorage and refresh player skills UI. */
+  saveSlotSelection() {
+    if (!this.slotPrimary) return;
+    const selectedSkillIds = [
+      { id: this.slotPrimary, isPrimary: true },
+      ...this.slotNormal.filter(Boolean).map(name => ({ id: name, isPrimary: false }))
+    ];
+    try {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_SKILLS, JSON.stringify(selectedSkillIds));
+    } catch (e) {
+      console.warn('SkillTreeUI: saveSlotSelection failed', e);
+      return;
+    }
+    if (this.game?.player) {
+      this.game.player.skills.skills = [];
+      this.game.player.skills.loadSkillsFromIds(selectedSkillIds);
+      if (this.game.hudManager?.components.skillsUI) this.game.hudManager.components.skillsUI.init();
+    }
+  }
   
   /**
    * Refresh the skill tree when custom skills setting changes
    */
   async refreshSkillTree() {
-    // Re-render the skill tree (all skills always enabled)
     this.renderSkillTree();
+    if (this.graphView) this.graphView.refresh();
+  }
+
+  /**
+   * When skill tree is shown, sync points and graph from player/quest state.
+   */
+  show() {
+    super.show();
+    this.loadSlotSelectionFromStorage();
+    this.renderSlotBar();
+    this.syncSkillPointsFromPlayer();
+    this.updateNodeDetailPanel(this.graphView ? this.graphView.getSelectedNodeId() : null);
   }
 
   /**
@@ -88,6 +311,20 @@ export class SkillTreeUI extends UIComponent {
     // Initialize DOM element references
     this.initDOMElements();
 
+    // 8-slot bar: ordered skills and slot state from storage
+    this.orderedSkills = this.getOrderedSkills();
+    this.loadSlotSelectionFromStorage();
+    this.renderSlotBar();
+    if (this.elements.slotBar) {
+      this.elements.slotBar.addEventListener('click', (e) => {
+        const slot = e.target.closest('.skill-tree-slot');
+        if (slot) {
+          const idx = parseInt(slot.getAttribute('data-slot-index'), 10);
+          if (!isNaN(idx) && idx >= 0 && idx <= 7) this.showPickerForSlot(idx);
+        }
+      });
+    }
+
     // Hide initially
     this.hide();
     
@@ -97,25 +334,115 @@ export class SkillTreeUI extends UIComponent {
     // Initialize player skills data structure
     await this.initPlayerSkills();
 
-    // Render the skill tree
+    // GDD graph view: mount and init
+    const graphMount = document.getElementById('skill-tree-graph-mount');
+    if (graphMount && this.game) {
+      this.graphView = new SkillTreeGraphView(graphMount, this.game, {
+        onSelectNode: (nodeId) => this.updateNodeDetailPanel(nodeId),
+        onLevelUp: () => {}, // level-up is done via button in detail panel
+      });
+      this.graphView.init();
+    }
+
+    // Render the skill tree (legacy list; kept for possible future use)
     this.renderSkillTree();
-    
-    // Initialize with no skill selected - show empty variants panel
-    this.showSkillVariants(null);
-    
+
+    // Initialize with no skill selected
+    this.updateNodeDetailPanel(null);
+
     // Add event listener for save button
     if (this.elements.saveButton) {
       this.elements.saveButton.addEventListener('click', () => {
         this.saveSkillTree();
       });
-    } else {
-      console.error("Save button element not found in the DOM");
     }
-    
-    // Initialize available points display
-    this.updateAvailablePoints();
+    if (this.elements.levelUpButton) {
+      this.elements.levelUpButton.addEventListener('click', () => this.doGraphLevelUp());
+    }
+
+    // Sync skill points from player (GDD)
+    this.syncSkillPointsFromPlayer();
 
     return true;
+  }
+
+  /**
+   * Sync skill points display from game.player.stats (GDD).
+   */
+  syncSkillPointsFromPlayer() {
+    const stats = this.game?.player?.stats;
+    const points = (stats && typeof stats.skillPoints === 'number') ? stats.skillPoints : 0;
+    if (this.elements.skillPointsValue) this.elements.skillPointsValue.textContent = points;
+    if (this.graphView) this.graphView.refresh();
+  }
+
+  /**
+   * Update the node detail panel (and Level Up button) when a graph node is selected.
+   * @param {string|null} nodeId
+   */
+  updateNodeDetailPanel(nodeId) {
+    if (!this.elements.skillDetailName || !this.elements.skillDetailDescription) return;
+    if (!this.elements.nodeLevelLine || !this.elements.nodeRequirements || !this.elements.levelUpButton) return;
+
+    if (!nodeId) {
+      this.elements.skillDetailName.textContent = 'Select a node';
+      this.elements.skillDetailDescription.textContent = 'Click a node on the graph to view details and spend skill points.';
+      this.elements.nodeLevelLine.textContent = '';
+      this.elements.nodeRequirements.textContent = '';
+      this.elements.levelUpButton.style.display = 'none';
+      return;
+    }
+
+    const node = getSkillTreeNodeById(nodeId);
+    const stats = this.game?.player?.stats;
+    const questManager = this.game?.questManager;
+    const nodeLevels = (stats && stats.skillTreeNodeLevels) ? { ...stats.skillTreeNodeLevels } : {};
+    const completedChapterQuestIds = (questManager && questManager.completedChapterQuestIds)
+      ? new Set(questManager.completedChapterQuestIds)
+      : new Set();
+    const currentLevel = nodeLevels[nodeId] ?? 0;
+
+    this.elements.skillDetailName.textContent = node ? node.name : nodeId;
+    this.elements.skillDetailDescription.textContent = node ? node.description : '';
+
+    this.elements.nodeLevelLine.textContent = `Level ${currentLevel} / ${node ? node.maxLevel : '?'} • Cost: ${node ? node.costPerLevel : 1} skill point(s) per level`;
+    const reqParts = [];
+    if (node && (node.requiredLevel ?? 1) > 1) {
+      reqParts.push(`Requires level ${node.requiredLevel}`);
+    }
+    if (node && node.requiredNodes && node.requiredNodes.length) {
+      reqParts.push('Requires: ' + node.requiredNodes.map(id => getSkillTreeNodeById(id)?.name || id).join(', '));
+    }
+    if (node && node.requireChapter5) reqParts.push('Requires: Chapter 5 completed');
+    this.elements.nodeRequirements.textContent = reqParts.join(' • ') || '';
+
+    const playerLevel = stats?.level ?? 1;
+    const canLevel = node && stats && canLevelSkillTreeNode(node, nodeLevels, completedChapterQuestIds, playerLevel)
+      && (stats.skillPoints ?? 0) >= (node.costPerLevel ?? 1);
+    this.elements.levelUpButton.style.display = canLevel ? 'block' : 'none';
+  }
+
+  /**
+   * Spend one skill point on the currently selected graph node (GDD).
+   */
+  doGraphLevelUp() {
+    const nodeId = this.graphView ? this.graphView.getSelectedNodeId() : null;
+    if (!nodeId || !this.game || !this.game.player || !this.game.player.stats) return;
+    const questManager = this.game.questManager;
+    const completedChapterQuestIds = (questManager && questManager.completedChapterQuestIds)
+      ? questManager.completedChapterQuestIds
+      : new Set();
+    const spent = this.game.player.stats.spendSkillPointOnNode(nodeId, completedChapterQuestIds);
+    if (spent) {
+      this.syncSkillPointsFromPlayer();
+      this.updateNodeDetailPanel(nodeId);
+      if (this.game.saveManager && typeof this.game.saveManager.saveGame === 'function') {
+        this.game.saveManager.saveGame(false, true).catch(() => {});
+      }
+      if (this.game.hudManager && typeof this.game.hudManager.showNotification === 'function') {
+        this.game.hudManager.showNotification('Skill upgraded!');
+      }
+    }
   }
   
   /**
@@ -131,6 +458,16 @@ export class SkillTreeUI extends UIComponent {
     this.elements.skillVariants = document.getElementById('skill-variants');
     this.elements.skillBuffs = document.getElementById('skill-buffs');
     this.elements.saveButton = document.getElementById('skill-tree-save-btn');
+    this.elements.nodeDetailPanel = document.getElementById('skill-tree-node-detail');
+    this.elements.nodeLevelLine = document.getElementById('skill-node-level-line');
+    this.elements.nodeRequirements = document.getElementById('skill-node-requirements');
+    this.elements.levelUpButton = document.getElementById('skill-tree-level-up-btn');
+    this.elements.slotBar = document.getElementById('skill-tree-slots');
+    this.elements.slotPicker = document.getElementById('skill-tree-slot-picker');
+    this.elements.slotPickerList = document.getElementById('skill-tree-slot-picker-list');
+    this.elements.slotPickerTitle = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-title');
+    this.elements.slotPickerClear = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-clear');
+    this.elements.slotPickerBackdrop = this.elements.slotPicker?.querySelector('.skill-tree-slot-picker-backdrop');
     
     // Create continue button for mobile optimization
     this.elements.continueButton = document.createElement('button');
@@ -1239,16 +1576,15 @@ ${iconData.emoji}
       }
     }
     
-    // Update the game with the new skills
+    // Update the game with the new skills (variants/buffs)
     if (this.game && this.game.player) {
-      // Reload the player skills to apply the new variants
       this.game.player.loadSkillTreeData();
       console.debug("Player skills updated with new variants");
     }
-    
+    // Persist 8-slot selection and refresh battle bar
+    this.saveSlotSelection();
     // Show success message
     this.game && this.game.hudManager.showNotification("Skill tree saved successfully!");
-    
     // Close the skill tree
     this.hide();
     this.game.resume(false);

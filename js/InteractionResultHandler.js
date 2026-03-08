@@ -92,15 +92,25 @@ export class InteractionResultHandler {
      * @returns {boolean} - Whether the interaction was handled successfully
      */
     handleBossSpawnInteraction(result, interactiveObject) {
+        // When spawn is marked as chapter_boss, use the active chapter quest's boss so the correct story boss appears
+        let bossType = result.bossType;
+        if (bossType === 'chapter_boss' && this.game && this.game.questManager) {
+            const activeChapter = this.game.questManager.getActiveChapterQuest();
+            if (activeChapter && activeChapter.boss && activeChapter.boss.enemyType) {
+                bossType = activeChapter.boss.enemyType;
+            }
+        }
+        
         // Show notification
         if (this.game && this.game.hudManager) {
-            this.game.hudManager.showNotification(result.message, 5);
+            const message = result.message || `You have awakened the ${(bossType || 'boss').replace(/_/g, ' ')}!`;
+            this.game.hudManager.showNotification(message, 5);
         }
         
         // Spawn the boss if enemy manager exists (async - fire and forget)
         if (this.game && this.game.enemyManager && interactiveObject && interactiveObject.position) {
             void this.game.enemyManager.spawnBoss(
-                result.bossType,
+                bossType,
                 interactiveObject.position
             );
             

@@ -14,7 +14,14 @@ export class PlayerSerializer {
         }
         const { x, y, z } = player.getPosition()
         return {
-            stats: { ...player.stats },
+            stats: {
+                ...player.stats,
+                skillTreeNodeLevels: player.stats.skillTreeNodeLevels
+                    ? { ...player.stats.skillTreeNodeLevels }
+                    : {},
+                enlightenmentModeRemaining: player.stats.enlightenmentModeRemaining ?? 0,
+                enlightenmentModeCooldownRemaining: player.stats.enlightenmentModeCooldownRemaining ?? 0,
+            },
             position: { x, y, z },
             level: player.stats.level,
             experience: player.stats.experience,
@@ -39,13 +46,22 @@ export class PlayerSerializer {
         
         console.debug('Loading player data:', Object.keys(playerData));
         
-        // Load stats
+        // Load stats (GDD: map legacy dexterity → agility; do not set dexterity)
         if (playerData.stats) {
             console.debug('Loading player stats');
-            // Instead of replacing the stats object, update its properties
             Object.keys(playerData.stats).forEach(key => {
-                player.stats[key] = playerData.stats[key];
+                if (key === 'dexterity') {
+                    player.stats.agility = playerData.stats[key];
+                } else if (key === 'skillTreeNodeLevels') {
+                    const raw = playerData.stats.skillTreeNodeLevels;
+                    player.stats.skillTreeNodeLevels = (raw && typeof raw === 'object') ? { ...raw } : {};
+                } else {
+                    player.stats[key] = playerData.stats[key];
+                }
             });
+            if (typeof player.stats._recalcDerivedStats === 'function') {
+                player.stats._recalcDerivedStats();
+            }
         }
         
         // Load position

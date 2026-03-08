@@ -94,6 +94,9 @@ export class CameraControlUI extends UIComponent {
         this.cameraState.tapToResetCamera = false; // When true, next tap on button will reset camera to origin
         this.cameraOverlay = null; // Right-side overlay for drag-to-look when view control mode is on
         
+        // Drag sensitivity: multiplier so the same drag rotates the camera further (~3× per IMPLEMENTATION_PLAN 7.1)
+        this.DRAG_SENSITIVITY_MULTIPLIER = 3;
+        
         console.debug("CameraControlUI initialized with camera mode support");
     }
     
@@ -1084,9 +1087,9 @@ export class CameraControlUI extends UIComponent {
         const totalDeltaX = clientX - this.cameraState.startX;
         const totalDeltaY = clientY - this.cameraState.startY;
         
-        // Use lower sensitivity on mobile/touch for better control (avoids "too much" movement)
+        // Drag sensitivity: multiplier so same drag rotates further (Phase 7.1 — camera controls)
         const isTouch = this.cameraState.isTouch;
-        const baseSensitivity = isTouch ? 0.002 : 0.005;
+        const baseSensitivity = (isTouch ? 0.002 : 0.005) * this.DRAG_SENSITIVITY_MULTIPLIER;
         const horizontalSensitivity = baseSensitivity;
         const verticalSensitivity = baseSensitivity;
         

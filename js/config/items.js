@@ -869,6 +869,51 @@ export const ITEM_TEMPLATES = [
         ],
     },
     
+    // Prayer Beads (GDD slot)
+    {
+        id: "basicPrayerBeads",
+        name: "Simple Prayer Beads",
+        type: "accessory",
+        subType: "prayerBeads",
+        description: "Basic beads used for meditation and focus.",
+        icon: "📿",
+        baseStats: {
+            manaRegen: 3,
+            healthRegen: 1
+        },
+    },
+    {
+        id: "beadsOfStillWater",
+        name: "Beads of Still Water",
+        type: "accessory",
+        subType: "prayerBeads",
+        description: "Meditation Field heals 5% max HP per second while active. Legendary.",
+        icon: "💧",
+        rarity: "legendary",
+        baseStats: {
+            manaRegen: 8,
+            healthRegen: 3
+        },
+        /** GDD: legendary modifies skill behavior. This item enables Meditation Field to heal 5% max HP/s. */
+        legendarySkillBehavior: {
+            skillId: "meditation_field",
+            effect: "meditation_field_heal_5pct_max_hp_per_sec"
+        },
+    },
+    
+    // Relics (GDD slot)
+    {
+        id: "basicRelic",
+        name: "Fragment of Harmony",
+        type: "relic",
+        description: "A small relic that resonates with inner peace.",
+        icon: "✨",
+        baseStats: {
+            healthBonus: 20,
+            manaBonus: 20
+        },
+    },
+    
     // ==================== CONSUMABLES ====================
     
     // Potions

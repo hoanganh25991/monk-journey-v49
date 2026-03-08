@@ -71,20 +71,12 @@ export function startHUDGuide() {
       desc: 'Manage your equipment and items. Equip gear to boost your stats.',
     },
     {
-      key: 'skillTree',
-      get el() {
-        return document.getElementById('skill-tree-button');
-      },
-      title: 'Skill Tree',
-      desc: 'Spend skill points to unlock and upgrade your monk abilities.',
-    },
-    {
-      key: 'skillSelection',
+      key: 'skills',
       get el() {
         return document.getElementById('skill-selection-button');
       },
-      title: 'Skill Selection',
-      desc: 'Choose which skills to use in battle. Configure your loadout.',
+      title: 'Skills',
+      desc: 'Spend skill points to unlock and upgrade abilities, and assign skills to battle slots (h + 1–7).',
     },
     {
       key: 'home',

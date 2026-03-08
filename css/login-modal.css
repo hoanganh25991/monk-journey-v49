@@ -1,93 +1,58 @@
-/* 
- * login-modal.css - Styles for login and authentication modals
+/*
+ * login-modal.css - Styles for login and confirmation modals
+ * Matches invite-from-host (Accept/Decline) yellow/gold theme
  */
 
 .login-modal-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
+    inset: 0;
     z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    background: var(--modal-backdrop);
 }
 
 .login-modal-dialog {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 90%;
-    width: 350px;
+    position: relative;
+    width: 100%;
+    max-width: 360px;
+    padding: var(--padding-large);
+    background: var(--modal-content-bg);
+    border: var(--modal-content-border);
+    border-radius: var(--modal-content-radius);
+    box-shadow: var(--modal-content-shadow);
     text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .login-modal-title {
-    margin: 0 0 15px 0;
-    color: #333;
+    margin: 0 0 var(--margin-medium);
     font-size: 1.2em;
     font-weight: bold;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .login-modal-message {
-    margin: 0 0 20px 0;
-    color: #555;
+    margin: 0 0 var(--margin-large);
+    font-size: 1rem;
     line-height: 1.4;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .login-modal-buttons {
     display: flex;
+    gap: var(--margin-small);
     justify-content: center;
-    gap: 10px;
-}
-
-.login-btn {
-    padding: 10px 20px;
-    background-color: #4285F4;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.cancel-btn {
-    padding: 10px 20px;
-    background-color: #f1f1f1;
-    color: #333;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.retry-btn {
-    padding: 8px 15px;
-    background-color: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 10px 5px;
-}
-
-.abort-btn {
-    padding: 8px 15px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 10px 5px;
+    flex-wrap: wrap;
 }
 
 .login-modal-loader {
     display: none;
-    margin: 15px auto;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    margin: var(--margin-medium) auto;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top: 4px solid var(--theme-gold);
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -96,21 +61,21 @@
 
 .login-modal-status {
     margin: 10px 0 0 0;
-    color: #555;
     display: none;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .login-modal-status.success {
-    color: #27ae60;
+    color: #90ee90;
 }
 
 .login-modal-status.error {
-    color: #e74c3c;
+    color: #ffb3b3;
 }
 
-/* Conflict resolution modal specific styles */
+/* Conflict resolution modal - dark theme */
 .conflict-data-preview {
-    background-color: #f8f8f8;
+    background-color: rgba(255, 255, 255, 0.08);
     padding: 10px;
     border-radius: 4px;
     margin-bottom: 10px;
@@ -120,12 +85,14 @@
     max-height: 100px;
     overflow-y: auto;
     word-break: break-all;
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 204, 0, 0.3);
 }
 
 .conflict-data-label {
     font-weight: bold;
     margin-bottom: 5px;
-    color: #333;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 @keyframes spin {
@@ -133,15 +100,22 @@
     100% { transform: rotate(360deg); }
 }
 
-/* Mobile optimizations */
+/* Mobile */
 @media (max-width: 480px) {
     .login-modal-dialog {
         width: 85%;
-        padding: 15px;
+        padding: var(--padding-medium);
     }
-    
-    .login-btn, .cancel-btn {
-        padding: 12px 15px;
-        font-size: 1em;
+}
+
+@media (max-height: 600px) {
+    .login-modal-dialog {
+        padding: var(--padding-medium);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .login-modal-message {
+        font-size: 0.9rem;
+        margin-bottom: var(--margin-medium);
     }
 }

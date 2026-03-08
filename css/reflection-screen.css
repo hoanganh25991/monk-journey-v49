@@ -1,0 +1,93 @@
+/* reflection-screen.css — Post-boss reflection (GDD §11) */
+
+#reflection-screen {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    z-index: 210;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+#reflection-screen-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--padding-x-large, 2rem);
+    border-radius: var(--modal-content-radius, 12px);
+    background: var(--modal-content-bg, rgba(20, 18, 15, 0.95));
+    border: 3px solid var(--theme-gold-border-subtle, rgba(255, 204, 0, 0.4));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    max-width: 90%;
+    width: 480px;
+}
+
+/* R-Q5: "What did you notice?" step before the lesson */
+#reflection-screen .reflection-question-prompt {
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 var(--margin-medium, 0.75rem);
+}
+
+#reflection-screen .reflection-question-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin-medium, 0.75rem);
+    align-items: center;
+    width: 100%;
+}
+
+#reflection-screen .reflection-question-option {
+    min-width: 200px;
+    white-space: normal;
+    text-align: center;
+}
+
+#reflection-screen .reflection-chapter-title {
+    color: var(--theme-gold, rgba(255, 204, 0, 0.95));
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 var(--margin-medium, 0.75rem);
+}
+
+#reflection-screen .reflection-quote {
+    color: rgba(255, 230, 180, 0.95);
+    font-size: 22px;
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: var(--margin-x-large, 2rem);
+    font-style: italic;
+}
+
+#reflection-screen .reflection-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--margin-medium, 0.75rem);
+    align-items: center;
+}
+
+#reflection-screen .reflection-continue,
+#reflection-screen .reflection-pom {
+    min-width: 200px;
+}
+
+#reflection-screen .reflection-pom {
+    background: linear-gradient(135deg, rgba(180, 120, 60, 0.9), rgba(120, 80, 40, 0.9));
+    border-color: rgba(255, 200, 100, 0.6);
+}
+
+@media (max-height: 600px) {
+    #reflection-screen .reflection-quote {
+        font-size: 18px;
+        margin-bottom: var(--margin-medium, 1rem);
+    }
+}

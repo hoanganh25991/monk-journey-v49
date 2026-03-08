@@ -2,6 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';
+import { getChapterQuestById } from '../../config/chapter-quests.js';
 import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
@@ -55,66 +56,137 @@ export class InteractiveObjectManager {
     /**
      * Load interactive objects from map data
      * @param {Array} interactiveData - Array of interactive object data from map
+     * @param {Object} [game] - Game instance (for chapter quest: only place marker if it's the next quest)
      */
-    loadFromMapData(interactiveData) {
+    loadFromMapData(interactiveData, game = null) {
+        const g = game || this.game;
         if (!interactiveData || !Array.isArray(interactiveData)) {
-            console.warn('No interactive object data provided to load');
+            this.clear();
             return;
         }
-        
         console.debug(`Loading ${interactiveData.length} interactive objects from map data`);
-        
-        // Clear existing interactive objects
         this.clear();
-        
-        interactiveData.forEach(objData => {
-            if (objData.position && objData.type) {
-                switch (objData.type) {
-                    case 'chest':
-                        this.createTreasureChest(
-                            objData.position.x, 
-                            objData.position.z,
-                            objData.isOpen
-                        );
-                        break;
-                    case 'quest':
-                        this.createQuestMarker(
-                            objData.position.x, 
-                            objData.position.z, 
-                            objData.name || 'Quest'
-                        );
-                        break;
-                    case 'boss_spawn':
-                        this.createBossSpawnPoint(
-                            objData.position.x, 
-                            objData.position.z, 
-                            objData.bossType || 'generic_boss'
-                        );
-                        break;
-                    default:
-                        console.warn(`Unknown interactive object type: ${objData.type}`);
+        interactiveData.forEach((objData) => {
+            if (!objData.position || !objData.type) return;
+            switch (objData.type) {
+                case 'chest':
+                    this.createTreasureChest(
+                        objData.position.x,
+                        objData.position.z,
+                        objData.isOpen
+                    );
+                    break;
+                case 'quest':
+                    this.createQuestMarker(
+                        objData.position.x,
+                        objData.position.z,
+                        objData.name || 'Quest'
+                    );
+                    break;
+                case 'chapter_quest': {
+                    const nextQuest = g?.questManager?.getNextChapterQuestForMarker?.() ?? null;
+                    if (!nextQuest || nextQuest.id !== objData.chapterQuestId) return;
+                    const quest = getChapterQuestById(objData.chapterQuestId);
+                    if (!quest) return;
+                    this.createChapterQuestMarker(
+                        objData.position.x,
+                        objData.position.z,
+                        quest
+                    );
+                    break;
                 }
+                case 'boss_spawn':
+                    this.createBossSpawnPoint(
+                        objData.position.x,
+                        objData.position.z,
+                        objData.bossType || 'generic_boss'
+                    );
+                    break;
+                default:
+                    console.warn(`Unknown interactive object type: ${objData.type}`);
             }
         });
-        
         console.debug(`Successfully loaded ${this.interactiveObjects.length} interactive objects`);
     }
     
     /**
      * Create default interactive objects (for backward compatibility)
+     * No longer creates generic quest markers; chapter quest markers are placed by ensureChapterQuestMarker().
      */
     createDefaultInteractiveObjects() {
         // Create treasure chests
         this.createTreasureChest(10, 10);
         this.createTreasureChest(-15, 5);
         this.createTreasureChest(5, -15);
-        
-        // Create quest markers
-        this.createQuestMarker(25, 15, 'Main Quest');
-        this.createQuestMarker(-10, -20, 'Side Quest');
-        this.createQuestMarker(15, -5, 'Exploration');
     }
-    
+
+    /**
+     * Ensure exactly one chapter quest marker exists for the next available quest.
+     * Call after save load and when the next quest changes. Removes any existing chapter quest marker first.
+     * @param {import('../../QuestManager.js').QuestManager} questManager
+     */
+    ensureChapterQuestMarker(questManager) {
+        const nextQuest = questManager?.getNextChapterQuestForMarker?.() ?? null;
+        this.removeChapterQuestMarkers();
+        if (!nextQuest || !nextQuest.position) return;
+        const pos = nextQuest.position;
+        this.createChapterQuestMarker(pos.x, pos.z, nextQuest);
+    }
+
+    /**
+     * Remove all chapter quest markers from the scene.
+     */
+    removeChapterQuestMarkers() {
+        const toRemove = this.interactiveObjects.filter(obj => obj.type === 'chapter_quest');
+        toRemove.forEach(obj => {
+            if (obj.mesh?.parent) obj.mesh.parent.remove(obj.mesh);
+        });
+        this.interactiveObjects = this.interactiveObjects.filter(obj => obj.type !== 'chapter_quest');
+    }
+
+    /**
+     * Get positions of chapter quest markers (for minimap).
+     * @returns {{ x: number, z: number }[]}
+     */
+    getChapterQuestMarkerPositions() {
+        return this.interactiveObjects
+            .filter(obj => obj.type === 'chapter_quest' && obj.position)
+            .map(obj => ({ x: obj.position.x, z: obj.position.z }));
+    }
+
+    /**
+     * Create a chapter quest marker at the specified position. Accepting the quest happens on click.
+     * @param {number} x - X coordinate
+     * @param {number} z - Z coordinate
+     * @param {Object} quest - Chapter quest object (id, title, description, etc.)
+     * @returns {THREE.Group} - The quest marker group
+     */
+    createChapterQuestMarker(x, z, quest) {
+        const questMarker = new QuestMarker(quest.id, this.game, { chapterQuest: quest });
+        const markerGroup = questMarker.createMesh();
+
+        const y = this.worldManager.getTerrainHeight(x, z);
+        markerGroup.position.set(x, y, z);
+
+        (this.game?.getWorldGroup?.() || this.scene).add(markerGroup);
+
+        this.interactiveObjects.push({
+            type: 'chapter_quest',
+            questId: quest.id,
+            name: quest.title || quest.id,
+            mesh: markerGroup,
+            position: new THREE.Vector3(x, y, z),
+            interactionRadius: 3,
+            onInteract: () => {
+                if (this.game?.showChapterQuestAcceptDialog) {
+                    this.game.showChapterQuestAcceptDialog(quest);
+                }
+            },
+        });
+
+        return markerGroup;
+    }
+
     /**
      * Create a treasure chest at the specified position
      * @param {number} x - X coordinate
@@ -138,12 +210,12 @@ export class InteractiveObjectManager {
             chest.open();
         }
         
-        // Add to interactive objects
+        // Add to interactive objects (generous radius so auto-open triggers when player is close)
         this.interactiveObjects.push({
             type: 'chest',
             mesh: chestGroup,
             position: new THREE.Vector3(x, y, z),
-            interactionRadius: 2,
+            interactionRadius: 3.5,
             isOpen: isOpen,
             onInteract: () => {
                 // Open chest animation and give reward
@@ -378,17 +450,12 @@ export class InteractiveObjectManager {
     }
     
     /**
-     * Clear all interactive objects
+     * Clear all interactive objects (remove from actual parent, e.g. worldGroup, to avoid duplicate markers).
      */
     clear() {
-        // Remove all interactive objects from the scene
         this.interactiveObjects.forEach(obj => {
-            if (obj.mesh && obj.mesh.parent) {
-                this.scene.remove(obj.mesh);
-            }
+            if (obj.mesh?.parent) obj.mesh.parent.remove(obj.mesh);
         });
-        
-        // Reset collection
         this.interactiveObjects = [];
     }
     

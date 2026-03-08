@@ -431,6 +431,7 @@ export class MiniMapUI extends UIComponent {
         
         // Draw content relative to virtual center (so drag pans the view correctly)
         this.drawStructures(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawQuestMarkers(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawCaves(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawTeleportPortals(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawEnemies(centerWorldX, centerWorldZ, centerX, centerY);
@@ -704,6 +705,43 @@ export class MiniMapUI extends UIComponent {
             const type = (structure.type || '').toLowerCase();
             const size = structureSizeMap[type] || 6;
             drawStructure(structure.position, type, size);
+        });
+    }
+
+    /**
+     * Draw chapter quest markers on the mini map (next quest to pick up).
+     * @param {number} centerWorldX - World X at the center of the view
+     * @param {number} centerWorldZ - World Z at the center of the view
+     * @param {number} centerX - Center X of the mini map (screen)
+     * @param {number} centerY - Center Y of the mini map (screen)
+     */
+    drawQuestMarkers(centerWorldX, centerWorldZ, centerX, centerY) {
+        const positions = this.game.world?.interactiveManager?.getChapterQuestMarkerPositions?.() || [];
+        if (positions.length === 0) return;
+
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+        const radius = this.mapSize / 2 - 2;
+
+        positions.forEach(pos => {
+            const dx = pos.x - centerWorldX;
+            const dz = pos.z - centerWorldZ;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
+            const relX = (pos.x - centerWorldX) * this.scale;
+            const relY = (pos.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
+            const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+            if (distSq > radius * radius) return;
+
+            const size = 8;
+            this.ctx.fillStyle = 'rgba(255, 204, 0, 0.95)';
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, size * 0.6, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.strokeStyle = 'rgba(255, 220, 100, 0.9)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.stroke();
         });
     }
 

@@ -4,18 +4,19 @@ import { SkillsUI } from './SkillsUI.js';
 import { DialogUI } from './DialogUI.js';
 import { InventoryUI } from './InventoryUI.js';
 import { SkillTreeUI } from './SkillTreeUI.js';
-import { SkillSelectionUI } from './SkillSelectionUI.js';
 import { VirtualJoystickUI } from './VirtualJoystickUI.js';
 import { CameraControlUI } from './CameraControlUI.js';
 import { DeathScreenUI } from './DeathScreenUI.js';
+import { ReflectionUI } from './ReflectionUI.js';
 import { NotificationsUI } from './NotificationsUI.js';
 import { QuestLogUI } from './QuestLogUI.js';
+import { QuestDirectionIndicator } from './QuestDirectionIndicator.js';
 import { MiniMapUI } from './MiniMapUI.js';
 import { HomeButton } from './HomeUI.js';
 import { FullscreenButton } from './SkillSelectionButton.js';
-import { SkillTreeButton } from './SkillTreeButton.js';
 import { MapSelectionUI } from './MapSelectionUI.js';
 import { PortalButton } from './PortalButton.js';
+import { getMapSelectionUiString } from '../config/chapter-quests-locales.js';
 
 import { InventoryButton } from './InventoryButton.js';
 import './HUDGuide.js'; // Registers click handler for hud-guide-button
@@ -112,13 +113,9 @@ export class HUDManager {
         this.components.inventoryUI = new InventoryUI(this.game);
         this.components.inventoryUI.init();
         
-        // Create skill tree UI
+        // Create skill tree UI (combined: tree + battle slot assign)
         this.components.skillTreeUI = new SkillTreeUI(this.game);
         this.components.skillTreeUI.init();
-        
-        // Create skill selection UI
-        this.components.skillSelectionUI = new SkillSelectionUI(this.game);
-        this.components.skillSelectionUI.init();
         
         // Create virtual joystick UI
         this.components.joystickUI = new VirtualJoystickUI(this.game);
@@ -135,7 +132,11 @@ export class HUDManager {
         // Create death screen UI
         this.components.deathScreenUI = new DeathScreenUI(this.game);
         this.components.deathScreenUI.init();
-        
+
+        // Create reflection screen UI (post-boss life lesson)
+        this.components.reflectionUI = new ReflectionUI(this.game);
+        this.components.reflectionUI.init();
+
         // Create notifications UI
         this.components.notificationsUI = new NotificationsUI(this.game);
         this.components.notificationsUI.init();
@@ -147,11 +148,14 @@ export class HUDManager {
         // Create quest log UI
         this.components.questLogUI = new QuestLogUI(this.game);
         this.components.questLogUI.init();
+
+        // Quest direction indicator (flag at screen edge toward yellow quest marker)
+        this.components.questDirectionIndicator = new QuestDirectionIndicator(this.game);
+        this.components.questDirectionIndicator.init();
         
         // Create UI buttons
         this.components.homeButton = new HomeButton(this.game);
         this.components.fullscreenButton = new FullscreenButton(this.game);
-        this.components.skillTreeButton = new SkillTreeButton(this.game);
         this.components.inventoryButton = new InventoryButton(this.game);
         
         // Create map selection UI
@@ -177,6 +181,9 @@ export class HUDManager {
         
         // Update mini map UI
         this.components.miniMapUI.update(delta);
+
+        // Update quest direction indicator (flag at screen edge)
+        this.components.questDirectionIndicator.update(delta);
         
         // Update camera control UI
         this.components.cameraControlUI.update(delta);
@@ -186,7 +193,6 @@ export class HUDManager {
         
         // Update UI buttons
         this.components.homeButton.update(delta);
-        this.components.skillTreeButton.update(delta);
         this.components.inventoryButton.update(delta);
         
         // Update map selection UI
@@ -207,9 +213,11 @@ export class HUDManager {
      * Show a dialog with title and text
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
+     * @param {function} [onAccept] - Optional. If provided, show "Accept" button; clicking it calls onAccept() then closes.
+     * @param {function} [onDecline] - Optional. If provided with onAccept, called when dialog is closed without clicking Accept.
      */
-    showDialog(title, text) {
-        this.components.dialogUI.showDialog(title, text);
+    showDialog(title, text, onAccept, onDecline) {
+        this.components.dialogUI.showDialog(title, text, onAccept, onDecline);
     }
     
     /**
@@ -257,16 +265,11 @@ export class HUDManager {
     }
     
     /**
-     * Toggle skill selection UI visibility
+     * Toggle skill selection — opens the combined skill tree screen (same as Skill Tree button).
+     * Skill pick (8 slots) and skill tree are now on one screen.
      */
     toggleSkillSelection() {
-        if (this.components.skillSelectionUI.visible) {
-            this.components.skillSelectionUI.hide();
-            this.game.resume(false);
-        } else {
-            this.game.pause(false);
-            this.components.skillSelectionUI.show();
-        }
+        this.toggleSkillTree();
     }
     
     /**
@@ -281,6 +284,16 @@ export class HUDManager {
      */
     hideDeathScreen() {
         this.components.deathScreenUI.hideDeathScreen();
+    }
+
+    /**
+     * Show reflection screen (post-boss life lesson). GDD §11.
+     * @param {string} lesson - Life lesson quote to display
+     * @param {function} onContinue - Callback when user clicks "Continue Journey"
+     * @param {Object} [options] - Optional: { isChapter5: boolean, onEnterPathOfMastery: function } for Path of Mastery (GDD §12)
+     */
+    showReflectionScreen(lesson, onContinue, options = {}) {
+        this.components.reflectionUI.showReflection(lesson, onContinue, options);
     }
     
     /**
@@ -362,7 +375,51 @@ export class HUDManager {
         // Start the countdown
         updateCountdown();
     }
-    
+
+    /**
+     * Show the shared "Đang dịch chuyển" / "Teleporting…" overlay with countdown 3→2→1, then run the teleport action.
+     * Used by both Map Selection and portal/home (🏕️) so the same VI-friendly modal is shown everywhere.
+     * @param {string} locale - 'en' | 'vi'
+     * @param {() => Promise<void>} doTeleport - Async function to perform the teleport (load map, move player, etc.)
+     * @returns {Promise<void>}
+     */
+    async runTeleportOverlay(locale, doTeleport) {
+        const overlayEl = document.getElementById('teleport-effect-overlay');
+        const labelEl = document.getElementById('teleport-effect-label');
+        const countdownEl = document.getElementById('teleport-effect-countdown');
+        if (!overlayEl || !countdownEl) {
+            try {
+                await doTeleport();
+            } catch (e) {
+                console.warn('Teleport failed:', e);
+            }
+            return;
+        }
+
+        const labelText = getMapSelectionUiString('teleporting', locale).toUpperCase();
+        if (labelEl) labelEl.textContent = labelText;
+        overlayEl.style.display = 'flex';
+        overlayEl.setAttribute('aria-hidden', 'false');
+
+        const countdownSeconds = 3;
+        for (let n = countdownSeconds; n >= 1; n--) {
+            countdownEl.textContent = String(n);
+            await new Promise((r) => setTimeout(r, 1000));
+        }
+
+        overlayEl.style.display = 'none';
+        overlayEl.setAttribute('aria-hidden', 'true');
+
+        try {
+            await doTeleport();
+        } catch (e) {
+            console.warn('Teleport failed:', e);
+            if (this.showNotification) {
+                this.showNotification(getMapSelectionUiString('loadingMap', locale) + ' Failed.', 3000);
+            }
+        }
+    }
+
     /**
      * Update the quest log with active quests
      * @param {Array} activeQuests - Array of active quests
@@ -466,8 +523,7 @@ export class HUDManager {
         // Don't hide the buttons when paused if the settings menu is open
         const settingsMenu = document.getElementById('main-options-menu');
         const homeButton = document.getElementById('home-button');
-        const fullscreenButton = document.getElementById('skill-selection-button');
-        const skillTreeButton = document.getElementById('skill-tree-button');
+        const skillsButton = document.getElementById('skill-selection-button');
         const inventoryButton = document.getElementById('inventory-button');
         const mapSelectorButton = document.getElementById('map-selector-button');
         const hudGuideButton = document.getElementById('hud-guide-button');
@@ -476,12 +532,8 @@ export class HUDManager {
             homeButton.style.display = 'none';
         }
         
-        if (fullscreenButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
-            fullscreenButton.style.display = 'none';
-        }
-        
-        if (skillTreeButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
-            skillTreeButton.style.display = 'none';
+        if (skillsButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
+            skillsButton.style.display = 'none';
         }
         
         if (inventoryButton && (!settingsMenu || settingsMenu.style.display === 'none')) {
@@ -516,14 +568,9 @@ export class HUDManager {
             homeButton.style.display = 'block';
         }
         
-        const fullscreenButton = document.getElementById('skill-selection-button');
-        if (fullscreenButton) {
-            fullscreenButton.style.display = 'block';
-        }
-        
-        const skillTreeButton = document.getElementById('skill-tree-button');
-        if (skillTreeButton) {
-            skillTreeButton.style.display = 'block';
+        const skillsButton = document.getElementById('skill-selection-button');
+        if (skillsButton) {
+            skillsButton.style.display = 'block';
         }
         
         const inventoryButton = document.getElementById('inventory-button');

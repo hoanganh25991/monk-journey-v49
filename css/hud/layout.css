@@ -29,7 +29,7 @@
     z-index: 50; /* HUD Elements */
 }
 
-/* Right Side UI Container */
+/* Right Side UI Container - mobile: bottom-right (skills + camera/teleport); desktop: bottom-center */
 #right-side-ui {
     position: absolute;
     bottom: 10px;
@@ -41,14 +41,13 @@
     z-index: 50; /* HUD Elements - Skills */
 }
 
-/* Desktop layout: center the right-side-ui at bottom-middle */
+/* Desktop: center the right-side-ui at bottom-middle (skills + character buttons) */
 @media (hover: hover) and (pointer: fine) {
     #right-side-ui {
         left: 50%;
         right: auto;
         transform: translateX(-50%);
         align-items: center;
-        bottom: 10px;
     }
 }
 
@@ -81,9 +80,4 @@
     background: #e74c3c;
     border-radius: 50%;
     pointer-events: none;
-}
-
-/* Skill Tree Button */
-#skill-tree-button {
-    position: relative;
 }

@@ -23,6 +23,9 @@ import { MultiplayerManager } from '../multiplayer/MultiplayerManager.js';
 import { ItemGenerator } from '../items/ItemGenerator.js';
 import { ItemDropManager } from '../items/ItemDropManager.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
+import { getChapterQuestDisplay, getQuestUiString } from '../config/chapter-quests-locales.js';
+import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
+import { chapterQuestHasChoiceGroups } from '../config/chapter-quests.js';
 import storageService from '../save-manager/StorageService.js';
 import deviceCapabilities from '../utils/DeviceCapabilities.js';
 import shadowDebugger from '../debug/ShadowDebugger.js';
@@ -77,12 +80,26 @@ export class Game {
         
         /** Set to true when Space or jump button is pressed; processed in game loop */
         this.jumpRequested = false;
+
+        /** Once per game start (new or load), offer first/next chapter quest when game is revealed; set false in start(), true after offering */
+        this._hasOfferedQuestThisSession = false;
+        /** One-time hint after accepting first chapter quest this session (Phase 9.2) */
+        this._hasShownQuestHintThisSession = false;
         
         /** Single-player only: when true, guide overlay is open; simulation frozen but HUD and scene visible */
         this.guideFreezeActive = false;
         
+        /** Path of Mastery (Phase 6.2): when true, spawns use path_of_mastery zone and harder bosses; persisted in settings */
+        this.isInPathOfMastery = false;
+        /** Path of Mastery boss kill counts by boss type; persisted in settings */
+        this.pathOfMasteryCompletions = {};
+        /** Unlocked cosmetic IDs (e.g. masters_robe_skin); persisted in settings */
+        this.unlockedCosmetics = [];
+        
         // Default difficulty (will be updated in init)
         this.difficulty = 'medium';
+        /** Quest & story language: 'en' | 'vi' (Settings > Game); default EN */
+        this.questStoryLocale = 'en';
         
         // WebGL state tracking
         this.webglContextLost = false;
@@ -108,6 +125,11 @@ export class Game {
             const validQualityLevels = ['high', 'medium', 'low', 'minimal'];
             this.materialQuality = validQualityLevels.includes(materialQuality) ? materialQuality : 'high';
             console.debug(`Game initialized with material quality: ${this.materialQuality}`);
+
+            // Quest & story language (EN / VI)
+            const questStoryLocale = await storageService.loadData(STORAGE_KEYS.QUEST_STORY_LOCALE);
+            this.questStoryLocale = questStoryLocale === 'vi' ? 'vi' : 'en';
+            console.debug(`Game initialized with quest/story locale: ${this.questStoryLocale}`);
         } catch (error) {
             console.error('Error loading initial settings:', error);
         }
@@ -243,6 +265,67 @@ export class Game {
              * @returns {THREE.Group}
              */
             this.getWorldGroup = () => this.worldGroup;
+
+            /**
+             * Show accept dialog for a chapter quest (when player interacts with quest marker).
+             * @param {Object} quest - Chapter quest from config
+             */
+            this.showChapterQuestAcceptDialog = (quest) => {
+                if (!quest || !this.hudManager || !this.questManager) return;
+                const locale = this.questStoryLocale || 'en';
+                const display = getChapterQuestDisplay(quest, locale);
+                const acceptPrompt = getQuestUiString('acceptQuestPrompt', locale);
+                let body = display.description + '\n\n' + acceptPrompt;
+                if (chapterQuestHasChoiceGroups(quest)) {
+                    const choiceHint = getQuestUiString('choiceInQuestHint', locale);
+                    body += '\n\n' + choiceHint;
+                }
+                this.hudManager.showDialog(
+                    `Quest: ${display.title}`,
+                    body,
+                    () => {
+                        this.questManager.startQuest(quest);
+                        // Remove the accepted quest's marker so it disappears and we don't get duplicates
+                        if (this.world?.interactiveManager?.removeChapterQuestMarkers) {
+                            this.world.interactiveManager.removeChapterQuestMarkers();
+                        }
+                        // Place marker for next story quest if it's on this map
+                        if (this.world?.interactiveManager?.ensureChapterQuestMarker) {
+                            this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
+                        }
+                    },
+                    null
+                );
+            };
+
+            /**
+             * Notify player where to get the next quest (no popup). Markers are placed from map data.
+             * If next quest is on current map: "Find the quest marker on the map." Else: "Travel to [Map] to get your next quest."
+             */
+            this.ensureChapterQuestMarkerAndNotify = () => {
+                if (!this.questManager || this.multiplayerManager?.connection?.isConnected || !this.hudManager) return;
+                const next = this.questManager.getNextChapterQuestForMarker();
+                if (!next) return;
+                // Refresh markers so they match current quest state (e.g. after save loaded)
+                if (this.world?.refreshInteractiveFromCurrentMap) {
+                    this.world.refreshInteractiveFromCurrentMap();
+                }
+                const currentMapId = this.world?.currentMap?.id;
+                const nextMapId = getMapIdForChapterQuest(next.id);
+                // Always place the yellow quest marker when the next quest is on this map (map data may not have it, e.g. wrong chapter in interactive)
+                if (nextMapId === currentMapId && this.world?.interactiveManager?.ensureChapterQuestMarker) {
+                    this.world.interactiveManager.ensureChapterQuestMarker(this.questManager);
+                }
+                if (nextMapId === currentMapId) {
+                    this.hudManager.showNotification('A story quest awaits. Find the quest marker on the map (marked with !) to begin.');
+                } else {
+                    const locale = this.questStoryLocale || 'en';
+                    const nextDisplay = getChapterQuestDisplay(next, locale);
+                    const nextMapLabel = nextDisplay.area || (typeof nextMapId === 'string' ? nextMapId.charAt(0).toUpperCase() + nextMapId.slice(1) : 'the next map');
+                    this.hudManager.showNotification(getQuestUiString('travelToGetNextQuest', locale, { label: nextMapLabel }));
+                }
+                this.hudManager.updateQuestLog(this.questManager.getActiveQuests());
+            };
             
             // Initialize item drop manager
             this.itemDropManager = new ItemDropManager(this.scene, this);
@@ -262,6 +345,8 @@ export class Game {
             this.controls.enableDamping = true;
             this.controls.dampingFactor = 0.05;
             this.controls.maxPolarAngle = Math.PI / 2 - 0.1; // Prevent camera from going below ground
+            // Arrow keys are for player movement (WASD/arrows in InputHandler); disable OrbitControls key pan so they don't move camera instead
+            this.controls.enablePan = false;
             
             this.updateLoadingProgress(15, 'Optimizing performance...', 'Initializing performance manager');
             
@@ -700,6 +785,8 @@ export class Game {
      */
     start(isLoadedGame = false, requestFullscreenMode = true) {
         console.debug("Game starting...");
+        this._hasOfferedQuestThisSession = false;
+        this._hasShownQuestHintThisSession = false;
 
         const path = typeof localStorage !== 'undefined'
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || 'maps/default.json')
@@ -909,6 +996,68 @@ export class Game {
         
         console.debug("Game resumed successfully");
     }
+
+    /**
+     * Returns a serializable snapshot of the current player build for Shadow Self (Phase 6.1).
+     * Used only when spawning shadow_self boss: mirror level, attributes, derived stats, and skill tree.
+     * @returns {{ level: number, maxHealth: number, maxMana: number, attackPower: number, movementSpeed: number, strength: number, intelligence: number, agility: number, vitality: number, wisdom: number, skillTreeNodeLevels: Object }|null}
+     */
+    getPlayerBuildSnapshot() {
+        if (!this.player?.stats) return null;
+        const s = this.player.stats;
+        const inv = this.player.inventory;
+        const attackPower = s.getAttackPower() + (inv ? inv.getAttackBonus() : 0);
+        const movementSpeed = s.getMovementSpeed() + (inv ? inv.getSpeedBonus() : 0);
+        return {
+            level: s.level,
+            maxHealth: s.getMaxHealth(),
+            maxMana: s.getMaxMana(),
+            attackPower: Math.max(1, attackPower),
+            movementSpeed: Math.max(1, movementSpeed),
+            strength: s.strength ?? 0,
+            intelligence: s.intelligence ?? 0,
+            agility: s.agility ?? 0,
+            vitality: s.vitality ?? 0,
+            wisdom: s.wisdom ?? 0,
+            skillTreeNodeLevels: (s.skillTreeNodeLevels && typeof s.skillTreeNodeLevels === 'object') ? { ...s.skillTreeNodeLevels } : {}
+        };
+    }
+
+    /**
+     * Enter Path of Mastery (GDD §12). Unlocked after Chapter 5.
+     * Sets isInPathOfMastery so spawns use path_of_mastery zone and harder bosses; state persisted in settings.
+     */
+    enterPathOfMastery() {
+        if (!this.questManager?.isPathOfMasteryUnlocked?.()) return;
+        this.isInPathOfMastery = true;
+        if (this.hudManager) {
+            this.hudManager.showNotification('Path of Mastery: harder enemies and bosses will now appear. Defeat bosses to earn mastery and cosmetics.');
+        }
+    }
+
+    /**
+     * Record a Path of Mastery boss kill; increments completion count and unlocks cosmetic on first PoM boss clear.
+     * @param {string} bossType - Enemy type (e.g. 'skeleton_king', 'shadow_self')
+     */
+    recordPathOfMasteryBossKill(bossType) {
+        if (!this.isInPathOfMastery || !bossType) return;
+        const totalBefore = Object.values(this.pathOfMasteryCompletions).reduce((a, b) => a + b, 0);
+        this.pathOfMasteryCompletions[bossType] = (this.pathOfMasteryCompletions[bossType] || 0) + 1;
+        if (totalBefore === 0 && this.unlockedCosmetics.indexOf('masters_robe_skin') === -1) {
+            this.unlockedCosmetics.push('masters_robe_skin');
+            if (this.hudManager) {
+                this.hudManager.showNotification('Cosmetic unlocked: Master\'s Robe skin!');
+            }
+        }
+    }
+
+    /**
+     * Return a copy of unlocked cosmetic IDs for equipment/UI to offer skin selection.
+     * @returns {string[]}
+     */
+    getUnlockedCosmetics() {
+        return Array.isArray(this.unlockedCosmetics) ? [...this.unlockedCosmetics] : [];
+    }
     
     /**
      * Single-player only: freeze or unfreeze the game for the HUD guide overlay.
@@ -1045,7 +1194,11 @@ export class Game {
                             const mapOverlayEl = document.getElementById('mapLoadingOverlay');
                             if (mapOverlayEl) mapOverlayEl.style.display = 'none';
                             this.resume();
-                            this.audioManager.playMusic();
+                            this.audioManager.setMusicContext('exploration');
+                            if (!this._hasOfferedQuestThisSession && this.questManager && !this.multiplayerManager?.connection?.isConnected) {
+                                this._hasOfferedQuestThisSession = true;
+                                this.ensureChapterQuestMarkerAndNotify();
+                            }
                             console.debug("Game revealed and unpaused");
                         }, 543);
                     };
@@ -1077,6 +1230,11 @@ export class Game {
                 const homeButton = document.getElementById('home-button');
                 if (homeButton) homeButton.style.display = 'block';
                 this._warmupFramesLeft = -1;
+                // Place quest marker and instruct player to go to it (no popup on reload)
+                if (!this._hasOfferedQuestThisSession && this.questManager && !this.multiplayerManager?.connection?.isConnected) {
+                    this._hasOfferedQuestThisSession = true;
+                    this.ensureChapterQuestMarkerAndNotify();
+                }
             }
         }
 

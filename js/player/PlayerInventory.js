@@ -1,26 +1,22 @@
 /**
  * PlayerInventory.js
- * Manages the player's inventory and equipment
+ * Manages the player's inventory and equipment.
+ * GDD item slots: Weapon (Staff), Robe, Prayer Beads, Talisman, Relic.
  */
+
+/** GDD equipment slot keys (design: items.md) */
+export const GDD_EQUIPMENT_SLOTS = ['weapon', 'robe', 'prayerBeads', 'talisman', 'relic'];
 
 export class PlayerInventory {
     constructor() {
-        // Initialize inventory
         this.inventory = [];
         this.gold = 0;
-        
-        // Initialize equipment with expanded slots
         this.equipment = {
             weapon: null,
-            armor: null,
-            helmet: null,
-            boots: null,
-            gloves: null,
-            belt: null,
-            shoulder: null,
-            accessory1: null,
-            accessory2: null,
-            talisman: null
+            robe: null,
+            prayerBeads: null,
+            talisman: null,
+            relic: null
         };
         
         // Equipment stat bonuses cache
@@ -78,38 +74,27 @@ export class PlayerInventory {
         return false;
     }
     
-    // Equipment management
-    // Logical slots (10): weapon, armor, helmet, boots, gloves, belt, shoulder, accessory1, accessory2, talisman
-    // UI has 8 DOM slots: head, shoulders, chest, hands, weapon, legs, feet, accessory (InventoryUI maps logical → DOM)
+    // Equipment management — GDD: Weapon, Robe, Prayer Beads, Talisman, Relic
 
     /**
-     * Get the equipment slot key for an item (same logic as equipItem).
+     * Get the GDD equipment slot for an item.
      * @param {Object} item - Item with type, subType
-     * @returns {string|null} Slot key or null if not equippable to any slot
+     * @returns {string|null} One of GDD_EQUIPMENT_SLOTS or null
      */
     getSlotForItem(item) {
         if (!item.type) return null;
-        let type = item.type;
-        let subType = item.subType;
-        if (type === 'ring' || type === 'amulet') {
-            type = 'accessory';
-            subType = subType || item.type;
-        }
-        let slot = type;
-        if (type === 'armor' && subType) {
-            const armorSlotMap = {
-                helmet: 'helmet', boots: 'boots', gloves: 'gloves', belt: 'belt',
-                shoulders: 'shoulder', robe: 'armor', arms: 'armor', legs: 'armor'
-            };
-            slot = armorSlotMap[subType] || 'armor';
-        }
+        const type = item.type;
+        const subType = item.subType;
+        if (type === 'weapon') return 'weapon';
+        if (type === 'armor') return 'robe';
+        if (type === 'relic') return 'relic';
         if (type === 'accessory') {
-            if (subType === 'talisman') slot = 'talisman';
-            else if (!this.equipment.accessory1) slot = 'accessory1';
-            else if (!this.equipment.accessory2) slot = 'accessory2';
-            else slot = 'accessory1';
+            if (subType === 'talisman') return 'talisman';
+            if (subType === 'prayerBeads' || subType === 'beads') return 'prayerBeads';
+            return 'prayerBeads';
         }
-        return this.equipment.hasOwnProperty(slot) ? slot : null;
+        if (type === 'ring' || type === 'amulet') return 'talisman';
+        return null;
     }
 
     /**
@@ -120,7 +105,7 @@ export class PlayerInventory {
         const b = item.baseStats || {};
         const s = (item.secondaryStats || []).reduce((sum, x) => sum + (x.value || 0), 0);
         if (slot === 'weapon') return (b.damage || 0) + s;
-        if (['armor', 'helmet', 'boots', 'gloves', 'belt', 'shoulder'].includes(slot)) return (b.defense || 0) + s;
+        if (['robe', 'prayerBeads', 'talisman', 'relic'].includes(slot)) return (b.defense || 0) + (b.manaBonus || 0) + (b.healthBonus || 0) + s;
         return (b.damage || 0) + (b.defense || 0) + (b.manaBonus || 0) + (b.healthBonus || 0) + s;
     }
 
@@ -349,5 +334,19 @@ export class PlayerInventory {
      */
     getSpeedBonus() {
         return this.equipmentBonuses.speedBonus;
+    }
+    
+    /**
+     * GDD: Legendary items can modify skill behavior. Returns the effect id for a skill if an equipped item has legendarySkillBehavior for that skill.
+     * @param {string} skillId - Skill tree node id (e.g. 'meditation_field')
+     * @returns {string|null} Effect id (e.g. 'meditation_field_heal_5pct_max_hp_per_sec') or null
+     */
+    getLegendarySkillBehavior(skillId) {
+        for (const slot of GDD_EQUIPMENT_SLOTS) {
+            const item = this.equipment[slot];
+            if (!item || !item.legendarySkillBehavior) continue;
+            if (item.legendarySkillBehavior.skillId === skillId) return item.legendarySkillBehavior.effect || null;
+        }
+        return null;
     }
 }

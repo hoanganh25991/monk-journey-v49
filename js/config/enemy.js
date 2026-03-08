@@ -30,6 +30,9 @@ export const ENEMY_TYPES = {
     // Boss types
     FROST_TITAN: 'frost_titan',
     FROST_MONARCH: 'frost_monarch',
+    GOLDEN_TITAN: 'golden_titan',
+    ECHO_PHANTOM: 'echo_phantom',
+    SHADOW_SELF: 'shadow_self',
     
     // Caster types
     NECROMANCER: 'necromancer',
@@ -134,6 +137,21 @@ export const ENEMY_MODEL_MAPPINGS = {
     // Frost Monarch Model
     FROST_MONARCH_TYPES: [
         ENEMY_TYPES.FROST_MONARCH
+    ],
+    
+    // Golden Titan Model (chapter 3 boss; reuse Frost Titan–style for now)
+    GOLDEN_TITAN_TYPES: [
+        ENEMY_TYPES.GOLDEN_TITAN
+    ],
+    
+    // Echo Phantom Model (chapter 4 boss; reuse Void Wraith–style for now)
+    ECHO_PHANTOM_TYPES: [
+        ENEMY_TYPES.ECHO_PHANTOM
+    ],
+    
+    // Shadow Self Model (chapter 5; placeholder, can mirror player later)
+    SHADOW_SELF_TYPES: [
+        ENEMY_TYPES.SHADOW_SELF
     ],
     
     // Necromancer Model
@@ -323,6 +341,9 @@ export const ENEMY_CATEGORIES = {
         ENEMY_TYPES.DEMON_LORD,
         ENEMY_TYPES.FROST_TITAN,
         ENEMY_TYPES.FROST_MONARCH,
+        ENEMY_TYPES.GOLDEN_TITAN,
+        ENEMY_TYPES.ECHO_PHANTOM,
+        ENEMY_TYPES.SHADOW_SELF,
         ENEMY_TYPES.NECROMANCER_LORD,
         ENEMY_TYPES.INFERNO_LORD,
         ENEMY_TYPES.SPIDER_QUEEN,
@@ -392,6 +413,9 @@ export const ENEMY_DIFFICULTY_TIERS = {
         ENEMY_TYPES.DEMON_LORD,
         ENEMY_TYPES.FROST_TITAN,
         ENEMY_TYPES.FROST_MONARCH,
+        ENEMY_TYPES.GOLDEN_TITAN,
+        ENEMY_TYPES.ECHO_PHANTOM,
+        ENEMY_TYPES.SHADOW_SELF,
         ENEMY_TYPES.NECROMANCER_LORD,
         ENEMY_TYPES.INFERNO_LORD,
         ENEMY_TYPES.SPIDER_QUEEN,

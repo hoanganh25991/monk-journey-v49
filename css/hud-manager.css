@@ -28,4 +28,7 @@
 /* Import quest log */
 @import 'hud/quest-log.css';
 
+/* Import quest direction indicator (flag at screen edge) */
+@import 'hud/quest-direction-indicator.css';
+
 

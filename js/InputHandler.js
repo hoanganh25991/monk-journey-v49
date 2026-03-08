@@ -4,11 +4,13 @@ import {
     ACTION_KEYS, 
     UI_KEYS, 
     SKILL_KEYS, 
+    ENLIGHTENMENT_MODE_KEY,
     getAllSkillKeys,
     getSkillIndexFromKeyCode,
     isSkillKey,
     CAST_INTERVAL,
-    INTERACTION_RANGE
+    INTERACTION_RANGE,
+    INPUT_BUFFER_MS
 } from './config/input.js';
 import { InteractionResultHandler } from './InteractionResultHandler.js';
 
@@ -32,6 +34,9 @@ export class InputHandler {
             this.skillKeysHeld[key] = false;
             this.skillCastCooldowns[key] = 0;
         });
+
+        /** Buffered skill/attack inputs (blocked e.g. by cooldown); consumed within INPUT_BUFFER_MS. */
+        this.inputBuffer = [];
 
         // Reusable scratch objects for getMovementDirection (avoids per-frame allocations)
         this._scratchLocal = new THREE.Vector3(0, 0, 0);
@@ -123,14 +128,23 @@ export class InputHandler {
                 case UI_KEYS.MINIMAP_ZOOM_OUT:
                     this.game.hudManager.increaseMiniMapScale();
                     break;
+
+                case ENLIGHTENMENT_MODE_KEY:
+                    if (this.game?.player?.canActivateEnlightenmentMode?.()) {
+                        if (this.game.player.activateEnlightenmentMode()) {
+                            this.game.hudManager?.showNotification?.('Enlightenment Mode activated');
+                        }
+                    }
+                    break;
                     
                 // Primary attack key
                 case SKILL_KEYS.PRIMARY_ATTACK:
                     // Mark key as held down for basic attack
                     this.skillKeysHeld[event.code] = true;
-                    
-                    // Use basic attack (teleport or punch)
-                    this.game.player.usePrimaryAttack();
+                    // Use basic attack; buffer if blocked (input buffer 100ms)
+                    this.game.player.usePrimaryAttack().then(success => {
+                        if (!success) this.inputBuffer.push({ keyCode: event.code, timestamp: Date.now() });
+                    });
                     break;
                     
                 // Action keys
@@ -189,12 +203,18 @@ export class InputHandler {
                             const skills = this.game.player.skills.getSkills();
                             if (skills && skills.length > 0 && skills[0].primaryAttack) {
                                 console.debug('Skill 1 is assigned to primary attack, using usePrimaryAttack() for consistent behavior');
-                                this.game.player.usePrimaryAttack();
+                                this.game.player.usePrimaryAttack().then(success => {
+                                    if (!success) this.inputBuffer.push({ keyCode: event.code, timestamp: Date.now() });
+                                });
                             } else {
-                                this.game.player.useSkill(skillIndex);
+                                this.game.player.useSkill(skillIndex).then(success => {
+                                    if (!success) this.inputBuffer.push({ keyCode: event.code, timestamp: Date.now() });
+                                });
                             }
                         } else {
-                            this.game.player.useSkill(skillIndex);
+                            this.game.player.useSkill(skillIndex).then(success => {
+                                if (!success) this.inputBuffer.push({ keyCode: event.code, timestamp: Date.now() });
+                            });
                         }
                     }
                     break;
@@ -374,6 +394,31 @@ export class InputHandler {
         // Skip input processing if game is paused
         if (this.game && this.game.isPaused) {
             return; // Don't process inputs when game is paused
+        }
+
+        // Consume one buffered skill/attack input within INPUT_BUFFER_MS window (GDD combat feel)
+        const now = Date.now();
+        for (let i = 0; i < this.inputBuffer.length; i++) {
+            const e = this.inputBuffer[i];
+            if (now - e.timestamp > INPUT_BUFFER_MS) {
+                this.inputBuffer.splice(i, 1);
+                i--;
+                continue;
+            }
+            this.inputBuffer.splice(i, 1);
+            if (e.keyCode === SKILL_KEYS.PRIMARY_ATTACK) {
+                this.game.player.usePrimaryAttack();
+            } else if (isSkillKey(e.keyCode)) {
+                const skillIndex = getSkillIndexFromKeyCode(e.keyCode);
+                if (e.keyCode === SKILL_KEYS.SKILL_1 && this.game.player.skills?.getSkills) {
+                    const skills = this.game.player.skills.getSkills();
+                    if (skills?.length > 0 && skills[0].primaryAttack) this.game.player.usePrimaryAttack();
+                    else this.game.player.useSkill(skillIndex);
+                } else {
+                    this.game.player.useSkill(skillIndex);
+                }
+            }
+            break; // process at most one buffered input per frame
         }
         
         // Process only the keys that are actually held down

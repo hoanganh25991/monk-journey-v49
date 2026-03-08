@@ -443,6 +443,23 @@ export class Enemy {
                 return;
             }
         }
+
+        // Shadow Self (Phase 6.1): minimal mirror — telegraphed "Mirror Strike" (heavy hit) on cooldown
+        if (this.type === 'shadow_self') {
+            if (!this.specialAbilityCooldowns) {
+                this.specialAbilityCooldowns = { mirrorStrike: 0 };
+            }
+            if (this.specialAbilityCooldowns.mirrorStrike > 0) {
+                this.specialAbilityCooldowns.mirrorStrike -= delta;
+            }
+            const mirrorStrikeRangeSq = (this.attackRange * 1.2) * (this.attackRange * 1.2);
+            if (distanceSqToPlayer <= mirrorStrikeRangeSq && this.specialAbilityCooldowns.mirrorStrike <= 0) {
+                this.castMirrorStrike();
+                this.specialAbilityCooldowns.mirrorStrike = 6; // 6 second cooldown
+                this.updateAnimations(delta);
+                return;
+            }
+        }
         
         // Melee enemies cannot attack when player is in the air; only ranged can
         let playerInAir = false;
@@ -700,6 +717,38 @@ export class Enemy {
             this.state.isAttacking = false;
         }, 800);
     }
+
+    /**
+     * Shadow Self (Phase 6.1): telegraphed heavy strike — 1.5x damage, slightly delayed so player can react.
+     */
+    castMirrorStrike() {
+        this.state.isAttacking = true;
+        const damageMultiplier = 1.5;
+        const windUpMs = 450; // Telegraphed so player can dodge
+        if (this.targetPlayer && typeof this.targetPlayer.takeDamage === 'function') {
+            setTimeout(() => {
+                if (!this.targetPlayer || !this.isActive || this.state.isDead) {
+                    this.state.isAttacking = false;
+                    return;
+                }
+                const pp = this.targetPlayer.getPosition();
+                const dx = pp.x - this.position.x;
+                const dz = pp.z - this.position.z;
+                const distSq = dx * dx + dz * dz;
+                const rangeSq = (this.attackRange * 1.2) * (this.attackRange * 1.2);
+                if (distSq <= rangeSq) {
+                    try {
+                        this.targetPlayer.takeDamage(Math.round(this.damage * damageMultiplier));
+                    } catch (e) {
+                        console.warn('Shadow Self mirror strike takeDamage error:', e);
+                    }
+                }
+                this.state.isAttacking = false;
+            }, windUpMs);
+        } else {
+            this.state.isAttacking = false;
+        }
+    }
     
     /**
      * Handle enemy taking damage with defense calculations
@@ -725,7 +774,7 @@ export class Enemy {
             
             // Get defense based on enemy type
             if (this.type === 'skeleton_king' || this.type === 'necromancer_lord' || 
-                this.type === 'demon_lord' || this.type === 'frost_titan') {
+                this.type === 'demon_lord' || this.type === 'frost_titan' || this.type === 'shadow_self') {
                 // Boss enemies have higher defense
                 defenseValue = 25;
             } else if (this.type.includes('golem') || this.type === 'mountain_troll' || 

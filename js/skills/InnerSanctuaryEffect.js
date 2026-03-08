@@ -358,8 +358,21 @@ export class InnerSanctuaryEffect extends SkillEffect {
      * @private
      */
     _updateInnerSanctuaryEffect(delta) {
+        if (!this.sanctuaryState) return;
         // Update sanctuary state
         this.sanctuaryState.age += delta;
+        
+        // GDD legendary: Beads of Still Water — Meditation Field heals 5% max HP/s while active
+        const skillTreeNodeId = (this.skill.name === 'Inner Sanctuary') ? 'meditation_field' : null;
+        if (skillTreeNodeId && this.skill.game && this.skill.game.player) {
+            const effectId = this.skill.game.player.inventory.getLegendarySkillBehavior(skillTreeNodeId);
+            if (effectId === 'meditation_field_heal_5pct_max_hp_per_sec') {
+                const stats = this.skill.game.player.stats;
+                const maxHp = stats.getMaxHealth();
+                const healAmount = delta * 0.05 * maxHp;
+                if (healAmount > 0) stats.heal(healAmount);
+            }
+        }
         
         // Get the sanctuary group (first child of effect group)
         const sanctuaryGroup = this.effect.children[0];

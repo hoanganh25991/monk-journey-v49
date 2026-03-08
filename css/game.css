@@ -88,3 +88,59 @@
     font-weight: 500;
     user-select: none;
 }
+
+/* Teleport effect overlay: glowing cyan "TELEPORTING..." + countdown */
+.teleport-effect-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 600;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: auto;
+    user-select: none;
+}
+
+.teleport-effect-label {
+    font-family: var(--font-primary, system-ui, sans-serif);
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: #7df9ff;
+    text-shadow:
+        0 0 10px #7df9ff,
+        0 0 20px #7df9ff,
+        0 0 40px #00bcd4,
+        0 0 80px #00bcd4;
+    animation: teleport-glow 1.2s ease-in-out infinite alternate;
+    margin-bottom: 0.5rem;
+}
+
+.teleport-effect-countdown {
+    font-family: var(--font-primary, system-ui, sans-serif);
+    font-size: clamp(4rem, 20vw, 10rem);
+    font-weight: 800;
+    line-height: 1;
+    color: #7df9ff;
+    text-shadow:
+        0 0 15px #7df9ff,
+        0 0 30px #7df9ff,
+        0 0 60px #00bcd4,
+        0 0 120px #00bcd4;
+    animation: teleport-glow 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes teleport-glow {
+    from {
+        opacity: 0.9;
+        filter: brightness(1);
+    }
+    to {
+        opacity: 1;
+        filter: brightness(1.3);
+    }
+}

@@ -2,6 +2,7 @@ import { UIComponent } from '../UIComponent.js';
 import { getSkillIcon } from '../config/skill-icons.js';
 import { CAST_INTERVAL } from '../config/input.js';
 import { SkillEffectFactory } from '../skills/SkillEffectFactory.js';
+import { CHAPTER_5_QUEST_ID } from '../config/skill-tree-graph.js';
 
 /**
  * Skills UI component
@@ -59,6 +60,21 @@ export class SkillsUI extends UIComponent {
                 </div>
             `;
         });
+
+        // Enlightenment Mode (Harmony capstone) — show when unlocked (Ch5 + at least 1 level)
+        const completedCh5 = this.game?.questManager?.completedChapterQuestIds?.has?.(CHAPTER_5_QUEST_ID);
+        const enlightenmentLevel = this.game?.player?.stats?.getEnlightenmentModeLevel?.() ?? 0;
+        const showEnlightenment = !!(completedCh5 && enlightenmentLevel >= 1);
+        if (showEnlightenment) {
+            skillsHTML += `
+                <div class="skill-button enlightenment-mode-button" id="enlightenment-mode-btn" title="Enlightenment Mode (R): Short buff — increased damage, movement, faster cooldowns. Unlocked after Chapter 5." style="border-color: #e8d86a; box-shadow: 0 0 10px #e8d86a40;">
+                    <div class="skill-name">Enlightenment</div>
+                    <div class="skill-icon">✨</div>
+                    <div class="skill-key">R</div>
+                    <div class="skill-cooldown"></div>
+                </div>
+            `;
+        }
         
         // Render the template
         this.render(skillsHTML);
@@ -170,6 +186,24 @@ export class SkillsUI extends UIComponent {
             // Add tooltip with description on hover
             button.title = `${skill.name}: ${skill.description}`;
         });
+
+        // Enlightenment Mode button click
+        const enlightenmentBtn = this.container.querySelector('#enlightenment-mode-btn');
+        if (enlightenmentBtn) {
+            enlightenmentBtn.style.touchAction = 'none';
+            enlightenmentBtn.style.pointerEvents = 'auto';
+            enlightenmentBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (this.game?.player?.canActivateEnlightenmentMode?.()) {
+                    if (this.game.player.activateEnlightenmentMode()) {
+                        this.game.hudManager?.showNotification?.('Enlightenment Mode activated');
+                    }
+                }
+                enlightenmentBtn.classList.add('skill-activated');
+                setTimeout(() => enlightenmentBtn.classList.remove('skill-activated'), 300);
+            });
+        }
         
         return true;
     }
@@ -275,6 +309,26 @@ export class SkillsUI extends UIComponent {
                 skillButton.classList.remove('not-enough-mana');
             }
         });
+
+        // Update Enlightenment Mode button
+        const enlightenmentBtn = this.container.querySelector('#enlightenment-mode-btn');
+        if (enlightenmentBtn && this.game?.player?.stats) {
+            const stats = this.game.player.stats;
+            const active = stats.isEnlightenmentModeActive?.() ?? false;
+            const remaining = stats.getEnlightenmentModeRemaining?.() ?? 0;
+            const cooldownRemaining = stats.getEnlightenmentModeCooldownRemaining?.() ?? 0;
+            const cooldownTotal = 60; // match game-balance ENLIGHTENMENT_MODE.cooldown
+            let percent = 0;
+            if (active && remaining > 0) {
+                const duration = 4 + (stats.getEnlightenmentModeLevel?.() ?? 1) * 2;
+                percent = 100 * (1 - remaining / duration); // fill as buff runs out
+            } else if (cooldownRemaining > 0) {
+                percent = 100 * (1 - cooldownRemaining / cooldownTotal); // cooldown overlay
+            }
+            const overlay = enlightenmentBtn.querySelector('.skill-cooldown');
+            if (overlay) overlay.style.height = `${percent}%`;
+            enlightenmentBtn.style.opacity = active ? '1' : (cooldownRemaining > 0 ? '0.7' : '1');
+        }
     }
     
     /**

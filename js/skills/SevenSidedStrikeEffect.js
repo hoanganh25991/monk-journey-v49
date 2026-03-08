@@ -218,6 +218,7 @@ export class SevenSidedStrikeEffect extends SkillEffect {
      * @private
      */
     _updateSevenSidedStrikeEffect(delta) {
+        if (!this.sevenSidedStrikeState) return;
         // Update the strike timer
         this.sevenSidedStrikeState.strikeTimer += delta;
         

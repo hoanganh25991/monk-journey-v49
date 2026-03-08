@@ -60,6 +60,7 @@ export class GameplayTab extends SettingsTab {
     init() {
         this.initializeGoogleLogin();
         this.initializeDifficultySettings();
+        this.initializeQuestLocaleSettings();
         this.initializeReleaseSettings();
         
         // Material quality is now applied only during game initialization
@@ -80,6 +81,13 @@ export class GameplayTab extends SettingsTab {
             this.difficultySelect.value = newValue || 'basic';
         } else if (key === STORAGE_KEYS.QUALITY_LEVEL && this.materialQualitySelect) {
             this.materialQualitySelect.value = newValue || 'medium';
+        } else if (key === STORAGE_KEYS.QUEST_STORY_LOCALE) {
+            this.updateQuestLocaleToggleState(newValue === 'vi' ? 'vi' : 'en');
+            if (this.game) this.game.questStoryLocale = newValue === 'vi' ? 'vi' : 'en';
+            if (this.game?.hudManager?.questLogUI) {
+                const qm = this.game.questManager;
+                if (qm) this.game.hudManager.questLogUI.updateQuestLog(qm.getActiveQuests?.() ?? []);
+            }
         }
     }
     
@@ -248,40 +256,103 @@ export class GameplayTab extends SettingsTab {
             });
         }
         
+        // Initialize Quest & Story Language (EN / VI) toggle
+        this.initializeQuestLocaleSettings();
+        
         // Initialize New Game button if it exists
         if (this.newGameButton) {
-            this.newGameButton.addEventListener('click', () => {
-                // Confirm before starting a new game
-                if (confirm('Are you sure you want to start a new game? Your current progress will be lost.')) {
-                    // Close the settings menu
-                    if (this.settingsMenu) {
-                        this.settingsMenu.hide();
-                    }
-                    
-                    // Start a new game
-                    if (this.game) {
-                        console.debug('Starting a new game...');
-                        
-                        // First, delete all player state data from localStorage
-                        if (this.game.saveManager) {
-                            console.debug('Removing player state data from localStorage...');
-                            const saveDeleted = this.game.saveManager.deleteSave();
-                            if (saveDeleted) {
-                                console.debug('Player state data successfully removed');
-                            } else {
-                                console.warn('Failed to remove player state data');
-                            }
+            const newGameConfirmModal = document.getElementById('new-game-confirm-modal');
+            const newGameConfirmCancelBtn = document.getElementById('new-game-confirm-cancel-btn');
+            const newGameConfirmStartBtn = document.getElementById('new-game-confirm-start-btn');
+
+            const startNewGame = () => {
+                newGameConfirmModal.style.display = 'none';
+                // Close the settings menu
+                if (this.settingsMenu) {
+                    this.settingsMenu.hide();
+                }
+                if (this.game) {
+                    console.debug('Starting a new game...');
+                    if (this.game.saveManager) {
+                        console.debug('Removing player state data from localStorage...');
+                        const saveDeleted = this.game.saveManager.deleteSave();
+                        if (saveDeleted) {
+                            console.debug('Player state data successfully removed');
+                        } else {
+                            console.warn('Failed to remove player state data');
                         }
-                        
-                        // Clear ALL localStorage (including settings) for a fresh start
-                        // This fixes issues with stale quality/shadow settings on mobile
-                        console.debug('Clearing all localStorage for fresh start...');
-                        localStorage.clear();
-                        
-                        window.location.reload();
                     }
+                    console.debug('Clearing all localStorage for fresh start...');
+                    localStorage.clear();
+                    window.location.reload();
+                }
+            };
+
+            this.newGameButton.addEventListener('click', () => {
+                newGameConfirmModal.style.display = 'flex';
+            });
+
+            if (newGameConfirmCancelBtn) {
+                newGameConfirmCancelBtn.addEventListener('click', () => {
+                    newGameConfirmModal.style.display = 'none';
+                });
+            }
+            if (newGameConfirmStartBtn) {
+                newGameConfirmStartBtn.addEventListener('click', startNewGame);
+            }
+
+            newGameConfirmModal.addEventListener('click', (e) => {
+                if (e.target === newGameConfirmModal) {
+                    newGameConfirmModal.style.display = 'none';
                 }
             });
+        }
+    }
+    
+    /**
+     * Initialize Quest & Story Language (EN / VI) toggle; load from storage, wire clicks, update game.questStoryLocale.
+     * @private
+     */
+    initializeQuestLocaleSettings() {
+        const container = document.getElementById('quest-locale-container');
+        const btnEn = document.getElementById('quest-locale-en');
+        const btnVi = document.getElementById('quest-locale-vi');
+        if (!container || !btnEn || !btnVi) return;
+
+        const locale = this.loadSettingSync(STORAGE_KEYS.QUEST_STORY_LOCALE, 'en');
+        const current = locale === 'vi' ? 'vi' : 'en';
+        this.updateQuestLocaleToggleState(current);
+        if (this.game) this.game.questStoryLocale = current;
+
+        const applyLocale = (value) => {
+            this.saveSetting(STORAGE_KEYS.QUEST_STORY_LOCALE, value).catch(() => {});
+            if (this.game) this.game.questStoryLocale = value;
+            this.updateQuestLocaleToggleState(value);
+            if (this.game?.hudManager?.questLogUI && this.game?.questManager) {
+                this.game.hudManager.questLogUI.updateQuestLog(this.game.questManager.getActiveQuests?.() ?? []);
+            }
+        };
+
+        btnEn.addEventListener('click', () => applyLocale('en'));
+        btnVi.addEventListener('click', () => applyLocale('vi'));
+    }
+
+    /**
+     * Set active state of EN/VI locale buttons.
+     * @param {string} locale - 'en' | 'vi'
+     * @private
+     */
+    updateQuestLocaleToggleState(locale) {
+        const btnEn = document.getElementById('quest-locale-en');
+        const btnVi = document.getElementById('quest-locale-vi');
+        const isVi = locale === 'vi';
+        if (btnEn) {
+            btnEn.classList.toggle('active', !isVi);
+            btnEn.setAttribute('aria-pressed', !isVi ? 'true' : 'false');
+        }
+        if (btnVi) {
+            btnVi.classList.toggle('active', isVi);
+            btnVi.setAttribute('aria-pressed', isVi ? 'true' : 'false');
         }
     }
     
@@ -392,6 +463,13 @@ export class GameplayTab extends SettingsTab {
             // No need to apply it dynamically here
         }
         
+        const questLocaleEn = document.getElementById('quest-locale-en');
+        if (questLocaleEn) {
+            const questLocale = questLocaleEn.classList.contains('active') ? 'en' : 'vi';
+            savePromises.push(this.saveSetting(STORAGE_KEYS.QUEST_STORY_LOCALE, questLocale));
+            if (this.game) this.game.questStoryLocale = questLocale;
+        }
+        
         // Wait for all saves to complete
         await Promise.all(savePromises);
         return true;
@@ -410,6 +488,8 @@ export class GameplayTab extends SettingsTab {
         if (this.materialQualitySelect) {
             this.materialQualitySelect.value = 'high';
         }
+        
+        this.updateQuestLocaleToggleState('en');
         
         // Save all the reset values
         return this.saveSettings();

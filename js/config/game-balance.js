@@ -17,31 +17,38 @@ export const PLAYER_PROGRESSION = {
         mana: 200,
         maxMana: 200,
         
-        // Base attributes
+        // Base attributes (GDD: Strength, Intelligence, Agility, Vitality, Wisdom)
         strength: 10,
-        dexterity: 10,
         intelligence: 10,
+        agility: 10,
+        vitality: 10,
+        wisdom: 10,
         
         // Movement and combat
         movementSpeed: 18,
         attackPower: 20
     },
 
-    // Experience scaling configuration
+    /**
+     * GDD XP formula: xpRequired(level) = 100 * level^1.5
+     * Returns XP needed to reach the *next* level (from current level).
+     * Example: Level 1→2 = 100; Level 2→3 ≈ 283; Level 5→6 ≈ 1118.
+     * @param {number} currentLevel - Current player level (1-based)
+     * @returns {number} XP required to reach currentLevel + 1
+     */
+    getXpRequiredForLevel(currentLevel) {
+        const level = Math.max(1, Math.floor(currentLevel));
+        return Math.floor(100 * Math.pow(level, 1.5));
+    },
+
+    // Experience scaling configuration (legacy; GDD uses getXpRequiredForLevel)
     EXPERIENCE_SCALING: {
-        // Base multiplier for experience required to level up
         baseMultiplier: 1.5,
-        
-        // Additional scaling factor that increases with level
-        // This makes higher levels progressively harder to reach
         progressiveIncrease: 0.05,
-        
-        // Maximum multiplier cap to prevent excessive grinding
         maxMultiplier: 3.0
     },
     
-    // Legacy experience multiplier (for backward compatibility)
-    LEVEL_UP_EXPERIENCE_MULTIPLIER : 1.5,
+    LEVEL_UP_EXPERIENCE_MULTIPLIER: 1.5,
 
     // Resource regeneration rates (per second)
     RESOURCE_REGENERATION: {
@@ -51,59 +58,51 @@ export const PLAYER_PROGRESSION = {
         mana: 5    // Base value at level 1
     },
 
-    // Stat increases per level (used for linear scaling)
+    // Base stat increases per level (base HP/Mana/attack before attribute bonuses)
     LEVEL_UP_STAT_INCREASES: {
-        maxHealth: 20,
-        maxMana: 15,
-        strength: 1,
-        dexterity: 1,
-        intelligence: 1,
+        baseMaxHealth: 20,
+        baseMaxMana: 15,
         attackPower: 2,
         movementSpeed: 0.25
     },
+
+    // GDD attribute effects per point
+    ATTRIBUTE_EFFECTS: {
+        strength: { hpPerPoint: 5 },
+        intelligence: { manaPerPoint: 5 },
+        agility: { attackSpeedPercentPerPoint: 2 },
+        vitality: { hpRegenPerPoint: 1 },
+        wisdom: { cooldownReductionPercentPerPoint: 2 }
+    },
+
+    // Enlightenment Mode (Harmony capstone, unlock after Ch5) — short buff with skill synergy
+    ENLIGHTENMENT_MODE: {
+        baseDuration: 4,
+        durationPerLevel: 2,
+        cooldown: 60,
+        damageBonusPercentBase: 15,
+        damageBonusPercentPerLevel: 5,
+        movementSpeedBonus: 0.1,
+        cooldownRecoveryBonus: 0.2, // 20% faster skill cooldown recovery while active
+    },
     
-    // Exponential stat scaling configuration
+    // Exponential stat scaling for base HP/Mana/attack (when useExponentialScaling)
     STAT_SCALING: {
-        // Whether to use exponential scaling (true) or linear scaling (false)
         useExponentialScaling: true,
-        
-        // Health scaling
         health: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.health},
+            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.health; },
             growthFactor: 1.3
         },
-        
-        // Mana scaling
         mana: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.mana},
+            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.mana; },
             growthFactor: 1.2
         },
-        
-        // Attribute scaling
-        strength: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.strength},
-            growthFactor: 1.1
-        },
-        
-        dexterity: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.dexterity},
-            growthFactor: 1.1
-        },
-        
-        intelligence: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.intelligence},
-            growthFactor: 1.1
-        },
-        
-        // Combat scaling
         attackPower: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.attackPower},
+            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.attackPower; },
             growthFactor: 1.12
         },
-        
-        // Movement scaling
         movementSpeed: {
-            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.movementSpeed},
+            get baseValue(){ return PLAYER_PROGRESSION.DEFAULT_PLAYER_STATS.movementSpeed; },
             growthFactor: 1.08
         }
     }
@@ -157,6 +156,9 @@ export const ENEMY_CONFIG = {
         'demon_lord': 3.0,
         'ash_demon': 2.0,
         'hellhound': 2.5,
+        'golden_titan': 4.0,
+        'echo_phantom': 3.0,
+        'shadow_self': 3.5,
         
         // Golem enemies - slow but steady regeneration
         'infernal_golem': 1.0,
@@ -172,7 +174,8 @@ export const ENEMY_CONFIG = {
         'mountains': 1.6,
         'dark_sanctum': 1.8,
         'hellfire_peaks': 2.0,
-        'frozen_wastes': 2.2
+        'frozen_wastes': 2.2,
+        'path_of_mastery': 1.5
     },
 
     // Zone-based enemy spawning
@@ -183,7 +186,8 @@ export const ENEMY_CONFIG = {
         'mountains': ['demon', 'demon_scout', 'infernal_golem', 'frost_elemental', 'mountain_troll', 'harpy'],
         'dark_sanctum': ['necromancer', 'shadow_beast', 'infernal_golem', 'void_wraith', 'blood_cultist', 'shadow_stalker'],
         'hellfire_peaks': ['fire_elemental', 'lava_golem', 'ash_demon', 'flame_imp', 'hellhound'],
-        'frozen_wastes': ['frost_elemental', 'ice_golem', 'snow_troll', 'frozen_revenant', 'winter_wolf']
+        'frozen_wastes': ['frost_elemental', 'ice_golem', 'snow_troll', 'frozen_revenant', 'winter_wolf'],
+        'path_of_mastery': ['demon', 'infernal_golem', 'void_wraith', 'frost_elemental', 'mountain_troll', 'necromancer', 'shadow_beast']
     },
     
     // Zone-based boss spawning - this provides a clear mapping between zones and their bosses
@@ -194,7 +198,8 @@ export const ENEMY_CONFIG = {
         'mountains': ['demon_lord'],
         'dark_sanctum': ['necromancer_lord', 'void_wraith'],
         'hellfire_peaks': ['demon_lord', 'lava_golem'],
-        'frozen_wastes': ['frost_titan', 'ice_golem']
+        'frozen_wastes': ['frost_titan', 'ice_golem'],
+        'path_of_mastery': ['skeleton_king', 'demon_lord', 'frost_titan', 'necromancer_lord', 'echo_phantom', 'shadow_self']
     },
 
     // Enemy types
@@ -729,6 +734,54 @@ export const ENEMY_CONFIG = {
             behavior: 'boss',
             zone: 'mountains',
             abilities: ['fire_nova', 'teleport']
+        },
+        {
+            type: 'golden_titan',
+            name: 'Golden Titan',
+            health: 550,
+            damage: 38,
+            speed: 2.0,
+            attackRange: 3,
+            attackSpeed: 1.0,
+            experienceValue: 320,
+            color: 0xddbb44,
+            scale: 2.8,
+            isBoss: true,
+            behavior: 'boss',
+            zone: 'mountains',
+            abilities: ['ground_slam', 'golden_aura']
+        },
+        {
+            type: 'echo_phantom',
+            name: 'Echo Phantom',
+            health: 480,
+            damage: 34,
+            speed: 2.8,
+            attackRange: 4,
+            attackSpeed: 1.4,
+            experienceValue: 310,
+            color: 0x6688aa,
+            scale: 2.2,
+            isBoss: true,
+            behavior: 'boss',
+            zone: 'dark_sanctum',
+            abilities: ['echo_strike', 'phantom_form']
+        },
+        {
+            type: 'shadow_self',
+            name: 'Shadow Self',
+            health: 520,
+            damage: 36,
+            speed: 3.2,
+            attackRange: 2.2,
+            attackSpeed: 1.5,
+            experienceValue: 350,
+            color: 0x333366,
+            scale: 1.2,
+            isBoss: true,
+            behavior: 'boss',
+            zone: 'dark_sanctum',
+            abilities: ['mirror_strike', 'shadow_step']
         },
         {
             type: 'frost_titan',

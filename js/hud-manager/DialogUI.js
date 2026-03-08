@@ -25,11 +25,28 @@ export class DialogUI extends UIComponent {
         // Store references to elements we need to update
         this.dialogText = document.getElementById('dialog-text');
         this.dialogContinue = document.getElementById('dialog-continue');
+        this.dialogAcceptBtn = document.getElementById('dialog-accept-btn');
         
-        // Add click event to close dialog
-        this.container.addEventListener('click', () => {
+        // Click on "Continue" or overlay: close (if no onAccept, or decline)
+        this.container.addEventListener('click', (e) => {
+            if (e.target === this.dialogAcceptBtn) return;
             this.hideDialog();
         });
+        if (this.dialogContinue) {
+            this.dialogContinue.addEventListener('click', (e) => { e.stopPropagation(); this.hideDialog(); });
+        }
+        if (this.dialogAcceptBtn) {
+            this.dialogAcceptBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (this._onAccept) {
+                    const cb = this._onAccept;
+                    this._onAccept = null;
+                    this._onDecline = null; // accepted, so do not call decline
+                    cb();
+                }
+                this.hideDialog();
+            });
+        }
         
         // Hide initially
         this.hide();
@@ -38,13 +55,25 @@ export class DialogUI extends UIComponent {
     }
     
     /**
-     * Show a dialog with title and text
+     * Show a dialog with title and text.
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
+     * @param {function} [onAccept] - Optional. If provided, show "Accept" button; clicking it calls onAccept() then closes. Otherwise "Click to continue" (click to close).
+     * @param {function} [onDecline] - Optional. If provided with onAccept, called when the dialog is closed without clicking Accept (e.g. overlay click).
      */
-    showDialog(title, text) {
+    showDialog(title, text, onAccept, onDecline) {
+        this._onAccept = typeof onAccept === 'function' ? onAccept : null;
+        this._onDecline = typeof onDecline === 'function' ? onDecline : null;
+        
         // Update dialog text
-        this.dialogText.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
+        this.dialogText.innerHTML = `<h3>${title}</h3><p>${text.replace(/\n/g, '<br>')}</p>`;
+        
+        if (this.dialogContinue) {
+            this.dialogContinue.style.display = this._onAccept ? 'none' : '';
+        }
+        if (this.dialogAcceptBtn) {
+            this.dialogAcceptBtn.style.display = this._onAccept ? 'inline-block' : 'none';
+        }
         
         // Show dialog box
         this.show();
@@ -53,13 +82,20 @@ export class DialogUI extends UIComponent {
         // Pause game
         this.game.pause(false);
 
-        console.debug('Dialog opened:', title);
+        console.debug('Dialog opened:', title, this._onAccept ? '(with Accept)' : '');
     }
     
     /**
      * Hide the dialog
      */
     hideDialog() {
+        if (this._onAccept && this._onDecline) {
+            try { this._onDecline(); } catch (err) { console.warn('Dialog onDecline error:', err); }
+        }
+        this._onAccept = null;
+        this._onDecline = null;
+        if (this.dialogContinue) this.dialogContinue.style.display = '';
+        if (this.dialogAcceptBtn) this.dialogAcceptBtn.style.display = 'none';
         // Hide dialog box
         this.hide();
         this.isDialogOpen = false;

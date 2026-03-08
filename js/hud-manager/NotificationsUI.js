@@ -399,10 +399,12 @@ export class NotificationsUI extends UIComponent {
         // Get the level up container and level elements
         const levelUpContainer = document.getElementById('level-up-container');
         const levelElement = levelUpContainer.querySelector('.level-up-level');
+        const rewardsEl = levelUpContainer.querySelector('.level-up-rewards');
 
         // Set the level text
         levelElement.textContent = level;
-        
+        if (rewardsEl) rewardsEl.textContent = '+3 attribute points, +1 skill point';
+
         // Show the level up animation using CSS classes
         levelUpContainer.classList.remove('level-up-active');
         // Force a reflow to restart the animation

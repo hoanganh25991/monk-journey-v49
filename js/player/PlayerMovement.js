@@ -244,8 +244,11 @@ export class PlayerMovement {
         
         // If there's keyboard input, move the player
         if (direction.length() > 0) {
-            // Calculate movement step
-            const step = this.playerStats.getMovementSpeed() * delta;
+            // Calculate movement step (ensure non-zero so we always move when input is present)
+            let step = this.playerStats.getMovementSpeed() * delta;
+            if (step <= 0 || !isFinite(step)) {
+                step = 18 * (delta || 0.016); // fallback: use default speed 18 units/s
+            }
             
             // Calculate new position (only update X and Z)
             const newPosition = new THREE.Vector3(

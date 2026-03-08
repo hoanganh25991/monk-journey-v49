@@ -407,6 +407,39 @@ export const SKILL_SOUNDS = {
             attack: 0.01
         }
     },
+    /** Alias for Wave of Light lightning variant; uses same file as thunderStrike. */
+    lightning: {
+        id: 'lightning',
+        file: 'thunder_strike.mp3',
+        volume: 0.85,
+        simulated: {
+            frequency: 550,
+            duration: 0.2,
+            type: 'sawtooth',
+            decay: true,
+            slide: -40,
+            noise: 0.25,
+            distortion: 0.4,
+            filter: 'highpass'
+        }
+    },
+    /** Alias for Wave of Light explosive variant; uses same file as massiveExplosion. */
+    explosion: {
+        id: 'explosion',
+        file: 'massive_explosion.mp3',
+        volume: 0.9,
+        simulated: {
+            frequency: 220,
+            duration: 0.6,
+            type: 'sawtooth',
+            decay: true,
+            slide: -30,
+            noise: 0.3,
+            distortion: 0.5,
+            filter: 'lowpass',
+            attack: 0.01
+        }
+    },
     
     // Breath of Heaven
     breathOfHeaven: {
@@ -843,6 +876,18 @@ export const UI_SOUNDS = {
             noise: 0.1,
             filter: 'highpass'
         }
+    },
+    questComplete: {
+        id: 'questComplete',
+        file: 'quest_complete.mp3',
+        volume: 0.8,
+        simulated: {
+            frequency: 523,
+            duration: 0.5,
+            type: 'sine',
+            decay: false,
+            arpeggio: [1, 1.25, 1.5, 2]
+        }
     }
 };
 
@@ -891,50 +936,84 @@ export const ENVIRONMENT_SOUNDS = {
     }
 };
 
-// Music tracks
+// Music tracks (GDD: exploration ambient, combat subtle drums, boss intensity).
+// Phase 7.5 — Relaxation mood: "nhạc không lời, nhẹ nhàng thư giãn" (instrumental, gentle, relaxing).
+// Refinement: exploration uses relaxationTheme (432 Hz) for curve/health/relax; fallback to mainTheme.
+// When files are missing, simulated fallbacks use gentle sine waves (offline-first).
 export const MUSIC = {
+    /** 432 Hz relaxation layer — gentle, curved, calming. Default for exploration. */
+    relaxationTheme: {
+        id: 'relaxationTheme',
+        file: 'relaxation_theme.mp3',
+        fallbackFile: 'main_theme.mp3',
+        volume: 0.1,
+        loop: true,
+        simulated: {
+            frequency: 432,
+            duration: 10,
+            type: 'sine',
+            decay: false,
+            vibrato: 0.5,
+            tremolo: 0.05,
+        },
+    },
     mainTheme: {
         id: 'mainTheme',
         file: 'main_theme.mp3',
+        fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 220,
-        //     duration: 5.0,
-        //     type: 'sine',
-        //     decay: false,
-        //     melody: true
-        // }
+        simulated: {
+            frequency: [220, 277, 330],
+            duration: 8,
+            type: 'sine',
+            decay: false,
+            vibrato: 2,
+            tremolo: 0.1,
+        },
     },
     battleTheme: {
         id: 'battleTheme',
         file: 'battle_theme.mp3',
+        fallbackFile: 'main_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 280,
-        //     duration: 5.0,
-        //     type: 'square',
-        //     decay: false,
-        //     melody: true,
-        //     tempo: 140
-        // }
+        simulated: {
+            frequency: [260, 330, 392],
+            duration: 6,
+            type: 'sine',
+            decay: false,
+            vibrato: 3,
+            tremolo: 0.15,
+        },
     },
     bossTheme: {
         id: 'bossTheme',
         file: 'boss_theme.mp3',
+        fallbackFile: 'battle_theme.mp3',
         volume: 0.1,
         loop: true,
-        // simulated: {
-        //     frequency: 180,
-        //     duration: 5.0,
-        //     type: 'sawtooth',
-        //     decay: false,
-        //     melody: true,
-        //     tempo: 160
-        // }
-    }
+        simulated: {
+            frequency: [196, 262, 330],
+            duration: 6,
+            type: 'sine',
+            decay: false,
+            vibrato: 4,
+            tremolo: 0.2,
+        },
+    },
 };
+
+/** GDD music layers: exploration (default), combat, boss. Crossfade ~1.5s when switching. */
+/** Exploration uses relaxationTheme (432 Hz) for calm play; falls back to mainTheme if file missing. */
+export const MUSIC_LAYERS = {
+    exploration: 'relaxationTheme',
+    combat: 'battleTheme',
+    boss: 'bossTheme',
+};
+
+/** Crossfade duration in seconds (GDD: 1.5s). */
+export const MUSIC_CROSSFADE_DURATION = 1.5;
 
 // Export all sounds as a single object for convenience
 export const ALL_SOUNDS = {

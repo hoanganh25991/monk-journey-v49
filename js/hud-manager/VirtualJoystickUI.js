@@ -123,29 +123,37 @@ export class VirtualJoystickUI extends UIComponent {
         });
     }
     
+    /** Overlay size: compact bottom-left zone so quest log (top-left) stays clickable. */
+    static get OVERLAY_SIZE_PX() { return 220; }
+
     /**
-     * Create a full-screen overlay for joystick input
-     * This overlay will only respond to touch events on the left half of the screen
+     * Create a compact overlay for joystick input (bottom-left only, not full left half).
+     * Keeps quest log and other left-side UI clickable.
      */
     createJoystickOverlay() {
+        const size = VirtualJoystickUI.OVERLAY_SIZE_PX;
         // Create overlay element if it doesn't exist
         if (!document.getElementById('joystick-overlay')) {
             this.joystickOverlay = document.createElement('div');
             this.joystickOverlay.id = 'joystick-overlay';
             this.joystickOverlay.style.position = 'fixed';
-            this.joystickOverlay.style.top = '0';
+            this.joystickOverlay.style.bottom = '0';
             this.joystickOverlay.style.left = '0';
-            this.joystickOverlay.style.width = '50%'; // Only cover the left half of the screen
-            this.joystickOverlay.style.height = '100%';
-            this.joystickOverlay.style.zIndex = '150'; // Higher z-index to be above skill buttons but below modals
+            this.joystickOverlay.style.width = `${size}px`;
+            this.joystickOverlay.style.height = `${size}px`;
+            this.joystickOverlay.style.zIndex = '150';
             this.joystickOverlay.style.pointerEvents = 'auto';
             this.joystickOverlay.style.touchAction = 'none';
-            this.joystickOverlay.style.background = 'transparent'; // Make it invisible
-            
-            // Add to document body
+            this.joystickOverlay.style.background = 'transparent';
+
             document.body.appendChild(this.joystickOverlay);
         } else {
             this.joystickOverlay = document.getElementById('joystick-overlay');
+            this.joystickOverlay.style.top = '';
+            this.joystickOverlay.style.bottom = '0';
+            this.joystickOverlay.style.left = '0';
+            this.joystickOverlay.style.width = `${size}px`;
+            this.joystickOverlay.style.height = `${size}px`;
         }
     }
     
@@ -181,8 +189,8 @@ export class VirtualJoystickUI extends UIComponent {
             event.preventDefault();
             event.stopPropagation();
             
-            // Only respond if joystick is not already active and click is on left half
-            if (!this.joystickState.active && this.isOnLeftHalfOfScreen(event.clientX)) {
+            // Only respond if joystick is not already active and click is in joystick zone
+            if (!this.joystickState.active && this.isInJoystickZone(event.clientX, event.clientY)) {
                 this.handleJoystickStart(event.clientX, event.clientY);
                 
                 // Add global mouse move and up events
@@ -254,12 +262,14 @@ export class VirtualJoystickUI extends UIComponent {
     }
     
     /**
-     * Check if a position is on the left half of the screen
+     * Check if a position is inside the compact joystick overlay (bottom-left zone).
      * @param {number} clientX - X position to check
-     * @returns {boolean} - True if position is on left half of screen
+     * @param {number} clientY - Y position to check
+     * @returns {boolean} - True if position is in joystick zone
      */
-    isOnLeftHalfOfScreen(clientX) {
-        return clientX < window.innerWidth / 2;
+    isInJoystickZone(clientX, clientY) {
+        const size = VirtualJoystickUI.OVERLAY_SIZE_PX;
+        return clientX >= 0 && clientX < size && clientY >= window.innerHeight - size && clientY <= window.innerHeight;
     }
     
     /**

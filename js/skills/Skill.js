@@ -299,7 +299,12 @@ export class Skill {
      */
     updateCooldown(delta) {
         if (this.currentCooldown > 0) {
-            this.currentCooldown -= delta;
+            let effectiveDelta = delta;
+            // Enlightenment Mode synergy: faster cooldown recovery while buff is active
+            if (this.game?.player?.stats && typeof this.game.player.stats.isEnlightenmentModeActive === 'function' && this.game.player.stats.isEnlightenmentModeActive()) {
+                effectiveDelta = delta * 1.2; // 20% faster cooldown recovery
+            }
+            this.currentCooldown -= effectiveDelta;
             if (this.currentCooldown < 0) {
                 this.currentCooldown = 0;
             }
@@ -323,7 +328,14 @@ export class Skill {
             
             // Add bonus from strength (each point adds 0.5 damage)
             damage += player.stats.strength * 0.5;
-            
+            // Ranged: Agility bonus (GDD; replaces dexterity)
+            if (this.type === 'ranged') {
+                damage += (player.stats.agility ?? 0) * 0.3;
+            }
+            // Magical: Intelligence bonus
+            if (this.type === 'magical') {
+                damage += (player.stats.intelligence ?? 0) * 0.4;
+            }
             // Add level bonus (each level adds 2 damage)
             damage += (player.stats.getLevel() - 1) * 2;
             
@@ -388,11 +400,14 @@ export class Skill {
                         console.debug(`Adding intelligence bonus from ${slot}: ${intBonus.toFixed(1)}`);
                     }
                     
-                    // Dexterity bonus for ranged skills
-                    if (this.type === 'ranged' && item.getStat('dexterity')) {
-                        const dexBonus = item.getStat('dexterity') * 0.3;
-                        damage += dexBonus;
-                        console.debug(`Adding dexterity bonus from ${slot}: ${dexBonus.toFixed(1)}`);
+                    // Agility/Dexterity bonus for ranged skills (GDD: Agility; legacy items may have dexterity)
+                    if (this.type === 'ranged') {
+                        const agi = item.getStat('agility') ?? item.getStat('dexterity') ?? 0;
+                        if (agi) {
+                            const agiBonus = agi * 0.3;
+                            damage += agiBonus;
+                            console.debug(`Adding agility bonus from ${slot}: ${agiBonus.toFixed(1)}`);
+                        }
                     }
                     
                     // Strength bonus for melee skills
@@ -438,6 +453,13 @@ export class Skill {
                 damage *= (1 + (specificSkillBonus / 100));
             }
             
+            // Enlightenment Mode synergy: increased damage while buff is active (GDD Harmony capstone)
+            if (typeof player.stats.isEnlightenmentModeActive === 'function' && player.stats.isEnlightenmentModeActive()) {
+                const level = typeof player.stats.getEnlightenmentModeLevel === 'function' ? player.stats.getEnlightenmentModeLevel() : 1;
+                const bonus = (15 + level * 5) / 100; // 15% + 5% per level
+                damage *= (1 + bonus);
+            }
+
             // Apply small random variation (±10%)
             const variation = damage * 0.2 * (Math.random() - 0.5);
             damage += variation;
@@ -503,10 +525,14 @@ export class Skill {
     }
     
     /**
-     * Start the skill's cooldown
+     * Start the skill's cooldown (GDD: Wisdom reduces cooldown time)
      */
     startCooldown() {
-        this.currentCooldown = this.cooldown;
+        let duration = this.cooldown;
+        if (this.game && this.game.player && typeof this.game.player.stats.getCooldownReductionMultiplier === 'function') {
+            duration *= this.game.player.stats.getCooldownReductionMultiplier();
+        }
+        this.currentCooldown = duration;
     }
     
     /**

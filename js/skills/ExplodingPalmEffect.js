@@ -44,9 +44,10 @@ export class ExplodingPalmEffect extends SkillEffect {
         // No rotation.x - keep skill vertical, only adjust height naturally
       }
       
-      // Calculate target position based on direction and range
+      // Calculate target position based on direction and range (safe when explodingPalmState not yet set)
+      const maxDist = this.explodingPalmState?.maxDistance ?? this.skill?.range ?? 30;
       this.targetPosition = position.clone().add(
-        this.direction.clone().multiplyScalar(this.explodingPalmState.maxDistance || 30)
+        this.direction.clone().multiplyScalar(maxDist)
       );
       
       // Store effect
@@ -440,7 +441,7 @@ export class ExplodingPalmEffect extends SkillEffect {
    * @param {number} delta - Time since last update in seconds
    */
   update(delta) {
-    if (!this.isActive || !this.effect) return;
+    if (!this.isActive || !this.effect || !this.explodingPalmState) return;
     
     this.elapsedTime += delta;
     this.age += delta;

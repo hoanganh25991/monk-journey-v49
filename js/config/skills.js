@@ -1,9 +1,11 @@
 /**
  * Skills configuration - SOURCE OF TRUTH for all playable skills.
  * skill-tree.js, SkillEffectRegistry, and UI derive from this file.
+ * Starter set follows skill-unlocks.js (progress-based unlocks).
  */
 import { SKILL_ICONS } from './skill-icons.js';
 import { SKILL_SOUNDS } from './sounds.js';
+import { STARTER_SKILL_NAMES } from './skill-unlocks.js';
 // @ts-check
 /** @typedef {import('./config.type.js').SkillConfig} SkillConfig */
 
@@ -429,6 +431,14 @@ export const BATTLE_SKILLS = [
     PRIMARY_ATTACKS[1], // First primary skill
     ...NORMAL_SKILLS.slice(0, 7), // First 7 normal skills
 ];
+
+/** Starter set for first-time play (no saved skill selection): follows STARTER_SKILL_NAMES (1 primary + 2 normal). */
+/** @type {SkillConfig[]} */
+export const STARTING_SKILLS = (() => {
+    const primary = PRIMARY_ATTACKS.find(p => STARTER_SKILL_NAMES.includes(p.name));
+    const normals = NORMAL_SKILLS.filter(n => STARTER_SKILL_NAMES.includes(n.name));
+    return [primary, ...normals].filter(Boolean);
+})();
 
 /** Ordered skill names - use this for consistent ordering (skill-tree, UI) */
 export const SKILL_ORDER = [...PRIMARY_ATTACKS, ...NORMAL_SKILLS].map(s => s.name);

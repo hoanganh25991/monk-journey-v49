@@ -1,6 +1,22 @@
 // Character model configurations
 export const CHARACTER_MODELS = [
     {
+        id: 'native-monk',
+        name: 'Monk (Native)',
+        native: true,
+        path: '',
+        modelPath: '',
+        description: 'Procedural shaolin-style monk (no GLB)',
+        baseScale: 1.0,
+        multiplier: 1.0,
+        defaultAdjustments: {
+            position: { x: 0, y: 0, z: 0 },
+            rotation: { x: 0, y: 0, z: 0 },
+            heightOffset: 0
+        },
+        animations: []
+    },
+    {
         id: 'monk',
         name: 'Monk',
         modelPath: 'assets/models/monk.glb',

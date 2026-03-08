@@ -5,7 +5,16 @@
  */
 
 import { PLAYER_PROGRESSION } from '../config/game-balance.js';
-const {DEFAULT_PLAYER_STATS, LEVEL_UP_EXPERIENCE_MULTIPLIER, LEVEL_UP_STAT_INCREASES, RESOURCE_REGENERATION, STAT_SCALING, EXPERIENCE_SCALING} = PLAYER_PROGRESSION
+import { getSkillTreeNodeById, canLevelSkillTreeNode, CHAPTER_5_QUEST_ID } from '../config/skill-tree-graph.js';
+const {
+    DEFAULT_PLAYER_STATS,
+    getXpRequiredForLevel,
+    LEVEL_UP_STAT_INCREASES,
+    RESOURCE_REGENERATION,
+    STAT_SCALING,
+    ATTRIBUTE_EFFECTS,
+    ENLIGHTENMENT_MODE
+} = PLAYER_PROGRESSION;
 
 /**
  * @typedef {Object} TemporaryBoost
@@ -29,9 +38,11 @@ const {DEFAULT_PLAYER_STATS, LEVEL_UP_EXPERIENCE_MULTIPLIER, LEVEL_UP_STAT_INCRE
  * @property {number} [maxHealth] - Maximum health points
  * @property {number} [mana] - Current mana points
  * @property {number} [maxMana] - Maximum mana points
- * @property {number} [strength] - Strength attribute
- * @property {number} [dexterity] - Dexterity attribute
- * @property {number} [intelligence] - Intelligence attribute
+ * @property {number} [strength] - Strength (+5 HP per point)
+ * @property {number} [intelligence] - Intelligence (+5 Mana per point)
+ * @property {number} [agility] - Agility (+2% attack speed per point)
+ * @property {number} [vitality] - Vitality (+1 HP regen/s per point)
+ * @property {number} [wisdom] - Wisdom (+2% cooldown reduction per point)
  * @property {number} [movementSpeed] - Movement speed
  * @property {number} [attackPower] - Attack power
  */
@@ -41,23 +52,129 @@ export class PlayerStats {
      * @param {PlayerStatsInitializer} [initialStats={}] - Initial stats to override defaults
      */
     constructor(initialStats = {}) {
-        // Initialize stats from config with any provided overrides
+        // Level and experience (GDD: xpRequired(level) = 100 * level^1.5)
         this.level = this.validateNumber(initialStats.level) || DEFAULT_PLAYER_STATS.level;
-        this.experience = this.validateNumber(initialStats.experience) || DEFAULT_PLAYER_STATS.experience;
-        this.experienceToNextLevel = this.validateNumber(initialStats.experienceToNextLevel) || DEFAULT_PLAYER_STATS.experienceToNextLevel;
-        this.health = this.validateNumber(initialStats.health) || DEFAULT_PLAYER_STATS.health;
-        this.maxHealth = this.validateNumber(initialStats.maxHealth) || DEFAULT_PLAYER_STATS.maxHealth;
-        this.mana = this.validateNumber(initialStats.mana) || DEFAULT_PLAYER_STATS.mana;
-        this.maxMana = this.validateNumber(initialStats.maxMana) || DEFAULT_PLAYER_STATS.maxMana;
-        this.strength = this.validateNumber(initialStats.strength) || DEFAULT_PLAYER_STATS.strength;
-        this.dexterity = this.validateNumber(initialStats.dexterity) || DEFAULT_PLAYER_STATS.dexterity;
-        this.intelligence = this.validateNumber(initialStats.intelligence) || DEFAULT_PLAYER_STATS.intelligence;
-        this.movementSpeed = this.validateNumber(initialStats.movementSpeed) || DEFAULT_PLAYER_STATS.movementSpeed;
-        this.attackPower = this.validateNumber(initialStats.attackPower) || DEFAULT_PLAYER_STATS.attackPower;
-        
-        // Track temporary stat boosts
+        this.experience = this.validateNumber(initialStats.experience) ?? DEFAULT_PLAYER_STATS.experience;
+        this.experienceToNextLevel = this.validateNumber(initialStats.experienceToNextLevel) ?? (typeof getXpRequiredForLevel === 'function' ? getXpRequiredForLevel(this.level) : DEFAULT_PLAYER_STATS.experienceToNextLevel);
+
+        // Base pool values (from level only; derived stats add attribute bonuses)
+        this.health = this.validateNumber(initialStats.health) ?? DEFAULT_PLAYER_STATS.health;
+        this.maxHealth = this.validateNumber(initialStats.maxHealth) ?? DEFAULT_PLAYER_STATS.maxHealth;
+        this.mana = this.validateNumber(initialStats.mana) ?? DEFAULT_PLAYER_STATS.mana;
+        this.maxMana = this.validateNumber(initialStats.maxMana) ?? DEFAULT_PLAYER_STATS.maxMana;
+
+        // GDD attributes: Strength, Intelligence, Agility, Vitality, Wisdom (migrate old dexterity → agility)
+        this.strength = this.validateNumber(initialStats.strength) ?? DEFAULT_PLAYER_STATS.strength;
+        this.intelligence = this.validateNumber(initialStats.intelligence) ?? DEFAULT_PLAYER_STATS.intelligence;
+        this.agility = this.validateNumber(initialStats.agility) ?? this.validateNumber(initialStats.dexterity) ?? DEFAULT_PLAYER_STATS.agility;
+        this.vitality = this.validateNumber(initialStats.vitality) ?? DEFAULT_PLAYER_STATS.vitality;
+        this.wisdom = this.validateNumber(initialStats.wisdom) ?? DEFAULT_PLAYER_STATS.wisdom;
+
+        this.movementSpeed = this.validateNumber(initialStats.movementSpeed) ?? DEFAULT_PLAYER_STATS.movementSpeed;
+        this.attackPower = this.validateNumber(initialStats.attackPower) ?? DEFAULT_PLAYER_STATS.attackPower;
+
+        // Level-up rewards (GDD: +3 attribute points, +1 skill point per level)
+        this.unspentAttributePoints = this.validateNumber(initialStats.unspentAttributePoints) ?? 0;
+        this.skillPoints = this.validateNumber(initialStats.skillPoints) ?? 0;
+
+        /** GDD skill tree graph: nodeId -> current level (persisted in save) */
+        this.skillTreeNodeLevels = (initialStats.skillTreeNodeLevels && typeof initialStats.skillTreeNodeLevels === 'object')
+            ? { ...initialStats.skillTreeNodeLevels }
+            : {};
+
         /** @type {Object.<string, StatBoost>} */
         this.temporaryBoosts = {};
+
+        /** Enlightenment Mode (Harmony capstone): remaining buff duration (s), cooldown remaining (s) — persisted in save */
+        this.enlightenmentModeRemaining = this.validateNumber(initialStats.enlightenmentModeRemaining, 0);
+        this.enlightenmentModeCooldownRemaining = this.validateNumber(initialStats.enlightenmentModeCooldownRemaining, 0);
+
+        // Base HP/Mana from level only (derived stats add attribute bonuses)
+        this._baseMaxHealth = undefined;
+        this._baseMaxMana = undefined;
+        this._recalcBaseFromLevel();
+        this._recalcDerivedStats();
+    }
+
+    /**
+     * Compute base max health/mana from level (no attribute contribution).
+     * @private
+     */
+    _recalcBaseFromLevel() {
+        const lvl = Math.max(1, this.level);
+        if (STAT_SCALING && STAT_SCALING.useExponentialScaling) {
+            const calc = (statConfig, defaultBase, growth) => {
+                if (!statConfig) return defaultBase;
+                const base = statConfig.baseValue ?? defaultBase;
+                const factor = statConfig.growthFactor ?? growth;
+                return Math.floor(base * Math.pow(factor, lvl - 1));
+            };
+            this._baseMaxHealth = calc(STAT_SCALING.health, DEFAULT_PLAYER_STATS.maxHealth, 1.15);
+            this._baseMaxMana = calc(STAT_SCALING.mana, DEFAULT_PLAYER_STATS.maxMana, 1.2);
+        } else {
+            this._baseMaxHealth = DEFAULT_PLAYER_STATS.maxHealth + (this.validateNumber(LEVEL_UP_STAT_INCREASES.baseMaxHealth, 20) * (lvl - 1));
+            this._baseMaxMana = DEFAULT_PLAYER_STATS.maxMana + (this.validateNumber(LEVEL_UP_STAT_INCREASES.baseMaxMana, 15) * (lvl - 1));
+        }
+    }
+
+    /**
+     * Recompute derived stats from base + attributes (GDD: Strength +5 HP, Intelligence +5 Mana).
+     * Call after level-up or attribute allocation.
+     */
+    _recalcDerivedStats() {
+        this._recalcBaseFromLevel();
+        const str = ATTRIBUTE_EFFECTS?.strength?.hpPerPoint ?? 5;
+        const int = ATTRIBUTE_EFFECTS?.intelligence?.manaPerPoint ?? 5;
+        const newMaxHealth = (this._baseMaxHealth ?? this.maxHealth) + this.strength * str;
+        const newMaxMana = (this._baseMaxMana ?? this.maxMana) + this.intelligence * int;
+        this.maxHealth = Math.max(1, newMaxHealth);
+        this.maxMana = Math.max(1, newMaxMana);
+        this.health = Math.min(this.health, this.maxHealth);
+        this.mana = Math.min(this.mana, this.maxMana);
+    }
+
+    /**
+     * Allocate one point to an attribute. Uses one unspent point and recalculates derived stats.
+     * @param {string} attribute - One of 'strength', 'intelligence', 'agility', 'vitality', 'wisdom'
+     * @returns {boolean} - True if allocation succeeded
+     */
+    allocateAttribute(attribute) {
+        const key = String(attribute).toLowerCase();
+        if (!['strength', 'intelligence', 'agility', 'vitality', 'wisdom'].includes(key)) return false;
+        if (this.unspentAttributePoints < 1) return false;
+        this.unspentAttributePoints -= 1;
+        this[key] = (this[key] ?? 0) + 1;
+        this._recalcDerivedStats();
+        return true;
+    }
+
+    /**
+     * Get attack speed multiplier from Agility (GDD: +2% per point).
+     * @returns {number} - Multiplier (e.g. 1.2 for 20% faster)
+     */
+    getAttackSpeedMultiplier() {
+        const pct = ATTRIBUTE_EFFECTS?.agility?.attackSpeedPercentPerPoint ?? 2;
+        return 1 + (this.agility ?? 0) * (pct / 100);
+    }
+
+    /**
+     * Get HP regen per second from base + Vitality (GDD: +1 per point).
+     * @returns {number}
+     */
+    getHealthRegenPerSecond() {
+        const base = this.validateNumber(RESOURCE_REGENERATION?.health, 2);
+        const vit = ATTRIBUTE_EFFECTS?.vitality?.hpRegenPerPoint ?? 1;
+        return base + (this.vitality ?? 0) * vit;
+    }
+
+    /**
+     * Get cooldown reduction multiplier from Wisdom (GDD: +2% per point; applied as reduced cooldown time).
+     * @returns {number} - Multiplier for cooldown time (e.g. 0.8 = 20% reduction, min 0.5)
+     */
+    getCooldownReductionMultiplier() {
+        const pct = ATTRIBUTE_EFFECTS?.wisdom?.cooldownReductionPercentPerPoint ?? 2;
+        const reduction = (this.wisdom ?? 0) * (pct / 100);
+        return Math.max(0.5, 1 - reduction);
     }
     
     /**
@@ -163,109 +280,31 @@ export class PlayerStats {
      * @param {number} value - New level value
      */
     setLevel(value) {
-        // Validate the input value
         const newLevel = this.validateNumber(value, 1);
-        
-        // Only proceed if the new level is valid and different
-        if (newLevel !== this.level) {
-            // Store the old level for reference
-            const oldLevel = this.level;
-            this.level = newLevel;
-            
-            // Recalculate stats based on level difference
-            // This is a simplified approach - we're not running the full levelUp logic
-            // to avoid triggering notifications and other side effects
-            
-            // Calculate experience for next level based on the new level
-            this.experienceToNextLevel = DEFAULT_PLAYER_STATS.experienceToNextLevel;
-            
-            // Use progressive experience scaling if available
-            if (EXPERIENCE_SCALING) {
-                const baseMultiplier = this.validateNumber(EXPERIENCE_SCALING.baseMultiplier, 1.5);
-                const progressiveIncrease = this.validateNumber(EXPERIENCE_SCALING.progressiveIncrease, 0.05);
-                const maxMultiplier = this.validateNumber(EXPERIENCE_SCALING.maxMultiplier, 3.0);
-                
-                // Calculate experience required for each level up to the new level
-                for (let i = 1; i < newLevel; i++) {
-                    // Calculate dynamic multiplier that increases with level
-                    let dynamicMultiplier = baseMultiplier + (i * progressiveIncrease);
-                    
-                    // Cap the multiplier to prevent excessive grinding
-                    dynamicMultiplier = Math.min(dynamicMultiplier, maxMultiplier);
-                    
-                    // Apply the multiplier
-                    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * dynamicMultiplier);
-                }
-            } else {
-                // Fallback to legacy multiplier
-                for (let i = 1; i < newLevel; i++) {
-                    this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * LEVEL_UP_EXPERIENCE_MULTIPLIER);
-                }
-            }
-            
-            // Adjust stats based on level difference
-            const levelDiff = newLevel - oldLevel;
-            
-            // Use exponential scaling for all stats if enabled, otherwise use linear scaling
-            if (STAT_SCALING && STAT_SCALING.useExponentialScaling) {
-                // Helper function to calculate exponential stat value
-                const calculateExponentialStat = (statConfig, defaultBase, defaultGrowth) => {
-                    if (!statConfig) return 0;
-                    const baseValue = this.validateNumber(statConfig.baseValue, defaultBase);
-                    const growthFactor = this.validateNumber(statConfig.growthFactor, defaultGrowth);
-                    return Math.floor(baseValue * Math.pow(growthFactor, newLevel - 1));
-                };
-                
-                // Calculate all stats using exponential formula
-                this.maxHealth = calculateExponentialStat(
-                    STAT_SCALING.health, 
-                    DEFAULT_PLAYER_STATS.maxHealth, 
-                    1.15
-                );
-                
-                this.maxMana = calculateExponentialStat(
-                    STAT_SCALING.mana, 
-                    DEFAULT_PLAYER_STATS.maxMana, 
-                    1.2
-                );
-                
-                this.strength = calculateExponentialStat(
-                    STAT_SCALING.strength, 
-                    DEFAULT_PLAYER_STATS.strength, 
-                    1.1
-                );
-                
-                this.dexterity = calculateExponentialStat(
-                    STAT_SCALING.dexterity, 
-                    DEFAULT_PLAYER_STATS.dexterity, 
-                    1.1
-                );
-                
-                this.intelligence = calculateExponentialStat(
-                    STAT_SCALING.intelligence, 
-                    DEFAULT_PLAYER_STATS.intelligence, 
-                    1.1
-                );
-                
-                this.attackPower = calculateExponentialStat(
-                    STAT_SCALING.attackPower, 
-                    DEFAULT_PLAYER_STATS.attackPower, 
-                    1.12
-                );
-            } else {
-                // Use traditional linear scaling
-                this.maxHealth = DEFAULT_PLAYER_STATS.maxHealth + (LEVEL_UP_STAT_INCREASES.maxHealth * (newLevel - 1));
-                this.maxMana = DEFAULT_PLAYER_STATS.maxMana + (LEVEL_UP_STAT_INCREASES.maxMana * (newLevel - 1));
-                this.strength = DEFAULT_PLAYER_STATS.strength + (LEVEL_UP_STAT_INCREASES.strength * (newLevel - 1));
-                this.dexterity = DEFAULT_PLAYER_STATS.dexterity + (LEVEL_UP_STAT_INCREASES.dexterity * (newLevel - 1));
-                this.intelligence = DEFAULT_PLAYER_STATS.intelligence + (LEVEL_UP_STAT_INCREASES.intelligence * (newLevel - 1));
-                this.attackPower = DEFAULT_PLAYER_STATS.attackPower + (LEVEL_UP_STAT_INCREASES.attackPower * (newLevel - 1));
-            }
-            
-            // Restore health and mana to full
-            this.health = this.maxHealth;
-            this.mana = this.maxMana;
+        if (newLevel === this.level) return;
+        this.level = newLevel;
+        if (typeof getXpRequiredForLevel === 'function') {
+            this.experienceToNextLevel = getXpRequiredForLevel(this.level);
         }
+        // Update base HP/Mana/attack from level; derived stats from attributes
+        this._recalcBaseFromLevel();
+        if (STAT_SCALING && STAT_SCALING.attackPower) {
+            const base = STAT_SCALING.attackPower.baseValue ?? DEFAULT_PLAYER_STATS.attackPower;
+            const growth = STAT_SCALING.attackPower.growthFactor ?? 1.12;
+            this.attackPower = Math.floor(base * Math.pow(growth, newLevel - 1));
+        } else {
+            this.attackPower = DEFAULT_PLAYER_STATS.attackPower + (this.validateNumber(LEVEL_UP_STAT_INCREASES.attackPower, 2) * (newLevel - 1));
+        }
+        if (STAT_SCALING && STAT_SCALING.movementSpeed) {
+            const base = STAT_SCALING.movementSpeed.baseValue ?? DEFAULT_PLAYER_STATS.movementSpeed;
+            const growth = STAT_SCALING.movementSpeed.growthFactor ?? 1.08;
+            this.movementSpeed = base * Math.pow(growth, newLevel - 1);
+        } else {
+            this.movementSpeed = DEFAULT_PLAYER_STATS.movementSpeed + (this.validateNumber(LEVEL_UP_STAT_INCREASES.movementSpeed, 0.25) * (newLevel - 1));
+        }
+        this._recalcDerivedStats();
+        this.health = this.maxHealth;
+        this.mana = this.maxMana;
     }
     
     /**
@@ -314,7 +353,11 @@ export class PlayerStats {
      * @returns {number} Current movement speed
      */
     getMovementSpeed() {
-        return this.movementSpeed;
+        const v = this.movementSpeed;
+        if (v === 0 || v === undefined || v === null || !isFinite(v)) {
+            return DEFAULT_PLAYER_STATS.movementSpeed;
+        }
+        return v;
     }
     
     // Setters
@@ -377,24 +420,19 @@ export class PlayerStats {
      * @returns {number} - The current level if a level up occurred, otherwise 0
      */
     addExperience(amount) {
-        // Validate the amount
         amount = this.validateNumber(amount, 0);
-        
-        // Validate current experience and experienceToNextLevel
-        this.experience = this.validateNumber(this.experience, DEFAULT_PLAYER_STATS.experience);
-        this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, DEFAULT_PLAYER_STATS.experienceToNextLevel);
-        
-        // Add experience
+        this.experience = this.validateNumber(this.experience, 0);
+        if (typeof getXpRequiredForLevel === 'function') {
+            this.experienceToNextLevel = getXpRequiredForLevel(this.level);
+        } else {
+            this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, 100);
+        }
         this.experience += amount;
-        
-        // Check for level up
         let levelChanged = false;
         while (this.experience >= this.experienceToNextLevel) {
             this.levelUp();
             levelChanged = true;
         }
-        
-        // Return the current level if a level up occurred, otherwise return 0
         return levelChanged ? this.level : 0;
     }
     
@@ -403,134 +441,131 @@ export class PlayerStats {
      * @returns {number} - The new level after leveling up
      */
     levelUp() {
-        // Validate current level
         this.level = this.validateNumber(this.level, DEFAULT_PLAYER_STATS.level);
-        
-        // Increase level
         this.level++;
-        
-        // Validate experience and experienceToNextLevel
         this.experience = this.validateNumber(this.experience, 0);
-        this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, DEFAULT_PLAYER_STATS.experienceToNextLevel);
-        
-        // Subtract experience for this level
+        this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, 100);
         this.experience = Math.max(0, this.experience - this.experienceToNextLevel);
-        
-        // Calculate experience for next level using progressive scaling
-        if (EXPERIENCE_SCALING) {
-            // Get base multiplier with validation
-            const baseMultiplier = this.validateNumber(EXPERIENCE_SCALING.baseMultiplier, 1.5);
-            
-            // Calculate progressive increase based on level
-            const progressiveIncrease = this.validateNumber(EXPERIENCE_SCALING.progressiveIncrease, 0.05);
-            const maxMultiplier = this.validateNumber(EXPERIENCE_SCALING.maxMultiplier, 3.0);
-            
-            // Calculate dynamic multiplier that increases with level
-            // Formula: baseMultiplier + (level * progressiveIncrease)
-            let dynamicMultiplier = baseMultiplier + (this.level * progressiveIncrease);
-            
-            // Cap the multiplier to prevent excessive grinding
-            dynamicMultiplier = Math.min(dynamicMultiplier, maxMultiplier);
-            
-            // Apply the multiplier
-            this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * dynamicMultiplier);
-            
-            // Log the experience scaling for debugging
-            console.debug(`Level ${this.level}: Experience multiplier is ${dynamicMultiplier.toFixed(2)}, next level requires ${this.experienceToNextLevel} XP`);
-        } else {
-            // Fallback to legacy multiplier
-            const multiplier = this.validateNumber(LEVEL_UP_EXPERIENCE_MULTIPLIER, 1.1);
-            this.experienceToNextLevel = Math.floor(this.experienceToNextLevel * multiplier);
+
+        // GDD: next level XP = 100 * level^1.5
+        if (typeof getXpRequiredForLevel === 'function') {
+            this.experienceToNextLevel = getXpRequiredForLevel(this.level);
         }
-        
-        // Validate current stats before increasing
-        this.maxHealth = this.validateNumber(this.maxHealth, DEFAULT_PLAYER_STATS.maxHealth);
-        this.maxMana = this.validateNumber(this.maxMana, DEFAULT_PLAYER_STATS.maxMana);
-        this.strength = this.validateNumber(this.strength, DEFAULT_PLAYER_STATS.strength);
-        this.dexterity = this.validateNumber(this.dexterity, DEFAULT_PLAYER_STATS.dexterity);
-        this.intelligence = this.validateNumber(this.intelligence, DEFAULT_PLAYER_STATS.intelligence);
-        this.attackPower = this.validateNumber(this.attackPower, DEFAULT_PLAYER_STATS.attackPower);
-        
-        // Use exponential scaling for all stats if enabled, otherwise use linear scaling
-        if (STAT_SCALING && STAT_SCALING.useExponentialScaling) {
-            // Helper function to calculate exponential stat value
-            const calculateExponentialStat = (statConfig, defaultBase, defaultGrowth) => {
-                if (!statConfig) return 0;
-                const baseValue = this.validateNumber(statConfig.baseValue, defaultBase);
-                const growthFactor = this.validateNumber(statConfig.growthFactor, defaultGrowth);
-                return Math.floor(baseValue * Math.pow(growthFactor, this.level - 1));
-            };
-            
-            // Calculate and update max health
-            const oldMaxHealth = this.maxHealth;
-            this.maxHealth = calculateExponentialStat(
-                STAT_SCALING.health, 
-                DEFAULT_PLAYER_STATS.maxHealth, 
-                1.15
-            );
-            console.debug(`Level ${this.level}: Max health increased from ${oldMaxHealth} to ${this.maxHealth} (+${this.maxHealth - oldMaxHealth})`);
-            
-            // Calculate and update max mana
-            const oldMaxMana = this.maxMana;
-            this.maxMana = calculateExponentialStat(
-                STAT_SCALING.mana, 
-                DEFAULT_PLAYER_STATS.maxMana, 
-                1.2
-            );
-            console.debug(`Level ${this.level}: Max mana increased from ${oldMaxMana} to ${this.maxMana} (+${this.maxMana - oldMaxMana})`);
-            
-            // Calculate and update strength
-            const oldStrength = this.strength;
-            this.strength = calculateExponentialStat(
-                STAT_SCALING.strength, 
-                DEFAULT_PLAYER_STATS.strength, 
-                1.1
-            );
-            console.debug(`Level ${this.level}: Strength increased from ${oldStrength} to ${this.strength} (+${this.strength - oldStrength})`);
-            
-            // Calculate and update dexterity
-            const oldDexterity = this.dexterity;
-            this.dexterity = calculateExponentialStat(
-                STAT_SCALING.dexterity, 
-                DEFAULT_PLAYER_STATS.dexterity, 
-                1.1
-            );
-            console.debug(`Level ${this.level}: Dexterity increased from ${oldDexterity} to ${this.dexterity} (+${this.dexterity - oldDexterity})`);
-            
-            // Calculate and update intelligence
-            const oldIntelligence = this.intelligence;
-            this.intelligence = calculateExponentialStat(
-                STAT_SCALING.intelligence, 
-                DEFAULT_PLAYER_STATS.intelligence, 
-                1.1
-            );
-            console.debug(`Level ${this.level}: Intelligence increased from ${oldIntelligence} to ${this.intelligence} (+${this.intelligence - oldIntelligence})`);
-            
-            // Calculate and update attack power
-            const oldAttackPower = this.attackPower;
-            this.attackPower = calculateExponentialStat(
-                STAT_SCALING.attackPower, 
-                DEFAULT_PLAYER_STATS.attackPower, 
-                1.12
-            );
-            console.debug(`Level ${this.level}: Attack power increased from ${oldAttackPower} to ${this.attackPower} (+${this.attackPower - oldAttackPower})`);
+        // GDD: +3 attribute points, +1 skill point per level
+        this.unspentAttributePoints = (this.unspentAttributePoints ?? 0) + 3;
+        this.skillPoints = (this.skillPoints ?? 0) + 1;
+
+        // Update base HP/Mana and attack/movement from level only (attributes add via _recalcDerivedStats)
+        this._recalcBaseFromLevel();
+        if (STAT_SCALING && STAT_SCALING.attackPower) {
+            const base = STAT_SCALING.attackPower.baseValue ?? DEFAULT_PLAYER_STATS.attackPower;
+            const growth = STAT_SCALING.attackPower.growthFactor ?? 1.12;
+            this.attackPower = Math.floor(base * Math.pow(growth, this.level - 1));
         } else {
-            // Use traditional linear scaling
-            this.maxHealth += this.validateNumber(LEVEL_UP_STAT_INCREASES.maxHealth, 0);
-            this.maxMana += this.validateNumber(LEVEL_UP_STAT_INCREASES.maxMana, 0);
-            this.strength += this.validateNumber(LEVEL_UP_STAT_INCREASES.strength, 0);
-            this.dexterity += this.validateNumber(LEVEL_UP_STAT_INCREASES.dexterity, 0);
-            this.intelligence += this.validateNumber(LEVEL_UP_STAT_INCREASES.intelligence, 0);
-            this.attackPower += this.validateNumber(LEVEL_UP_STAT_INCREASES.attackPower, 0);
+            this.attackPower = DEFAULT_PLAYER_STATS.attackPower + (this.validateNumber(LEVEL_UP_STAT_INCREASES.attackPower, 2) * (this.level - 1));
         }
-        
-        // Restore health and mana
+        if (STAT_SCALING && STAT_SCALING.movementSpeed) {
+            const base = STAT_SCALING.movementSpeed.baseValue ?? DEFAULT_PLAYER_STATS.movementSpeed;
+            const growth = STAT_SCALING.movementSpeed.growthFactor ?? 1.08;
+            this.movementSpeed = base * Math.pow(growth, this.level - 1);
+        } else {
+            this.movementSpeed = DEFAULT_PLAYER_STATS.movementSpeed + (this.validateNumber(LEVEL_UP_STAT_INCREASES.movementSpeed, 0.25) * (this.level - 1));
+        }
+        this._recalcDerivedStats();
         this.health = this.maxHealth;
         this.mana = this.maxMana;
-        
+        console.debug(`Level ${this.level}: +3 attribute points, +1 skill point. Unspent: ${this.unspentAttributePoints}, Skill points: ${this.skillPoints}`);
         return this.level;
     }
-    
+
+    /**
+     * Spend one skill point on a skill tree node (GDD graph). Caller must pass completedChapterQuestIds for Ch5 gate.
+     * @param {string} nodeId - Skill tree node id
+     * @param {Set<string>} [completedChapterQuestIds] - Set of completed chapter quest IDs (e.g. from QuestManager)
+     * @returns {boolean} - True if the point was spent
+     */
+    spendSkillPointOnNode(nodeId, completedChapterQuestIds = new Set()) {
+        const node = getSkillTreeNodeById(nodeId);
+        if (!node) return false;
+        const levels = this.skillTreeNodeLevels || {};
+        if (!canLevelSkillTreeNode(node, levels, completedChapterQuestIds, this.level)) return false;
+        const cost = node.costPerLevel ?? 1;
+        const available = this.validateNumber(this.skillPoints, 0);
+        if (available < cost) return false;
+        this.skillPoints = available - cost;
+        this.skillTreeNodeLevels = { ...levels };
+        this.skillTreeNodeLevels[nodeId] = (this.skillTreeNodeLevels[nodeId] ?? 0) + 1;
+        return true;
+    }
+
+    /**
+     * Get Enlightenment Mode level from skill tree (0 if not invested).
+     * @returns {number}
+     */
+    getEnlightenmentModeLevel() {
+        return Math.max(0, this.validateNumber(this.skillTreeNodeLevels?.['enlightenment_mode'], 0));
+    }
+
+    /**
+     * Whether Enlightenment Mode buff is currently active.
+     * @returns {boolean}
+     */
+    isEnlightenmentModeActive() {
+        return this.enlightenmentModeRemaining > 0;
+    }
+
+    /**
+     * Remaining buff duration in seconds (0 when inactive).
+     * @returns {number}
+     */
+    getEnlightenmentModeRemaining() {
+        return Math.max(0, this.validateNumber(this.enlightenmentModeRemaining, 0));
+    }
+
+    /**
+     * Cooldown remaining before Enlightenment Mode can be activated again (seconds).
+     * @returns {number}
+     */
+    getEnlightenmentModeCooldownRemaining() {
+        return Math.max(0, this.validateNumber(this.enlightenmentModeCooldownRemaining, 0));
+    }
+
+    /**
+     * Whether the player can activate Enlightenment Mode (has level, Ch5 done, not on cooldown, not active).
+     * @param {Set<string>} [completedChapterQuestIds] - Set of completed chapter quest IDs (e.g. from QuestManager)
+     * @returns {boolean}
+     */
+    canActivateEnlightenmentMode(completedChapterQuestIds = new Set()) {
+        if (this.getEnlightenmentModeLevel() < 1) return false;
+        if (!completedChapterQuestIds || !completedChapterQuestIds.has(CHAPTER_5_QUEST_ID)) return false;
+        if (this.enlightenmentModeCooldownRemaining > 0) return false;
+        if (this.isEnlightenmentModeActive()) return false;
+        return true;
+    }
+
+    /**
+     * Activate Enlightenment Mode: apply short buff (damage, movement, cooldown synergy) and start cooldown.
+     * @param {Set<string>} [completedChapterQuestIds] - Set of completed chapter quest IDs
+     * @returns {boolean} - True if activation succeeded
+     */
+    activateEnlightenmentMode(completedChapterQuestIds = new Set()) {
+        if (!this.canActivateEnlightenmentMode(completedChapterQuestIds)) return false;
+        const cfg = ENLIGHTENMENT_MODE || {};
+        const level = this.getEnlightenmentModeLevel();
+        const duration = (cfg.baseDuration ?? 4) + (level * (cfg.durationPerLevel ?? 2));
+        const cooldown = cfg.cooldown ?? 60;
+        const damageBonus = ((cfg.damageBonusPercentBase ?? 15) + level * (cfg.damageBonusPercentPerLevel ?? 5)) / 100;
+        const moveBonus = cfg.movementSpeedBonus ?? 0.1;
+
+        this.enlightenmentModeRemaining = duration;
+        this.enlightenmentModeCooldownRemaining = cooldown;
+
+        this.addTemporaryBoost('attackPower', damageBonus, duration);
+        this.addTemporaryBoost('movementSpeed', moveBonus, duration);
+
+        return true;
+    }
+
     /**
      * Add a temporary boost to a stat
      * @param {string} statName - The name of the stat to boost (e.g., 'movementSpeed', 'attackPower')
@@ -676,14 +711,22 @@ export class PlayerStats {
         
         // Update temporary boosts
         this.updateTemporaryBoosts(delta);
-        
+
+        // Tick Enlightenment Mode buff and cooldown
+        if (this.enlightenmentModeRemaining > 0) {
+            this.enlightenmentModeRemaining = Math.max(0, this.enlightenmentModeRemaining - delta);
+        }
+        if (this.enlightenmentModeCooldownRemaining > 0) {
+            this.enlightenmentModeCooldownRemaining = Math.max(0, this.enlightenmentModeCooldownRemaining - delta);
+        }
+
         // Validate health and maxHealth before regeneration
         this.getHealth();
         this.getMaxHealth();
         
-        // Regenerate health using game balance settings
+        // Regenerate health: base + Vitality (GDD: +1 HP/s per Vitality)
         if (this.health < this.maxHealth) {
-            const healthRegen = delta * this.validateNumber(RESOURCE_REGENERATION.health, 0);
+            const healthRegen = delta * this.getHealthRegenPerSecond();
             this.health += healthRegen;
             
             // Ensure health doesn't exceed maxHealth
@@ -730,18 +773,22 @@ export class PlayerStats {
      * This is a safety check to prevent NaN values from persisting
      */
     validateStats() {
-        // Validate core stats
         this.health = this.validateNumber(this.health, 0);
         this.maxHealth = this.validateNumber(this.maxHealth, DEFAULT_PLAYER_STATS.maxHealth);
         this.mana = this.validateNumber(this.mana, 0);
         this.maxMana = this.validateNumber(this.maxMana, DEFAULT_PLAYER_STATS.maxMana);
         this.strength = this.validateNumber(this.strength, DEFAULT_PLAYER_STATS.strength);
-        this.dexterity = this.validateNumber(this.dexterity, DEFAULT_PLAYER_STATS.dexterity);
         this.intelligence = this.validateNumber(this.intelligence, DEFAULT_PLAYER_STATS.intelligence);
+        this.agility = this.validateNumber(this.agility, DEFAULT_PLAYER_STATS.agility);
+        this.vitality = this.validateNumber(this.vitality, DEFAULT_PLAYER_STATS.vitality);
+        this.wisdom = this.validateNumber(this.wisdom, DEFAULT_PLAYER_STATS.wisdom);
         this.movementSpeed = this.validateNumber(this.movementSpeed, DEFAULT_PLAYER_STATS.movementSpeed);
         this.attackPower = this.validateNumber(this.attackPower, DEFAULT_PLAYER_STATS.attackPower);
         this.level = this.validateNumber(this.level, DEFAULT_PLAYER_STATS.level);
-        this.experience = this.validateNumber(this.experience, DEFAULT_PLAYER_STATS.experience);
-        this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, DEFAULT_PLAYER_STATS.experienceToNextLevel);
+        this.experience = this.validateNumber(this.experience, 0);
+        this.experienceToNextLevel = this.validateNumber(this.experienceToNextLevel, 100);
+        this.unspentAttributePoints = this.validateNumber(this.unspentAttributePoints, 0);
+        this.skillPoints = this.validateNumber(this.skillPoints, 0);
+        this._recalcDerivedStats();
     }
 }

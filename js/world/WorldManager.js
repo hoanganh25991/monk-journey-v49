@@ -13,6 +13,7 @@ import { PathManager } from './PathManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
+import { getMapIdForChapterQuest } from '../config/chapter-quest-maps.js';
 import { LodManager } from './LodManager.js';
 
 /**
@@ -114,7 +115,28 @@ export class WorldManager {
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
         this._chunkGenCache.chunkZ = -9999;
+        if (this.interactiveManager) {
+            this.interactiveManager.loadFromMapData(mapData.interactive || [], this.game);
+            // Ensure yellow quest marker exists when the next chapter quest is on this map (map data may omit or mismatch chapter)
+            const next = this.game?.questManager?.getNextChapterQuestForMarker?.();
+            if (next?.position && getMapIdForChapterQuest(next.id) === mapData.id && this.interactiveManager.ensureChapterQuestMarker) {
+                this.interactiveManager.ensureChapterQuestMarker(this.game.questManager);
+            }
+        }
 
+        this._applyMapTerrainAndContent(mapData);
+    }
+
+    /**
+     * Re-load interactive objects from current map (e.g. after save applied so quest markers match state).
+     * Call when quest state may have changed (load game, complete quest) so the right marker is shown.
+     */
+    refreshInteractiveFromCurrentMap() {
+        if (!this.currentMap || !this.interactiveManager) return;
+        this.interactiveManager.loadFromMapData(this.currentMap.interactive || [], this.game);
+    }
+
+    _applyMapTerrainAndContent(mapData) {
         // Apply terrain profile (hills, mountains, etc.) - regenerates terrain with new height variation
         if (mapData.terrain?.profile && this.terrainManager?.applyTerrainConfig) {
             const spawn = mapData.spawn || { x: 0, y: 1, z: -13 };
@@ -173,6 +195,15 @@ export class WorldManager {
         };
         requestAnimationFrame(tick);
     }
+
+    /**
+     * Re-load interactive objects from current map (e.g. after save applied so quest markers match state).
+     * Call when quest state may have changed (load game, complete quest) so the right marker is shown.
+     */
+    refreshInteractiveFromCurrentMap() {
+        if (!this.currentMap || !this.interactiveManager) return;
+        this.interactiveManager.loadFromMapData(this.currentMap.interactive || [], this.game);
+    }
     
     /**
      * Get map bounds for boundary loop (endless feel)
@@ -182,6 +213,14 @@ export class WorldManager {
         return this.currentMap?.bounds || null;
     }
     
+    /**
+     * Get safe zones where enemies must not spawn (e.g. village interior)
+     * @returns {Array<{ type: string, x: number, z: number, radius?: number }>}
+     */
+    getSafeZones() {
+        return this.currentMap?.safeZones ?? [];
+    }
+
     /**
      * Get cave positions for enemy spawning (from map data or placed structures)
      * @returns {Array<{x: number, z: number}>}

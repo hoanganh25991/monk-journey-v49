@@ -3,7 +3,7 @@
  * Dynamically generates and updates the controls display in the settings menu
  */
 
-import { MOVEMENT_KEYS, ACTION_KEYS, UI_KEYS, SKILL_KEYS } from '../config/input.js';
+import { MOVEMENT_KEYS, ACTION_KEYS, UI_KEYS, SKILL_KEYS, ENLIGHTENMENT_MODE_KEY } from '../config/input.js';
 
 export class ControlsDisplay {
     /**
@@ -69,6 +69,7 @@ export class ControlsDisplay {
             if (key) skillKeys.push(key);
         }
         this.addControlRow(controlsColumn, this.formatKeys(skillKeys), 'Skills');
+        this.addControlRow(controlsColumn, this.formatKey(ENLIGHTENMENT_MODE_KEY), 'Enlightenment Mode (after Ch5)');
         
         // Add actions section title
         const actionsTitle = document.createElement('h4');

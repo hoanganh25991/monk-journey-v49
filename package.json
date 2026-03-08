@@ -3,7 +3,8 @@
   "private": true,
   "description": "Monk Journey - action RPG game",
   "scripts": {
-    "simplify-monk": "node simplify-monk-glb.js"
+    "simplify-monk": "node simplify-monk-glb.js",
+    "download-sounds": "node scripts/download-sounds.js"
   },
   "type": "module",
   "devDependencies": {
