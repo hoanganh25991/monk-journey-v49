@@ -699,11 +699,15 @@ export class QuestManager {
                 this.game.hudManager.showNotification(getQuestUiString('gainedExperience', locale, { xp }));
             }
             const skillPoints = rewards.skillPoints;
-            if (skillPoints && this.game.hudManager.components.skillTreeUI) {
-                const ui = this.game.hudManager.components.skillTreeUI;
-                if (typeof ui.addSkillPoints === 'function') {
-                    ui.addSkillPoints(skillPoints);
-                } else {
+            if (skillPoints) {
+                const stats = this.game.player?.stats;
+                if (stats && typeof stats.addSkillPoints === 'function') {
+                    stats.addSkillPoints(skillPoints);
+                }
+                const ui = this.game.hudManager?.components?.skillTreeUI;
+                if (ui && typeof ui.syncSkillPointsFromPlayer === 'function') {
+                    ui.syncSkillPointsFromPlayer();
+                } else if (ui) {
                     ui.skillPoints = (ui.skillPoints || 0) + skillPoints;
                     if (ui.elements?.skillPointsValue) ui.elements.skillPointsValue.textContent = ui.skillPoints;
                 }

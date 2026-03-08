@@ -1,6 +1,6 @@
 /**
  * Long English story content for the Story book — Wang Lin (Renegade Immortal).
- * One string per chapter (~600–1000 characters), index = chapter index (0–99).
+ * One string per chapter (~600–1000 characters). Length = 100; index = chapter index (0–99).
  * Loaded separately; StoryBookUI uses this for locale 'en' when available.
  *
  * @type {string[]}

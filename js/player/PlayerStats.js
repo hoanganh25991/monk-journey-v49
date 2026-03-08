@@ -502,6 +502,17 @@ export class PlayerStats {
     }
 
     /**
+     * Add skill points (e.g. from quest completion). Persisted in save.
+     * @param {number} amount - Skill points to add
+     * @returns {number} New total skill points
+     */
+    addSkillPoints(amount) {
+        const n = Math.max(0, Math.floor(Number(amount) || 0));
+        this.skillPoints = this.validateNumber(this.skillPoints, 0) + n;
+        return this.skillPoints;
+    }
+
+    /**
      * Get Enlightenment Mode level from skill tree (0 if not invested).
      * @returns {number}
      */

@@ -378,6 +378,20 @@ export class SkillTreeUI extends UIComponent {
   }
 
   /**
+   * Add skill points (e.g. from quest rewards). Updates player.stats for persistence, then syncs UI.
+   * @param {number} amount - Skill points to add
+   */
+  addSkillPoints(amount) {
+    const stats = this.game?.player?.stats;
+    if (stats && typeof stats.addSkillPoints === 'function') {
+      stats.addSkillPoints(amount);
+    } else {
+      this.skillPoints = (this.skillPoints || 0) + (Math.max(0, Math.floor(Number(amount) || 0)));
+    }
+    this.syncSkillPointsFromPlayer();
+  }
+
+  /**
    * Update the node detail panel (and Level Up button) when a graph node is selected.
    * Also shows story lore, linked skill stats (damage/mana/range/duration/cooldown),
    * and the variants+buffs configuration panel when a skillRef exists.

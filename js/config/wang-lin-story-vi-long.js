@@ -1,6 +1,6 @@
 /**
  * Long Vietnamese story content for the Story book — Vương Lâm (Tiên Nghịch).
- * One string per chapter (~1000 characters), index = chapter index (0–99).
+ * One string per chapter (~1000 characters). Length = 100; index = chapter index (0–99).
  * Loaded separately; StoryBookUI uses this for locale 'vi' when available.
  *
  * @type {string[]}

@@ -8,7 +8,7 @@
 
 | Section | Summary (this file) | Detail document |
 |--------|----------------------|------------------|
-| **Story chapters** | [§6 below](#6-story-arc-5-chapters) | [Chapters index](design/README.md#chapters) |
+| **Story chapters** | [§6 below](#6-story-arc-100-chapters) | [Chapters index](design/README.md#chapters) |
 | **Chapter 1** | The Restless Village (Anger) | [Chapter 1 — The Restless Village](design/chapters/chapter-1-restless-village.md) |
 | **Chapter 2** | Forest of Doubt (Fear) | [Chapter 2 — Forest of Doubt](design/chapters/chapter-2-forest-of-doubt.md) |
 | **Chapter 3** | Mountain of Desire (Greed) | [Chapter 3 — Mountain of Desire](design/chapters/chapter-3-mountain-of-desire.md) |
@@ -30,6 +30,7 @@ Full design index: [design/README.md](design/README.md)
 
 A peaceful monk travels across a fragmented world restoring harmony.
 Combat represents inner struggles such as anger, fear, greed, and doubt.
+The story is told through **quests** (chapter by chapter) and the **Story Book** (the tale of Wang Lin / Vương Lâm—Buddha and monk lessons woven into a cultivator’s journey), so the RPG is both fun to play and meaningful.
 
 Emotional Goals:
 - Calm
@@ -223,7 +224,11 @@ Objective Types:
 
 ---
 
-# 6. STORY ARC (5 CHAPTERS)
+# 6. STORY ARC (100 CHAPTERS)
+
+The game delivers **storytelling through quests**: each chapter is a quest with a narrative intro, emotional theme, objectives, boss, reflection screen with a life lesson, and rewards (XP + skill points). The **Story Book** (Map selector → Story) lets players read the full tale of **Wang Lin** (Vương Lâm)—a cultivator’s journey aligned with Buddha and monk lessons—with one long story passage per chapter (100 chapters total).
+
+**First 5 chapters (core arc):**
 
 | Chapter | Theme | Boss | Lesson | Detail |
 |---------|--------|------|--------|--------|
@@ -233,7 +238,11 @@ Objective Types:
 | **4** | Isolation | Echo Phantom | "You are never truly alone." | [→ Chapter 4 detail](design/chapters/chapter-4-desert-of-loneliness.md) |
 | **5** | Self | Shadow Self (mirrors player build) | "Your greatest opponent is your untrained self." | [→ Chapter 5 detail](design/chapters/chapter-5-inner-temple.md) |
 
+**Chapters 6–100** continue the journey with the same structure: unique area, lesson, and boss (cycling themes). Chapter 100 (Final Gate) leads to the Path of Mastery.
+
 **Unlock after Chapter 5:** Final skill — [Enlightenment Mode](design/chapters/chapter-5-inner-temple.md#enlightenment-mode)
+
+**Skill learning:** Completing chapter quests grants **skill points** and unlocks new skills in the **Skill Tree** (Body / Mind / Harmony). Players spend points in the Skill Tree UI to level up abilities and variants, making the RPG engaging and tied to the Wang Lin story and monk lessons.
 
 ---
 
