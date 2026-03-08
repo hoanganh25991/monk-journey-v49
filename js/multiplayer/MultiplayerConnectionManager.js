@@ -211,7 +211,7 @@ export class MultiplayerConnectionManager {
             });
 
             // Brief delay so the signaling server has the joiner's peer registered before we connect (PeerJS timing)
-            await new Promise(r => setTimeout(r, 400));
+            await new Promise(r => setTimeout(r, 500));
 
             // Connect to host
             this.hostId = roomId;
@@ -296,7 +296,10 @@ export class MultiplayerConnectionManager {
                     this._pendingJsonQueue.push(decoded);
                 }
             });
-            conn.on('open', () => onJoinConnectionOpen());
+            conn.on('open', () => {
+                console.warn('[P2P] Joiner: data channel open with host.');
+                onJoinConnectionOpen();
+            });
             joinRetryIntervalId = setInterval(() => {
                 if (joinConnectionOpened || !this._pendingJoinConn) return;
                 if (conn.open !== true) return;
@@ -316,6 +319,9 @@ export class MultiplayerConnectionManager {
             });
 
             conn.on('close', () => {
+                if (!joinConnectionOpened) {
+                    console.warn('[P2P] Joiner: connection closed before open (host unreachable or ICE failed).');
+                }
                 clearJoinTimeout();
                 if (joinRetryIntervalId) { clearInterval(joinRetryIntervalId); joinRetryIntervalId = null; }
                 if (this._joinAttemptRoomId === roomId) {
@@ -389,18 +395,23 @@ export class MultiplayerConnectionManager {
         let hostReadySent = false;
         const sendHostReady = () => {
             if (hostReadySent) return;
-            hostReadySent = true;
+            if (conn.open !== true) return;
             try {
                 conn.send({ type: 'hostReady' });
+                hostReadySent = true;
                 console.warn('[P2P] Host sent hostReady to joiner', conn.peer);
-            } catch (_) {}
+            } catch (_) {
+                // Send failed (e.g. channel not ready); retry on next interval or 'open'
+            }
         };
         const trySendHostReady = () => {
             if (hostReadySent) return;
             if (conn.open === true) sendHostReady();
         };
-        try { conn.send({ type: 'hostReady' }); hostReadySent = true; } catch (_) {}
-        conn.on('open', () => trySendHostReady());
+        conn.on('open', () => {
+            console.warn('[P2P] Host: data channel open with joiner', conn.peer);
+            trySendHostReady();
+        });
         const hostReadyRetry = setInterval(() => { trySendHostReady(); if (hostReadySent) clearInterval(hostReadyRetry); }, 400);
         conn.once('open', () => { trySendHostReady(); clearInterval(hostReadyRetry); });
         conn.once('close', () => clearInterval(hostReadyRetry));
