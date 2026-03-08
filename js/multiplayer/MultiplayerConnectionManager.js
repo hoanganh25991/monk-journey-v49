@@ -32,7 +32,10 @@ async function getIceServersAsync() {
             const res = await fetch(url);
             if (res.ok) {
                 const servers = await res.json();
-                if (Array.isArray(servers) && servers.length > 0) return servers;
+                if (Array.isArray(servers) && servers.length > 0) {
+                    // PeerJS: using 5+ servers slows discovery; keep at most 4
+                    return servers.slice(0, 4);
+                }
             }
         } catch (e) {
             console.warn('[P2P] Failed to fetch TURN credentials, using STUN only:', e.message);
