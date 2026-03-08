@@ -1160,17 +1160,6 @@ export class MultiplayerUIManager {
                         }
                     });
                 }
-                const rehostBtn = document.getElementById('rehost-btn');
-                if (rehostBtn) {
-                    rehostBtn.addEventListener('click', () => {
-                        console.debug('[MultiplayerUIManager] Re-host: disconnecting and returning to Host/Join screen');
-                        this.multiplayerManager.leaveGame();
-                        this.updateMultiplayerButton(false);
-                        this.resetInviteButtons();
-                        this.closeMultiplayerModal();
-                        this.showMultiplayerModal();
-                    });
-                }
                 const closeBtn = document.getElementById('close-connection-info-btn');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => this.closeMultiplayerModal());
@@ -1832,13 +1821,11 @@ export class MultiplayerUIManager {
             }
         }
         
-        // Update start game / Re-host / Disconnect visibility: host sees Start Game + Re-host + Disconnect; joiner sees Disconnect only
+        // Update start game / Disconnect visibility: host sees Start Game + Disconnect; joiner sees Disconnect only
         const startGameBtn = document.getElementById('start-game-btn');
-        const rehostBtn = document.getElementById('rehost-btn');
         const disconnectBtn = document.getElementById('disconnect-btn');
         const isHost = this.multiplayerManager.connection?.isHost;
         if (startGameBtn) startGameBtn.style.display = isHost ? 'block' : 'none';
-        if (rehostBtn) rehostBtn.style.display = isHost ? 'block' : 'none';
         if (disconnectBtn) disconnectBtn.style.display = (this.multiplayerManager.connection?.isConnected) ? '' : 'none';
         
         // Update player list
