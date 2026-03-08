@@ -14,10 +14,34 @@ import { BinarySerializer } from './BinarySerializer.js';
 /** Optional: override to use a custom PeerServer. Leave null to use default PeerJS cloud (0.peerjs.com). */
 const PEER_SERVER = null;
 
-/** ICE servers: simple STUN only (PeerJS default style). Works when host and joiner are on same WiFi / same device. */
+/** ICE servers: simple STUN only. Works when host and joiner are on same WiFi / same device. */
 const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
-/** Options passed to every new Peer() so host and joiner use the same signaling server. */
+/**
+ * Optional TURN via Metered Open Relay (free 20GB/month). Uses your Metered app (e.g. sereneai.metered.live).
+ * Get your API key from https://dashboard.metered.ca (TURN server / Open Relay section). Set it below to enable TURN.
+ */
+const METERED_TURN_APP_NAME = 'sereneai';
+const METERED_TURN_API_KEY = '13a5be84a66f083719ba65c0ff33166ebd9f';
+
+/** Resolve ICE servers: STUN only by default, or STUN + TURN from Metered if credentials are set. */
+async function getIceServersAsync() {
+    if (METERED_TURN_APP_NAME && METERED_TURN_API_KEY) {
+        try {
+            const url = `https://${METERED_TURN_APP_NAME}.metered.live/api/v1/turn/credentials?apiKey=${encodeURIComponent(METERED_TURN_API_KEY)}`;
+            const res = await fetch(url);
+            if (res.ok) {
+                const servers = await res.json();
+                if (Array.isArray(servers) && servers.length > 0) return servers;
+            }
+        } catch (e) {
+            console.warn('[P2P] Failed to fetch TURN credentials, using STUN only:', e.message);
+        }
+    }
+    return ICE_SERVERS;
+}
+
+/** Options passed to every new Peer(). Pass config.iceServers from getIceServersAsync() when creating Peer. */
 function getPeerOptions(overrides = {}) {
     const base = PEER_SERVER ? { ...PEER_SERVER, debug: 2 } : { debug: 1 };
     const opts = { ...base, ...overrides };
@@ -118,7 +142,8 @@ export class MultiplayerConnectionManager {
         const myId = this.multiplayerManager.getMyPersistentPeerId();
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Initializing host...');
-            this.peer = new Peer(myId, getPeerOptions());
+            const iceServers = await getIceServersAsync();
+            this.peer = new Peer(myId, getPeerOptions({ config: { iceServers } }));
             
             // Wait for peer to open
             await new Promise((resolve, reject) => {
@@ -206,9 +231,10 @@ export class MultiplayerConnectionManager {
         this._joinAttemptRoomId = roomId; // track so we can detect host-unavailable on error/close
         try {
             this.multiplayerManager.ui.updateConnectionStatus('Connecting to host...');
+            const iceServers = await getIceServersAsync();
             // Joiner uses a new random Peer so we never get "ID is taken" (e.g. after hosting or reconnect on same device).
             // Host keeps persistent room ID; joiners get a new connection ID each time.
-            this.peer = new Peer(getPeerOptions());
+            this.peer = new Peer(getPeerOptions({ config: { iceServers } }));
 
             // Wait for peer to open
             await new Promise((resolve, reject) => {
@@ -323,7 +349,7 @@ export class MultiplayerConnectionManager {
                 const msg = (err?.message || String(err)).toLowerCase();
                 let hint = '';
                 if (msg.includes('ice') || msg.includes('negotiation')) {
-                    hint = ' Use same WiFi, or add a TURN server (see OPTIONAL_TURN_SERVER in MultiplayerConnectionManager.js; free at metered.ca/tools/openrelay).';
+                    hint = ' Use same WiFi, or set METERED_TURN_APP_NAME + METERED_TURN_API_KEY in MultiplayerConnectionManager.js (free at dashboard.metered.ca).';
                 } else if (msg.includes('not found') || msg.includes('unavailable') || msg.includes('could not connect')) {
                     hint = ' Check that the connection code matches the host exactly.';
                 }
