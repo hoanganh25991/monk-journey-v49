@@ -14,35 +14,8 @@ import { BinarySerializer } from './BinarySerializer.js';
 /** Optional: override to use a custom PeerServer. Leave null to use default PeerJS cloud (0.peerjs.com). */
 const PEER_SERVER = null;
 
-/** STUN servers for NAT discovery. Usually enough when host and joiner are on same WiFi. */
-const STUN_SERVERS = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-];
-
-/**
- * Optional extra TURN server (e.g. your own or Metered Open Relay with credentials).
- * Set to { urls: 'turn:host:443', username: '...', credential: '...' } or leave null.
- * See https://www.metered.ca/tools/openrelay/ for a free tier with higher limits.
- */
-const OPTIONAL_TURN_SERVER = null;
-
-/** Free TURN relay for development (fixes ICE failed when host/joiner on different networks). */
-const FREE_TURN_RELAY = {
-    urls: 'turn:freeturn.net:3478',
-    username: 'free',
-    credential: 'free'
-};
-
-function getIceServers() {
-    const list = [...STUN_SERVERS];
-    list.push(FREE_TURN_RELAY);
-    if (OPTIONAL_TURN_SERVER && OPTIONAL_TURN_SERVER.urls) {
-        list.push(OPTIONAL_TURN_SERVER);
-    }
-    return list;
-}
+/** ICE servers: simple STUN only (PeerJS default style). Works when host and joiner are on same WiFi / same device. */
+const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
 
 /** Options passed to every new Peer() so host and joiner use the same signaling server. */
 function getPeerOptions(overrides = {}) {
@@ -50,7 +23,7 @@ function getPeerOptions(overrides = {}) {
     const opts = { ...base, ...overrides };
     opts.config = opts.config || {};
     if (!opts.config.iceServers || opts.config.iceServers.length === 0) {
-        opts.config.iceServers = getIceServers();
+        opts.config.iceServers = ICE_SERVERS;
     }
     return opts;
 }
