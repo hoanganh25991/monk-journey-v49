@@ -1827,6 +1827,12 @@ export class EnemyManager {
     markEnemyForRemoval(enemy) {
         enemy.state.isDead = true;
         
+        // Stop boss music as soon as boss is defeated
+        if (enemy.isBoss && this.game?.audioManager?.getCurrentMusic() === 'bossTheme') {
+            const inCombat = this.enemies.size > 1;
+            this.game.audioManager.setMusicContext(inCombat ? 'combat' : 'exploration');
+        }
+        
         if (!this.enemiesToRemove.includes(enemy)) {
             this.enemiesToRemove.push(enemy);
         }
