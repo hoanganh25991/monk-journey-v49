@@ -167,11 +167,45 @@ export class InteractionSystem {
     }
     
     /**
-     * Update visual indicators for interactive objects
+     * Update visual indicators for interactive objects.
+     * Shows a subtle ground ring around the closest interactive object.
      */
     updateVisualIndicators() {
-        // This could be expanded to add floating icons, particle effects, etc.
-        // For now, we'll rely on the object's own setHighlighted method
+        const worldGroup = this.game?.getWorldGroup?.();
+        if (!worldGroup) return;
+
+        if (this.highlightedObject) {
+            const pos = this.highlightedObject.position;
+            if (!pos) return;
+
+            // Create ring on first use
+            if (!this._interactRing) {
+                const rGeo = new THREE.RingGeometry(0.7, 0.9, 32);
+                const rMat = new THREE.MeshBasicMaterial({
+                    color: 0xffd700,
+                    transparent: true,
+                    opacity: 0.55,
+                    side: THREE.DoubleSide,
+                    depthWrite: false
+                });
+                this._interactRing = new THREE.Mesh(rGeo, rMat);
+                this._interactRing.rotation.x = -Math.PI / 2;
+                this._interactRing.renderOrder = 500;
+                worldGroup.add(this._interactRing);
+            }
+
+            // Update ring position to follow object
+            const terrainH = this.world?.getTerrainHeight?.(pos.x, pos.z) ?? pos.y;
+            this._interactRing.position.set(pos.x, terrainH + 0.05, pos.z);
+            this._interactRing.visible = true;
+
+            // Pulse opacity
+            const pulse = 0.35 + Math.abs(Math.sin(Date.now() / 400)) * 0.25;
+            this._interactRing.material.opacity = pulse;
+        } else {
+            // Hide ring when nothing nearby
+            if (this._interactRing) this._interactRing.visible = false;
+        }
     }
     
     /**

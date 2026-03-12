@@ -204,6 +204,21 @@ export class PlayerCombat {
         if (this.game?.hudManager) {
             this.game.hudManager.createBleedingEffect(reducedDamage, playerWorldPosition, true);
         }
+
+        // Floating damage number above player (red -XXX)
+        if (this.game?.effectsManager) {
+            const numPos = playerWorldPosition.clone();
+            numPos.y += 1.8;
+            this.game.effectsManager.createDamageNumberSprite(reducedDamage, numPos, { isPlayerDamage: true });
+        }
+
+        // Screen-edge directional flash overlay
+        PlayerCombat._flashDamageOverlay();
+
+        // Camera shake on player hit
+        const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+        if (cameraUI) cameraUI.applyShake(Math.min(0.5, reducedDamage / 120));
+
         // Player: bleeding effect only; no DamageNumberSpriteEffect for player.
 
         return reducedDamage;
@@ -315,5 +330,31 @@ export class PlayerCombat {
                 connRev.broadcast({ type: 'playerRevived', playerId: connRev.peer.id });
             }
         }
+    }
+
+    /**
+     * Flash a red vignette overlay on screen to signal player damage.
+     * Creates and reuses a single persistent DOM element.
+     */
+    static _flashDamageOverlay() {
+        let overlay = document.getElementById('_dmg-flash-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = '_dmg-flash-overlay';
+            overlay.style.cssText = [
+                'position:fixed', 'inset:0', 'pointer-events:none', 'z-index:9998',
+                'background:radial-gradient(ellipse at center, transparent 40%, rgba(200,0,0,0.55) 100%)',
+                'opacity:0', 'transition:opacity 0.08s ease-in'
+            ].join(';');
+            document.body.appendChild(overlay);
+        }
+        // Cancel any ongoing fade-out, flash in, then fade out
+        clearTimeout(overlay._fadeTimer);
+        overlay.style.transition = 'opacity 0.08s ease-in';
+        overlay.style.opacity = '1';
+        overlay._fadeTimer = setTimeout(() => {
+            overlay.style.transition = 'opacity 0.45s ease-out';
+            overlay.style.opacity = '0';
+        }, 90);
     }
 }

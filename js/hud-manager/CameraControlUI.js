@@ -102,6 +102,16 @@ export class CameraControlUI extends UIComponent {
         // Smoothing: lerp applied rotation toward target each frame (0 = instant, ~0.2–0.3 = smooth)
         this.CAMERA_SMOOTH_FACTOR = 0.25;
 
+        // Screen shake (trauma-decay model)
+        this._shakeMagnitude = 0;
+        this._shakeMaxOffset = 0.28;
+
+        // Camera bob (sine wave when player is moving on ground)
+        this._bobTime = 0;
+
+        // Dynamic threat pull-back (smoothed extra distance when enemy is close)
+        this._threatPullback = 0;
+
         console.debug("CameraControlUI initialized with camera mode support");
     }
     
@@ -1413,8 +1423,29 @@ export class CameraControlUI extends UIComponent {
                 this.cameraState.smoothedRotationY = smoothedY;
             }
 
+            // --- Dynamic threat pull-back: ease camera out when an enemy is very close ---
+            let threatExtra = 0;
+            if (this.game.enemyManager) {
+                const playerPos = this.game.player.getPosition();
+                const enemies = this.game.enemyManager.getEnemiesArray();
+                let minDistSq = Infinity;
+                for (let _i = 0; _i < enemies.length; _i++) {
+                    const _e = enemies[_i];
+                    if (_e.state?.isDead) continue;
+                    const _ep = _e.getPosition();
+                    const _dx = _ep.x - playerPos.x, _dz = _ep.z - playerPos.z;
+                    const _dSq = _dx * _dx + _dz * _dz;
+                    if (_dSq < minDistSq) minDistSq = _dSq;
+                }
+                const closeDist = 6;
+                if (minDistSq < closeDist * closeDist) {
+                    threatExtra = (1 - Math.sqrt(minDistSq) / closeDist) * 3.0;
+                }
+            }
+            this._threatPullback += (threatExtra - this._threatPullback) * Math.min(1, delta * 2.5);
+
             // Apply smoothed rotation to camera
-            const distance = this.cameraDistance;
+            const distance = this.cameraDistance + (this._threatPullback || 0);
             const spherical = new THREE.Spherical(
                 distance,
                 Math.PI/2 - smoothedX,
@@ -1423,12 +1454,31 @@ export class CameraControlUI extends UIComponent {
             const cameraOffset = new THREE.Vector3();
             cameraOffset.setFromSpherical(spherical);
             const heightOffset = this.cameraHeightConfig.heightOffset;
+
+            // --- Camera bob when moving on ground ---
+            const _isMoving = this.game.inputHandler?.getMovementDirection?.()?.lengthSq() > 0;
+            const _isGrounded = !(this.game.player?.movement?._isInAir?.());
+            if (_isMoving && _isGrounded) {
+                this._bobTime = (this._bobTime || 0) + delta * 9;
+            }
+            const _bobOffset = (_isMoving && _isGrounded) ? Math.sin(this._bobTime) * 0.055 : 0;
+
             const cameraPosition = new THREE.Vector3(
                 cameraOffset.x,
-                cameraOffset.y + heightOffset,
+                cameraOffset.y + heightOffset + _bobOffset,
                 cameraOffset.z
             );
             this.game.camera.position.copy(cameraPosition);
+
+            // --- Screen shake (trauma-decay) ---
+            if (this._shakeMagnitude > 0) {
+                const _sx = (Math.random() * 2 - 1) * this._shakeMagnitude * this._shakeMaxOffset;
+                const _sy = (Math.random() * 2 - 1) * this._shakeMagnitude * this._shakeMaxOffset * 0.5;
+                this.game.camera.position.x += _sx;
+                this.game.camera.position.y += _sy;
+                this._shakeMagnitude = Math.max(0, this._shakeMagnitude - delta * 5);
+            }
+
             const rotationFactor = this.currentCameraMode === this.cameraModes.OVER_SHOULDER ? 15 : 25;
             const verticalOffset = this.cameraHeightConfig.verticalLookOffset + (smoothedX * rotationFactor);
             const lookAtPosition = new THREE.Vector3(0, verticalOffset, 0);
@@ -1440,6 +1490,14 @@ export class CameraControlUI extends UIComponent {
         }
     }
     
+    /**
+     * Add trauma to the screen-shake system.
+     * @param {number} trauma - 0–1 impulse (additive, capped at 1)
+     */
+    applyShake(trauma) {
+        this._shakeMagnitude = Math.min(1, (this._shakeMagnitude || 0) + trauma);
+    }
+
     /**
      * Set the camera distance and update the camera position
      * @param {number} distance - New camera distance

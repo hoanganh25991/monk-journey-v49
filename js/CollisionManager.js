@@ -284,20 +284,37 @@ export class CollisionManager {
             enemyId: enemyId
         });
         
-        // Apply skill damage to enemy
+        // Compute knockback direction (from skill toward enemy)
+        const skillPos = skill.getPosition();
+        const enemyPos = enemy.getPosition();
+        const kbDx = enemyPos.x - skillPos.x;
+        const kbDz = enemyPos.z - skillPos.z;
+        const kbLen = Math.sqrt(kbDx * kbDx + kbDz * kbDz) || 1;
+        const knockbackDir = new THREE.Vector3(kbDx / kbLen, 0, kbDz / kbLen);
+
+        // Apply skill damage with knockback (bosses are immune to knockback)
         const damage = skill.getDamage();
-        const actualDamage = enemy.takeDamage(damage);
-        
+        const actualDamage = enemy.takeDamage(damage, !enemy.isBoss, knockbackDir);
+
         // Get enemy position for effects
         const enemyPosition = enemy.getPosition();
-        
+
         // Only show effects if damage was actually dealt (enemy not already dead)
         if (actualDamage > 0) {
             // Damage number is created in Enemy.takeDamage so all hit paths show -XXX in red
             if (this.player.game.hudManager) {
                 this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
             }
-            
+
+            // Screen shake + hit-pause scaled by damage magnitude
+            const camera = this.player.game?.hudManager?.components?.cameraControlUI;
+            if (camera) {
+                camera.applyShake(Math.min(0.45, actualDamage / 180));
+            }
+            if (actualDamage >= 25 && this.player.game?.state) {
+                this.player.game.state.triggerHitPause(65);
+            }
+
             // Check for quest completion (only if enemy just died)
             if (enemy.state.isDead && this.player.game.questManager) {
                 this.player.game.questManager.updateEnemyKill(enemy);

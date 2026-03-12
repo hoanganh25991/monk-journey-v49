@@ -147,8 +147,17 @@ export class PlayerMovement {
             }
         }
         
+        // Track air state before physics to detect landing
+        const _wasInAir = this._isInAir();
+
         // Apply jump physics (gravity + velocity)
         this.updateJumpPhysics(delta);
+
+        // Jump landing impact: trigger shake when transitioning from air to ground
+        if (_wasInAir && !this._isInAir() && this.velocityY === 0) {
+            const cameraUI = this.game?.hudManager?.components?.cameraControlUI;
+            if (cameraUI) cameraUI.applyShake(0.25);
+        }
         
         // Update the world based on player position
         if (this.game && this.game.world) {

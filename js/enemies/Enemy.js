@@ -166,6 +166,9 @@ export class Enemy {
         // Add model to world group for origin rebasing (clean render at any distance)
         const root = this.game?.getWorldGroup?.() || this.scene;
         root.add(this.modelGroup);
+
+        // Create world-space health bar billboard
+        this._createHealthBar();
     }
 
     /**
@@ -310,10 +313,22 @@ export class Enemy {
             // Update model group position to match
             if (data.modelGroup) {
                 data.modelGroup.position.copy(this.position);
-                
+
                 // Safely update rotation
                 if (data.modelGroup.rotation) {
                     data.modelGroup.rotation.x = data.startRotation.x + (data.targetRotation.x - data.startRotation.x) * easeOut;
+                }
+
+                // Dissolve: fade opacity as enemy falls (starts fading at 40% progress)
+                if (progress > 0.4) {
+                    const fadePct = (progress - 0.4) / 0.6;
+                    data.modelGroup.traverse(obj => {
+                        if (!obj.isMesh) return;
+                        const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+                        for (const m of mats) {
+                            if (m) { m.transparent = true; m.opacity = Math.max(0, 1 - fadePct); }
+                        }
+                    });
                 }
             }
             
@@ -337,6 +352,15 @@ export class Enemy {
         if (!this.isActive || this.state.isDead) {
             return;
         }
+
+        // Alert indicator: show "!" when enemy first becomes aggressive
+        if (this.state.isAggressive && !this._prevAggressive) {
+            this._showAlertIndicator();
+        }
+        this._prevAggressive = this.state.isAggressive;
+
+        // Status effect auras (stun ring, knockback flash)
+        this._updateStatusAuras(delta);
         
         // Multiplayer client (joiner): position/health come from host; skip full AI to keep joiner FPS close to host
         const em = this.game?.enemyManager;
@@ -1215,6 +1239,130 @@ export class Enemy {
         if (this.isBoss && this.specialAbilityCooldowns) {
             this.specialAbilityCooldowns = null;
         }
+    }
+
+    // ─── World-space health bar ──────────────────────────────────────────────────
+
+    _createHealthBar() {
+        if (this._healthBarGroup || !this.modelGroup) return;
+        const barGroup = new THREE.Group();
+        barGroup.renderOrder = 999;
+
+        // Background (dark)
+        const bgGeo = new THREE.PlaneGeometry(1.2, 0.13);
+        const bgMat = new THREE.MeshBasicMaterial({
+            color: 0x222222, transparent: true, opacity: 0.72,
+            depthWrite: false, depthTest: false
+        });
+        barGroup.add(new THREE.Mesh(bgGeo, bgMat));
+
+        // Fill bar (starts green, shifts red as health drops)
+        const fillGeo = new THREE.PlaneGeometry(1.0, 0.09);
+        const fillMat = new THREE.MeshBasicMaterial({
+            color: 0x44ee44, transparent: true, opacity: 0.9,
+            depthWrite: false, depthTest: false
+        });
+        this._healthFill = new THREE.Mesh(fillGeo, fillMat);
+        this._healthFill.position.set(0, 0, 0.001);
+        barGroup.add(this._healthFill);
+
+        // Float above the enemy proportional to scale
+        barGroup.position.set(0, 2.4 * this.scale, 0);
+        this._healthBarGroup = barGroup;
+        this.modelGroup.add(barGroup);
+    }
+
+    updateHealthBar() {
+        if (!this._healthFill || !this._healthBarGroup) {
+            this._createHealthBar();
+            return;
+        }
+        const pct = Math.max(0, this.health / this.maxHealth);
+        // Scale and shift so bar depletes left-to-right
+        this._healthFill.scale.x = pct;
+        this._healthFill.position.x = -0.5 * (1 - pct);
+        // Green → Yellow → Red
+        const r = pct < 0.5 ? 1.0 : 2 * (1 - pct);
+        const g = pct < 0.5 ? 2 * pct : 1.0;
+        this._healthFill.material.color.setRGB(r, g, 0.05);
+        // Billboard: always face camera
+        if (this.player?.game?.camera) {
+            this._healthBarGroup.lookAt(this.player.game.camera.position);
+        }
+    }
+
+    // ─── Status effect auras ─────────────────────────────────────────────────────
+
+    _updateStatusAuras(delta) {
+        if (!this.modelGroup) return;
+
+        // ── Stun aura: yellow rotating torus while stunned ──
+        const isStunned = this.state.isStunned && Date.now() < this.state.stunEndTime;
+        if (isStunned && !this._stunAura) {
+            const geo = new THREE.TorusGeometry(0.55 * this.scale, 0.07, 6, 20);
+            const mat = new THREE.MeshBasicMaterial({
+                color: 0xffee00, transparent: true, opacity: 0.85, depthWrite: false
+            });
+            this._stunAura = new THREE.Mesh(geo, mat);
+            this._stunAura.position.y = 1.6 * this.scale;
+            this._stunAura.renderOrder = 998;
+            this.modelGroup.add(this._stunAura);
+        } else if (!isStunned && this._stunAura) {
+            this.modelGroup.remove(this._stunAura);
+            this._stunAura.geometry.dispose();
+            this._stunAura.material.dispose();
+            this._stunAura = null;
+        }
+        if (this._stunAura) {
+            this._stunAura.rotation.y += delta * 3.5;
+            this._stunAura.rotation.x = Math.sin(Date.now() / 300) * 0.4;
+        }
+
+        // ── Knockback flash: blue emissive pulse for 300 ms ──
+        const isKnockedBack = this.state.isKnockedBack && Date.now() < this.state.knockbackEndTime;
+        if (isKnockedBack && !this._kbFlashActive) {
+            this._kbFlashActive = true;
+            this._applyKnockbackFlash(true);
+        } else if (!isKnockedBack && this._kbFlashActive) {
+            this._kbFlashActive = false;
+            this._applyKnockbackFlash(false);
+        }
+    }
+
+    _applyKnockbackFlash(on) {
+        if (!this.modelGroup) return;
+        this.modelGroup.traverse(obj => {
+            if (!obj.isMesh) return;
+            const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
+            for (const m of mats) {
+                if (!m) continue;
+                if (on) {
+                    m._origColor = m._origColor ?? m.color.clone();
+                    m.color.setRGB(0.6, 0.8, 1.0); // light blue tint
+                } else if (m._origColor) {
+                    m.color.copy(m._origColor);
+                    m._origColor = undefined;
+                }
+            }
+        });
+    }
+
+    // ─── Alert indicator (! when enemy first detects player) ────────────────────
+
+    _showAlertIndicator() {
+        if (!this.modelGroup) return;
+        const geo = new THREE.SphereGeometry(0.18, 6, 6);
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffee00, depthTest: false });
+        const alert = new THREE.Mesh(geo, mat);
+        alert.renderOrder = 1001;
+        alert.position.set(0, (2.4 + 0.5) * this.scale, 0);
+        this.modelGroup.add(alert);
+        // Remove after 1 second
+        setTimeout(() => {
+            if (this.modelGroup) this.modelGroup.remove(alert);
+            geo.dispose();
+            mat.dispose();
+        }, 900);
     }
 
     updateTerrainHeight() {

@@ -115,11 +115,36 @@ export class SkillEffect {
         // Position effect - adjust for terrain height if possible
         const adjustedPosition = this.adjustPositionForTerrain(position);
         effectGroup.position.copy(adjustedPosition);
-        
+
+        // AoE ground ring: show target area for skills with meaningful radius
+        this._aoeRing = null;
+        if (this.skill.radius > 1) {
+            const outerR = this.skill.radius;
+            const innerR = Math.max(0, outerR - 0.18);
+            const ringGeo = new THREE.RingGeometry(innerR, outerR, 40);
+            const ringMat = new THREE.MeshBasicMaterial({
+                color: this.skill.color || 0xffffff,
+                transparent: true,
+                opacity: 0.40,
+                side: THREE.DoubleSide,
+                depthWrite: false
+            });
+            const ring = new THREE.Mesh(ringGeo, ringMat);
+            ring.rotation.x = -Math.PI / 2; // lay flat on ground
+            ring.position.y = -0.98; // just below effect center (at terrain level)
+            this._aoeRing = ring;
+            effectGroup.add(ring);
+        }
+
         // Store effect
         this.effect = effectGroup;
         this.isActive = true;
-        
+
+        // Trail system for projectile-style skills (low radius = moving projectile)
+        this._trailPoints = [];       // { mesh, opacity } ring buffer
+        this._trailPrevPos = null;    // last sampled position
+        this._trailFrameSkip = 0;    // sample every 2 frames
+
         this.applyShadowsToEffect(effectGroup);
         return effectGroup;
     }
@@ -198,6 +223,64 @@ export class SkillEffect {
             }
         }
         
+        // Animate AoE ring (pulse + fade towards end)
+        if (this._aoeRing) {
+            const progress = this.elapsedTime / this.skill.duration;
+            const pulse = 1 + Math.sin(this.elapsedTime * 6) * 0.04;
+            this._aoeRing.scale.set(pulse, 1, pulse);
+            this._aoeRing.material.opacity = 0.40 * (1 - progress * 0.6);
+        }
+
+        // Trail: only for projectile-style skills (radius ≤ 2, actually moving)
+        if (this._trailPoints !== undefined && this.skill.radius <= 2) {
+            this._trailFrameSkip = (this._trailFrameSkip + 1) % 2;
+            if (this._trailFrameSkip === 0) {
+                const cur = this.effect.position;
+                const moved = !this._trailPrevPos ||
+                    Math.abs(cur.x - this._trailPrevPos.x) > 0.15 ||
+                    Math.abs(cur.z - this._trailPrevPos.z) > 0.15;
+
+                if (moved) {
+                    // Spawn a new ghost dot at current position
+                    const scene = this.skill.game?.getWorldGroup?.() || this.skill.game?.scene;
+                    if (scene) {
+                        const geo = new THREE.SphereGeometry(0.18, 5, 5);
+                        const mat = new THREE.MeshBasicMaterial({
+                            color: this.skill.color || 0xffffff,
+                            transparent: true, opacity: 0.55, depthWrite: false
+                        });
+                        const dot = new THREE.Mesh(geo, mat);
+                        dot.position.copy(cur);
+                        dot.renderOrder = 997;
+                        scene.add(dot);
+                        this._trailPoints.push({ mesh: dot, opacity: 0.55 });
+                        // Cap trail length
+                        if (this._trailPoints.length > 7) {
+                            const old = this._trailPoints.shift();
+                            scene.remove(old.mesh);
+                            old.mesh.geometry.dispose();
+                            old.mesh.material.dispose();
+                        }
+                    }
+                    this._trailPrevPos = cur.clone();
+                }
+            }
+
+            // Fade all existing trail dots
+            const scene = this.skill.game?.getWorldGroup?.() || this.skill.game?.scene;
+            for (let _t = this._trailPoints.length - 1; _t >= 0; _t--) {
+                const tp = this._trailPoints[_t];
+                tp.opacity -= delta * 1.8;
+                tp.mesh.material.opacity = Math.max(0, tp.opacity);
+                if (tp.opacity <= 0) {
+                    if (scene) scene.remove(tp.mesh);
+                    tp.mesh.geometry.dispose();
+                    tp.mesh.material.dispose();
+                    this._trailPoints.splice(_t, 1);
+                }
+            }
+        }
+
         // IMPORTANT: Update the skill's position property to match the effect's position
         // This is crucial for collision detection in CollisionManager
         this.skill.position.copy(this.effect.position);
@@ -208,7 +291,18 @@ export class SkillEffect {
      */
     dispose() {
         if (!this.effect) return;
-        
+
+        // Clean up trail dots
+        if (this._trailPoints?.length) {
+            const scene = this.skill?.game?.getWorldGroup?.() || this.skill?.game?.scene;
+            for (const tp of this._trailPoints) {
+                if (scene) scene.remove(tp.mesh);
+                tp.mesh.geometry.dispose();
+                tp.mesh.material.dispose();
+            }
+            this._trailPoints = [];
+        }
+
         // Recursively dispose of geometries and materials
         this.effect.traverse(child => {
             if (child.geometry) {

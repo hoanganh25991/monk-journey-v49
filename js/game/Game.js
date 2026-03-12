@@ -1290,16 +1290,24 @@ export class Game {
             if (wrap) this.player.setPosition(nx, pos.y, nz);
         }
         
-        // Update enemies
-        this.enemyManager.update(simDelta);
-        
-        // Update item drops
+        // Tick hit-pause timer (hitstop: briefly freezes enemies on big hits)
+        this.state.tickHitPause(simDelta * 1000);
+        const hitPaused = this.state.isHitPaused();
+
+        // Update enemies (skipped during hit-pause for hitstop effect)
+        if (!hitPaused) {
+            this.enemyManager.update(simDelta);
+        }
+
+        // Update item drops (always runs)
         if (this.itemDropManager) {
             this.itemDropManager.update(simDelta);
         }
-        
-        // Check collisions
-        this.collisionManager.update();
+
+        // Check collisions (skipped during hit-pause)
+        if (!hitPaused) {
+            this.collisionManager.update();
+        }
         
         // Update interaction system
         if (this.interactionSystem) {

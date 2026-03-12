@@ -3,7 +3,13 @@
     "allow": [
       "Bash(ls -la /Users/anhle/work-station/monk-journey-v49/js/*.js | head -20)",
       "Bash(ls -1 /Users/anhle/work-station/monk-journey-v49/js/config/*.js | wc -l)",
-      "Bash(find /Users/anhle/work-station/monk-journey-v49/js -name \"*amera*\" -o -name \"Game.js\" 2>/dev/null | head -20)"
+      "Bash(find /Users/anhle/work-station/monk-journey-v49/js -name \"*amera*\" -o -name \"Game.js\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"getTerrainTypeAt\\\\|terrainType\\\\|getTerrainType\" /Users/anhle/work-station/monk-journey-v49/js --include=\"*.js\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"footstep\\\\|foot.*step\\\\|walk.*sound\" /Users/anhle/work-station/monk-journey-v49/js --include=\"*.js\" 2>/dev/null | head -20)",
+      "Bash(grep -r \"dialogue\\\\|NPC\\\\|camera.*npc\\\\|npc.*camera\" /Users/anhle/work-station/monk-journey-v49/js --include=\"*.js\" -l 2>/dev/null | head -20)",
+      "Bash(grep -r \"dialogue\\\\|Dialogue\\\\|camera.*npc\" /Users/anhle/work-station/monk-journey-v49/js --include=\"*.js\" -l 2>/dev/null | head -10)",
+      "Bash(grep -r \"trail\\\\|positionHistory\\\\|path.*history\\\\|projectile.*track\" /Users/anhle/work-station/monk-journey-v49/js/skills --include=\"*.js\" -l 2>/dev/null | head -10)",
+      "Bash(grep -r \"cutscene\\\\|dialogue\\\\|npc.*camera\\\\|npc.*dialogue\" /Users/anhle/work-station/monk-journey-v49 --include=\"*.js\" -i 2>/dev/null | head -20)"
     ]
   }
 }

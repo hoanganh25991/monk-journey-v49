@@ -5,6 +5,7 @@ export class GameState {
     constructor() {
         this._isPaused = true; // Game starts in paused state
         this._hasStarted = false; // Track if game has been started at least once
+        this._hitPauseRemaining = 0; // ms remaining for hit-pause (enemies frozen)
     }
     
     /**
@@ -53,5 +54,28 @@ export class GameState {
     togglePause() {
         this._isPaused = !this._isPaused;
         return this._isPaused;
+    }
+
+    /**
+     * Freeze enemies for a short moment on a significant hit (hitstop).
+     * @param {number} ms - Duration in milliseconds (default 70)
+     */
+    triggerHitPause(ms = 70) {
+        this._hitPauseRemaining = Math.max(this._hitPauseRemaining, ms);
+    }
+
+    /** @returns {boolean} True while hit-pause is active */
+    isHitPaused() {
+        return this._hitPauseRemaining > 0;
+    }
+
+    /**
+     * Advance the hit-pause timer. Call once per frame with delta in ms.
+     * @param {number} deltaMs
+     */
+    tickHitPause(deltaMs) {
+        if (this._hitPauseRemaining > 0) {
+            this._hitPauseRemaining = Math.max(0, this._hitPauseRemaining - deltaMs);
+        }
     }
 }
