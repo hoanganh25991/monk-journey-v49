@@ -161,14 +161,17 @@ export const SHADOW_CASTER_DISTANCE = {
     minimal: 0  // No shadows
 };
 
+const _profileCache = new Map();
+
 /**
- * Get profile config for a quality level
+ * Get profile config for a quality level (memoized)
  * @param {string} qualityLevel - 'high' | 'medium' | 'low' | 'minimal'
  * @returns {Object} Merged profile config
  */
 export function getPerformanceProfile(qualityLevel) {
     const level = ['high', 'medium', 'low', 'minimal'].includes(qualityLevel) ? qualityLevel : 'high';
-    return {
+    if (_profileCache.has(level)) return _profileCache.get(level);
+    const profile = {
         terrainLod: TERRAIN_LOD[level],
         viewDistance: VIEW_DISTANCE[level],
         bufferDistance: BUFFER_DISTANCE[level],
@@ -182,4 +185,6 @@ export function getPerformanceProfile(qualityLevel) {
         enemyLod: ENEMY_LOD_DISTANCES[level],
         skillEffectLod: SKILL_EFFECT_LOD_DISTANCES[level]
     };
+    _profileCache.set(level, profile);
+    return profile;
 }

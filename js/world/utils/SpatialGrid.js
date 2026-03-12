@@ -73,15 +73,16 @@ export class SpatialGrid {
         const centerCellX = Math.floor(position.x / this.cellSize);
         const centerCellZ = Math.floor(position.z / this.cellSize);
         
+        const radiusSq = radius * radius;
+
         // Check all cells in range
         for (let x = centerCellX - cellRadius; x <= centerCellX + cellRadius; x++) {
             for (let z = centerCellZ - cellRadius; z <= centerCellZ + cellRadius; z++) {
                 const cellKey = `${x},${z}`;
                 const cell = this.grid.get(cellKey);
-                
+
                 if (cell) {
                     // Filter objects by actual distance using squared distance for performance
-                    const radiusSq = radius * radius;
                     cell.forEach(objectInfo => {
                         if (objectInfo.position) {
                             const dx = objectInfo.position.x - position.x;

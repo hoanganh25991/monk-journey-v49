@@ -9,8 +9,8 @@ export class LocalStorageAdapter extends IStorageAdapter {
     constructor() {
         super();
         
-        // Define keys that should be treated as specific types
-        this.booleanKeys = [
+        // Define keys that should be treated as specific types (Set for O(1) lookup)
+        this.booleanKeys = new Set([
             STORAGE_KEYS.DISABLE_FULL_SCREEN,
             STORAGE_KEYS.LOG_ENABLED,
             STORAGE_KEYS.ADAPTIVE_QUALITY,
@@ -18,9 +18,9 @@ export class LocalStorageAdapter extends IStorageAdapter {
             STORAGE_KEYS.MUTED,
             STORAGE_KEYS.CUSTOM_SKILLS,
             STORAGE_KEYS.SHOW_MINIMAP
-        ];
-        
-        this.stringKeys = [
+        ]);
+
+        this.stringKeys = new Set([
             STORAGE_KEYS.DIFFICULTY,
             STORAGE_KEYS.QUALITY_LEVEL,
             STORAGE_KEYS.CHARACTER_MODEL,
@@ -32,19 +32,19 @@ export class LocalStorageAdapter extends IStorageAdapter {
             STORAGE_KEYS.SELECTED_ITEM_TYPE,
             STORAGE_KEYS.SELECTED_ITEM_SUBTYPE,
             STORAGE_KEYS.SELECTED_ITEM_RARITY
-        ];
-        
-        this.numberKeys = [
+        ]);
+
+        this.numberKeys = new Set([
             STORAGE_KEYS.TARGET_FPS,
             STORAGE_KEYS.CAMERA_ZOOM,
             STORAGE_KEYS.MASTER_VOLUME,
             STORAGE_KEYS.MUSIC_VOLUME,
             STORAGE_KEYS.SFX_VOLUME
-        ];
-        
+        ]);
+
         // Add all skill variant keys
         for (let i = 1; i <= 8; i++) {
-            this.stringKeys.push(`monk_journey_selected_skill_variant_${i}`);
+            this.stringKeys.add(`monk_journey_selected_skill_variant_${i}`);
         }
     }
     
@@ -59,21 +59,21 @@ export class LocalStorageAdapter extends IStorageAdapter {
             let valueToStore;
             
             // Handle boolean keys - store as literal 'true' or 'false' strings without quotes
-            if (this.booleanKeys.includes(key)) {
+            if (this.booleanKeys.has(key)) {
                 valueToStore = data.toString(); // Convert to 'true' or 'false' string
                 localStorage.setItem(key, valueToStore);
                 return true;
             }
             
             // Handle string keys - store as literal strings without quotes
-            if (this.stringKeys.includes(key)) {
+            if (this.stringKeys.has(key)) {
                 valueToStore = data.toString(); // Ensure it's a string
                 localStorage.setItem(key, valueToStore);
                 return true;
             }
             
             // Handle number keys - store as literal numbers without quotes
-            if (this.numberKeys.includes(key)) {
+            if (this.numberKeys.has(key)) {
                 valueToStore = data.toString(); // Convert number to string
                 localStorage.setItem(key, valueToStore);
                 return true;
@@ -102,17 +102,17 @@ export class LocalStorageAdapter extends IStorageAdapter {
             }
             
             // Handle boolean keys - convert string to boolean
-            if (this.booleanKeys.includes(key)) {
+            if (this.booleanKeys.has(key)) {
                 return rawData === 'true';
             }
             
             // Handle string keys - return as is
-            if (this.stringKeys.includes(key)) {
+            if (this.stringKeys.has(key)) {
                 return rawData;
             }
             
             // Handle number keys - convert string to number
-            if (this.numberKeys.includes(key)) {
+            if (this.numberKeys.has(key)) {
                 return Number(rawData);
             }
             

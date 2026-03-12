@@ -28,17 +28,17 @@ export class GoogleDriveAdapter extends IStorageAdapter {
         // Scopes needed for Google Drive API
         this.SCOPES = 'https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file';
         
-        // Define keys that should be treated as specific types (same as LocalStorageAdapter)
-        this.booleanKeys = [
+        // Define keys that should be treated as specific types (Set for O(1) lookup)
+        this.booleanKeys = new Set([
             STORAGE_KEYS.DISABLE_FULL_SCREEN,
             STORAGE_KEYS.LOG_ENABLED,
             STORAGE_KEYS.ADAPTIVE_QUALITY,
             STORAGE_KEYS.SHOW_PERFORMANCE_INFO,
             STORAGE_KEYS.MUTED,
             STORAGE_KEYS.CUSTOM_SKILLS
-        ];
-        
-        this.stringKeys = [
+        ]);
+
+        this.stringKeys = new Set([
             STORAGE_KEYS.DIFFICULTY,
             STORAGE_KEYS.QUALITY_LEVEL,
             STORAGE_KEYS.CHARACTER_MODEL,
@@ -50,19 +50,19 @@ export class GoogleDriveAdapter extends IStorageAdapter {
             STORAGE_KEYS.SELECTED_ITEM_TYPE,
             STORAGE_KEYS.SELECTED_ITEM_SUBTYPE,
             STORAGE_KEYS.SELECTED_ITEM_RARITY
-        ];
-        
-        this.numberKeys = [
+        ]);
+
+        this.numberKeys = new Set([
             STORAGE_KEYS.TARGET_FPS,
             STORAGE_KEYS.CAMERA_ZOOM,
             STORAGE_KEYS.MASTER_VOLUME,
             STORAGE_KEYS.MUSIC_VOLUME,
             STORAGE_KEYS.SFX_VOLUME
-        ];
-        
+        ]);
+
         // Add all skill variant keys
         for (let i = 1; i <= 8; i++) {
-            this.stringKeys.push(`monk_journey_selected_skill_variant_${i}`);
+            this.stringKeys.add(`monk_journey_selected_skill_variant_${i}`);
         }
         
         // Initialize Google API
@@ -413,19 +413,19 @@ export class GoogleDriveAdapter extends IStorageAdapter {
             let processedData = data;
             
             // For boolean keys, ensure we're storing a boolean
-            if (this.booleanKeys.includes(key)) {
+            if (this.booleanKeys.has(key)) {
                 if (typeof data === 'string') {
                     processedData = data === 'true';
                 }
             }
             
             // For string keys, ensure we're storing a string
-            if (this.stringKeys.includes(key)) {
+            if (this.stringKeys.has(key)) {
                 processedData = String(data);
             }
             
             // For number keys, ensure we're storing a number
-            if (this.numberKeys.includes(key)) {
+            if (this.numberKeys.has(key)) {
                 if (typeof data === 'string') {
                     processedData = Number(data);
                 }
@@ -543,18 +543,18 @@ export class GoogleDriveAdapter extends IStorageAdapter {
             }
             
             // Process data based on key type
-            if (this.booleanKeys.includes(key)) {
+            if (this.booleanKeys.has(key)) {
                 if (typeof data === 'string') {
                     return data === 'true';
                 }
                 return Boolean(data);
             }
             
-            if (this.stringKeys.includes(key)) {
+            if (this.stringKeys.has(key)) {
                 return String(data);
             }
             
-            if (this.numberKeys.includes(key)) {
+            if (this.numberKeys.has(key)) {
                 if (typeof data === 'string') {
                     return Number(data);
                 }

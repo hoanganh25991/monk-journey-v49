@@ -60,7 +60,7 @@ export class UIComponent {
      */
     render(template, append = false) {
         if (append) {
-            this.container.innerHTML += template;
+            this.container.insertAdjacentHTML('beforeend', template);
         } else {
             this.container.innerHTML = template;
         }

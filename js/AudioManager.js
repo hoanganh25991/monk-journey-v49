@@ -52,7 +52,7 @@ export class AudioManager {
             // Offline-first: check runs async; on failure we use simulated/fallback (no blocking).
             this.checkAudioFilesExist().then(available => {
                 this.audioFilesAvailable = available;
-                
+
                 if (available) {
                     console.debug('Audio files found, initializing audio system');
                     // Create sound collections
@@ -64,6 +64,10 @@ export class AudioManager {
                     this.createSimulatedSoundEffects();
                     this.createSimulatedMusic();
                 }
+            }).catch(error => {
+                console.warn('Audio file check failed, using simulated audio:', error);
+                this.createSimulatedSoundEffects();
+                this.createSimulatedMusic();
             });
             
             // Listen for storage updates

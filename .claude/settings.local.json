@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la /Users/anhle/work-station/monk-journey-v49/js/*.js | head -20)",
+      "Bash(ls -1 /Users/anhle/work-station/monk-journey-v49/js/config/*.js | wc -l)",
+      "Bash(find /Users/anhle/work-station/monk-journey-v49/js -name \"*amera*\" -o -name \"Game.js\" 2>/dev/null | head -20)"
+    ]
+  }
+}
