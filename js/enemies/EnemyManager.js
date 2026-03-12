@@ -309,7 +309,7 @@ export class EnemyManager {
         // GDD music layers: return to exploration or combat when no boss alive
         if (!bossAlive && this.game && this.game.audioManager) {
             const am = this.game.audioManager;
-            if (am.getCurrentMusic() === 'bossTheme') {
+            if (am.getCurrentMusic() === 'bossTheme' || am.currentMusicContext === 'boss') {
                 const inCombat = this.enemies.size > 0;
                 am.setMusicContext(inCombat ? 'combat' : 'exploration');
             }
@@ -1828,7 +1828,7 @@ export class EnemyManager {
         enemy.state.isDead = true;
         
         // Stop boss music as soon as boss is defeated
-        if (enemy.isBoss && this.game?.audioManager?.getCurrentMusic() === 'bossTheme') {
+        if (enemy.isBoss && (this.game?.audioManager?.getCurrentMusic() === 'bossTheme' || this.game?.audioManager?.currentMusicContext === 'boss')) {
             const inCombat = this.enemies.size > 1;
             this.game.audioManager.setMusicContext(inCombat ? 'combat' : 'exploration');
         }
