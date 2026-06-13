@@ -10,6 +10,7 @@ import { FogManager } from './environment/FogManager.js';
 import { SkyManager } from './environment/SkyManager.js';
 import { TeleportManager } from './teleport/TeleportManager.js';
 import { PathManager } from './PathManager.js';
+import { LodManager } from './LodManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
