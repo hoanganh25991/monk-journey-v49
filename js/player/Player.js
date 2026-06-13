@@ -357,9 +357,11 @@ export class Player {
     addExperience(amount) {
         const newLevel = this.stats.addExperience(amount);
         
-        // Show level up notification if level changed
-        if (newLevel > 0 && this.game && this.game.hudManager) {
-            this.game.hudManager.showLevelUp(newLevel);
+        if (newLevel > 0 && this.game) {
+            this.game.combatJuice?.emit(COMBAT_EVENTS.PLAYER_LEVEL_UP, { level: newLevel });
+            if (!this.game.combatJuice && this.game.hudManager) {
+                this.game.hudManager.showLevelUp(newLevel);
+            }
         }
     }
     

@@ -13,7 +13,7 @@ import { PathManager } from './PathManager.js';
 import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
-import { LodManager } from './LodManager.js';
+import { getMapSensoryProfile } from '../config/map-sensory.js';
 
 /**
  * Optimized World Manager
@@ -93,6 +93,7 @@ export class WorldManager {
         
         // Current map (from maps/ JSON) - buffered in memory, never saved to localStorage
         this.currentMap = null;
+        this.currentSensory = null;
     }
     
     /**
@@ -110,6 +111,8 @@ export class WorldManager {
             return;
         }
         this.currentMap = mapData;
+        this.currentSensory = getMapSensoryProfile(mapData);
+        this.applySensory(this.currentSensory);
         this.structureManager?.clear();
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
@@ -172,6 +175,27 @@ export class WorldManager {
             }
         };
         requestAnimationFrame(tick);
+    }
+
+    /**
+     * Drive atmosphere from map sensory profile (sky, fog, ambient).
+     * @param {Object} sensory
+     */
+    applySensory(sensory) {
+        if (!sensory) return;
+        if (sensory.sky && this.skyManager?.applySensoryProfile) {
+            this.skyManager.applySensoryProfile(sensory.sky);
+        }
+        if (sensory.fog && this.fogManager?.applySensoryProfile) {
+            this.fogManager.applySensoryProfile(sensory.fog);
+        }
+        if (this.game?.momentDirector && this.currentMap) {
+            this.game.momentDirector.triggerZoneEntry(this.currentMap, sensory);
+        }
+    }
+
+    getFootstepSet() {
+        return this.currentSensory?.footstepSet || 'dirt';
     }
     
     /**

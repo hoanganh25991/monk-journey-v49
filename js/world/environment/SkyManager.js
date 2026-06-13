@@ -1,90 +1,124 @@
 import * as THREE from '../../../libs/three/three.module.js';
 
 /**
- * Manages the sky in the game world
- * Provides a simple sky implementation that doesn't impact performance
+ * Manages sky dome with horizon gradient + optional sun disc.
  */
 export class SkyManager {
     constructor(scene) {
         this.scene = scene;
-        this.sky = null;
-        this.sun = null;
-        this.timeOfDay = 'day'; // 'day', 'dawn', 'dusk', 'night'
-        this.weather = 'clear'; // 'clear', 'rain', 'fog', 'storm'
-        
-        // Sky colors for different times of day - darker for atmospheric mood
+        this.skyDome = null;
+        this.sunDisc = null;
+        this.timeOfDay = 'day';
+        this.weather = 'clear';
+        this.horizonTop = 0x8eb4d4;
+        this.horizonBottom = 0xc8a86e;
+
         this.skyColors = {
-            day: 0x6B7B8C,    // Darker blue-gray (was 0x87ceeb)
-            dawn: 0xB8866B,   // Darker salmon (was 0xffa07a)
-            dusk: 0xCC6644,   // Darker coral (was 0xff7f50)
-            night: 0x0F0F28   // Darker midnight blue (was 0x191970)
+            day: { top: 0x8eb4d4, bottom: 0xc8a86e },
+            dawn: { top: 0xc87878, bottom: 0xf0c090 },
+            dusk: { top: 0x604878, bottom: 0xd87848 },
+            night: { top: 0x0a1028, bottom: 0x1a2040 }
         };
-        
-        // Weather modifiers - darker for more atmospheric effect
+
         this.weatherModifiers = {
-            clear: new THREE.Color(0.85, 0.85, 0.85),
-            rain: new THREE.Color(0.6, 0.6, 0.7),
-            fog: new THREE.Color(0.7, 0.7, 0.7),
-            storm: new THREE.Color(0.4, 0.4, 0.5)
+            clear: 1.0,
+            rain: 0.75,
+            fog: 0.85,
+            storm: 0.55
         };
-        
+
         this.initSky();
     }
-    
-    /**
-     * Initialize the sky
-     */
+
     initSky() {
-        // Simple implementation - just use scene background color
-        // This is the most performance-friendly approach
-        this.updateSkyColor();
+        const geo = new THREE.SphereGeometry(800, 32, 16);
+        const pos = geo.attributes.position;
+        const colors = new Float32Array(pos.count * 3);
+        geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        const mat = new THREE.MeshBasicMaterial({
+            vertexColors: true,
+            side: THREE.BackSide,
+            fog: false,
+            depthWrite: false
+        });
+
+        this.skyDome = new THREE.Mesh(geo, mat);
+        this.skyDome.renderOrder = -1000;
+        this.scene.add(this.skyDome);
+
+        const sunGeo = new THREE.CircleGeometry(18, 24);
+        const sunMat = new THREE.MeshBasicMaterial({
+            color: 0xfff0c0,
+            transparent: true,
+            opacity: 0.85,
+            fog: false,
+            depthWrite: false
+        });
+        this.sunDisc = new THREE.Mesh(sunGeo, sunMat);
+        this.sunDisc.position.set(120, 180, -200);
+        this.sunDisc.lookAt(0, 0, 0);
+        this.scene.add(this.sunDisc);
+
+        this.applyGradient(this.horizonTop, this.horizonBottom);
     }
-    
-    /**
-     * Update the sky color based on time of day and weather
-     */
-    updateSkyColor() {
-        // Get base color for time of day
-        const baseColor = new THREE.Color(this.skyColors[this.timeOfDay] || this.skyColors.day);
-        
-        // Apply weather modifier
-        const weatherModifier = this.weatherModifiers[this.weather] || this.weatherModifiers.clear;
-        baseColor.multiply(weatherModifier);
-        
-        // Set scene background color
+
+    applyGradient(topHex, bottomHex) {
+        if (!this.skyDome) return;
+        const top = new THREE.Color(topHex);
+        const bottom = new THREE.Color(bottomHex);
+        const weather = this.weatherModifiers[this.weather] ?? 1;
+        top.multiplyScalar(weather);
+        bottom.multiplyScalar(weather);
+
+        const pos = this.skyDome.geometry.attributes.position;
+        const col = this.skyDome.geometry.attributes.color;
+        for (let i = 0; i < pos.count; i++) {
+            const y = pos.getY(i);
+            const t = Math.max(0, Math.min(1, (y + 800) / 1600));
+            const c = bottom.clone().lerp(top, t);
+            col.setXYZ(i, c.r, c.g, c.b);
+        }
+        col.needsUpdate = true;
+
         if (this.scene) {
-            this.scene.background = baseColor;
+            this.scene.background = bottom.clone().lerp(top, 0.5);
         }
     }
-    
+
     /**
-     * Set the time of day
-     * @param {string} timeOfDay - 'day', 'dawn', 'dusk', or 'night'
+     * Apply sensory sky profile from map JSON.
+     * @param {{ timeOfDay?: string, weather?: string, horizonTop?: number, horizonBottom?: number }} profile
      */
+    applySensoryProfile(profile = {}) {
+        if (profile.timeOfDay) this.timeOfDay = profile.timeOfDay;
+        if (profile.weather) this.weather = profile.weather;
+        const preset = this.skyColors[this.timeOfDay] || this.skyColors.day;
+        const top = profile.horizonTop ?? preset.top;
+        const bottom = profile.horizonBottom ?? preset.bottom;
+        this.horizonTop = top;
+        this.horizonBottom = bottom;
+        this.applyGradient(top, bottom);
+
+        if (this.sunDisc) {
+            const isNight = this.timeOfDay === 'night';
+            this.sunDisc.visible = !isNight && this.weather !== 'storm';
+            this.sunDisc.material.opacity = this.weather === 'fog' ? 0.4 : 0.85;
+        }
+    }
+
     setTimeOfDay(timeOfDay) {
-        if (this.timeOfDay !== timeOfDay) {
-            this.timeOfDay = timeOfDay;
-            this.updateSkyColor();
-        }
+        this.applySensoryProfile({ timeOfDay });
     }
-    
-    /**
-     * Set the weather condition
-     * @param {string} weather - 'clear', 'rain', 'fog', or 'storm'
-     */
+
     setWeather(weather) {
-        if (this.weather !== weather) {
-            this.weather = weather;
-            this.updateSkyColor();
-        }
+        this.applySensoryProfile({ weather });
     }
-    
-    /**
-     * Update the sky (called each frame)
-     * @param {number} deltaTime - Time since last update
-     */
-    update(deltaTime) {
-        // Nothing to update in the simple implementation
-        // This method is here for future enhancements
+
+    update(_deltaTime) {
+        // Sun billboard toward origin (camera orbits near origin with world rebasing)
+        if (this.sunDisc?.visible) {
+            this.sunDisc.lookAt(0, 0, 0);
+        }
     }
 }

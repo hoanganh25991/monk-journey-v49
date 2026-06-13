@@ -407,6 +407,23 @@ export const SKILL_SOUNDS = {
             attack: 0.01
         }
     },
+    /** Alias used by ExplosiveLightEffect */
+    explosion: {
+        id: 'explosion',
+        file: 'massive_explosion.mp3',
+        volume: 0.9,
+        simulated: {
+            frequency: 220,
+            duration: 0.6,
+            type: 'sawtooth',
+            decay: true,
+            slide: -30,
+            noise: 0.3,
+            distortion: 0.5,
+            filter: 'lowpass',
+            attack: 0.01
+        }
+    },
     
     // Breath of Heaven
     breathOfHeaven: {
@@ -848,6 +865,30 @@ export const UI_SOUNDS = {
 
 // Environment sounds
 export const ENVIRONMENT_SOUNDS = {
+    footstepDirt: {
+        id: 'footstepDirt',
+        file: 'footstep_dirt.mp3',
+        volume: 0.35,
+        simulated: { frequency: 120, duration: 0.08, type: 'sawtooth', decay: true, noise: 0.25 }
+    },
+    footstepStone: {
+        id: 'footstepStone',
+        file: 'footstep_stone.mp3',
+        volume: 0.4,
+        simulated: { frequency: 180, duration: 0.06, type: 'square', decay: true, noise: 0.15 }
+    },
+    footstepSand: {
+        id: 'footstepSand',
+        file: 'footstep_sand.mp3',
+        volume: 0.32,
+        simulated: { frequency: 90, duration: 0.1, type: 'sine', decay: true, noise: 0.35 }
+    },
+    footstepWood: {
+        id: 'footstepWood',
+        file: 'footstep_wood.mp3',
+        volume: 0.38,
+        simulated: { frequency: 140, duration: 0.07, type: 'triangle', decay: true, noise: 0.1 }
+    },
     chestOpen: {
         id: 'chestOpen',
         file: 'chest_open.mp3',
@@ -891,12 +932,60 @@ export const ENVIRONMENT_SOUNDS = {
     }
 };
 
+};
+
+// Zone ambient loops (seamless when real assets exist; simulated otherwise)
+export const AMBIENT_LOOPS = {
+    ambientPlains: {
+        id: 'ambientPlains',
+        file: 'ambient_plains.mp3',
+        volume: 0.2,
+        loop: true,
+        simulated: { frequency: 160, duration: 12, type: 'sine', decay: false, noise: 0.08, vibrato: 2 }
+    },
+    ambientForest: {
+        id: 'ambientForest',
+        file: 'ambient_forest.mp3',
+        volume: 0.22,
+        loop: true,
+        simulated: { frequency: 140, duration: 14, type: 'sine', decay: false, noise: 0.12, vibrato: 3 }
+    },
+    ambientDesert: {
+        id: 'ambientDesert',
+        file: 'ambient_desert.mp3',
+        volume: 0.18,
+        loop: true,
+        simulated: { frequency: 100, duration: 16, type: 'sine', decay: false, noise: 0.15, tremolo: 4 }
+    },
+    ambientMountains: {
+        id: 'ambientMountains',
+        file: 'ambient_mountains.mp3',
+        volume: 0.2,
+        loop: true,
+        simulated: { frequency: 120, duration: 18, type: 'sine', decay: false, noise: 0.1, slide: -5 }
+    },
+    ambientSwamp: {
+        id: 'ambientSwamp',
+        file: 'ambient_swamp.mp3',
+        volume: 0.22,
+        loop: true,
+        simulated: { frequency: 90, duration: 15, type: 'sine', decay: false, noise: 0.18, vibrato: 1 }
+    },
+    ambientMagical: {
+        id: 'ambientMagical',
+        file: 'ambient_magical.mp3',
+        volume: 0.2,
+        loop: true,
+        simulated: { frequency: 220, duration: 20, type: 'sine', decay: false, vibrato: 6, arpeggio: [1, 1.25, 1.5] }
+    }
+};
+
 // Music tracks
 export const MUSIC = {
     mainTheme: {
         id: 'mainTheme',
         file: 'main_theme.mp3',
-        volume: 0.1,
+        volume: 0.35,
         loop: true,
         // simulated: {
         //     frequency: 220,
@@ -909,7 +998,7 @@ export const MUSIC = {
     battleTheme: {
         id: 'battleTheme',
         file: 'battle_theme.mp3',
-        volume: 0.1,
+        volume: 0.35,
         loop: true,
         // simulated: {
         //     frequency: 280,
@@ -923,7 +1012,7 @@ export const MUSIC = {
     bossTheme: {
         id: 'bossTheme',
         file: 'boss_theme.mp3',
-        volume: 0.1,
+        volume: 0.4,
         loop: true,
         // simulated: {
         //     frequency: 180,
@@ -963,6 +1052,11 @@ export const ALL_SOUNDS = {
         return acc;
     }, {})
 };
+
+export const ALL_AMBIENT = Object.values(AMBIENT_LOOPS).reduce((acc, amb) => {
+    acc[amb.id] = amb;
+    return acc;
+}, {});
 
 // Export all music as a single object for convenience
 export const ALL_MUSIC = Object.values(MUSIC).reduce((acc, music) => {

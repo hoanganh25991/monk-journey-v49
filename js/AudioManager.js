@@ -1,5 +1,5 @@
 import * as THREE from '../libs/three/three.module.js';
-import { ALL_SOUNDS, ALL_MUSIC } from './config/sounds.js';
+import { ALL_SOUNDS, ALL_MUSIC, ALL_AMBIENT } from './config/sounds.js';
 import { STORAGE_KEYS } from './config/storage-keys.js';
 import storageService from './save-manager/StorageService.js';
 
@@ -8,17 +8,23 @@ export class AudioManager {
         this.game = game;
         this.audioEnabled = true;
         this.isMuted = false;
-        this.musicVolume = 0.1;
+        this.musicVolume = 0.5;
         this.sfxVolume = 0.8;
         
         // Audio listeners and sources
         this.listener = null;
         this.musicSource = null;
         this.currentMusic = null;
+        this.outgoingMusic = null;
+        this._crossfadeRaf = null;
+        this.currentAmbient = null;
+        this.ambientVolume = 0.25;
+        this.baseAmbientVolume = 0.25;
         
         // Sound collections
         this.sounds = {};
         this.music = {};
+        this.ambient = {};
         
         // Pooled sounds: multiple instances can play at once; pool is capped, oldest removed
         this.soundPools = {};
@@ -128,12 +134,12 @@ export class AudioManager {
     }
     
     createSoundEffects() {
-        // Load all sound effects from the sound configuration
         Object.values(ALL_SOUNDS).forEach(sound => {
             this.sounds[sound.id] = this.createSound(sound.id, sound.file, sound.volume);
-            console.debug(`Loaded sound effect: ${sound.id} (${sound.file}) - volume: ${sound.volume}`);
         });
-        console.debug('Total sound effects loaded:', Object.keys(this.sounds).length);
+        Object.values(ALL_AMBIENT).forEach(amb => {
+            this.ambient[amb.id] = this.createSound(amb.id, amb.file, amb.volume, true);
+        });
     }
     
     createMusic() {
@@ -144,34 +150,35 @@ export class AudioManager {
     }
     
     createSimulatedSoundEffects() {
-        // Load all sound effects from the sound configuration
         Object.values(ALL_SOUNDS).forEach(sound => {
             const simParams = sound.simulated;
             if (simParams) {
-                // Extract parameters for simulated sound
                 const frequency = simParams.frequency || 220;
                 const volume = sound.volume || 0.7;
                 const duration = simParams.duration || 0.3;
-                const loop = false;
-                
-                // Create the simulated sound
                 const audio = this.createSimulatedSound(
-                    sound.id, 
-                    frequency, 
-                    volume, 
-                    duration, 
-                    loop, 
-                    simParams
+                    sound.id, frequency, volume, duration, false, simParams
                 );
                 this.sounds[sound.id] = audio;
                 if (this.soundPoolMax[sound.id]) {
                     if (!this.soundPools[sound.id]) this.soundPools[sound.id] = [];
                     this.soundPools[sound.id].push({ audio, startTime: 0 });
                 }
-                console.debug(`Created simulated sound: ${sound.id} - freq: ${frequency}Hz, vol: ${volume}, dur: ${duration}s`);
             }
         });
-        console.debug('Total simulated sound effects created:', Object.keys(this.sounds).length);
+        Object.values(ALL_AMBIENT).forEach(amb => {
+            const simParams = amb.simulated;
+            if (simParams) {
+                this.ambient[amb.id] = this.createSimulatedSound(
+                    amb.id,
+                    simParams.frequency || 180,
+                    amb.volume || 0.2,
+                    simParams.duration || 8,
+                    true,
+                    simParams
+                );
+            }
+        });
     }
     
     createSimulatedMusic() {
@@ -444,36 +451,52 @@ export class AudioManager {
         sound.setBuffer(buffer);
     }
     
-    playSound(name) {
+    /**
+     * @param {string} name - Sound id from sounds.js
+     * @param {number} [volumeScale=1] - Multiplier on top of config volume and sfxVolume
+     * @returns {boolean}
+     */
+    playSound(name, volumeScale = 1) {
         if (!this.audioEnabled || this.isMuted) {
-            console.debug(`Audio disabled or muted - not playing sound: ${name}`);
-            return;
+            return false;
+        }
+
+        // Alias: explosion → massiveExplosion
+        if (name === 'explosion' && !this.sounds[name]) {
+            name = 'massiveExplosion';
         }
         
         if (this.soundPoolMax[name]) {
-            return this.playPooledSound(name);
+            return this.playPooledSound(name, volumeScale);
         }
         
         const sound = this.sounds[name];
         if (sound) {
             try {
-                // If the sound is already playing, stop it first
+                const config = ALL_SOUNDS[name];
+                const baseVol = (config && config.volume != null) ? config.volume : 1;
+                sound.setVolume(this.sfxVolume * baseVol * volumeScale);
+
                 if (sound.isPlaying) {
                     sound.stop();
                 }
                 
-                // Play the sound
                 sound.play();
-                console.debug(`Successfully played sound: ${name} (volume: ${sound.getVolume()})`);
                 return true;
             } catch (error) {
                 console.warn(`Could not play sound ${name}:`, error);
                 return false;
             }
         } else {
-            console.warn(`Sound not found: ${name}. Available sounds:`, Object.keys(this.sounds));
+            console.warn(`Sound not found: ${name}`);
             return false;
         }
+    }
+
+    /** Alias for settings UI and legacy callers. */
+    playSfx(name, volumeScale = 1) {
+        if (name === 'test') return this.playSound('buttonClick', volumeScale);
+        return this.playSound(name, volumeScale);
     }
     
     /**
@@ -482,10 +505,14 @@ export class AudioManager {
      * @param {string} name - Sound id (e.g. 'waveStrike')
      * @returns {boolean}
      */
-    playPooledSound(name) {
+    playPooledSound(name, volumeScale = 1) {
         const pool = this.soundPools[name];
         const maxSize = this.soundPoolMax[name] || 30;
         if (!pool || !pool.length) return false;
+
+        const config = ALL_SOUNDS[name];
+        const baseVol = (config && config.volume != null) ? config.volume : 1;
+        const vol = this.sfxVolume * baseVol * volumeScale;
         
         const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() / 1000 : Date.now() / 1000;
         const idleThreshold = 2; // consider "really old" when finished for this many seconds
@@ -514,6 +541,7 @@ export class AudioManager {
         let entry = pool.find(e => !e.audio.isPlaying);
         if (entry) {
             try {
+                entry.audio.setVolume(vol);
                 entry.startTime = now;
                 entry.audio.play();
                 return true;
@@ -526,11 +554,9 @@ export class AudioManager {
         // Grow pool if under cap and we have a buffer to clone
         if (pool.length < maxSize && this.soundBuffers[name]) {
             try {
-                const config = ALL_SOUNDS[name];
-                const baseVolume = (config && config.volume != null) ? config.volume : 1;
                 const audio = new THREE.Audio(this.listener);
                 audio.setBuffer(this.soundBuffers[name]);
-                audio.setVolume(this.sfxVolume * baseVolume);
+                audio.setVolume(vol);
                 audio.setLoop(false);
                 const newEntry = { audio, startTime: now };
                 pool.push(newEntry);
@@ -544,6 +570,7 @@ export class AudioManager {
         // Reuse oldest playing instance
         const oldest = pool.reduce((best, e) => e.startTime < best.startTime ? e : best, pool[0]);
         try {
+            oldest.audio.setVolume(vol);
             oldest.audio.stop();
             oldest.startTime = now;
             oldest.audio.play();
@@ -555,16 +582,31 @@ export class AudioManager {
     }
     
     playMusic(name = 'mainTheme') {
+        return this.playMusicWithCrossfade(name, 0);
+    }
+
+    /**
+     * Crossfade between music tracks.
+     * @param {string} name
+     * @param {number} [durationSec=1.5] - 0 = instant swap
+     */
+    playMusicWithCrossfade(name = 'mainTheme', durationSec = 1.5) {
         if (!this.audioEnabled || this.isMuted) return false;
-        
-        // Stop current music if playing
-        this.stopMusic();
-        
-        // Play new music
-        const music = this.music[name];
-        if (music) {
+        if (this.currentMusic === name && this.isMusicPlaying()) return true;
+
+        const next = this.music[name];
+        if (!next) return false;
+
+        if (this._crossfadeRaf) {
+            cancelAnimationFrame(this._crossfadeRaf);
+            this._crossfadeRaf = null;
+        }
+
+        if (durationSec <= 0 || !this.currentMusic || !this.music[this.currentMusic]?.isPlaying) {
+            this.stopMusic();
             try {
-                music.play();
+                next.setVolume(this.musicVolume);
+                next.play();
                 this.currentMusic = name;
                 return true;
             } catch (error) {
@@ -572,7 +614,97 @@ export class AudioManager {
                 return false;
             }
         }
-        return false;
+
+        const outgoing = this.music[this.currentMusic];
+        this.outgoingMusic = this.currentMusic;
+        try {
+            next.setVolume(0);
+            next.play();
+        } catch (error) {
+            console.warn(`Could not play music ${name}:`, error);
+            return false;
+        }
+
+        const start = performance.now();
+        const durationMs = durationSec * 1000;
+        const targetVol = this.musicVolume;
+
+        const tick = () => {
+            const t = Math.min(1, (performance.now() - start) / durationMs);
+            if (outgoing) outgoing.setVolume(targetVol * (1 - t));
+            next.setVolume(targetVol * t);
+            if (t < 1) {
+                this._crossfadeRaf = requestAnimationFrame(tick);
+            } else {
+                this._crossfadeRaf = null;
+                if (outgoing?.isPlaying) {
+                    try { outgoing.stop(); } catch (_) { /* ignore */ }
+                }
+                this.outgoingMusic = null;
+            }
+        };
+        this.currentMusic = name;
+        this._crossfadeRaf = requestAnimationFrame(tick);
+        return true;
+    }
+
+    playAmbient(loopId, volume = 0.25) {
+        if (!this.audioEnabled || this.isMuted) return false;
+        if (this.currentAmbient === loopId && this.ambient?.[loopId]?.isPlaying) {
+            this.baseAmbientVolume = volume;
+            this.setAmbientVolume(this.ambientVolume);
+            return true;
+        }
+        this.stopAmbient();
+        const amb = this.ambient?.[loopId] || this.sounds[loopId];
+        if (!amb) return false;
+        try {
+            amb.setLoop(true);
+            amb.setVolume(this.musicVolume * volume);
+            amb.play();
+            this.currentAmbient = loopId;
+            this.baseAmbientVolume = volume;
+            return true;
+        } catch (error) {
+            console.warn(`Could not play ambient ${loopId}:`, error);
+            return false;
+        }
+    }
+
+    stopAmbient() {
+        if (this.currentAmbient && this.ambient?.[this.currentAmbient]) {
+            try { this.ambient[this.currentAmbient].stop(); } catch (_) { /* ignore */ }
+        }
+        this.currentAmbient = null;
+    }
+
+    setAmbientVolume(scale) {
+        this.ambientVolume = Math.max(0, Math.min(1, scale));
+        if (this.currentAmbient && this.ambient?.[this.currentAmbient]) {
+            this.ambient[this.currentAmbient].setVolume(this.musicVolume * this.baseAmbientVolume * this.ambientVolume);
+        }
+    }
+
+    setMuted(muted) {
+        const wasMuted = this.isMuted;
+        if (wasMuted === muted) return muted;
+        this.isMuted = muted;
+        if (muted) {
+            this.stopMusic();
+            this.stopAmbient();
+            Object.values(this.sounds).forEach(s => { if (s?.isPlaying) try { s.stop(); } catch (_) {} });
+        } else if (this.currentMusic) {
+            this.playMusic(this.currentMusic);
+        }
+        return this.isMuted;
+    }
+
+    get isAvailable() {
+        return this.audioEnabled;
+    }
+
+    get isSimulated() {
+        return !this.audioFilesAvailable;
     }
     
     stopMusic() {

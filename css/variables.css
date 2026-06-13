@@ -13,6 +13,8 @@
     --theme-gold-text: #4a3000;
     --theme-orange: #ff6600;
     --theme-bg-dark: rgba(30, 25, 20, 0.95);
+    --theme-lacquer: rgba(18, 12, 10, 0.92);
+    --theme-ink-gold: rgba(255, 204, 0, 0.12);
     --theme-amber: #8a6d3b; /* borders and subtle UI (do not hardcode in UI CSS) */
 
     /* Padding variables */

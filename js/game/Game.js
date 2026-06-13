@@ -8,6 +8,9 @@ import { EnemyManager } from '../enemies/EnemyManager.js';
 import { CollisionManager } from '../CollisionManager.js';
 import { QuestManager } from '../QuestManager.js';
 import { AudioManager } from '../AudioManager.js';
+import { AudioDirector } from '../AudioDirector.js';
+import { CombatJuice } from '../CombatJuice.js';
+import { MomentDirector } from '../MomentDirector.js';
 import { SaveManager } from '../save-manager/SaveManager.js';
 // DifficultyManager removed - using DIFFICULTY_SCALING directly
 import { PerformanceManager } from '../PerformanceManager.js';
@@ -340,6 +343,13 @@ export class Game {
             // Initialize audio manager
             this.audioManager = new AudioManager(this);
             await this.audioManager.init();
+
+            this.combatJuice = new CombatJuice(this);
+            this.combatJuice.init();
+            this.audioDirector = new AudioDirector(this);
+            this.audioDirector.init();
+            this.momentDirector = new MomentDirector(this);
+            this.momentDirector.init();
             
             this.updateLoadingProgress(95, 'Setting up save system...', 'Initializing game save functionality');
             
@@ -965,8 +975,13 @@ export class Game {
         }
         
         const delta = this.clock.getDelta();
+        const juiceScale = this.combatJuice?.getTimeScale?.() ?? 1;
         // Single-player guide overlay: freeze simulation (player/enemies don't move) but keep scene and HUD visible
-        const simDelta = this.guideFreezeActive ? 0 : delta;
+        const simDelta = (this.guideFreezeActive ? 0 : delta) * juiceScale;
+        
+        if (this.combatJuice) {
+            this.combatJuice.update(delta);
+        }
         
         // Update performance manager first
         this.performanceManager.update(delta);
@@ -1103,6 +1118,10 @@ export class Game {
         
         // Update player
         this.player.update(simDelta);
+
+        if (this.combatJuice) {
+            this.combatJuice.applyCameraShake(this.camera);
+        }
         
         // Rebase world so player is at origin for rendering (avoids float precision blur far from 0,0,0)
         if (this.worldGroup && this.player?.movement?.getPosition) {

@@ -67,6 +67,7 @@ export class DamageNumberSpriteEffect {
         this.isKill = options.isKill || false;
         this.isExperience = options.isExperience || false;
         this.isBonus = options.isBonus || false;
+        this.element = options.element || null;
         this.duration = DAMAGE_NUMBER_CONFIG.DURATION;
         this.floatSpeed = DAMAGE_NUMBER_CONFIG.FLOAT_SPEED;
         this.elapsed = 0;
@@ -198,6 +199,18 @@ export class DamageNumberSpriteEffect {
         } else if (type === 'critical') {
             color = 0xff9900;
             emissiveColor = 0xff6600;
+        } else if (type === 'element_fire') {
+            color = 0xff6622;
+            emissiveColor = 0xff4400;
+        } else if (type === 'element_ice') {
+            color = 0x88ddff;
+            emissiveColor = 0x44aaff;
+        } else if (type === 'element_lightning') {
+            color = 0xeedd44;
+            emissiveColor = 0xccaa00;
+        } else if (type === 'element_water') {
+            color = 0x44aaff;
+            emissiveColor = 0x2288dd;
         } else {
             color = 0xffdd00;
             emissiveColor = 0xffaa00;
@@ -259,12 +272,15 @@ export class DamageNumberSpriteEffect {
             this.usingCachedGeometry = true;
             
             // Get material type
+            const elementKey = this.element && !this.isCritical && !this.isKill
+                ? `element_${String(this.element).toLowerCase()}`
+                : null;
             const materialType = this.isBonus ? 'bonus'
                 : this.isExperience ? 'exp'
                 : this.isPlayerDamage ? 'playerDamage'
                 : this.isKill ? 'kill'
                 : this.isCritical ? 'critical'
-                : 'normal';
+                : elementKey || 'normal';
             
             // Get cached materials and clone so each effect has its own opacity (shared material would make all numbers fade together)
             const material = DamageNumberSpriteEffect.getCachedMaterial(materialType).clone();

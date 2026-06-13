@@ -1,5 +1,6 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffectFactory } from './SkillEffectFactory.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
 import { applyElementalOverlay, updateElementalOverlay } from './ElementalOverlay.js';
 
 /**
@@ -232,6 +233,10 @@ export class Skill {
         
         // Play the cast sound
         this.playSound('cast');
+        this.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_CAST, {
+            skill: this.name,
+            soundId: this.sounds?.cast
+        });
         
         // Create effect using the effect handler
         try {

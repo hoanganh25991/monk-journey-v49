@@ -15,7 +15,8 @@ import {
     DIFFICULTY_SCALING,
     ENEMY_CONFIG 
 } from '../config/game-balance.js';
-import { ItemGenerator } from '../items/ItemGenerator.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
+import { COMBAT_PROXIMITY_RADIUS } from '../AudioDirector.js';
 
 /**
  * @typedef {Object} EnemyType
@@ -232,16 +233,15 @@ export class EnemyManager {
                 this.enemyKillCount = 0; // Reset kill counter
                 void this.spawnRandomBoss();
                 
-                // Play boss theme if available
-                if (this.game && this.game.audioManager) {
-                    this.game.audioManager.playMusic('bossTheme');
-                }
+                void this.spawnRandomBoss();
             }
         }
         
-        // Track if any bosses are alive
+        // Track if any bosses are alive + count nearby threats for AudioDirector
         let bossAlive = false;
-        
+        let nearbyCount = 0;
+        const playerPos = this.player?.movement?.getPosition?.() || this.player?.getPosition?.();
+        const combatRadiusSq = COMBAT_PROXIMITY_RADIUS * COMBAT_PROXIMITY_RADIUS;
         // Update enemies
         const camera = this.game?.camera;
         const profile = this.game?.world?.performanceProfile;
@@ -257,6 +257,15 @@ export class EnemyManager {
             // Check if this is a boss and it's alive
             if (enemy.isBoss && !enemy.isDead()) {
                 bossAlive = true;
+            }
+
+            if (!enemy.isDead() && playerPos) {
+                const ep = enemy.getPosition();
+                const dx = ep.x - playerPos.x;
+                const dz = ep.z - playerPos.z;
+                if (dx * dx + dz * dz <= combatRadiusSq) {
+                    nearbyCount++;
+                }
             }
             
             // Mark dead enemies for batch removal
@@ -289,13 +298,11 @@ export class EnemyManager {
         // Process deferred disposal queue
         this.processDisposalQueue();
         
-        // Check if boss theme should be stopped (all bosses are dead)
-        if (!bossAlive && this.game && this.game.audioManager && 
-            this.game.audioManager.getCurrentMusic() === 'bossTheme') {
-            // Stop boss theme and return to main theme
-            this.game.audioManager.playMusic('mainTheme');
+        // Audio state machine (exploration / combat / boss)
+        if (this.game?.audioDirector) {
+            this.game.audioDirector.updateThreat(nearbyCount, bossAlive);
         }
-
+        
         // Cave group spawning: spawn/respawn groups when player approaches caves
         this._updateCaveProximitySpawning(delta);
         
@@ -1293,30 +1300,11 @@ export class EnemyManager {
         // This ensures the boss stays at the carefully calculated spawn position
         boss.disableTerrainHeightUpdates();
         
-        // Play boss spawn effect (retry if buffer not loaded yet)
-        if (this.game && this.game.audioManager) {
-            const tryPlay = (attempt = 0) => {
-                const sound = this.game.audioManager.sounds && this.game.audioManager.sounds['bossSpawn'];
-                if (sound) {
-                    try {
-                        if (sound.buffer) {
-                            if (sound.isPlaying) sound.stop();
-                            sound.play();
-                        } else if (attempt < 5) {
-                            setTimeout(() => tryPlay(attempt + 1), 150 * (attempt + 1));
-                        }
-                    } catch (e) {
-                        if (attempt < 3) setTimeout(() => tryPlay(attempt + 1), 200);
-                    }
-                }
-            };
-            tryPlay();
-        }
-        
-        // Show notification
-        if (this.game && this.game.hudManager) {
-            this.game.hudManager.showNotification(`${bossConfig.name} has appeared!`, 5);
-        }
+        // Combat juice + moment director handle SFX, music, notification
+        this.game?.combatJuice?.emit(COMBAT_EVENTS.BOSS_SPAWN, {
+            name: bossConfig.name,
+            enemy: boss
+        });
         
         return boss;
     }

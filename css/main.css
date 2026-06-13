@@ -21,6 +21,8 @@
 /* Import Game styles */
 @import 'game.css';
 
+@import 'zone-title.css';
+
 /* Import Game Menu styles */
 @import 'game-menu.css';
 

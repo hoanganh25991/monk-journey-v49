@@ -2,6 +2,7 @@ import * as THREE from '../../libs/three/three.module.js';
 import { EnemyModelFactory } from './models/EnemyModelFactory.js';
 import { ENEMY_BEHAVIOR_SETTINGS, ENEMY_TYPE_BEHAVIOR } from '../config/enemy-behavior.js';
 import { ENEMY_CONFIG } from '../config/game-balance.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
 import { distanceSq2D, distanceApprox2D, fastAtan2, normalize2D, tempVec2 } from 'utils/FastMath.js';
 
 export class Enemy {
@@ -697,7 +698,7 @@ export class Enemy {
      * @param {boolean} ignoreDefense - Whether to ignore defense (for true damage)
      * @returns {number} - The actual damage taken after reductions
      */
-    takeDamage(amount, knockback = false, knockbackDirection = null, ignoreDefense = false) {
+    takeDamage(amount, knockback = false, knockbackDirection = null, ignoreDefense = false, options = {}) {
         // Prevent damage if already dead
         if (this.state.isDead) {
             return 0;
@@ -749,7 +750,24 @@ export class Enemy {
         // Show floating damage number (-XXX in red) for every hit
         if (actualDamage > 0 && this.player?.game?.effectsManager) {
             const isKill = this.health <= 0;
-            this.player.game.effectsManager.createDamageNumberSprite(actualDamage, this.getPosition(), { isEnemyDamage: true, isKill });
+            const isCrit = options.isCrit || options.isComboFinisher || false;
+            this.player.game.effectsManager.createDamageNumberSprite(actualDamage, this.getPosition(), {
+                isEnemyDamage: true,
+                isKill,
+                isCritical: isCrit,
+                element: options.element
+            });
+        }
+
+        if (actualDamage > 0 && this.player?.game?.combatJuice) {
+            const isCrit = options.isCrit || options.isComboFinisher || false;
+            const event = isCrit ? COMBAT_EVENTS.ATTACK_CRIT : COMBAT_EVENTS.ENEMY_HIT;
+            this.player.game.combatJuice.emit(event, {
+                enemy: this,
+                damage: actualDamage,
+                isCrit,
+                isBoss: this.isBoss
+            });
         }
         
         // Check if dead
@@ -862,6 +880,11 @@ export class Enemy {
         
         // Set dead state
         this.state.isDead = true;
+
+        this.player?.game?.combatJuice?.emit(COMBAT_EVENTS.ENEMY_DEATH, {
+            enemy: this,
+            isBoss: this.isBoss
+        });
         
         // Clean up any status effects this enemy applied to the player
         // Critical for Frost Titan: freeze/slow must end when Titan dies (unconditionally clear)

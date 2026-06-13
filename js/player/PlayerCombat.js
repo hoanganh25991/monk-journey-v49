@@ -1,4 +1,5 @@
 import * as THREE from '../../libs/three/three.module.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
 import { createPlayerTomb } from './PlayerTomb.js';
 
 /**
@@ -187,7 +188,9 @@ export class PlayerCombat {
         this.playerStats.setHealth(this.playerStats.getHealth() - reducedDamage);
         
         // Sound effect
-        if (this.game?.audioManager) {
+        if (this.game?.combatJuice) {
+            this.game.combatJuice.emit(COMBAT_EVENTS.PLAYER_HIT, { damage: reducedDamage });
+        } else if (this.game?.audioManager) {
             this.game.audioManager.playSound('playerHit');
         }
         
@@ -244,7 +247,9 @@ export class PlayerCombat {
             }
             worldGroup.add(this.tombGroup);
         }
-        if (this.game?.audioManager) {
+        if (this.game?.combatJuice) {
+            this.game.combatJuice.emit(COMBAT_EVENTS.PLAYER_DEATH);
+        } else if (this.game?.audioManager) {
             this.game.audioManager.playSound('playerDeath');
         }
         

@@ -428,4 +428,26 @@ export class FogManager {
     setFogColor(color) {
         this.targetFogColor.set(color);
     }
+
+    /**
+     * Apply map sensory fog profile.
+     * @param {{ color?: number, densityMultiplier?: number }} profile
+     */
+    applySensoryProfile(profile = {}) {
+        if (profile.color != null) {
+            this.targetFogColor.set(profile.color);
+        }
+        if (profile.densityMultiplier != null && FOG_CONFIG.density) {
+            this.targetFogDensity = FOG_CONFIG.density * profile.densityMultiplier;
+        }
+    }
+
+    /** Brief fog thicken for boss arrival etc. */
+    thickenBriefly(multiplier = 1.5, durationSec = 2) {
+        const base = this.targetFogDensity;
+        this.targetFogDensity = base * multiplier;
+        setTimeout(() => {
+            this.targetFogDensity = base;
+        }, durationSec * 1000);
+    }
 }

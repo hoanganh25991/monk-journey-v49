@@ -1,5 +1,6 @@
 import * as THREE from '../libs/three/three.module.js';
 import { distanceSq2D, normalize2D, tempVec2 } from 'utils/FastMath.js';
+import { COMBAT_EVENTS } from './CombatJuice.js';
 
 export class CollisionManager {
     constructor(player, enemyManager, world) {
@@ -361,7 +362,20 @@ export class CollisionManager {
         
         // Apply skill damage to enemy
         const damage = skill.getDamage();
-        const actualDamage = enemy.takeDamage(damage);
+        const hitOptions = {
+            isCrit: skill.isComboFinisher || false,
+            isComboFinisher: skill.isComboFinisher || false,
+            element: skill.element || skill.damageType
+        };
+        const actualDamage = enemy.takeDamage(damage, false, null, false, hitOptions);
+        
+        this.player.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_IMPACT, {
+            skill: skill.name,
+            soundId: skill.sounds?.impact,
+            heavy: (skill.radius || 0) > 4,
+            enemy,
+            damage: actualDamage
+        });
         
         // Get enemy position for effects
         const enemyPosition = enemy.getPosition();

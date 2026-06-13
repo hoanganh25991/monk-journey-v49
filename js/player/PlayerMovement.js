@@ -49,6 +49,23 @@ export class PlayerMovement {
         
         // Game reference
         this.game = game;
+        this._footstepTimer = 0;
+        this._footstepInterval = 0.38;
+    }
+
+    _updateFootsteps(delta) {
+        if (!this.game?.audioManager || !this.playerState.isMoving()) return;
+        if (this._isInAir()) return;
+
+        this._footstepTimer -= delta;
+        if (this._footstepTimer > 0) return;
+
+        const set = this.game.world?.getFootstepSet?.() || 'dirt';
+        const soundMap = { dirt: 'footstepDirt', stone: 'footstepStone', sand: 'footstepSand', wood: 'footstepWood' };
+        this.game.audioManager.playSound(soundMap[set] || 'footstepDirt', 0.6);
+        const speed = this.playerStats.getMovementSpeed();
+        this._footstepInterval = Math.max(0.28, 0.5 - speed * 0.02);
+        this._footstepTimer = this._footstepInterval;
     }
     
     /**
@@ -149,6 +166,8 @@ export class PlayerMovement {
         
         // Apply jump physics (gravity + velocity)
         this.updateJumpPhysics(delta);
+
+        this._updateFootsteps(delta);
         
         // Update the world based on player position
         if (this.game && this.game.world) {
