@@ -29,6 +29,7 @@ import { PlayerMovement } from './PlayerMovement.js';
 import { PlayerSkills } from './PlayerSkills.js';
 import { PlayerCombat } from './PlayerCombat.js';
 import { PlayerStatusEffects } from './PlayerStatusEffects.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
 import { ITEM_TEMPLATES } from '../config/items.js';
 import { getElementalEffect } from '../config/elemental-effects.js';
 

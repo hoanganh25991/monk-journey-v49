@@ -1,0 +1,163 @@
+/*
+ * skill-glyphs.css — Temple Ink skill glyphs (IMP0001 Lane F′)
+ * Hides emoji on base skills; renders hand-painted SVG masks instead.
+ */
+
+.skill-icon.icon-breath-heaven,
+.skill-icon.icon-cyclone-strike,
+.skill-icon.icon-exploding-palm,
+.skill-icon.icon-flying-dragon,
+.skill-icon.icon-flying-kick,
+.skill-icon.icon-inner-sanctuary,
+.skill-icon.icon-mystic-allies,
+.skill-icon.icon-seven-sided-strike,
+.skill-icon.icon-wave-of-light,
+.skill-icon.icon-wave-strike,
+.skill-icon.icon-fist-of-thunder,
+.skill-icon.icon-deadly-reach,
+.skill-icon.icon-shield-of-zen,
+.skill-icon.icon-mystic-strike,
+.skill-icon.icon-imprisoned-fists {
+    font-size: 0;
+    line-height: 0;
+    position: relative;
+}
+
+.skill-icon.icon-breath-heaven::before,
+.skill-icon.icon-cyclone-strike::before,
+.skill-icon.icon-exploding-palm::before,
+.skill-icon.icon-flying-dragon::before,
+.skill-icon.icon-flying-kick::before,
+.skill-icon.icon-inner-sanctuary::before,
+.skill-icon.icon-mystic-allies::before,
+.skill-icon.icon-seven-sided-strike::before,
+.skill-icon.icon-wave-of-light::before,
+.skill-icon.icon-wave-strike::before,
+.skill-icon.icon-fist-of-thunder::before,
+.skill-icon.icon-deadly-reach::before,
+.skill-icon.icon-shield-of-zen::before,
+.skill-icon.icon-mystic-strike::before,
+.skill-icon.icon-imprisoned-fists::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+/* Healing wind — three ascending wisps */
+.skill-icon.icon-breath-heaven::before {
+    color: #ffdd99;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M12 44c8-14 16-10 20-22 4 10 12 8 20 22H12z'/%3E%3Cpath fill='black' d='M18 30c6-8 10-6 14-14 3 7 8 6 14 14H18z' opacity='.7'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M12 44c8-14 16-10 20-22 4 10 12 8 20 22H12z'/%3E%3Cpath fill='black' d='M18 30c6-8 10-6 14-14 3 7 8 6 14 14H18z' opacity='.7'/%3E%3C/svg%3E");
+}
+
+/* Cyclone — spiral */
+.skill-icon.icon-cyclone-strike::before {
+    color: var(--theme-gold, #ffcc00);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M32 8a24 24 0 0 1 0 48 20 20 0 0 1 0-40 16 16 0 0 1 0 32 12 12 0 0 1 0-24 8 8 0 0 1 0 16'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M32 8a24 24 0 0 1 0 48 20 20 0 0 1 0-40 16 16 0 0 1 0 32 12 12 0 0 1 0-24 8 8 0 0 1 0 16'/%3E%3C/svg%3E");
+}
+
+/* Exploding palm — radiating burst */
+.skill-icon.icon-exploding-palm::before {
+    color: #ff5533;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='10' fill='black'/%3E%3Cpath fill='black' d='M32 6v12M32 46v12M6 32h12M46 32h12M13 13l8 8M43 43l8 8M13 51l8-8M43 21l8-8'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='10' fill='black'/%3E%3Cpath fill='black' d='M32 6v12M32 46v12M6 32h12M46 32h12M13 13l8 8M43 43l8 8M13 51l8-8M43 21l8-8'/%3E%3C/svg%3E");
+}
+
+/* Flying dragon — ascending serpent */
+.skill-icon.icon-flying-dragon::before {
+    color: #66ff88;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 48c12-20 24-8 32-28 6 14 12 10 16 28H8z'/%3E%3Ccircle cx='44' cy='22' r='4' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 48c12-20 24-8 32-28 6 14 12 10 16 28H8z'/%3E%3Ccircle cx='44' cy='22' r='4' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Flying kick — boot arc */
+.skill-icon.icon-flying-kick::before {
+    color: #ff9933;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M10 50h28c8 0 14-6 14-14V22l-8 6-10-4-8 10-16 4z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M10 50h28c8 0 14-6 14-14V22l-8 6-10-4-8 10-16 4z'/%3E%3C/svg%3E");
+}
+
+/* Inner sanctuary — temple dome */
+.skill-icon.icon-inner-sanctuary::before {
+    color: #ffffff;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M12 44h40v6H12zm4-6h32l-16-24z'/%3E%3Crect x='28' y='10' width='8' height='8' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M12 44h40v6H12zm4-6h32l-16-24z'/%3E%3Crect x='28' y='10' width='8' height='8' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Mystic allies — twin spirits */
+.skill-icon.icon-mystic-allies::before {
+    color: #00ffff;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='22' cy='28' r='10' fill='black'/%3E%3Ccircle cx='42' cy='28' r='10' fill='black'/%3E%3Cpath fill='black' d='M16 44c4-8 8-6 12-10 4 4 8 2 12 10H16z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='22' cy='28' r='10' fill='black'/%3E%3Ccircle cx='42' cy='28' r='10' fill='black'/%3E%3Cpath fill='black' d='M16 44c4-8 8-6 12-10 4 4 8 2 12 10H16z'/%3E%3C/svg%3E");
+}
+
+/* Seven-sided strike — heptagon star */
+.skill-icon.icon-seven-sided-strike::before {
+    color: #ff3333;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon fill='black' points='32,8 44,18 48,32 40,48 24,48 16,32 20,18'/%3E%3Ccircle cx='32' cy='32' r='6' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon fill='black' points='32,8 44,18 48,32 40,48 24,48 16,32 20,18'/%3E%3Ccircle cx='32' cy='32' r='6' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Wave of light — temple bell */
+.skill-icon.icon-wave-of-light::before {
+    color: #ffdd22;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 18h24l-4 30H24zm8-10h8v10h-8z'/%3E%3Crect x='18' y='48' width='28' height='6' rx='2' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 18h24l-4 30H24zm8-10h8v10h-8z'/%3E%3Crect x='18' y='48' width='28' height='6' rx='2' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Wave strike — water arc */
+.skill-icon.icon-wave-strike::before {
+    color: #00ddff;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 40c10-16 20-8 28-20 6 10 14 8 20 20H8z'/%3E%3Cpath fill='black' d='M8 50c10-10 20-4 28-12 6 8 14 6 20 12H8z' opacity='.6'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 40c10-16 20-8 28-20 6 10 14 8 20 20H8z'/%3E%3Cpath fill='black' d='M8 50c10-10 20-4 28-12 6 8 14 6 20 12H8z' opacity='.6'/%3E%3C/svg%3E");
+}
+
+/* Fist of thunder — lightning */
+.skill-icon.icon-fist-of-thunder::before {
+    color: #5599ff;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M36 8L20 36h12l-4 20 24-32H38z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M36 8L20 36h12l-4 20 24-32H38z'/%3E%3C/svg%3E");
+}
+
+/* Deadly reach — extended beam */
+.skill-icon.icon-deadly-reach::before {
+    color: #5599cc;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='14' cy='32' r='8' fill='black'/%3E%3Crect x='22' y='28' width='32' height='8' rx='2' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='14' cy='32' r='8' fill='black'/%3E%3Crect x='22' y='28' width='32' height='8' rx='2' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Shield of zen — meditating figure + aura */
+.skill-icon.icon-shield-of-zen::before {
+    color: #ffdd44;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='black' stroke-width='6'/%3E%3Ccircle cx='32' cy='26' r='6' fill='black'/%3E%3Cpath fill='black' d='M22 44c4-10 16-10 20 0H22z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='22' fill='none' stroke='black' stroke-width='6'/%3E%3Ccircle cx='32' cy='26' r='6' fill='black'/%3E%3Cpath fill='black' d='M22 44c4-10 16-10 20 0H22z'/%3E%3C/svg%3E");
+}
+
+/* Mystic strike — dash + spirit trail */
+.skill-icon.icon-mystic-strike::before {
+    color: #aa88ff;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 40l20-24 8 8 20-12-8 32z'/%3E%3Ccircle cx='46' cy='18' r='5' fill='black' opacity='.5'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 40l20-24 8 8 20-12-8 32z'/%3E%3Ccircle cx='46' cy='18' r='5' fill='black' opacity='.5'/%3E%3C/svg%3E");
+}
+
+/* Imprisoned fists — chained fists */
+.skill-icon.icon-imprisoned-fists::before {
+    color: #00cccc;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='14' y='22' width='14' height='18' rx='4' fill='black'/%3E%3Crect x='36' y='22' width='14' height='18' rx='4' fill='black'/%3E%3Cpath fill='none' stroke='black' stroke-width='4' d='M28 32h8'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='14' y='22' width='14' height='18' rx='4' fill='black'/%3E%3Crect x='36' y='22' width='14' height='18' rx='4' fill='black'/%3E%3Cpath fill='none' stroke='black' stroke-width='4' d='M28 32h8'/%3E%3C/svg%3E");
+}
+
+/* Skill unlock flash — gold pulse on tree panel */
+#skill-tree.skill-unlock-flash {
+    box-shadow:
+        var(--temple-panel-shadow),
+        0 0 28px rgba(var(--theme-gold-rgb), 0.45);
+}

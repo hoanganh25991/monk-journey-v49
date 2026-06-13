@@ -779,6 +779,11 @@ export class Enemy {
         // Apply knockback if specified
         if (knockback) {
             this.applyKnockback(knockbackDirection);
+            const juice = this.player?.game?.combatJuice;
+            if (juice) {
+                juice.requestShake(0.85);
+                juice.requestHitStop(2);
+            }
         }
         
         // Update health bar

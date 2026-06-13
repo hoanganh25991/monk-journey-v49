@@ -8,6 +8,8 @@
 
 /* Temple Ink presentation skin */
 @import 'temple-ink.css';
+@import 'skill-glyphs.css';
+@import 'equipment-glyphs.css';
 
 /* Import reset styles */
 @import 'reset.css';

@@ -176,6 +176,7 @@ export class CombatJuice {
         this._play('levelUp', 1);
         this.setMomentTimeScale(0.35);
         setTimeout(() => this.setMomentTimeScale(1), 600);
+        this.game?.effectsManager?.createLevelUpSpiritBurst();
     }
 
     onBossSpawn() {

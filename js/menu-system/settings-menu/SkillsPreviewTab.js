@@ -387,6 +387,16 @@ export class SkillsPreviewTab extends SettingsTab {
     }
     
     /**
+     * Play cast SFX for the current skill preview selection.
+     * @private
+     */
+    playSkillPreviewSound() {
+        const soundId = this.currentSkill?.sounds?.cast;
+        if (!soundId || !this.game?.audioManager) return;
+        this.game.audioManager.playSound(soundId, 0.72);
+    }
+
+    /**
      * Play the current skill effect
      */
     playCurrentSkillEffect() {
@@ -405,6 +415,8 @@ export class SkillsPreviewTab extends SettingsTab {
         if (this.currentVariant) {
             skillData.variant = this.currentVariant;
         }
+
+        this.playSkillPreviewSound();
         
         // Play the skill effect (async - fire and forget)
         void this.skillPreview.createSkillEffect(skillData);

@@ -1,0 +1,150 @@
+/*
+ * equipment-glyphs.css — Monk equipment slot + item glyphs (IMP0001 Lane F′)
+ */
+
+.slot-icon,
+.item-icon[class*="item-glyph-"] {
+    font-size: 0;
+    line-height: 0;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.slot-icon::before,
+.item-icon[class*="item-glyph-"]::before {
+    content: '';
+    position: absolute;
+    inset: 20%;
+    background-color: rgba(var(--theme-gold-rgb), 0.85);
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+/* Equipment slots */
+.slot-glyph-head::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 36c0-14 8-22 16-22s16 8 16 22v6H16z'/%3E%3Cpath fill='black' d='M20 42h24v8H20z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 36c0-14 8-22 16-22s16 8 16 22v6H16z'/%3E%3Cpath fill='black' d='M20 42h24v8H20z'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-shoulders::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 28c8-8 16-6 24-6s16-2 24 6l-6 10H14z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M8 28c8-8 16-6 24-6s16-2 24 6l-6 10H14z'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-chest::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 14h24l6 38H14zm12-8c-4 0-8 2-8 6h16c0-4-4-6-8-6z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 14h24l6 38H14zm12-8c-4 0-8 2-8 6h16c0-4-4-6-8-6z'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-hands::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='4' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='4' fill='black'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-weapon::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='30' y='8' width='4' height='44' fill='black'/%3E%3Ccircle cx='32' cy='54' r='6' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='30' y='8' width='4' height='44' fill='black'/%3E%3Ccircle cx='32' cy='54' r='6' fill='black'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-legs::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M18 12h28v20H18zm4 20h8v24h-8zm20 0h8v24h-8z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M18 12h28v20H18zm4 20h8v24h-8zm20 0h8v24h-8z'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-feet::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M14 36c6-4 12-4 18 0 6-4 12-4 18 0l-4 14H18z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M14 36c6-4 12-4 18 0 6-4 12-4 18 0l-4 14H18z'/%3E%3C/svg%3E");
+}
+
+.slot-glyph-accessory::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='36' r='10' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='20' r='5' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='36' r='10' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='20' r='5' fill='black'/%3E%3C/svg%3E");
+}
+
+/* Inventory item subtypes */
+.item-glyph-fist::before {
+    background-color: #ddaa66;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M18 30c0-8 6-14 14-14s14 6 14 14v16c0 6-4 10-10 10H28c-6 0-10-4-10-10V30z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M18 30c0-8 6-14 14-14s14 6 14 14v16c0 6-4 10-10 10H28c-6 0-10-4-10-10V30z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-staff::before {
+    background-color: #aa7744;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='30' y='6' width='4' height='48' fill='black'/%3E%3Ccircle cx='32' cy='56' r='5' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='30' y='6' width='4' height='48' fill='black'/%3E%3Ccircle cx='32' cy='56' r='5' fill='black'/%3E%3C/svg%3E");
+}
+
+.item-glyph-dagger::before {
+    background-color: #ccccdd;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M32 8l6 28H26zm-4 28h16l-4 20H20z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M32 8l6 28H26zm-4 28h16l-4 20H20z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-robe::before,
+.item-glyph-armor::before {
+    background-color: #8899aa;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 14h24l6 38H14z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M20 14h24l6 38H14z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-helmet::before {
+    background-color: #99aabb;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 36c0-12 8-20 16-20s16 8 16 20v8H16z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 36c0-12 8-20 16-20s16 8 16 20v8H16z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-boots::before {
+    background-color: #887755;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M14 38h18v12H14zm18 0h18v12H32z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M14 38h18v12H14zm18 0h18v12H32z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-gloves::before {
+    background-color: #aa9988;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 28h12v22H16zm20 0h12v22H36z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M16 28h12v22H16zm20 0h12v22H36z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-ring::before,
+.item-glyph-amulet::before,
+.item-glyph-talisman::before,
+.item-glyph-accessory::before {
+    background-color: #ffcc66;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='36' r='10' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='20' r='5' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='36' r='10' fill='none' stroke='black' stroke-width='5'/%3E%3Ccircle cx='32' cy='20' r='5' fill='black'/%3E%3C/svg%3E");
+}
+
+.item-glyph-potion::before,
+.item-glyph-consumable::before {
+    background-color: #66cc88;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M24 14h16v8l8 30H16l8-30z'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='black' d='M24 14h16v8l8 30H16l8-30z'/%3E%3C/svg%3E");
+}
+
+.item-glyph-scroll::before {
+    background-color: #ddcc99;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='16' y='12' width='32' height='40' rx='4' fill='black'/%3E%3Cpath fill='none' stroke='white' stroke-width='3' d='M22 22h20M22 30h20M22 38h14'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='16' y='12' width='32' height='40' rx='4' fill='black'/%3E%3Cpath fill='none' stroke='white' stroke-width='3' d='M22 22h20M22 30h20M22 38h14'/%3E%3C/svg%3E");
+}
+
+.item-glyph-shoulder::before,
+.item-glyph-belt::before {
+    background-color: #998877;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='12' y='28' width='40' height='10' rx='2' fill='black'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='12' y='28' width='40' height='10' rx='2' fill='black'/%3E%3C/svg%3E");
+}
+
+.item-glyph-crystal::before,
+.item-glyph-food::before {
+    background-color: #88aadd;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon fill='black' points='32,10 48,28 40,54 24,54 16,28'/%3E%3C/svg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpolygon fill='black' points='32,10 48,28 40,54 24,54 16,28'/%3E%3C/svg%3E");
+}

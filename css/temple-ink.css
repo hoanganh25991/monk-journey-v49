@@ -268,3 +268,82 @@
     border-radius: 8px;
     box-shadow: var(--temple-panel-shadow);
 }
+
+/* ── Multiplayer modal ── */
+#multiplayer-menu {
+    background: var(--temple-panel-bg);
+    color: var(--temple-text-primary);
+    animation: templeInkFadeInFull var(--temple-ink-duration) ease-out;
+}
+
+#multiplayer-menu .modal-header,
+#multiplayer-menu .multiplayer-menu-content > .modal-header {
+    background: var(--temple-header-bg);
+    border-bottom: var(--temple-header-border);
+}
+
+#multiplayer-menu .multiplayer-options,
+#multiplayer-menu .connection-panel,
+#multiplayer-menu .player-list-container {
+    background: var(--temple-slot-bg);
+    border: var(--temple-slot-border);
+    border-radius: var(--temple-panel-radius);
+}
+
+#multiplayer-menu .multiplayer-action button,
+#multiplayer-menu .host-button,
+#multiplayer-menu .join-button {
+    background: linear-gradient(180deg, rgba(var(--theme-gold-rgb), 0.82), rgba(160, 120, 40, 0.88));
+    border: 2px solid var(--theme-gold-border);
+    color: var(--theme-gold-text);
+}
+
+#multiplayer-menu .invite-modal-content,
+#multiplayer-menu .invite-from-host-modal .invite-modal-content {
+    background: var(--temple-panel-bg);
+    border: var(--temple-panel-border);
+    box-shadow: var(--temple-panel-shadow);
+}
+
+/* ── Map selector modal ── */
+.map-selector-modal {
+    background: var(--temple-panel-bg);
+    border: var(--temple-panel-border);
+    border-radius: var(--temple-panel-radius);
+    box-shadow: var(--temple-panel-shadow);
+    animation: templeInkFadeInFull var(--temple-ink-duration) ease-out;
+}
+
+.map-selector-header {
+    background: var(--temple-header-bg);
+    border-bottom: var(--temple-header-border);
+}
+
+.map-selector-header h2,
+.map-selector-current-label {
+    color: var(--temple-text-primary);
+    text-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.35);
+}
+
+.map-list-container {
+    background: rgba(10, 6, 5, 0.55);
+    border-right: 1px solid rgba(var(--theme-gold-rgb), 0.2);
+}
+
+.map-list-item {
+    background: var(--temple-slot-bg);
+    border: var(--temple-slot-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.map-list-item:hover,
+.map-list-item.selected {
+    border-color: var(--theme-gold);
+    box-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.2);
+}
+
+.map-detail-panel,
+.map-detail-container,
+.map-preview-container {
+    background: rgba(8, 5, 4, 0.65);
+}

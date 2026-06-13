@@ -2,6 +2,7 @@ import * as THREE from '../libs/three/three.module.js';
 import { BleedingEffect } from './skills/BleedingEffect.js';
 import { SkillEffectFactory } from './skills/SkillEffectFactory.js';
 import { DamageNumberSpriteEffect } from './effects/DamageNumberSpriteEffect.js';
+import { LevelUpSpiritEffect } from './effects/LevelUpSpiritEffect.js';
 
 /**
  * EffectsManager
@@ -163,6 +164,16 @@ export class EffectsManager {
         const pos = position instanceof THREE.Vector3 ? position.clone() : new THREE.Vector3(position.x, position.y, position.z);
         pos.y += 1.2;
         return this.createDamageNumberSprite(amount, pos, { isExperience: true, isBonus: options.isBonus || false });
+    }
+
+    /** Golden spirit particle burst on the monk at level-up. */
+    createLevelUpSpiritBurst() {
+        const effect = new LevelUpSpiritEffect(this.game);
+        const created = effect.create();
+        if (created) {
+            this.effects.push(effect);
+        }
+        return effect;
     }
     
     /**

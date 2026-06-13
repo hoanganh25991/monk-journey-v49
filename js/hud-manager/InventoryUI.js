@@ -5,6 +5,7 @@ import { ItemPreview } from '../menu-system/ItemPreview.js';
 import { updateAnimation } from '../utils/AnimationUtils.js';
 import { CONSUMABLE_SKILL_EFFECTS } from '../config/consumable-skills.js';
 import { getElementalEffect } from '../config/elemental-effects.js';
+import { applyItemIcon } from '../config/item-glyphs.js';
 
 /**
  * Inventory UI component
@@ -451,12 +452,7 @@ export class InventoryUI extends UIComponent {
                 
                 // Create item icon
                 const itemIcon = document.createElement('div');
-                itemIcon.className = 'item-icon';
-                
-                // Use item's icon property or default to package icon
-                let iconContent = item.icon || '📦';
-                
-                itemIcon.textContent = iconContent;
+                applyItemIcon(itemIcon, item);
                 slotElement.appendChild(itemIcon);
                 
                 // Create item count
@@ -501,7 +497,8 @@ export class InventoryUI extends UIComponent {
         const equipButton = this.itemPopup.querySelector('.item-popup-equip');
         
         // Set icon using item's icon property
-        iconElement.textContent = item.icon || '📦';
+        iconElement.className = 'item-popup-icon';
+        applyItemIcon(iconElement, item);
         
         // Set name and type
         nameElement.textContent = item.name;
@@ -1046,8 +1043,7 @@ export class InventoryUI extends UIComponent {
                     
                     // Create item icon
                     const itemIcon = document.createElement('div');
-                    itemIcon.className = 'item-icon';
-                    itemIcon.textContent = item.icon || '📦';
+                    applyItemIcon(itemIcon, item);
                     slotElement.appendChild(itemIcon);
                     
                     // Add tooltip with item name
@@ -1063,8 +1059,14 @@ export class InventoryUI extends UIComponent {
                     
                     // Add empty slot indicator
                     const emptySlot = document.createElement('div');
-                    emptySlot.className = 'empty-slot';
-                    emptySlot.textContent = this.getSlotIcon(slot);
+                    const glyphClass = this.getSlotGlyphClass(slot);
+                    if (glyphClass) {
+                        emptySlot.className = `slot-icon ${glyphClass}`;
+                        emptySlot.setAttribute('aria-hidden', 'true');
+                    } else {
+                        emptySlot.className = 'empty-slot';
+                        emptySlot.textContent = '❓';
+                    }
                     slotElement.appendChild(emptySlot);
                     
                     // Add tooltip with slot name
@@ -1102,7 +1104,26 @@ export class InventoryUI extends UIComponent {
     }
     
     /**
-     * Get an icon for an empty equipment slot
+     * Temple Ink glyph class for an empty equipment slot.
+     * @param {string} slot
+     * @returns {string|null}
+     */
+    getSlotGlyphClass(slot) {
+        const slotGlyphs = {
+            head: 'slot-glyph-head',
+            shoulders: 'slot-glyph-shoulders',
+            chest: 'slot-glyph-chest',
+            hands: 'slot-glyph-hands',
+            weapon: 'slot-glyph-weapon',
+            legs: 'slot-glyph-legs',
+            feet: 'slot-glyph-feet',
+            accessory: 'slot-glyph-accessory'
+        };
+        return slotGlyphs[slot] || null;
+    }
+
+    /**
+     * Get an icon for an empty equipment slot (legacy fallback).
      * @param {string} slot - The equipment slot key
      * @returns {string} Icon for the slot
      */
