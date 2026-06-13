@@ -1,4 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
+import { getCoachElementFromWeapon, getCoachType } from '../config/coach.js';
 
 /**
  * Player UI component
@@ -33,6 +34,7 @@ export class PlayerUI extends UIComponent {
         this.manaText = document.getElementById('mana-text');
         this.experienceBar = document.getElementById('experience-bar');
         this.experienceText = document.getElementById('experience-text');
+        this.coachBadge = document.getElementById('coach-element-badge');
         
         // Initialize with current player data
         this.update();
@@ -97,5 +99,24 @@ export class PlayerUI extends UIComponent {
         // Set experience bar color
         this.experienceBar.style.backgroundColor = 'var(--theme-gold)';
         this.experienceBar.style.boxShadow = '0 0 5px var(--theme-gold)';
+
+        this.updateCoachBadge();
+    }
+
+    /** Show elemental coach badge from equipped weapon. */
+    updateCoachBadge() {
+        if (!this.coachBadge) return;
+        const weapon = this.game.player?.getEquipment?.()?.weapon;
+        const element = getCoachElementFromWeapon(weapon);
+        if (!element || element === 'none') {
+            this.coachBadge.hidden = true;
+            return;
+        }
+        const coach = getCoachType(element);
+        const hex = '#' + coach.primaryColor.toString(16).padStart(6, '0');
+        this.coachBadge.hidden = false;
+        this.coachBadge.className = `coach-element-badge coach-badge-${element}`;
+        this.coachBadge.style.setProperty('--coach-badge-color', hex);
+        this.coachBadge.title = coach.name;
     }
 }

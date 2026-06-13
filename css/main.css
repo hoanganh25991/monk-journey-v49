@@ -9,7 +9,9 @@
 /* Temple Ink presentation skin */
 @import 'temple-ink.css';
 @import 'skill-glyphs.css';
+@import 'skill-variant-glyphs.css';
 @import 'equipment-glyphs.css';
+@import 'coach-badge.css';
 
 /* Import reset styles */
 @import 'reset.css';

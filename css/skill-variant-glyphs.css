@@ -1,0 +1,1364 @@
+/*
+ * skill-variant-glyphs.css — AUTO-GENERATED (IMP0001 Lane F‴)
+ * Do not edit by hand. Regenerate: node scripts/generate-skill-glyphs-css.cjs
+ * Variant + buff skill icons — SVG mask glyphs.
+ */
+
+.skill-icon.icon-circle-of-life,
+.skill-icon.icon-infused-light,
+.skill-icon.icon-radiant-breath,
+.skill-icon.icon-soothing-mist,
+.skill-icon.icon-zephyrs-grace,
+.skill-icon.icon-bul-breath-of-heaven,
+.skill-icon.icon-mystic-winds,
+.skill-icon.icon-sandstorm,
+.skill-icon.icon-tempest-rush,
+.skill-icon.icon-tornado,
+.skill-icon.icon-vortex,
+.skill-icon.icon-bleeding-palm,
+.skill-icon.icon-shocking-palm,
+.skill-icon.icon-concussive-palm,
+.skill-icon.icon-fiery-palm,
+.skill-icon.icon-icy-palm,
+.skill-icon.icon-bul-palm,
+.skill-icon.icon-dragons-flight,
+.skill-icon.icon-inferno-dragon,
+.skill-icon.icon-thunder-dragon,
+.skill-icon.icon-gale-dragon,
+.skill-icon.icon-shadow-dragon,
+.skill-icon.icon-blazing-kick,
+.skill-icon.icon-cyclone-kick,
+.skill-icon.icon-thunderous-kick,
+.skill-icon.icon-shadow-kick,
+.skill-icon.icon-gale-kick,
+.skill-icon.icon-aerial-agility,
+.skill-icon.icon-aerial-mastery,
+.skill-icon.icon-air-allies,
+.skill-icon.icon-amplified-power,
+.skill-icon.icon-blazing-fists,
+.skill-icon.icon-blinding-light,
+.skill-icon.icon-boundless-breath,
+.skill-icon.icon-celestial-impact,
+.skill-icon.icon-circle-of-wrath,
+.skill-icon.icon-crashing-wave,
+.skill-icon.icon-earth-allies,
+.skill-icon.icon-echoing-waves,
+.skill-icon.icon-empowered-allies,
+.skill-icon.icon-empowered-blows,
+.skill-icon.icon-empowered-healing,
+.skill-icon.icon-empowered-impact,
+.skill-icon.icon-empowered-kicks,
+.skill-icon.icon-empowered-sanctuary,
+.skill-icon.icon-empowered-shielding,
+.skill-icon.icon-empowered-spirit,
+.skill-icon.icon-empowered-strike,
+.skill-icon.icon-energy-efficiency,
+.skill-icon.icon-enhanced-detonation,
+.skill-icon.icon-ethereal-embrace,
+.skill-icon.icon-explosive-wave,
+.skill-icon.icon-extended-duration,
+.skill-icon.icon-extended-flight,
+.skill-icon.icon-extended-lock,
+.skill-icon.icon-extended-reach,
+.skill-icon.icon-extended-sanctuary,
+.skill-icon.icon-eye-of-the-storm,
+.skill-icon.icon-fiery-chains,
+.skill-icon.icon-fire-allies,
+.skill-icon.icon-focused-energy,
+.skill-icon.icon-forbidden-palace,
+.skill-icon.icon-fortified-wall,
+.skill-icon.icon-freezing-wave,
+.skill-icon.icon-frozen-assault,
+.skill-icon.icon-frozen-shackles,
+.skill-icon.icon-gale-chains,
+.skill-icon.icon-harmonious-defense,
+.skill-icon.icon-healing-surge,
+.skill-icon.icon-healing-wave,
+.skill-icon.icon-healing-winds,
+.skill-icon.icon-lingering-pain,
+.skill-icon.icon-lingering-presence,
+.skill-icon.icon-lingering-protection,
+.skill-icon.icon-lingering-shadows,
+.skill-icon.icon-molten-wave,
+.skill-icon.icon-mystic-veil,
+.skill-icon.icon-phantom-echo,
+.skill-icon.icon-phantom-strike,
+.skill-icon.icon-power-surge,
+.skill-icon.icon-quick-recovery,
+.skill-icon.icon-quick-setup,
+.skill-icon.icon-quick-summon,
+.skill-icon.icon-quickened-strikes,
+.skill-icon.icon-radiant-barrier,
+.skill-icon.icon-transcendence,
+.skill-icon.icon-retribution-aura,
+.skill-icon.icon-spiritual-protection,
+.skill-icon.icon-diamond-aura,
+.skill-icon.icon-explosive-light,
+.skill-icon.icon-lightning-bell,
+.skill-icon.icon-pillar-of-the-light,
+.skill-icon.icon-wall-of-light,
+.skill-icon.icon-rapid-palm,
+.skill-icon.icon-rapid-strikes,
+.skill-icon.icon-rapid-waves,
+.skill-icon.icon-reflective-shield,
+.skill-icon.icon-resilient-assault,
+.skill-icon.icon-resilient-barrier,
+.skill-icon.icon-resilient-dash,
+.skill-icon.icon-resilient-guard,
+.skill-icon.icon-resilient-spirit,
+.skill-icon.icon-resilient-spirits,
+.skill-icon.icon-resonating-echo,
+.skill-icon.icon-safe-haven,
+.skill-icon.icon-sanctified-ground,
+.skill-icon.icon-shadow-allies,
+.skill-icon.icon-shadow-bind,
+.skill-icon.icon-shadow-step,
+.skill-icon.icon-shocking-wave,
+.skill-icon.icon-soul-reaver,
+.skill-icon.icon-spirits-reach,
+.skill-icon.icon-swift-descent,
+.skill-icon.icon-swift-recovery,
+.skill-icon.icon-swift-wave,
+.skill-icon.icon-temple-of-protection,
+.skill-icon.icon-terminal-pace,
+.skill-icon.icon-thunderous-grip,
+.skill-icon.icon-thunderous-wave,
+.skill-icon.icon-tidal-force,
+.skill-icon.icon-water-allies,
+.skill-icon.icon-widened-blast,
+.skill-icon.icon-zens-retribution,
+.skill-icon.icon-bul-palm,
+.skill-icon.icon-palm-cross,
+.skill-icon.icon-palm-rain,
+.skill-icon.icon-path-of-the-storm,
+.skill-icon.icon-storm-spirit,
+.skill-icon.icon-tempests-heart,
+.skill-icon.icon-thunderclap,
+.skill-icon.icon-crippling-insight,
+.skill-icon.icon-reaching-rebuke,
+.skill-icon.icon-scolding-storm,
+.skill-icon.icon-breath-of-incense,
+.skill-icon.icon-path-of-the-present,
+.skill-icon.icon-mantle-of-the-crane,
+.skill-icon.icon-tigers-flight,
+.skill-icon.icon-graces-bounty,
+.skill-icon.icon-momentums-flow,
+.skill-icon.icon-spokes-of-the-wheel,
+.skill-icon.icon-storm-of-palms,
+.skill-icon.icon-buff-damage,
+.skill-icon.icon-buff-cooldown,
+.skill-icon.icon-buff-range,
+.skill-icon.icon-buff-duration,
+.skill-icon.icon-buff-healing,
+.skill-icon.icon-buff-defense,
+.skill-icon.icon-buff-speed,
+.skill-icon.icon-buff-area {
+    font-size: 0;
+    line-height: 0;
+    position: relative;
+}
+
+.skill-icon.icon-circle-of-life,
+.skill-icon.icon-infused-light,
+.skill-icon.icon-radiant-breath,
+.skill-icon.icon-soothing-mist,
+.skill-icon.icon-zephyrs-grace,
+.skill-icon.icon-bul-breath-of-heaven,
+.skill-icon.icon-mystic-winds,
+.skill-icon.icon-sandstorm,
+.skill-icon.icon-tempest-rush,
+.skill-icon.icon-tornado,
+.skill-icon.icon-vortex,
+.skill-icon.icon-bleeding-palm,
+.skill-icon.icon-shocking-palm,
+.skill-icon.icon-concussive-palm,
+.skill-icon.icon-fiery-palm,
+.skill-icon.icon-icy-palm,
+.skill-icon.icon-bul-palm,
+.skill-icon.icon-dragons-flight,
+.skill-icon.icon-inferno-dragon,
+.skill-icon.icon-thunder-dragon,
+.skill-icon.icon-gale-dragon,
+.skill-icon.icon-shadow-dragon,
+.skill-icon.icon-blazing-kick,
+.skill-icon.icon-cyclone-kick,
+.skill-icon.icon-thunderous-kick,
+.skill-icon.icon-shadow-kick,
+.skill-icon.icon-gale-kick,
+.skill-icon.icon-aerial-agility,
+.skill-icon.icon-aerial-mastery,
+.skill-icon.icon-air-allies,
+.skill-icon.icon-amplified-power,
+.skill-icon.icon-blazing-fists,
+.skill-icon.icon-blinding-light,
+.skill-icon.icon-boundless-breath,
+.skill-icon.icon-celestial-impact,
+.skill-icon.icon-circle-of-wrath,
+.skill-icon.icon-crashing-wave,
+.skill-icon.icon-earth-allies,
+.skill-icon.icon-echoing-waves,
+.skill-icon.icon-empowered-allies,
+.skill-icon.icon-empowered-blows,
+.skill-icon.icon-empowered-healing,
+.skill-icon.icon-empowered-impact,
+.skill-icon.icon-empowered-kicks,
+.skill-icon.icon-empowered-sanctuary,
+.skill-icon.icon-empowered-shielding,
+.skill-icon.icon-empowered-spirit,
+.skill-icon.icon-empowered-strike,
+.skill-icon.icon-energy-efficiency,
+.skill-icon.icon-enhanced-detonation,
+.skill-icon.icon-ethereal-embrace,
+.skill-icon.icon-explosive-wave,
+.skill-icon.icon-extended-duration,
+.skill-icon.icon-extended-flight,
+.skill-icon.icon-extended-lock,
+.skill-icon.icon-extended-reach,
+.skill-icon.icon-extended-sanctuary,
+.skill-icon.icon-eye-of-the-storm,
+.skill-icon.icon-fiery-chains,
+.skill-icon.icon-fire-allies,
+.skill-icon.icon-focused-energy,
+.skill-icon.icon-forbidden-palace,
+.skill-icon.icon-fortified-wall,
+.skill-icon.icon-freezing-wave,
+.skill-icon.icon-frozen-assault,
+.skill-icon.icon-frozen-shackles,
+.skill-icon.icon-gale-chains,
+.skill-icon.icon-harmonious-defense,
+.skill-icon.icon-healing-surge,
+.skill-icon.icon-healing-wave,
+.skill-icon.icon-healing-winds,
+.skill-icon.icon-lingering-pain,
+.skill-icon.icon-lingering-presence,
+.skill-icon.icon-lingering-protection,
+.skill-icon.icon-lingering-shadows,
+.skill-icon.icon-molten-wave,
+.skill-icon.icon-mystic-veil,
+.skill-icon.icon-phantom-echo,
+.skill-icon.icon-phantom-strike,
+.skill-icon.icon-power-surge,
+.skill-icon.icon-quick-recovery,
+.skill-icon.icon-quick-setup,
+.skill-icon.icon-quick-summon,
+.skill-icon.icon-quickened-strikes,
+.skill-icon.icon-radiant-barrier,
+.skill-icon.icon-transcendence,
+.skill-icon.icon-retribution-aura,
+.skill-icon.icon-spiritual-protection,
+.skill-icon.icon-diamond-aura,
+.skill-icon.icon-explosive-light,
+.skill-icon.icon-lightning-bell,
+.skill-icon.icon-pillar-of-the-light,
+.skill-icon.icon-wall-of-light,
+.skill-icon.icon-rapid-palm,
+.skill-icon.icon-rapid-strikes,
+.skill-icon.icon-rapid-waves,
+.skill-icon.icon-reflective-shield,
+.skill-icon.icon-resilient-assault,
+.skill-icon.icon-resilient-barrier,
+.skill-icon.icon-resilient-dash,
+.skill-icon.icon-resilient-guard,
+.skill-icon.icon-resilient-spirit,
+.skill-icon.icon-resilient-spirits,
+.skill-icon.icon-resonating-echo,
+.skill-icon.icon-safe-haven,
+.skill-icon.icon-sanctified-ground,
+.skill-icon.icon-shadow-allies,
+.skill-icon.icon-shadow-bind,
+.skill-icon.icon-shadow-step,
+.skill-icon.icon-shocking-wave,
+.skill-icon.icon-soul-reaver,
+.skill-icon.icon-spirits-reach,
+.skill-icon.icon-swift-descent,
+.skill-icon.icon-swift-recovery,
+.skill-icon.icon-swift-wave,
+.skill-icon.icon-temple-of-protection,
+.skill-icon.icon-terminal-pace,
+.skill-icon.icon-thunderous-grip,
+.skill-icon.icon-thunderous-wave,
+.skill-icon.icon-tidal-force,
+.skill-icon.icon-water-allies,
+.skill-icon.icon-widened-blast,
+.skill-icon.icon-zens-retribution,
+.skill-icon.icon-bul-palm,
+.skill-icon.icon-palm-cross,
+.skill-icon.icon-palm-rain,
+.skill-icon.icon-path-of-the-storm,
+.skill-icon.icon-storm-spirit,
+.skill-icon.icon-tempests-heart,
+.skill-icon.icon-thunderclap,
+.skill-icon.icon-crippling-insight,
+.skill-icon.icon-reaching-rebuke,
+.skill-icon.icon-scolding-storm,
+.skill-icon.icon-breath-of-incense,
+.skill-icon.icon-path-of-the-present,
+.skill-icon.icon-mantle-of-the-crane,
+.skill-icon.icon-tigers-flight,
+.skill-icon.icon-graces-bounty,
+.skill-icon.icon-momentums-flow,
+.skill-icon.icon-spokes-of-the-wheel,
+.skill-icon.icon-storm-of-palms,
+.skill-icon.icon-buff-damage,
+.skill-icon.icon-buff-cooldown,
+.skill-icon.icon-buff-range,
+.skill-icon.icon-buff-duration,
+.skill-icon.icon-buff-healing,
+.skill-icon.icon-buff-defense,
+.skill-icon.icon-buff-speed,
+.skill-icon.icon-buff-area,
+
+.skill-icon.icon-circle-of-life::before,
+.skill-icon.icon-infused-light::before,
+.skill-icon.icon-radiant-breath::before,
+.skill-icon.icon-soothing-mist::before,
+.skill-icon.icon-zephyrs-grace::before,
+.skill-icon.icon-bul-breath-of-heaven::before,
+.skill-icon.icon-mystic-winds::before,
+.skill-icon.icon-sandstorm::before,
+.skill-icon.icon-tempest-rush::before,
+.skill-icon.icon-tornado::before,
+.skill-icon.icon-vortex::before,
+.skill-icon.icon-bleeding-palm::before,
+.skill-icon.icon-shocking-palm::before,
+.skill-icon.icon-concussive-palm::before,
+.skill-icon.icon-fiery-palm::before,
+.skill-icon.icon-icy-palm::before,
+.skill-icon.icon-bul-palm::before,
+.skill-icon.icon-dragons-flight::before,
+.skill-icon.icon-inferno-dragon::before,
+.skill-icon.icon-thunder-dragon::before,
+.skill-icon.icon-gale-dragon::before,
+.skill-icon.icon-shadow-dragon::before,
+.skill-icon.icon-blazing-kick::before,
+.skill-icon.icon-cyclone-kick::before,
+.skill-icon.icon-thunderous-kick::before,
+.skill-icon.icon-shadow-kick::before,
+.skill-icon.icon-gale-kick::before,
+.skill-icon.icon-aerial-agility::before,
+.skill-icon.icon-aerial-mastery::before,
+.skill-icon.icon-air-allies::before,
+.skill-icon.icon-amplified-power::before,
+.skill-icon.icon-blazing-fists::before,
+.skill-icon.icon-blinding-light::before,
+.skill-icon.icon-boundless-breath::before,
+.skill-icon.icon-celestial-impact::before,
+.skill-icon.icon-circle-of-wrath::before,
+.skill-icon.icon-crashing-wave::before,
+.skill-icon.icon-earth-allies::before,
+.skill-icon.icon-echoing-waves::before,
+.skill-icon.icon-empowered-allies::before,
+.skill-icon.icon-empowered-blows::before,
+.skill-icon.icon-empowered-healing::before,
+.skill-icon.icon-empowered-impact::before,
+.skill-icon.icon-empowered-kicks::before,
+.skill-icon.icon-empowered-sanctuary::before,
+.skill-icon.icon-empowered-shielding::before,
+.skill-icon.icon-empowered-spirit::before,
+.skill-icon.icon-empowered-strike::before,
+.skill-icon.icon-energy-efficiency::before,
+.skill-icon.icon-enhanced-detonation::before,
+.skill-icon.icon-ethereal-embrace::before,
+.skill-icon.icon-explosive-wave::before,
+.skill-icon.icon-extended-duration::before,
+.skill-icon.icon-extended-flight::before,
+.skill-icon.icon-extended-lock::before,
+.skill-icon.icon-extended-reach::before,
+.skill-icon.icon-extended-sanctuary::before,
+.skill-icon.icon-eye-of-the-storm::before,
+.skill-icon.icon-fiery-chains::before,
+.skill-icon.icon-fire-allies::before,
+.skill-icon.icon-focused-energy::before,
+.skill-icon.icon-forbidden-palace::before,
+.skill-icon.icon-fortified-wall::before,
+.skill-icon.icon-freezing-wave::before,
+.skill-icon.icon-frozen-assault::before,
+.skill-icon.icon-frozen-shackles::before,
+.skill-icon.icon-gale-chains::before,
+.skill-icon.icon-harmonious-defense::before,
+.skill-icon.icon-healing-surge::before,
+.skill-icon.icon-healing-wave::before,
+.skill-icon.icon-healing-winds::before,
+.skill-icon.icon-lingering-pain::before,
+.skill-icon.icon-lingering-presence::before,
+.skill-icon.icon-lingering-protection::before,
+.skill-icon.icon-lingering-shadows::before,
+.skill-icon.icon-molten-wave::before,
+.skill-icon.icon-mystic-veil::before,
+.skill-icon.icon-phantom-echo::before,
+.skill-icon.icon-phantom-strike::before,
+.skill-icon.icon-power-surge::before,
+.skill-icon.icon-quick-recovery::before,
+.skill-icon.icon-quick-setup::before,
+.skill-icon.icon-quick-summon::before,
+.skill-icon.icon-quickened-strikes::before,
+.skill-icon.icon-radiant-barrier::before,
+.skill-icon.icon-transcendence::before,
+.skill-icon.icon-retribution-aura::before,
+.skill-icon.icon-spiritual-protection::before,
+.skill-icon.icon-diamond-aura::before,
+.skill-icon.icon-explosive-light::before,
+.skill-icon.icon-lightning-bell::before,
+.skill-icon.icon-pillar-of-the-light::before,
+.skill-icon.icon-wall-of-light::before,
+.skill-icon.icon-rapid-palm::before,
+.skill-icon.icon-rapid-strikes::before,
+.skill-icon.icon-rapid-waves::before,
+.skill-icon.icon-reflective-shield::before,
+.skill-icon.icon-resilient-assault::before,
+.skill-icon.icon-resilient-barrier::before,
+.skill-icon.icon-resilient-dash::before,
+.skill-icon.icon-resilient-guard::before,
+.skill-icon.icon-resilient-spirit::before,
+.skill-icon.icon-resilient-spirits::before,
+.skill-icon.icon-resonating-echo::before,
+.skill-icon.icon-safe-haven::before,
+.skill-icon.icon-sanctified-ground::before,
+.skill-icon.icon-shadow-allies::before,
+.skill-icon.icon-shadow-bind::before,
+.skill-icon.icon-shadow-step::before,
+.skill-icon.icon-shocking-wave::before,
+.skill-icon.icon-soul-reaver::before,
+.skill-icon.icon-spirits-reach::before,
+.skill-icon.icon-swift-descent::before,
+.skill-icon.icon-swift-recovery::before,
+.skill-icon.icon-swift-wave::before,
+.skill-icon.icon-temple-of-protection::before,
+.skill-icon.icon-terminal-pace::before,
+.skill-icon.icon-thunderous-grip::before,
+.skill-icon.icon-thunderous-wave::before,
+.skill-icon.icon-tidal-force::before,
+.skill-icon.icon-water-allies::before,
+.skill-icon.icon-widened-blast::before,
+.skill-icon.icon-zens-retribution::before,
+.skill-icon.icon-bul-palm::before,
+.skill-icon.icon-palm-cross::before,
+.skill-icon.icon-palm-rain::before,
+.skill-icon.icon-path-of-the-storm::before,
+.skill-icon.icon-storm-spirit::before,
+.skill-icon.icon-tempests-heart::before,
+.skill-icon.icon-thunderclap::before,
+.skill-icon.icon-crippling-insight::before,
+.skill-icon.icon-reaching-rebuke::before,
+.skill-icon.icon-scolding-storm::before,
+.skill-icon.icon-breath-of-incense::before,
+.skill-icon.icon-path-of-the-present::before,
+.skill-icon.icon-mantle-of-the-crane::before,
+.skill-icon.icon-tigers-flight::before,
+.skill-icon.icon-graces-bounty::before,
+.skill-icon.icon-momentums-flow::before,
+.skill-icon.icon-spokes-of-the-wheel::before,
+.skill-icon.icon-storm-of-palms::before,
+.skill-icon.icon-buff-damage::before,
+.skill-icon.icon-buff-cooldown::before,
+.skill-icon.icon-buff-range::before,
+.skill-icon.icon-buff-duration::before,
+.skill-icon.icon-buff-healing::before,
+.skill-icon.icon-buff-defense::before,
+.skill-icon.icon-buff-speed::before,
+.skill-icon.icon-buff-area::before {
+    content: '';
+    position: absolute;
+    inset: 18%;
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+}
+
+.skill-icon.icon-circle-of-life::before {
+    color: #ffaaaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2218%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2218%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-infused-light::before {
+    color: #ffffaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-radiant-breath::before {
+    color: #ffff00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-soothing-mist::before {
+    color: #aaccff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-zephyrs-grace::before {
+    color: #ccffff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-bul-breath-of-heaven::before {
+    color: #33ff00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-mystic-winds::before {
+    color: #aaaaff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-sandstorm::before {
+    color: #ddbb77;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-tempest-rush::before {
+    color: #aaffcc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-tornado::before {
+    color: #cccccc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-vortex::before {
+    color: #aaccdd;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-bleeding-palm::before {
+    color: #cc0000;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shocking-palm::before {
+    color: #ffff00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-concussive-palm::before {
+    color: #aa7722;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-fiery-palm::before {
+    color: #ff6600;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-icy-palm::before {
+    color: #aaddff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-bul-palm::before {
+    color: #1e90ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-dragons-flight::before {
+    color: #aaffaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2048c12-20%2024-8%2032-28%206%2014%2012%2010%2016%2028H8z%22%2F%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2222%22%20r%3D%224%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2048c12-20%2024-8%2032-28%206%2014%2012%2010%2016%2028H8z%22%2F%3E%3Ccircle%20cx%3D%2244%22%20cy%3D%2222%22%20r%3D%224%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-inferno-dragon::before {
+    color: #ff6600;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-thunder-dragon::before {
+    color: #ffff00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-gale-dragon::before {
+    color: #ccffff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shadow-dragon::before {
+    color: #666666;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-blazing-kick::before {
+    color: #ff6600;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-cyclone-kick::before {
+    color: #aaaaff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-thunderous-kick::before {
+    color: #ffff00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shadow-kick::before {
+    color: #666666;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-gale-kick::before {
+    color: #ccffff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-aerial-agility::before {
+    color: #87ceeb;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-aerial-mastery::before {
+    color: #add8e6;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-air-allies::before {
+    color: #e6e6fa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-amplified-power::before {
+    color: #9370db;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-blazing-fists::before {
+    color: #ff4500;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-blinding-light::before {
+    color: #fffacd;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-boundless-breath::before {
+    color: #87cefa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-celestial-impact::before {
+    color: #9932cc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-circle-of-wrath::before {
+    color: #b22222;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-crashing-wave::before {
+    color: #1e90ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-earth-allies::before {
+    color: #8b4513;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2044h44l-8-20-10%208-8-14-8%2014-10-8z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2044h44l-8-20-10%208-8-14-8%2014-10-8z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-echoing-waves::before {
+    color: #4682b4;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-allies::before {
+    color: #9370db;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Ccircle%20cx%3D%2242%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2044c4-8%208-6%2012-10%204%204%208%202%2012%2010H16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Ccircle%20cx%3D%2242%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2044c4-8%208-6%2012-10%204%204%208%202%2012%2010H16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-blows::before {
+    color: #cd5c5c;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-healing::before {
+    color: #ff69b4;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-impact::before {
+    color: #ff6347;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-kicks::before {
+    color: #ff8c00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-sanctuary::before {
+    color: #f0e68c;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044h40v6H12zm4-6h32l-16-24z%22%2F%3E%3Crect%20x%3D%2228%22%20y%3D%2210%22%20width%3D%228%22%20height%3D%228%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044h40v6H12zm4-6h32l-16-24z%22%2F%3E%3Crect%20x%3D%2228%22%20y%3D%2210%22%20width%3D%228%22%20height%3D%228%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-shielding::before {
+    color: #dcdcdc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-spirit::before {
+    color: #e6e6fa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-empowered-strike::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-energy-efficiency::before {
+    color: #00bfff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-enhanced-detonation::before {
+    color: #ff4500;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-ethereal-embrace::before {
+    color: #e6e6fa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-explosive-wave::before {
+    color: #ff6347;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-extended-duration::before {
+    color: #ffa07a;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-extended-flight::before {
+    color: #87ceeb;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-extended-lock::before {
+    color: #a9a9a9;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-extended-reach::before {
+    color: #20b2aa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-extended-sanctuary::before {
+    color: #fafad2;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-eye-of-the-storm::before {
+    color: #4682b4;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-fiery-chains::before {
+    color: #ff4500;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-fire-allies::before {
+    color: #ff4500;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-focused-energy::before {
+    color: #9370db;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-forbidden-palace::before {
+    color: #800000;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-fortified-wall::before {
+    color: #a52a2a;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-freezing-wave::before {
+    color: #b0e0e6;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-frozen-assault::before {
+    color: #add8e6;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-frozen-shackles::before {
+    color: #b0c4de;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-gale-chains::before {
+    color: #e0ffff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-harmonious-defense::before {
+    color: #f5f5f5;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-healing-surge::before {
+    color: #ff69b4;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-healing-wave::before {
+    color: #ff1493;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-healing-winds::before {
+    color: #98fb98;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-lingering-pain::before {
+    color: #8b0000;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-lingering-presence::before {
+    color: #778899;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-lingering-protection::before {
+    color: #b8860b;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-lingering-shadows::before {
+    color: #2f4f4f;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-molten-wave::before {
+    color: #ff4500;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-mystic-veil::before {
+    color: #483d8b;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-phantom-echo::before {
+    color: #dcdcdc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-phantom-strike::before {
+    color: #708090;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-power-surge::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-quick-recovery::before {
+    color: #00bfff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-quick-setup::before {
+    color: #32cd32;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-quick-summon::before {
+    color: #9370db;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Ccircle%20cx%3D%2242%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2044c4-8%208-6%2012-10%204%204%208%202%2012%2010H16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Ccircle%20cx%3D%2242%22%20cy%3D%2228%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2044c4-8%208-6%2012-10%204%204%208%202%2012%2010H16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-quickened-strikes::before {
+    color: #ff8c00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-radiant-barrier::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-transcendence::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-retribution-aura::before {
+    color: #ff6600;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-spiritual-protection::before {
+    color: #87ceeb;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-diamond-aura::before {
+    color: #b9f2ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-explosive-light::before {
+    color: #ffdd22;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-lightning-bell::before {
+    color: #00ffff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-pillar-of-the-light::before {
+    color: #ffdd22;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2018h24l-4%2030H24zm8-10h8v10h-8z%22%2F%3E%3Crect%20x%3D%2218%22%20y%3D%2248%22%20width%3D%2228%22%20height%3D%226%22%20rx%3D%222%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2018h24l-4%2030H24zm8-10h8v10h-8z%22%2F%3E%3Crect%20x%3D%2218%22%20y%3D%2248%22%20width%3D%2228%22%20height%3D%226%22%20rx%3D%222%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-wall-of-light::before {
+    color: #ffff99;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-rapid-palm::before {
+    color: #ff6347;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-rapid-strikes::before {
+    color: #cd5c5c;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-rapid-waves::before {
+    color: #4169e1;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-reflective-shield::before {
+    color: #c0c0c0;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l4%2014h14l-11%209%204%2014-11-9-11%209%204-14-11-9h14z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-assault::before {
+    color: #8b0000;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-barrier::before {
+    color: #a9a9a9;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-dash::before {
+    color: #6a5acd;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-guard::before {
+    color: #708090;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-spirit::before {
+    color: #e6e6fa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resilient-spirits::before {
+    color: #9370db;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-resonating-echo::before {
+    color: #9932cc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2032c0-12%208-20%2016-20s16%208%2016%2020%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%224%22%20d%3D%22M20%2032c0-8%205-14%2012-14s12%206%2012%2014%22%20opacity%3D%22.5%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M16%2032c0-12%208-20%2016-20s16%208%2016%2020%22%2F%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%224%22%20d%3D%22M20%2032c0-8%205-14%2012-14s12%206%2012%2014%22%20opacity%3D%22.5%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-safe-haven::before {
+    color: #f5f5dc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-sanctified-ground::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shadow-allies::before {
+    color: #2f4f4f;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shadow-bind::before {
+    color: #696969;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shadow-step::before {
+    color: #4b0082;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-shocking-wave::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-soul-reaver::before {
+    color: #4b0082;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-spirits-reach::before {
+    color: #e6e6fa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%229%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2048c4-14%2010-10%2014-18%204%208%2010%204%2014%2018H18z%22%20opacity%3D%22.75%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-swift-descent::before {
+    color: #87ceeb;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-swift-recovery::before {
+    color: #00bfff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-swift-wave::before {
+    color: #1e90ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-temple-of-protection::before {
+    color: #fafad2;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-terminal-pace::before {
+    color: #ff8c00;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-thunderous-grip::before {
+    color: #ffd700;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-thunderous-wave::before {
+    color: #4169e1;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-tidal-force::before {
+    color: #00bfff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-water-allies::before {
+    color: #1e90ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2040c10-16%2020-8%2028-20%206%2010%2014%208%2020%2020H8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M8%2050c10-10%2020-4%2028-12%206%208%2014%206%2020%2012H8z%22%20opacity%3D%22.6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-widened-blast::before {
+    color: #ff6347;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-zens-retribution::before {
+    color: #000000;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-bul-palm::before {
+    color: #1e90ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-palm-cross::before {
+    color: #33cc33;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-palm-rain::before {
+    color: #3399ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-path-of-the-storm::before {
+    color: #88aacc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-storm-spirit::before {
+    color: #aaccff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-tempests-heart::before {
+    color: #99ccff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-thunderclap::before {
+    color: #ffdd44;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M36%208L20%2036h12l-4%2020%2024-32H38z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-crippling-insight::before {
+    color: #cc8866;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%224%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%224%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2216%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%224%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%224%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-reaching-rebuke::before {
+    color: #ff8844;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-scolding-storm::before {
+    color: #aaddff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v16M32%2042v16M6%2032h16M42%2032h16M14%2014l11%2011M39%2039l11%2011M14%2050l11-11M39%2025l11-11%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-breath-of-incense::before {
+    color: #ddccaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-path-of-the-present::before {
+    color: #ffaa55;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-mantle-of-the-crane::before {
+    color: #ddeeff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2050h28c8%200%2014-6%2014-14V22l-8%206-10-4-8%2010-16%204z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2050h28c8%200%2014-6%2014-14V22l-8%206-10-4-8%2010-16%204z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-tigers-flight::before {
+    color: #ff6600;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208c-6%2014-2%2018-8%2028%204-2%208-2%2012%200%206-12%2010-10%2016-22%204%208%208%2014%208%2022%200%2010-8%2018-20%2018s-20-8-20-18c0-8%204-14%208-22%206%2012%2010%2010%2016%2022%204-2%208-2%2012%200-6-10-2-14-8-28z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-graces-bounty::before {
+    color: #aaffcc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208a24%2024%200%200%201%200%2048%2020%2020%200%200%201%200-40%2016%2016%200%200%201%200%2032%2012%2012%200%200%201%200-24%208%208%200%200%201%200%2016%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-momentums-flow::before {
+    color: #ffcc88;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2050h28c8%200%2014-6%2014-14V22l-8%206-10-4-8%2010-16%204z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2050h28c8%200%2014-6%2014-14V22l-8%206-10-4-8%2010-16%204z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-spokes-of-the-wheel::before {
+    color: #ffdd66;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2214%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%206v8M32%2050v8M6%2032h8M50%2032h8M14%2014l6%206M44%2044l6%206M14%2050l6-6M44%2018l6-6%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-storm-of-palms::before {
+    color: #5599ff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M24%2020h16v8c0%208-4%2014-8%2018-4-4-8-10-8-18v-8z%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M20%2028h-6v12h6zm26%200h6v12h-6z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-damage::before {
+    color: #ff6666;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2222%22%20cy%3D%2232%22%20r%3D%2210%22%20fill%3D%22black%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M30%2026l14-10%204%206-14%2010z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-cooldown::before {
+    color: #66ccff;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%20d%3D%22M32%2012a20%2020%200%201%201-8%2038%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%2012v14l10%206%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-range::before {
+    color: #aaffaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M10%2032h36%22%2F%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M42%2032l-8-6v12z%22%2F%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2232%22%20r%3D%225%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-duration::before {
+    color: #ffcc66;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M18%2014h28v6H18zm0%2010h20v6H18zm0%2010h28v6H18zm0%2010h14v6H18z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-healing::before {
+    color: #ff6666;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2044c8-14%2016-10%2020-22%204%2010%2012%208%2020%2022H12z%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2218%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-defense::before {
+    color: #aaaaaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M32%208l18%208v14c0%2014-10%2022-18%2026-8-4-18-12-18-26V16z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-speed::before {
+    color: #aaffcc;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Cpath%20fill%3D%22black%22%20d%3D%22M12%2040l12-24%208%2012%2016-20%204%2032z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.skill-icon.icon-buff-area::before {
+    color: #ffaaaa;
+    mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2064%2064'%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2220%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%225%22%2F%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%226%22%20fill%3D%22black%22%2F%3E%3C%2Fsvg%3E");
+}

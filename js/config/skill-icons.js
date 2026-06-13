@@ -724,6 +724,84 @@ export const SKILL_ICONS = {
         cssClass: "icon-palm-rain",
         color: "#3399ff"
     },
+
+    // Skill-tree variants not previously in skill-icons
+    "Path of the Storm": {
+        emoji: "🛡️",
+        cssClass: "icon-path-of-the-storm",
+        color: "#88aacc"
+    },
+    "Storm Spirit": {
+        emoji: "🌪️",
+        cssClass: "icon-storm-spirit",
+        color: "#aaccff"
+    },
+    "Tempest's Heart": {
+        emoji: "💨",
+        cssClass: "icon-tempests-heart",
+        color: "#99ccff"
+    },
+    "Thunderclap": {
+        emoji: "⚡",
+        cssClass: "icon-thunderclap",
+        color: "#ffdd44"
+    },
+    "Crippling Insight": {
+        emoji: "👁️",
+        cssClass: "icon-crippling-insight",
+        color: "#cc8866"
+    },
+    "Reaching Rebuke": {
+        emoji: "👊",
+        cssClass: "icon-reaching-rebuke",
+        color: "#ff8844"
+    },
+    "Scolding Storm": {
+        emoji: "❄️",
+        cssClass: "icon-scolding-storm",
+        color: "#aaddff"
+    },
+    "Breath of Incense": {
+        emoji: "💨",
+        cssClass: "icon-breath-of-incense",
+        color: "#ddccaa"
+    },
+    "Path of the Present": {
+        emoji: "🛤️",
+        cssClass: "icon-path-of-the-present",
+        color: "#ffaa55"
+    },
+    "Mantle of the Crane": {
+        emoji: "🦢",
+        cssClass: "icon-mantle-of-the-crane",
+        color: "#ddeeff"
+    },
+    "Tiger's Flight": {
+        emoji: "🔥",
+        cssClass: "icon-tigers-flight",
+        color: "#ff6600"
+    },
+    "Grace's Bounty": {
+        emoji: "🌀",
+        cssClass: "icon-graces-bounty",
+        color: "#aaffcc"
+    },
+    "Momentum's Flow": {
+        emoji: "👣",
+        cssClass: "icon-momentums-flow",
+        color: "#ffcc88"
+    },
+    "Spokes of the Wheel": {
+        emoji: "☸️",
+        cssClass: "icon-spokes-of-the-wheel",
+        color: "#ffdd66"
+    },
+    "Storm of Palms": {
+        emoji: "🌧️",
+        cssClass: "icon-storm-of-palms",
+        color: "#5599ff"
+    },
+
     // Generic buff icons
     "buff-damage": {
         emoji: "⚔️",
