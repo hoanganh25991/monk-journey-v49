@@ -6,6 +6,9 @@
 /* Import CSS variables first */
 @import 'variables.css';
 
+/* Temple Ink presentation skin */
+@import 'temple-ink.css';
+
 /* Import reset styles */
 @import 'reset.css';
 

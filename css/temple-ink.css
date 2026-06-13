@@ -1,0 +1,270 @@
+/*
+ * temple-ink.css — Temple Ink presentation skin (IMP0001 Lane F)
+ * Dark lacquer panels, gold filigree accents, ink-fade motion.
+ */
+
+@keyframes templeInkFadeIn {
+    from {
+        opacity: 0;
+        filter: blur(4px);
+        transform: translate(-50%, -48%) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes templeInkFadeInFull {
+    from {
+        opacity: 0;
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+@keyframes templeCooldownSweep {
+    from { background-position: 0% 100%; }
+    to { background-position: 0% 0%; }
+}
+
+/* ── Full-screen monk panels ── */
+#skill-tree,
+#skill-selection,
+#inventory {
+    background: var(--temple-panel-bg);
+    border: var(--temple-panel-border);
+    border-radius: var(--temple-panel-radius);
+    box-shadow: var(--temple-panel-shadow);
+    color: var(--temple-text-primary);
+    animation: templeInkFadeIn var(--temple-ink-duration) ease-out;
+}
+
+/* Settings uses main-background image; lacquer the inner chrome */
+#main-options-menu .settings-container {
+    background: var(--temple-panel-bg);
+    border-left: var(--temple-panel-border);
+    box-shadow: inset 8px 0 24px rgba(0, 0, 0, 0.35);
+}
+
+#main-options-menu .settings-header {
+    background: var(--temple-header-bg);
+    border-bottom: var(--temple-header-border);
+}
+
+/* Shared ornamental headers */
+#skill-tree-header,
+#skill-selection-header,
+#inventory-header {
+    background: var(--temple-header-bg);
+    border-bottom: var(--temple-header-border);
+    box-shadow: inset 0 -1px 0 rgba(var(--theme-gold-rgb), 0.12);
+}
+
+#skill-tree-title,
+#skill-selection-header h2,
+#inventory-title {
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: clamp(1.1rem, 2.5vw, 1.45rem);
+}
+
+/* Settings section headers — gold filigree, not orange */
+.tab-content > h2 {
+    color: var(--temple-text-primary);
+    background: linear-gradient(90deg, rgba(var(--theme-gold-rgb), 0.18), transparent 85%);
+    border-left: var(--temple-header-accent);
+    text-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.35);
+}
+
+.setting-item {
+    background: var(--temple-slot-bg);
+    border-left: 3px solid rgba(var(--theme-gold-rgb), 0.45);
+    border-radius: 6px;
+}
+
+.setting-item h3 {
+    color: var(--theme-gold);
+}
+
+/* Settings tabs */
+.settings-tabs {
+    background: rgba(10, 6, 5, 0.75);
+    border-right: 1px solid rgba(var(--theme-gold-rgb), 0.2);
+}
+
+.tab-button {
+    color: var(--temple-text-muted);
+    border-bottom: 1px solid rgba(var(--theme-gold-rgb), 0.08);
+}
+
+.tab-button:hover {
+    background: rgba(var(--theme-gold-rgb), 0.08);
+    color: var(--temple-text-primary);
+}
+
+.tab-button.active {
+    color: var(--theme-gold);
+    background: linear-gradient(90deg, rgba(var(--theme-gold-rgb), 0.14), transparent);
+    border-left: var(--temple-header-accent);
+    padding-left: 11px;
+}
+
+/* ── HUD chrome ── */
+#player-stats-container {
+    background: var(--temple-panel-bg);
+    border: var(--temple-panel-border);
+    border-radius: 8px;
+    box-shadow: var(--temple-panel-shadow);
+    opacity: 0.92;
+}
+
+#player-portrait {
+    border: 2px solid rgba(var(--theme-gold-rgb), 0.45);
+    background: radial-gradient(circle at 35% 30%, rgba(80, 60, 40, 0.9), rgba(20, 12, 8, 0.95));
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
+}
+
+#player-name,
+#player-level {
+    color: var(--temple-text-primary);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.skill-button {
+    background: radial-gradient(circle at 30% 25%, rgba(50, 36, 22, 0.9), rgba(12, 8, 6, 0.95));
+    border: 2px solid rgba(var(--theme-gold-rgb), 0.45);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 230, 180, 0.12),
+        0 2px 8px rgba(0, 0, 0, 0.45),
+        0 0 10px rgba(var(--theme-gold-rgb), 0.12);
+}
+
+.skill-button:focus,
+.skill-button:hover {
+    border-color: var(--theme-gold);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 230, 180, 0.2),
+        0 0 14px rgba(var(--theme-gold-rgb), 0.35);
+}
+
+.skill-button .skill-cooldown {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 0 0 50% 50%;
+    background: linear-gradient(
+        to top,
+        rgba(8, 5, 4, 0.92) 0%,
+        rgba(var(--theme-gold-rgb), 0.22) 55%,
+        rgba(var(--theme-gold-rgb), 0.05) 100%
+    );
+    background-size: 100% 200%;
+    pointer-events: none;
+    transition: height 0.08s linear;
+}
+
+.skill-button.showing-cooldown .skill-cooldown {
+    animation: templeCooldownSweep 1.2s ease-in-out infinite alternate;
+}
+
+.skill-key {
+    border: 1px solid rgba(var(--theme-gold-rgb), 0.35);
+    background: rgba(8, 5, 4, 0.75);
+    color: var(--theme-gold);
+}
+
+.change-skills-button {
+    background: var(--temple-slot-bg);
+    border: var(--temple-slot-border);
+    color: var(--theme-gold);
+    border-radius: 6px;
+}
+
+/* Circle HUD buttons — lacquer + gold ring */
+.circle-btn {
+    background: radial-gradient(circle at 32% 28%, rgba(90, 68, 32, 0.95), rgba(35, 24, 12, 0.98));
+    border: 2px solid var(--theme-gold-border);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 240, 200, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.5),
+        0 0 12px rgba(var(--theme-gold-rgb), 0.15);
+}
+
+.circle-btn:hover {
+    box-shadow:
+        inset 0 1px 0 rgba(255, 240, 200, 0.28),
+        0 4px 12px rgba(0, 0, 0, 0.45),
+        0 0 18px rgba(var(--theme-gold-rgb), 0.35);
+}
+
+/* ── Skill tree / selection slots ── */
+.skill-node,
+.skill-variant,
+.skill-buff,
+.skill-selection-item {
+    background: var(--temple-slot-bg);
+    border: var(--temple-slot-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-node:hover,
+.skill-variant:hover,
+.skill-selection-item:hover {
+    border-color: rgba(var(--theme-gold-rgb), 0.55);
+    box-shadow: 0 0 12px rgba(var(--theme-gold-rgb), 0.12);
+}
+
+.skill-node.selected,
+.skill-variant.active,
+.skill-selection-item.selected {
+    border-color: var(--theme-gold);
+    box-shadow: 0 0 16px rgba(var(--theme-gold-rgb), 0.25);
+    background: linear-gradient(145deg, rgba(var(--theme-gold-rgb), 0.1), var(--temple-slot-bg));
+}
+
+/* Inventory grid slots */
+.equipment-slot,
+#inventory-grid .inventory-item {
+    background: var(--temple-slot-bg);
+    border: var(--temple-slot-border);
+    border-radius: 6px;
+}
+
+.equipment-slot:hover,
+#inventory-grid .inventory-item:hover {
+    border-color: rgba(var(--theme-gold-rgb), 0.5);
+    box-shadow: inset 0 0 12px rgba(var(--theme-gold-rgb), 0.08);
+}
+
+/* Main menu */
+#game-menu {
+    animation: templeInkFadeInFull var(--temple-ink-duration) ease-out;
+}
+
+.menu-button,
+.settings-button {
+    background: linear-gradient(180deg, rgba(var(--theme-gold-rgb), 0.82), rgba(160, 120, 40, 0.88));
+    border: 2px solid var(--theme-gold-border);
+    color: var(--theme-gold-text);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.menu-button:hover,
+.settings-button:hover {
+    background: linear-gradient(180deg, rgba(var(--theme-gold-rgb), 0.95), rgba(180, 135, 50, 0.92));
+    box-shadow: 0 0 16px rgba(var(--theme-gold-rgb), 0.35);
+}
+
+/* Quest log panel */
+#quest-log {
+    background: var(--temple-panel-bg);
+    border: var(--temple-panel-border);
+    border-radius: 8px;
+    box-shadow: var(--temple-panel-shadow);
+}

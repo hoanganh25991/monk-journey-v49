@@ -80,8 +80,18 @@
 
 .skill-button:focus {
     outline: none !important;
-    box-shadow: 0 0 0 3px rgba(255, 150, 0, 0.3), 0 0 10px rgba(255, 150, 0, 0.3);
-    border-color: #ff9600;
+    box-shadow:
+        0 0 0 3px rgba(var(--theme-gold-rgb), 0.25),
+        0 0 12px rgba(var(--theme-gold-rgb), 0.25);
+    border-color: var(--theme-gold);
+}
+
+.skill-button .skill-cooldown {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
 }
 
 .skill-key {

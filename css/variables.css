@@ -17,6 +17,23 @@
     --theme-ink-gold: rgba(255, 204, 0, 0.12);
     --theme-amber: #8a6d3b; /* borders and subtle UI (do not hardcode in UI CSS) */
 
+    /* Temple Ink — presentation layer (IMP0001 Lane F) */
+    --temple-panel-bg: linear-gradient(165deg, rgba(22, 14, 11, 0.97) 0%, rgba(12, 8, 6, 0.98) 55%, rgba(18, 12, 9, 0.96) 100%);
+    --temple-panel-border: 2px solid var(--theme-gold-border-subtle);
+    --temple-panel-radius: 10px;
+    --temple-panel-shadow:
+        0 0 0 1px rgba(var(--theme-gold-rgb), 0.08),
+        inset 0 1px 0 rgba(255, 230, 180, 0.06),
+        0 12px 40px rgba(0, 0, 0, 0.75);
+    --temple-header-bg: linear-gradient(180deg, rgba(60, 42, 22, 0.55) 0%, rgba(28, 18, 12, 0.35) 100%);
+    --temple-header-border: 1px solid rgba(var(--theme-gold-rgb), 0.35);
+    --temple-header-accent: 3px solid var(--theme-gold);
+    --temple-text-primary: #fff8e6;
+    --temple-text-muted: rgba(255, 235, 200, 0.72);
+    --temple-slot-bg: rgba(8, 5, 4, 0.65);
+    --temple-slot-border: 1px solid rgba(var(--theme-gold-rgb), 0.28);
+    --temple-ink-duration: 0.45s;
+
     /* Padding variables */
     --padding-small: 5px;
     --padding-medium: 15px;
