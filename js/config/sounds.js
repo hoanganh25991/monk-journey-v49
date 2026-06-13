@@ -932,8 +932,6 @@ export const ENVIRONMENT_SOUNDS = {
     }
 };
 
-};
-
 // Zone ambient loops (seamless when real assets exist; simulated otherwise)
 export const AMBIENT_LOOPS = {
     ambientPlains: {

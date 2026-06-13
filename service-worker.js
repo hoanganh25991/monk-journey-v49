@@ -391,6 +391,8 @@ const ASSETS_TO_CACHE =   [
     "js/world/teleport/PortalModelFactory.js",
     "js/world/teleport/TeleportManager.js",
     "js/world/terrain/TerrainManager.js",
+    "js/world/terrain/TerrainTextureGenerator.js",
+    "js/config/map-scatter.js",
     "js/world/utils/EnvironmentObjectPool.js",
     "js/world/utils/RandomGenerator.js",
     "js/world/utils/SpatialGrid.js",

@@ -8,6 +8,7 @@ import { AncientTree } from './AncientTree.js';
 import { TreeCluster } from './TreeCluster.js';
 import { EnvironmentFactory } from './EnvironmentFactory.js';
 import { ENVIRONMENT_OBJECTS } from '../../config/environment.js';
+import { pickScatterType, ZONE_SCATTER_TYPES } from '../../config/map-scatter.js';
 import { getPerformanceProfile } from '../../config/performance-profile.js';
 
 /**
@@ -863,5 +864,101 @@ export class EnvironmentManager {
         this.visibleChunks = {};
         
         console.debug("All environment objects cleared");
+    }
+
+    /**
+     * Seeded RNG for deterministic scatter per map.
+     */
+    _scatterRng(seed) {
+        let t = seed >>> 0;
+        return () => {
+            t += 0x6D2B79F5;
+            let r = Math.imul(t ^ (t >>> 15), t | 1);
+            r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+            return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+
+    _hashString(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+        return h >>> 0;
+    }
+
+    /**
+     * Procedural scatter pass — fills open ground with small props (IMP0001 Phase 1).
+     * @param {Object} mapData
+     * @param {Object} profile
+     * @param {Function} [onComplete]
+     */
+    applyScatterFromProfile(mapData, profile, onComplete) {
+        const bounds = mapData.bounds;
+        if (!bounds || !profile?.types?.length) {
+            onComplete?.();
+            return;
+        }
+
+        const gridStep = profile.gridStep || 52;
+        const fillChance = profile.fillChance ?? 0.35;
+        const densityMult = this.environmentDensity ?? 1.0;
+        const rng = this._scatterRng(this._hashString(mapData.id || 'scatter'));
+        const spawn = mapData.spawn || { x: 0, z: -13 };
+        const spawnClearRadius = 28;
+
+        const placements = [];
+        for (let x = bounds.minX; x < bounds.maxX; x += gridStep) {
+            for (let z = bounds.minZ; z < bounds.maxZ; z += gridStep) {
+                if (rng() > fillChance * densityMult) continue;
+                const jx = x + (rng() - 0.5) * gridStep * 0.85;
+                const jz = z + (rng() - 0.5) * gridStep * 0.85;
+                const dx = jx - (spawn.x ?? 0);
+                const dz = jz - (spawn.z ?? 0);
+                if (dx * dx + dz * dz < spawnClearRadius * spawnClearRadius) continue;
+                let types = profile.types;
+                if (!mapData.zoneStyle && this.worldManager?.getZoneTypeAt) {
+                    const zone = this.worldManager.getZoneTypeAt(jx, jz);
+                    types = ZONE_SCATTER_TYPES[zone] || profile.types;
+                }
+                const picked = pickScatterType(types, rng);
+                placements.push({ x: jx, z: jz, type: picked.type, scale: picked.scale });
+            }
+        }
+
+        if (placements.length === 0) {
+            onComplete?.();
+            return;
+        }
+
+        console.debug(`Scatter pass: ${placements.length} props for ${mapData.id || mapData.name}`);
+        const CHUNK = 25;
+        let idx = 0;
+
+        const tick = () => {
+            const slice = placements.slice(idx, idx + CHUNK);
+            idx += slice.length;
+            slice.forEach(p => {
+                const object = this.createEnvironmentObject(p.type, p.x, p.z, p.scale);
+                if (object) {
+                    this.environmentObjects.push({
+                        type: p.type,
+                        object,
+                        position: new THREE.Vector3(
+                            p.x,
+                            this.worldManager.terrainManager?.getHeightAt(p.x, p.z) ?? 0,
+                            p.z
+                        ),
+                        scale: p.scale,
+                        scatter: true
+                    });
+                    this.addToTypeCollection(p.type, object);
+                }
+            });
+            if (idx < placements.length) {
+                requestAnimationFrame(tick);
+            } else {
+                onComplete?.();
+            }
+        };
+        requestAnimationFrame(tick);
     }
 }

@@ -2,6 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { ZONE_COLORS } from '../../config/colors.js';
 import { TERRAIN_CONFIG, PLAYER_SPACE_CHUNKS, TERRAIN_PROFILES } from '../../config/terrain.js';
 import { getPerformanceProfile } from '../../config/performance-profile.js';
+import { getTerrainTexture, supportsTerrainTexture, disposeTerrainTextures } from './TerrainTextureGenerator.js';
 
 /**
  * Optimized Terrain Manager
@@ -67,6 +68,10 @@ export class TerrainManager {
         
         // Map terrain profile (from map JSON terrain.profile) - overrides config.height for hills/peaks
         this.mapTerrainProfile = null; // { amplitude, frequency } when set
+
+        // Terrain splat — procedural ground texture per zone (Terrant / Forest / Desert)
+        this.terrainThemeColors = null;
+        this.texturedZonesEnabled = true;
         
         // Compatibility aliases for StructureManager, EnvironmentManager, etc.
         this.terrainChunkSize = this.config.chunkSize;
@@ -303,11 +308,9 @@ export class TerrainManager {
             Math.max(4, resolution)
         );
         
-        // Get zone type for this position (lightweight - no ZoneManager)
-        const zoneType = this.worldManager?.getZoneTypeAt?.(worldX, worldZ) ?? 'Terrant';
-
-        // Use a single shared terrain material so per-vertex zone coloring has no chunk-boundary seam
-        const material = this.createTerrainMaterial();
+        // Zone at chunk center drives ground texture; per-vertex colors still blend at boundaries
+        const zoneType = this.worldManager?.getZoneTypeAt?.(worldX + this.config.chunkSize * 0.5, worldZ + this.config.chunkSize * 0.5) ?? 'Terrant';
+        const material = this.createTerrainMaterial(zoneType);
 
         // Create mesh
         const chunk = new THREE.Mesh(geometry, material);
@@ -542,26 +545,42 @@ export class TerrainManager {
     }
     
     /**
-     * Create or reuse terrain material (single shared material for per-vertex zone coloring)
+     * Apply ground texture theme from map (Terrant / Forest / Desert splat).
+     * @param {string} zoneStyle
+     * @param {Object|null} themeColors
      */
-    createTerrainMaterial() {
-        const cacheKey = 'terrain_vertex';
+    setTerrainTheme(zoneStyle, themeColors = null) {
+        this.terrainThemeColors = themeColors;
+        this.texturedZonesEnabled = true;
+        this.textureCache.clear();
+    }
+
+    /**
+     * Create or reuse terrain material — procedural texture × vertex color splat.
+     * @param {string} zoneType
+     */
+    createTerrainMaterial(zoneType = 'Terrant') {
+        const useTexture = this.texturedZonesEnabled && supportsTerrainTexture(zoneType);
+        const cacheKey = useTexture ? `terrain_${zoneType}_tex` : 'terrain_vertex';
 
         if (this.textureCache.has(cacheKey)) {
             return this.textureCache.get(cacheKey);
         }
 
-        // Single material: vertex colors carry per-vertex zone data
-        const material = new THREE.MeshLambertMaterial({
-            color: 0xffffff, // Use white so vertex colors show through properly
+        const materialOptions = {
+            color: 0xffffff,
             vertexColors: true,
             transparent: false,
             opacity: 1.0,
-            flatShading: false, // Smooth shading for better noise visualization
+            flatShading: false,
             side: THREE.FrontSide,
-        });
+        };
 
-        // Shader onBeforeCompile removed for performance - wave animation caused compilation stalls
+        if (useTexture) {
+            materialOptions.map = getTerrainTexture(zoneType, this.terrainThemeColors);
+        }
+
+        const material = new THREE.MeshLambertMaterial(materialOptions);
         this.textureCache.set(cacheKey, material);
         return material;
     }
@@ -1104,6 +1123,7 @@ export class TerrainManager {
         
         // Clear caches
         this.textureCache.clear();
+        disposeTerrainTextures();
         this.geometryPool.forEach(geo => geo.dispose());
         this.geometryPool.length = 0;
         

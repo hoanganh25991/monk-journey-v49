@@ -14,6 +14,7 @@ import { STRUCTURE_OBJECTS } from '../config/structure.js';
 import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
 import { getMapSensoryProfile } from '../config/map-sensory.js';
+import { getMapScatterProfile } from '../config/map-scatter.js';
 
 /**
  * Optimized World Manager
@@ -113,6 +114,12 @@ export class WorldManager {
         this.currentMap = mapData;
         this.currentSensory = getMapSensoryProfile(mapData);
         this.applySensory(this.currentSensory);
+
+        // Ground texture splat from map theme (Terrant / Forest / Desert)
+        if (this.terrainManager?.setTerrainTheme) {
+            this.terrainManager.setTerrainTheme(mapData.zoneStyle || 'Terrant', mapData.theme?.colors || null);
+        }
+
         this.structureManager?.clear();
         this.environmentManager?.clear();
         this._chunkGenCache.chunkX = -9999;
@@ -142,8 +149,9 @@ export class WorldManager {
 
         const structures = mapData.structures && Array.isArray(mapData.structures) ? mapData.structures : [];
         const environment = mapData.environment && Array.isArray(mapData.environment) ? mapData.environment : [];
+        const scatterProfile = getMapScatterProfile(mapData);
 
-        if (structures.length === 0 && environment.length === 0) {
+        if (structures.length === 0 && environment.length === 0 && !scatterProfile) {
             console.debug(`Map applied: ${mapData.name || mapData.id}`);
             return;
         }
@@ -152,6 +160,7 @@ export class WorldManager {
         const ENV_CHUNK = 30;
         let sIdx = 0;
         let eIdx = 0;
+        let scatterStarted = false;
 
         const tick = () => {
             if (sIdx < structures.length) {
@@ -170,6 +179,11 @@ export class WorldManager {
             }
             if (sIdx < structures.length || eIdx < environment.length) {
                 requestAnimationFrame(tick);
+            } else if (scatterProfile && !scatterStarted && this.environmentManager?.applyScatterFromProfile) {
+                scatterStarted = true;
+                this.environmentManager.applyScatterFromProfile(mapData, scatterProfile, () => {
+                    console.debug(`Map applied: ${mapData.name || mapData.id} (${structures.length} structures, ${environment.length} environment, scatter)`);
+                });
             } else {
                 console.debug(`Map applied: ${mapData.name || mapData.id} (${structures.length} structures, ${environment.length} environment)`);
             }
