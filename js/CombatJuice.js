@@ -6,8 +6,11 @@ export const COMBAT_EVENTS = {
     ATTACK_HIT: 'attack.hit',
     ATTACK_CRIT: 'attack.crit',
     SKILL_CAST: 'skill.cast',
+    SKILL_TRAVEL: 'skill.travel',
     SKILL_IMPACT: 'skill.impact',
     SKILL_END: 'skill.end',
+    SKILL_UNLOCK: 'skill.unlock',
+    MULTIPLAYER_JOIN: 'multiplayer.join',
     ENEMY_HIT: 'enemy.hit',
     ENEMY_DEATH: 'enemy.death',
     BOSS_SPAWN: 'boss.spawn',
@@ -43,7 +46,9 @@ export class CombatJuice {
         bind(COMBAT_EVENTS.ENEMY_HIT, (d) => this.onEnemyHit(d));
         bind(COMBAT_EVENTS.ENEMY_DEATH, (d) => this.onEnemyDeath(d));
         bind(COMBAT_EVENTS.SKILL_CAST, (d) => this.onSkillCast(d));
+        bind(COMBAT_EVENTS.SKILL_TRAVEL, (d) => this.onSkillTravel(d));
         bind(COMBAT_EVENTS.SKILL_IMPACT, (d) => this.onSkillImpact(d));
+        bind(COMBAT_EVENTS.SKILL_END, (d) => this.onSkillEnd(d));
         bind(COMBAT_EVENTS.PLAYER_HIT, () => this.onPlayerHit());
         bind(COMBAT_EVENTS.PLAYER_DEATH, () => this.onPlayerDeath());
         bind(COMBAT_EVENTS.PLAYER_LEVEL_UP, (d) => this.onLevelUp(d));
@@ -138,12 +143,24 @@ export class CombatJuice {
         }
     }
 
+    onSkillTravel(data) {
+        if (data?.soundId) {
+            this._play(data.soundId, data.volume ?? 0.8);
+        }
+    }
+
     onSkillImpact(data) {
         if (data?.soundId) {
             this._play(data.soundId, data.volume ?? 0.85);
         }
         this.requestHitStop(data?.isHeavy ? 3 : 2);
         if (data?.heavy) this.requestShake(0.6);
+    }
+
+    onSkillEnd(data) {
+        if (data?.soundId) {
+            this._play(data.soundId, data.volume ?? 0.65);
+        }
     }
 
     onPlayerHit() {

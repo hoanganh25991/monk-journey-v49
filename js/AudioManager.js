@@ -135,7 +135,11 @@ export class AudioManager {
     
     createSoundEffects() {
         Object.values(ALL_SOUNDS).forEach(sound => {
-            this.sounds[sound.id] = this.createSound(sound.id, sound.file, sound.volume);
+            if (sound.preferSimulated && sound.simulated) {
+                this.registerSimulatedSound(sound);
+            } else {
+                this.sounds[sound.id] = this.createSound(sound.id, sound.file, sound.volume);
+            }
         });
         Object.values(ALL_AMBIENT).forEach(amb => {
             this.ambient[amb.id] = this.createSound(amb.id, amb.file, amb.volume, true);
@@ -151,19 +155,8 @@ export class AudioManager {
     
     createSimulatedSoundEffects() {
         Object.values(ALL_SOUNDS).forEach(sound => {
-            const simParams = sound.simulated;
-            if (simParams) {
-                const frequency = simParams.frequency || 220;
-                const volume = sound.volume || 0.7;
-                const duration = simParams.duration || 0.3;
-                const audio = this.createSimulatedSound(
-                    sound.id, frequency, volume, duration, false, simParams
-                );
-                this.sounds[sound.id] = audio;
-                if (this.soundPoolMax[sound.id]) {
-                    if (!this.soundPools[sound.id]) this.soundPools[sound.id] = [];
-                    this.soundPools[sound.id].push({ audio, startTime: 0 });
-                }
+            if (sound.simulated) {
+                this.registerSimulatedSound(sound);
             }
         });
         Object.values(ALL_AMBIENT).forEach(amb => {
@@ -179,6 +172,23 @@ export class AudioManager {
                 );
             }
         });
+    }
+
+    /** Register a procedural SFX buffer (used when files are placeholders or missing). */
+    registerSimulatedSound(sound) {
+        const simParams = sound.simulated;
+        if (!simParams) return;
+        const frequency = simParams.frequency || 220;
+        const volume = sound.volume || 0.7;
+        const duration = simParams.duration || 0.3;
+        const audio = this.createSimulatedSound(
+            sound.id, frequency, volume, duration, false, simParams
+        );
+        this.sounds[sound.id] = audio;
+        if (this.soundPoolMax[sound.id]) {
+            if (!this.soundPools[sound.id]) this.soundPools[sound.id] = [];
+            this.soundPools[sound.id].push({ audio, startTime: 0 });
+        }
     }
     
     createSimulatedMusic() {

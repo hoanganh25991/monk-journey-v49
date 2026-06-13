@@ -5,6 +5,7 @@ import { SKILL_TREES } from "../config/skill-tree.js";
 import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
 import { STORAGE_KEYS } from "../config/storage-keys.js";
 import storageService from "../save-manager/StorageService.js";
+import { COMBAT_EVENTS } from "../CombatJuice.js";
 
 /**
  * Skill Tree UI component
@@ -961,6 +962,7 @@ ${iconData.emoji}
     }
 
     // Otherwise, select the new variant
+    const previousVariant = this.playerSkills[skillName]?.activeVariant ?? null;
     if (this.playerSkills[skillName]) {
       // If there was a previous variant selected, clear its buffs
       if (this.playerSkills[skillName].activeVariant && this.playerSkills[skillName].activeVariant !== variantName) {
@@ -968,6 +970,13 @@ ${iconData.emoji}
       }
       
       this.playerSkills[skillName].activeVariant = variantName;
+    }
+
+    if (previousVariant !== variantName && this.game?.combatJuice) {
+      this.game.combatJuice.emit(COMBAT_EVENTS.SKILL_UNLOCK, {
+        skillName,
+        variantName
+      });
     }
 
     // Update UI for the selected variant

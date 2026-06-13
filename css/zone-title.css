@@ -37,3 +37,19 @@
     margin: 0 auto;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
+
+/* Skill unlock moment — brief gold pulse on skill tree panel */
+#skill-tree.skill-unlock-flash {
+    animation: skillUnlockFlash 0.85s ease;
+}
+
+@keyframes skillUnlockFlash {
+    0%, 100% {
+        box-shadow: none;
+        filter: brightness(1);
+    }
+    35% {
+        box-shadow: 0 0 28px rgba(var(--theme-gold-rgb, 255, 204, 0), 0.55);
+        filter: brightness(1.15) saturate(1.1);
+    }
+}

@@ -1,6 +1,18 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { SkillEffectFactory } from './SkillEffectFactory.js';
 import { COMBAT_EVENTS } from '../CombatJuice.js';
+
+/** Skill types that emit a travel-phase SFX after cast. */
+const TRAVEL_SKILL_TYPES = new Set([
+    'teleport', 'projectile', 'ranged', 'wave', 'dash', 'control', 'mark'
+]);
+
+const SKILL_SOUND_EVENTS = {
+    cast: COMBAT_EVENTS.SKILL_CAST,
+    travel: COMBAT_EVENTS.SKILL_TRAVEL,
+    impact: COMBAT_EVENTS.SKILL_IMPACT,
+    end: COMBAT_EVENTS.SKILL_END
+};
 import { applyElementalOverlay, updateElementalOverlay } from './ElementalOverlay.js';
 
 /**
@@ -81,9 +93,12 @@ export class Skill {
         // Sound configuration
         this.sounds = config.sounds || {
             cast: null,
+            travel: null,
             impact: null,
             end: null
         };
+        this._endSoundPlayed = false;
+        this._travelSoundTimer = null;
         
         // Skill state
         this.currentCooldown = 0;
@@ -163,6 +178,11 @@ export class Skill {
         // Reset skill state
         this.isActive = false;
         this.elapsedTime = 0;
+        this._endSoundPlayed = false;
+        if (this._travelSoundTimer) {
+            clearTimeout(this._travelSoundTimer);
+            this._travelSoundTimer = null;
+        }
         
         // Validate input positions
         if (!this.validateVector(playerPosition)) {
@@ -233,10 +253,12 @@ export class Skill {
         
         // Play the cast sound
         this.playSound('cast');
-        this.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_CAST, {
-            skill: this.name,
-            soundId: this.sounds?.cast
-        });
+        if (TRAVEL_SKILL_TYPES.has(this.type)) {
+            this._travelSoundTimer = setTimeout(() => {
+                this._travelSoundTimer = null;
+                if (this.isActive) this.playSound('travel', { volume: 0.85 });
+            }, 90);
+        }
         
         // Create effect using the effect handler
         try {
@@ -287,10 +309,13 @@ export class Skill {
             if (this.effectHandler.effect) {
                 updateElementalOverlay(this.effectHandler.effect, delta);
             }
-            // Check if skill duration has expired
-            if (this.elapsedTime >= this.duration) {
+
+            const effectEnded = this.effectHandler && !this.effectHandler.isActive;
+            // Check if skill duration has expired or the effect finished early
+            if (this.elapsedTime >= this.duration || effectEnded) {
                 this.isActive = false;
                 this.elapsedTime = 0;
+                this.emitEndIfNeeded();
                 
                 // Start cooldown
                 this.currentCooldown = this.cooldown;
@@ -531,25 +556,61 @@ export class Skill {
     }
     
     /**
+     * Resolve configured sound id for cast / travel / impact / end.
+     * @param {string} type
+     * @returns {string|null}
+     */
+    resolveSoundId(type) {
+        if (!this.sounds) return null;
+        if (type === 'travel') {
+            return this.sounds.travel || this.sounds.cast || null;
+        }
+        return this.sounds[type] || null;
+    }
+
+    /**
+     * Play end-phase SFX once per skill activation.
+     */
+    emitEndIfNeeded() {
+        if (this._endSoundPlayed) return;
+        this._endSoundPlayed = true;
+        this.playSound('end', { volume: 0.7 });
+    }
+
+    /**
      * Play a sound associated with this skill
-     * @param {string} type - The type of sound to play ('cast', 'impact', or 'end')
+     * @param {string} type - The type of sound to play ('cast', 'travel', 'impact', or 'end')
+     * @param {Object} [options]
      * @returns {boolean} - Whether the sound was played successfully
      */
-    playSound(type) {
+    playSound(type, options = {}) {
         if (!this.game || !this.game.audioManager) {
             console.warn(`[${this.name}] Cannot play sound: game or audioManager not available`);
             return false;
         }
-        
-        const soundName = this.sounds && this.sounds[type];
-        if (soundName) {
-            console.debug(`[${this.name}] Playing sound: ${type} (ID: ${soundName})`);
-            return this.game.audioManager.playSound(soundName);
-        } else {
+
+        const soundName = this.resolveSoundId(type);
+        if (!soundName) {
             console.warn(`[${this.name}] Sound not found for type: ${type}`);
+            return false;
         }
-        
-        return false;
+
+        const event = SKILL_SOUND_EVENTS[type];
+        const payload = {
+            skill: this.name,
+            soundId: soundName,
+            volume: options.volume ?? 1,
+            ...options
+        };
+
+        if (event && this.game.combatJuice) {
+            console.debug(`[${this.name}] Combat juice sound: ${type} (ID: ${soundName})`);
+            this.game.combatJuice.emit(event, payload);
+            return true;
+        }
+
+        console.debug(`[${this.name}] Playing sound: ${type} (ID: ${soundName})`);
+        return this.game.audioManager.playSound(soundName, options.volume ?? 1);
     }
     
     /**
@@ -560,6 +621,11 @@ export class Skill {
         // Reset skill state
         this.isActive = false;
         this.elapsedTime = 0;
+        this._endSoundPlayed = false;
+        if (this._travelSoundTimer) {
+            clearTimeout(this._travelSoundTimer);
+            this._travelSoundTimer = null;
+        }
         
         // Reset position and direction
         this.position = new THREE.Vector3();

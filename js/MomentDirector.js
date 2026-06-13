@@ -14,6 +14,8 @@ export class MomentDirector {
         this.game.events.addEventListener(COMBAT_EVENTS.ZONE_ENTRY, (d) => this.onZoneEntry(d));
         this.game.events.addEventListener(COMBAT_EVENTS.BOSS_SPAWN, (d) => this.onBossArrival(d));
         this.game.events.addEventListener(COMBAT_EVENTS.PLAYER_LEVEL_UP, (d) => this.onLevelUp(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.SKILL_UNLOCK, (d) => this.onSkillUnlock(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.MULTIPLAYER_JOIN, (d) => this.onMultiplayerJoin(d));
     }
 
     onZoneEntry(data) {
@@ -37,6 +39,36 @@ export class MomentDirector {
         if (level && this.game?.hudManager) {
             this.game.hudManager.showLevelUp(level);
         }
+    }
+
+    onSkillUnlock(data) {
+        const label = data?.variantName && data.variantName !== 'base'
+            ? `${data.variantName}`
+            : (data?.skillName || 'Skill');
+        if (this.game?.hudManager?.showNotification) {
+            this.game.hudManager.showNotification(`✨ ${label} awakened`, 2800);
+        }
+        this.game?.audioManager?.playSound('levelUp', 0.55);
+        this.flashSkillTree();
+    }
+
+    onMultiplayerJoin(data) {
+        const msg = data?.role === 'host'
+            ? 'A monk has joined your journey'
+            : 'Connected — awaiting host';
+        if (this.game?.hudManager?.showNotification) {
+            this.game.hudManager.showNotification(msg, 3500);
+        }
+        this.game?.audioManager?.playSound('teleport', 0.7);
+    }
+
+    flashSkillTree() {
+        const panel = document.getElementById('skill-tree');
+        if (!panel) return;
+        panel.classList.remove('skill-unlock-flash');
+        void panel.offsetWidth;
+        panel.classList.add('skill-unlock-flash');
+        setTimeout(() => panel.classList.remove('skill-unlock-flash'), 900);
     }
 
     showZoneTitle(name, description) {

@@ -10,6 +10,7 @@
 
 import { DEFAULT_CHARACTER_MODEL } from '../config/player-models.js';
 import { BinarySerializer } from './BinarySerializer.js';
+import { COMBAT_EVENTS } from '../CombatJuice.js';
 
 export class MultiplayerConnectionManager {
     /**
@@ -207,6 +208,8 @@ export class MultiplayerConnectionManager {
                     type: 'requestStartGame',
                     persistentId: this.multiplayerManager.getMyPersistentPeerId()
                 });
+
+                this.multiplayerManager.game?.combatJuice?.emit(COMBAT_EVENTS.MULTIPLAYER_JOIN, { role: 'joiner' });
             });
             
             conn.on('error', (err) => {
@@ -399,6 +402,12 @@ export class MultiplayerConnectionManager {
                 isReconnect ? 'Player reconnected!' : `Player joined! Extra EXP active (${totalCount} players).`,
                 'info'
             );
+        }
+        if (!isReconnect) {
+            this.multiplayerManager.game?.combatJuice?.emit(COMBAT_EVENTS.MULTIPLAYER_JOIN, {
+                role: 'host',
+                playerId: peerId
+            });
         }
         // If game has already been started (running or paused e.g. You Died), send startGame so rejoiner drops in without waiting for host to click Start again
         if (this.multiplayerManager.game?.state?.hasStarted?.()) {
