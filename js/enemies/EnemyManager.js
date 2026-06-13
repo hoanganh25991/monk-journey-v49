@@ -17,6 +17,7 @@ import {
 } from '../config/game-balance.js';
 import { COMBAT_EVENTS } from '../CombatJuice.js';
 import { COMBAT_PROXIMITY_RADIUS } from '../AudioDirector.js';
+import { ItemGenerator } from '../items/ItemGenerator.js';
 
 /**
  * @typedef {Object} EnemyType

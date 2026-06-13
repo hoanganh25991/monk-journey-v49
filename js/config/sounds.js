@@ -9,7 +9,6 @@ export const PLAYER_SOUNDS = {
         id: 'playerAttack',
         file: 'attack.mp3',
         volume: 0.7,
-        preferSimulated: true,
         // Parameters for simulated sound if audio files aren't available
         simulated: {
             frequency: 220,
@@ -22,7 +21,6 @@ export const PLAYER_SOUNDS = {
         id: 'playerHit',
         file: 'player_hit.mp3',
         volume: 0.8,
-        preferSimulated: true,
         simulated: {
             frequency: 330,
             duration: 0.2,
@@ -46,7 +44,6 @@ export const PLAYER_SOUNDS = {
         id: 'levelUp',
         file: 'level_up.mp3',
         volume: 1.0,
-        preferSimulated: true,
         simulated: {
             frequency: 440,
             duration: 0.4,
@@ -79,7 +76,6 @@ export const SKILL_SOUNDS = {
         id: 'waterImpact',
         file: 'water_impact.mp3',
         volume: 0.7,
-        preferSimulated: true,
         simulated: {
             frequency: 350,
             duration: 0.2,
@@ -110,7 +106,6 @@ export const SKILL_SOUNDS = {
         id: 'skillCycloneStrike',
         file: 'cyclone_strike.mp3',
         volume: 0.8,
-        preferSimulated: true,
         simulated: {
             frequency: 350,
             duration: 0.4,
@@ -343,7 +338,6 @@ export const SKILL_SOUNDS = {
         id: 'bellRing',
         file: 'bell_ring.mp3',
         volume: 0.9,
-        preferSimulated: true,
         simulated: {
             frequency: 600,
             duration: 0.7,
@@ -436,7 +430,6 @@ export const SKILL_SOUNDS = {
         id: 'breathOfHeaven',
         file: 'breath_of_heaven.mp3',
         volume: 0.8,
-        preferSimulated: true,
         simulated: {
             frequency: 400,
             duration: 0.5,
@@ -659,7 +652,6 @@ export const ENEMY_SOUNDS = {
         id: 'enemyHit',
         file: 'enemy_hit.mp3',
         volume: 0.7,
-        preferSimulated: true,
         simulated: {
             frequency: 250,
             duration: 0.1,
@@ -671,7 +663,6 @@ export const ENEMY_SOUNDS = {
         id: 'enemyDeath',
         file: 'enemy_death.mp3',
         volume: 0.8,
-        preferSimulated: true,
         simulated: {
             frequency: 150,
             duration: 0.4,
