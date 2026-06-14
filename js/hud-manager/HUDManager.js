@@ -207,9 +207,10 @@ export class HUDManager {
      * Show a dialog with title and text
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
+     * @param {Function} [onContinue] - Optional callback when the player continues
      */
-    showDialog(title, text) {
-        this.components.dialogUI.showDialog(title, text);
+    showDialog(title, text, onContinue) {
+        this.components.dialogUI.showDialog(title, text, onContinue);
     }
     
     /**

@@ -265,8 +265,8 @@ export class QuestManager {
                 name: 'Rare Materials',
                 description: 'Collect rare materials from defeated bosses.',
                 objective: {
-                    type: 'kill',
-                    target: 'boss',
+                    type: 'kill_boss',
+                    target: 'any',
                     count: 3,
                     progress: 0
                 },
@@ -286,87 +286,86 @@ export class QuestManager {
         this.quests = [...mainQuests, ...sideQuests];
     }
     
+    getQuestById(questId) {
+        return this.quests.find(q => q.id === questId)
+            || this.activeQuests.find(q => q.id === questId)
+            || this.completedQuests.find(q => q.id === questId);
+    }
+
+    resolveQuestId(quest) {
+        if (typeof quest === 'string') return quest;
+        return quest?.id || quest?.questId || null;
+    }
+
     startQuest(quest) {
-        // Find the quest in the available quests
-        const questToStart = this.quests.find(q => q.name === quest.name);
-        
-        if (questToStart) {
-            // Check if quest is already active
-            if (!this.activeQuests.some(q => q.id === questToStart.id)) {
-                // Add to active quests
-                this.activeQuests.push(questToStart);
-                
-                // Remove from available quests
-                this.quests = this.quests.filter(q => q.id !== questToStart.id);
-                
-                // Notify UI
-                this.game.hudManager.updateQuestLog(this.activeQuests);
-                
-                return true;
-            }
+        const questId = this.resolveQuestId(quest);
+        if (!questId) return false;
+
+        const questToStart = this.quests.find(q => q.id === questId);
+        if (!questToStart) return false;
+
+        if (this.activeQuests.some(q => q.id === questToStart.id)) return false;
+
+        const activeQuest = JSON.parse(JSON.stringify(questToStart));
+        if (activeQuest.objective.type === 'explore' && !activeQuest.objective.discovered) {
+            activeQuest.objective.discovered = [];
         }
-        
+
+        this.activeQuests.push(activeQuest);
+        this.quests = this.quests.filter(q => q.id !== questToStart.id);
+        this.game.hudManager.updateQuestLog(this.activeQuests);
+        this.game.hudManager.showNotification(`Quest accepted: ${activeQuest.name}`);
+
+        return true;
+    }
+
+    matchesKillObjective(objective, enemy) {
+        if (objective.type === 'kill_boss') {
+            return enemy.isBoss && (objective.target === 'any' || objective.target === enemy.type);
+        }
+        if (objective.type === 'kill') {
+            if (objective.target === 'boss') return enemy.isBoss;
+            return objective.target === 'any' || objective.target === enemy.type;
+        }
         return false;
     }
-    
+
+    incrementObjectiveProgress(quest, label) {
+        quest.objective.progress++;
+
+        if (quest.objective.progress >= quest.objective.count) {
+            this.completeQuest(quest);
+            return;
+        }
+
+        this.game.hudManager.updateQuestLog(this.activeQuests);
+        this.game.hudManager.showNotification(
+            `Quest progress: ${quest.objective.progress}/${quest.objective.count} ${label}`
+        );
+    }
+
     updateEnemyKill(enemy) {
-        // Update kill objectives for active quests
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type === 'kill') {
-                // Check if this enemy type matches the quest target
-                if (quest.objective.target === 'any' || quest.objective.target === enemy.type) {
-                    quest.objective.progress++;
-                    
-                    // Check if objective is complete
-                    if (quest.objective.progress >= quest.objective.count) {
-                        this.completeQuest(quest);
-                    } else {
-                        // Update UI
-                        this.game.hudManager.updateQuestLog(this.activeQuests);
-                        this.game.hudManager.showNotification(`Quest progress: ${quest.objective.progress}/${quest.objective.count} enemies defeated`);
-                    }
-                }
-            }
+            if (!this.matchesKillObjective(quest.objective, enemy)) return;
+            this.incrementObjectiveProgress(quest, 'enemies defeated');
         });
     }
     
     updateInteraction(objectType) {
-        // Update interaction objectives for active quests
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type === 'interact' && quest.objective.target === objectType) {
-                quest.objective.progress++;
-                
-                // Check if objective is complete
-                if (quest.objective.progress >= quest.objective.count) {
-                    this.completeQuest(quest);
-                } else {
-                    // Update UI
-                    this.game.hudManager.updateQuestLog(this.activeQuests);
-                    this.game.hudManager.showNotification(`Quest progress: ${quest.objective.progress}/${quest.objective.count} ${objectType}s found`);
-                }
-            }
+            if (quest.objective.type !== 'interact' || quest.objective.target !== objectType) return;
+            this.incrementObjectiveProgress(quest, `${objectType}s found`);
         });
     }
-    
+
     updateExploration(zoneName) {
-        // Update exploration objectives for active quests
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type === 'explore' && quest.objective.target === 'zone') {
-                // Check if this zone has already been discovered for this quest
-                if (!quest.objective.discovered.includes(zoneName)) {
-                    quest.objective.discovered.push(zoneName);
-                    quest.objective.progress++;
-                    
-                    // Check if objective is complete
-                    if (quest.objective.progress >= quest.objective.count) {
-                        this.completeQuest(quest);
-                    } else {
-                        // Update UI
-                        this.game.hudManager.updateQuestLog(this.activeQuests);
-                        this.game.hudManager.showNotification(`Zone discovered: ${zoneName}`);
-                    }
-                }
-            }
+            if (quest.objective.type !== 'explore' || quest.objective.target !== 'zone') return;
+            if (!quest.objective.discovered) quest.objective.discovered = [];
+            if (quest.objective.discovered.includes(zoneName)) return;
+
+            quest.objective.discovered.push(zoneName);
+            this.incrementObjectiveProgress(quest, 'zones discovered');
         });
     }
     

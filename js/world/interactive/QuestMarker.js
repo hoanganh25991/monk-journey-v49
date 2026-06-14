@@ -6,12 +6,13 @@ import * as THREE from '../../../libs/three/three.module.js';
 export class QuestMarker {
     /**
      * Create a new quest marker
-     * @param {string} questName - Name of the quest
+     * @param {string} questId - Quest id from QuestManager
      * @param {Object} game - Reference to the game instance
      */
-    constructor(questName, game) {
-        this.questName = questName;
+    constructor(questId, game) {
+        this.questId = questId;
         this.game = game;
+        this.questName = game?.questManager?.getQuestById(questId)?.name || questId;
         this.isInteractive = true;
     }
     
@@ -77,6 +78,7 @@ export class QuestMarker {
         // Make the entire marker group interactive
         markerGroup.userData = {
             type: 'questMarker',
+            questId: this.questId,
             questName: this.questName,
             interactive: true,
             onClick: () => this.handleClick()
@@ -114,14 +116,12 @@ export class QuestMarker {
         
         // Add quest type text based on quest name
         let questColor;
-        if (!this.questName) {
-            questColor = 0x00ff00; // Default green for undefined quest names
-        } else if (this.questName.includes('Main')) {
-            questColor = 0xffcc00; // Gold for main quests
-        } else if (this.questName.includes('Side')) {
-            questColor = 0x00ccff; // Blue for side quests
+        if (this.questId.startsWith('main_')) {
+            questColor = 0xffcc00;
+        } else if (this.questId.startsWith('side_')) {
+            questColor = 0x00ccff;
         } else {
-            questColor = 0x00ff00; // Green for other quests
+            questColor = 0x00ff00;
         }
         
         // Add a colored band to the sign to indicate quest type
@@ -242,6 +242,7 @@ export class QuestMarker {
         // Make the collider interactive
         collider.userData = {
             type: 'questMarkerCollider',
+            questId: this.questId,
             questName: this.questName,
             interactive: true,
             onClick: () => this.handleClick()
@@ -255,10 +256,7 @@ export class QuestMarker {
      */
     handleClick() {
         if (this.isInteractive && this.game) {
-            // Call the toggleQuest function to open the quest UI
-            this.game.toggleQuest(this.questName);
-            
-            // Visual feedback for interaction
+            this.game.toggleQuest(this.questId);
             this.playInteractionEffect();
         }
     }

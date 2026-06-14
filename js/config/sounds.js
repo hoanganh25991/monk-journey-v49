@@ -822,6 +822,18 @@ export const UI_SOUNDS = {
             decay: true
         }
     },
+    questComplete: {
+        id: 'questComplete',
+        file: 'level_up.mp3',
+        volume: 0.9,
+        simulated: {
+            frequency: 523,
+            duration: 0.5,
+            type: 'sine',
+            decay: false,
+            arpeggio: [1, 1.25, 1.5, 2]
+        }
+    },
     inventoryOpen: {
         id: 'inventoryOpen',
         file: 'inventory_open.mp3',

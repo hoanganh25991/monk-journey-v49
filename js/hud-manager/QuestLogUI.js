@@ -34,10 +34,15 @@ export class QuestLogUI extends UIComponent {
         this.questList.innerHTML = '';
         
         if (activeQuests.length === 0) {
-            // No active quests
             const noQuests = document.createElement('div');
             noQuests.className = 'no-quests';
-            noQuests.textContent = 'No active quests';
+            const questManager = this.game?.questManager;
+            const isFreshStart = questManager
+                && questManager.activeQuests.length === 0
+                && questManager.completedQuests.length === 0;
+            noQuests.textContent = isFreshStart
+                ? 'Visit the shrine ahead'
+                : 'No active quests';
             this.questList.appendChild(noQuests);
         } else {
             // Add active quests
@@ -65,6 +70,8 @@ export class QuestLogUI extends UIComponent {
         switch (objective.type) {
             case 'kill':
                 return `Kill ${objective.progress}/${objective.count} enemies`;
+            case 'kill_boss':
+                return `Defeat boss ${objective.progress}/${objective.count}`;
             case 'interact':
                 return `Find ${objective.progress}/${objective.count} ${objective.target}s`;
             case 'explore':

@@ -751,6 +751,8 @@ export class Game {
      */
     start(isLoadedGame = false, requestFullscreenMode = true) {
         console.debug("Game starting...");
+        this._offerQuestsOnReveal = !isLoadedGame;
+        this._lastQuestZone = null;
 
         const path = typeof localStorage !== 'undefined'
             ? (localStorage.getItem(STORAGE_KEYS.SELECTED_MAP_PATH) || 'maps/default.json')
@@ -960,6 +962,65 @@ export class Game {
         
         console.debug("Game resumed successfully");
     }
+
+    /**
+     * Offer or show info for a quest marker interaction
+     * @param {string} questId - Quest id from QuestManager
+     */
+    toggleQuest(questId) {
+        const questManager = this.questManager;
+        if (!questManager || !this.hudManager) return;
+
+        const availableQuest = questManager.quests.find(q => q.id === questId);
+        if (availableQuest) {
+            this.hudManager.showDialog(
+                `Quest Available: ${availableQuest.name}`,
+                `${availableQuest.description}\n\nTap continue to accept.`,
+                () => questManager.startQuest(availableQuest)
+            );
+            return;
+        }
+
+        const activeQuest = questManager.activeQuests.find(q => q.id === questId);
+        if (activeQuest) {
+            this.hudManager.showDialog(
+                activeQuest.name,
+                this.formatActiveQuestDetails(activeQuest)
+            );
+            return;
+        }
+
+        this.hudManager.showNotification('This quest has already been completed.');
+    }
+
+    formatActiveQuestDetails(quest) {
+        const objective = quest.objective;
+        let objectiveText = `${objective.progress}/${objective.count}`;
+        if (objective.type === 'kill' || objective.type === 'kill_boss') {
+            objectiveText = `Defeat ${objectiveText} targets`;
+        } else if (objective.type === 'interact') {
+            objectiveText = `Find ${objectiveText} ${objective.target}s`;
+        } else if (objective.type === 'explore') {
+            objectiveText = `Discover ${objectiveText} zones`;
+        }
+        return `${quest.description}\n\nProgress: ${objectiveText}`;
+    }
+
+    updateQuestZoneTracking() {
+        if (!this.questManager || !this.world?.zoneManager || !this.player) return;
+
+        const zone = this.world.zoneManager.getZoneAt(this.player.getPosition());
+        if (!zone?.name || zone.name === this._lastQuestZone) return;
+
+        this._lastQuestZone = zone.name;
+        this.questManager.updateExploration(zone.name);
+    }
+
+    offerInitialQuests() {
+        if (!this._offerQuestsOnReveal || !this.questManager) return;
+        this._offerQuestsOnReveal = false;
+        setTimeout(() => this.questManager.checkForAvailableQuests(), 600);
+    }
     
     /**
      * Single-player only: freeze or unfreeze the game for the HUD guide overlay.
@@ -1103,6 +1164,7 @@ export class Game {
                             if (mapOverlayEl) mapOverlayEl.style.display = 'none';
                             this.resume();
                             this.audioManager.playMusic();
+                            this.offerInitialQuests();
                             console.debug("Game revealed and unpaused");
                         }, 543);
                     };
@@ -1134,6 +1196,7 @@ export class Game {
                 const homeButton = document.getElementById('home-button');
                 if (homeButton) homeButton.style.display = 'block';
                 this._warmupFramesLeft = -1;
+                this.offerInitialQuests();
             }
         }
 
@@ -1159,6 +1222,8 @@ export class Game {
         
         // Update player
         this.player.update(simDelta);
+
+        this.updateQuestZoneTracking();
 
         if (this.combatJuice) {
             this.combatJuice.applyCameraShake(this.camera);

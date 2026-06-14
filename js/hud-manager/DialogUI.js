@@ -14,6 +14,7 @@ export class DialogUI extends UIComponent {
         this.dialogText = null;
         this.dialogContinue = null;
         this.isDialogOpen = false;
+        this._onContinue = null;
         this.game = game;
     }
     
@@ -41,32 +42,27 @@ export class DialogUI extends UIComponent {
      * Show a dialog with title and text
      * @param {string} title - Dialog title
      * @param {string} text - Dialog text
+     * @param {Function} [onContinue] - Optional callback when the player continues
      */
-    showDialog(title, text) {
-        // Update dialog text
+    showDialog(title, text, onContinue) {
+        this._onContinue = typeof onContinue === 'function' ? onContinue : null;
         this.dialogText.innerHTML = `<h3>${title}</h3><p>${text}</p>`;
-        
-        // Show dialog box
         this.show();
         this.isDialogOpen = true;
-        
-        // Pause game
         this.game.pause(false);
-
         console.debug('Dialog opened:', title);
     }
-    
+
     /**
      * Hide the dialog
      */
     hideDialog() {
-        // Hide dialog box
+        const onContinue = this._onContinue;
+        this._onContinue = null;
         this.hide();
         this.isDialogOpen = false;
-        
-        // Resume game
         this.game.resume(false);
-        
+        if (onContinue) onContinue();
         console.debug('Dialog closed');
     }
 }

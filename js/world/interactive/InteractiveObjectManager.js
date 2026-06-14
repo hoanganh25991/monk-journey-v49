@@ -79,9 +79,9 @@ export class InteractiveObjectManager {
                         break;
                     case 'quest':
                         this.createQuestMarker(
-                            objData.position.x, 
-                            objData.position.z, 
-                            objData.name || 'Quest'
+                            objData.position.x,
+                            objData.position.z,
+                            objData.questId || objData.name || 'main_quest_1'
                         );
                         break;
                     case 'boss_spawn':
@@ -110,9 +110,9 @@ export class InteractiveObjectManager {
         this.createTreasureChest(5, -15);
         
         // Create quest markers
-        this.createQuestMarker(25, 15, 'Main Quest');
-        this.createQuestMarker(-10, -20, 'Side Quest');
-        this.createQuestMarker(15, -5, 'Exploration');
+        this.createQuestMarker(25, 15, 'main_quest_1');
+        this.createQuestMarker(-10, -20, 'side_quest_1');
+        this.createQuestMarker(15, -5, 'side_quest_2');
     }
     
     /**
@@ -177,43 +177,46 @@ export class InteractiveObjectManager {
      * Create a quest marker at the specified position
      * @param {number} x - X coordinate
      * @param {number} z - Z coordinate
-     * @param {string} questName - Name of the quest
+     * @param {string} questId - Quest id from QuestManager
      * @returns {THREE.Group} - The quest marker group
      */
-    createQuestMarker(x, z, questName) {
-        const questMarker = new QuestMarker(questName, this.game);
+    createQuestMarker(x, z, questId = 'main_quest_1') {
+        const questDef = this.game?.questManager?.getQuestById(questId);
+        const markerLabel = questDef?.name || questId;
+        const questMarker = new QuestMarker(questId, this.game);
         const markerGroup = questMarker.createMesh();
-        
-        // Position marker on terrain
+
         markerGroup.position.set(x, this.worldManager.getTerrainHeight(x, z), z);
-        
-        // Add to scene
         (this.game?.getWorldGroup?.() || this.scene).add(markerGroup);
-        
-        // Add to interactive objects
+
         this.interactiveObjects.push({
             type: 'quest',
-            name: questName,
+            questId,
+            name: markerLabel,
             mesh: markerGroup,
             position: new THREE.Vector3(x, this.worldManager.getTerrainHeight(x, z), z),
             interactionRadius: 3,
             onInteract: () => {
-                // Return quest information
+                const questManager = this.game?.questManager;
+                if (!questManager) return null;
+
+                const quest = questManager.getQuestById(questId);
+                if (!quest) return null;
+                if (questManager.activeQuests.some(q => q.id === questId)) return null;
+                if (questManager.completedQuests.some(q => q.id === questId)) return null;
+                if (!questManager.quests.some(q => q.id === questId)) return null;
+
                 return {
                     type: 'quest',
                     quest: {
-                        name: questName,
-                        description: `This is the ${questName}. Complete it to earn rewards!`,
-                        objective: 'Defeat 5 enemies',
-                        reward: {
-                            experience: 100,
-                            gold: 200
-                        }
+                        id: quest.id,
+                        name: quest.name,
+                        description: quest.description
                     }
                 };
             }
         });
-        
+
         return markerGroup;
     }
     
@@ -298,8 +301,8 @@ export class InteractiveObjectManager {
         if (randomType === 'treasure_chest') {
             this.createTreasureChest(position.x, position.z);
         } else if (randomType === 'quest_marker') {
-            const questNames = ['Forest Quest', 'Mountain Quest', 'Desert Quest'];
-            const randomQuest = questNames[Math.floor(Math.random() * questNames.length)];
+            const sideQuestIds = ['side_quest_1', 'side_quest_3', 'side_quest_2'];
+            const randomQuest = sideQuestIds[Math.floor(Math.random() * sideQuestIds.length)];
             this.createQuestMarker(position.x, position.z, randomQuest);
         }
         

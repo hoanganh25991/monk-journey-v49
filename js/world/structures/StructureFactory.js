@@ -200,7 +200,7 @@ export class StructureFactory {
                 // Add quest marker
                 const questX = x + (Math.random() * 10 - 5);
                 const questZ = z + (Math.random() * 10 - 5);
-                this.worldManager.interactiveManager.createQuestMarker(questX, questZ);
+                this.worldManager.interactiveManager.createQuestMarker(questX, questZ, 'side_quest_1');
             }
             
             return villageGroup;

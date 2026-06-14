@@ -45,23 +45,15 @@ export class InteractionResultHandler {
      * @returns {boolean} - Whether the interaction was handled successfully
      */
     handleQuestInteraction(result) {
-        // Start the quest
-        if (this.game && this.game.questManager) {
-            this.game.questManager.startQuest(result.quest);
-        }
-        
-        // Toggle quest dialog if HUD manager exists
-        if (this.game && this.game.hudManager) {
-            if (this.game.hudManager.isDialogVisible && this.game.hudManager.isDialogVisible()) {
-                this.game.hudManager.hideDialog();
-            } else if (this.game.hudManager.showDialog) {
-                this.game.hudManager.showDialog(
-                    `New Quest: ${result.quest.name}`,
-                    result.quest.description
-                );
-            }
-        }
-        
+        if (!this.game?.questManager || !result.quest) return false;
+
+        const quest = result.quest;
+        this.game.hudManager.showDialog(
+            `New Quest: ${quest.name}`,
+            quest.description || 'Accept this quest to begin.',
+            () => this.game.questManager.startQuest(quest)
+        );
+
         return true;
     }
     
@@ -73,17 +65,20 @@ export class InteractionResultHandler {
     handleItemInteraction(result) {
         if (this.game && this.game.player) {
             this.game.player.addToInventory(result.item);
-            
-            // Show notification if HUD manager exists
+
+            if (result.type === 'treasure' && this.game.questManager) {
+                this.game.questManager.updateInteraction('chest');
+            }
+
             if (this.game.hudManager) {
                 this.game.hudManager.showNotification(
                     `Found ${result.item.name} x${result.item.amount || 1}`
                 );
             }
-            
+
             return true;
         }
-        
+
         return false;
     }
     
