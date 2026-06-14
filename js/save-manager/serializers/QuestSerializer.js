@@ -17,19 +17,24 @@ export class QuestSerializer {
 
         const activeQuestsData = questManager.activeQuests.map(quest => ({
             id: quest.id,
+            category: quest.category || null,
             mapId: quest.mapId || null,
+            _dailyTemplateId: quest._dailyTemplateId || null,
             objective: {
                 progress: quest.objective.progress,
                 discovered: quest.objective.discovered || [],
                 hint: quest.objective.hint || null
-            }
+            },
+            _surviveElapsed: quest._surviveElapsed ?? 0,
+            _surviveFailed: quest._surviveFailed ?? false
         }));
 
         const completedQuestIds = questManager.completedQuests.map(quest => quest.id);
 
         return {
             activeQuests: activeQuestsData,
-            completedQuestIds
+            completedQuestIds,
+            dailyState: questManager.dailyState?.toJSON?.() || null
         };
     }
 
@@ -49,12 +54,20 @@ export class QuestSerializer {
             questWithProgress.objective.hint = savedObjective.hint;
         }
 
+        if (savedQuest.category === 'daily') {
+            questWithProgress.id = savedQuest.id;
+            questWithProgress.category = 'daily';
+            questWithProgress._dailyTemplateId = savedQuest._dailyTemplateId || template.id;
+            questWithProgress._surviveElapsed = savedQuest._surviveElapsed ?? 0;
+            questWithProgress._surviveFailed = savedQuest._surviveFailed ?? false;
+        }
+
         return questWithProgress;
     }
 
     /**
      * Deserialize quest data from save
-     * @param {Object} questManager - The quest manager to update
+     * @param {Object} questManager - The quest manager object
      * @param {Object} questData - The saved quest data
      */
     static deserialize(questManager, questData) {
@@ -69,11 +82,27 @@ export class QuestSerializer {
         questManager.completedQuests = [];
         questManager.initializeQuests();
 
+        if (questData.dailyState && questManager.dailyState) {
+            questManager.dailyState.fromJSON(questData.dailyState);
+            questManager.dailyState.persist();
+        }
+
         if (questData.activeQuests && Array.isArray(questData.activeQuests)) {
             console.debug(`Loading ${questData.activeQuests.length} active quests`);
 
             questData.activeQuests.forEach(savedQuest => {
                 try {
+                    if (savedQuest.category === 'daily' || savedQuest.id?.startsWith('daily_')) {
+                        const templateId = savedQuest._dailyTemplateId
+                            || savedQuest.id?.replace(/^daily_\d{4}-\d{2}-\d{2}_/, '');
+                        const template = getQuestTemplateById(templateId);
+                        if (template) {
+                            const daily = QuestSerializer.buildActiveQuestFromSave(template, savedQuest);
+                            questManager.activeQuests.push(daily);
+                        }
+                        return;
+                    }
+
                     const template = getQuestTemplateById(savedQuest.id)
                         || questManager.quests.find(q => q.id === savedQuest.id);
 
@@ -97,6 +126,8 @@ export class QuestSerializer {
             console.debug(`Loading ${questData.completedQuestIds.length} completed quest IDs`);
 
             questData.completedQuestIds.forEach(questId => {
+                if (questId.startsWith('daily_')) return;
+
                 const template = getQuestTemplateById(questId)
                     || questManager.quests.find(q => q.id === questId);
 

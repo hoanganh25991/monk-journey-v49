@@ -214,6 +214,8 @@ export class WorldManager {
         }
 
         this.ensureZoneContractShrines();
+        this.ensureQuestBoards();
+        this.ensureGatherNodes();
         this.game?.questManager?.resetSurvivalForMap?.(this.currentMap?.id);
         this.game?.player?.model?.coachVisuals?.refreshCoachDisplay?.();
         this.game?.hudManager?.playerUI?.updateCoachBadge?.();
@@ -242,6 +244,53 @@ export class WorldManager {
                 type: 'shrine',
                 zoneContract: true
             });
+        });
+    }
+
+    /** Spawn quest boards at village / tavern structures from map data. */
+    ensureQuestBoards() {
+        const structures = this.currentMap?.structures || [];
+        let boardCount = 0;
+
+        structures.forEach(s => {
+            const t = (s.type || '').toLowerCase();
+            if (t !== 'village' && t !== 'tavern') return;
+            if (!s.position) return;
+            if (this.questPlacements.some(p => p.type === 'board'
+                && p.x === s.position.x && p.z === s.position.z)) return;
+
+            this.interactiveManager.createQuestBoard(s.position.x, s.position.z, t);
+            this.questPlacements.push({
+                x: s.position.x,
+                z: s.position.z,
+                type: 'board',
+                structureType: t
+            });
+            boardCount++;
+        });
+
+        if (boardCount === 0) {
+            const spawn = this.currentMap?.spawn || { x: 0, z: -13 };
+            const x = spawn.x - 20;
+            const z = spawn.z + 15;
+            this.interactiveManager.createQuestBoard(x, z, 'village');
+            this.questPlacements.push({ x, z, type: 'board', structureType: 'village' });
+        }
+    }
+
+    /** Spawn lotus gather nodes near villages when map has none. */
+    ensureGatherNodes() {
+        if (this.questPlacements.some(p => p.type === 'gather')) return;
+
+        const structures = this.currentMap?.structures || [];
+        const villages = structures.filter(s => (s.type || '').toLowerCase() === 'village');
+        const anchors = villages.length ? villages : [{ position: this.currentMap?.spawn || { x: 15, z: 10 } }];
+
+        anchors.slice(0, 2).forEach((v, i) => {
+            const x = v.position.x + 8 + i * 5;
+            const z = v.position.z + 6;
+            this.interactiveManager.createGatherNode(x, z, 'lotus');
+            this.questPlacements.push({ x, z, type: 'gather', itemId: 'lotus' });
         });
     }
 

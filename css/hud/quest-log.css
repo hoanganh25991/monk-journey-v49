@@ -54,6 +54,10 @@
     color: #7ec8e3;
 }
 
+#quest-list .quest-name.daily-quest {
+    color: #c9a0ff;
+}
+
 #quest-list .quest-objective {
     font-size: 14px;
 }

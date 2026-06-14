@@ -41,11 +41,14 @@ export class QuestLogUI extends UIComponent {
                 && questManager.activeQuests.length === 0
                 && questManager.completedQuests.length === 0;
             const hasZoneOffer = (this.game?.world?.getAvailableZoneContractShrines?.() || []).length > 0;
+            const hasDaily = this.game?.questManager?.canOfferDailyQuest?.();
             noQuests.textContent = isFreshStart
                 ? 'Visit the shrine ahead'
-                : hasZoneOffer
-                    ? 'A shrine contract awaits nearby'
-                    : 'No active quests';
+                : hasDaily
+                    ? 'Daily challenge awaits at a shrine'
+                    : hasZoneOffer
+                        ? 'A shrine contract awaits nearby'
+                        : 'No active quests — check a quest board';
             this.questList.appendChild(noQuests);
         } else {
             // Add active quests
@@ -55,7 +58,8 @@ export class QuestLogUI extends UIComponent {
                     : '';
                 const nameClass = quest.isMainQuest
                     ? 'main-quest'
-                    : (quest.category === 'zone' ? 'zone-quest' : '');
+                    : (quest.category === 'zone' ? 'zone-quest'
+                        : (quest.category === 'daily' ? 'daily-quest' : ''));
                 const questHTML = `
                     <div class="quest-item">
                         <div class="quest-name ${nameClass}">${quest.name}</div>
@@ -89,6 +93,10 @@ export class QuestLogUI extends UIComponent {
                 return `Discover ${objective.progress}/${objective.count} zones`;
             case 'survive':
                 return `Survive ${objective.progress}/${objective.count} vigil`;
+            case 'combo':
+                return `Land a ${objective.target}-hit combo`;
+            case 'gather':
+                return `Gather ${objective.progress}/${objective.count} ${objective.target}`;
             default:
                 return objective.description || 'Complete the objective';
         }

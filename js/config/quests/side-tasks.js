@@ -194,5 +194,56 @@ export const SIDE_TASK_QUESTS = [
         },
         isMainQuest: false,
         requiredLevel: 8
+    },
+    {
+        id: 'side_quest_8',
+        name: 'Combo Adept',
+        description: 'Land a devastating chain of blows in one fight.',
+        category: 'side',
+        offer: {
+            type: 'board',
+            structure: 'tavern',
+            minLevel: 4,
+            prerequisiteQuestIds: []
+        },
+        objective: {
+            type: 'combo',
+            target: '10',
+            count: 1,
+            progress: 0,
+            hint: 'Chain 10 hits on enemies without a long pause.'
+        },
+        reward: {
+            experience: 250,
+            gold: 175
+        },
+        isMainQuest: false,
+        requiredLevel: 4
+    },
+    {
+        id: 'side_quest_9',
+        name: 'Lotus Gatherer',
+        description: 'Collect spirit lotus petals from hidden blooms.',
+        category: 'side',
+        offer: {
+            type: 'board',
+            structure: 'village',
+            minLevel: 3,
+            prerequisiteQuestIds: []
+        },
+        objective: {
+            type: 'gather',
+            target: 'lotus',
+            count: 5,
+            progress: 0,
+            hint: 'Gather lotus from bloom nodes near villages.'
+        },
+        reward: {
+            experience: 180,
+            gold: 120,
+            items: [{ name: 'Lotus Petal', amount: 5 }]
+        },
+        isMainQuest: false,
+        requiredLevel: 3
     }
 ];

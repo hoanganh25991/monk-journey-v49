@@ -37,6 +37,12 @@ export class InteractionResultHandler {
 
             case 'shrine':
                 return this.handleShrineInteraction(result);
+
+            case 'quest_board':
+                return this.handleQuestBoardInteraction(result, interactiveObject);
+
+            case 'gather':
+                return this.handleGatherInteraction(result, interactiveObject);
                 
             default:
                 console.warn(`Unknown interaction type: ${result.type}`);
@@ -134,6 +140,10 @@ export class InteractionResultHandler {
             return questManager.offerZoneContract(contractId);
         }
 
+        if (questManager?.canOfferDailyQuest?.()) {
+            return questManager.offerDailyQuest();
+        }
+
         if (this.game?.hudManager) {
             const activeZone = questManager?.activeQuests?.find(
                 q => q.category === 'zone' && q.mapId === mapId
@@ -151,6 +161,42 @@ export class InteractionResultHandler {
             }
         }
 
+        return true;
+    }
+
+    handleQuestBoardInteraction(result, interactiveObject) {
+        const questManager = this.game?.questManager;
+        if (!questManager) return false;
+
+        const structureType = result.structureType || interactiveObject?.structureType || 'village';
+        const boardIndex = interactiveObject?._boardIndex || 0;
+        const offered = questManager.offerQuestBoard(structureType, boardIndex);
+        if (offered && interactiveObject) {
+            interactiveObject._boardIndex = boardIndex + 1;
+        }
+        return offered;
+    }
+
+    handleGatherInteraction(result, interactiveObject) {
+        if (interactiveObject?._gathered) {
+            this.game?.hudManager?.showNotification('Nothing left to gather here.', 1800);
+            return true;
+        }
+
+        if (this.game?.questManager && result.itemId) {
+            this.game.questManager.updateGather(result.itemId);
+        }
+
+        if (interactiveObject) {
+            interactiveObject._gathered = true;
+            if (interactiveObject.mesh) {
+                interactiveObject.mesh.visible = false;
+            }
+        }
+
+        if (this.game?.hudManager) {
+            this.game.hudManager.showNotification(result.message || 'Gathered.', 2000);
+        }
         return true;
     }
 }

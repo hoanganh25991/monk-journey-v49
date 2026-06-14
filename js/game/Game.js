@@ -1230,6 +1230,7 @@ export class Game {
 
         this.updateQuestZoneTracking();
         this.questManager?.updateSurvival?.(simDelta);
+        this.questManager?.tickComboWindow?.(simDelta);
 
         if (this.combatJuice) {
             this.combatJuice.applyCameraShake(this.camera);

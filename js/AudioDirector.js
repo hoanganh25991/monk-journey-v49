@@ -57,14 +57,12 @@ export class AudioDirector {
         if (!audio) return;
 
         audio.playMusicWithCrossfade(layer.music, layer.crossfadeSec);
-        audio.setAmbientVolume(layer.ambientVolume);
+        audio.stopAmbient();
     }
 
-    /** Zone ambient loop swap on map load. */
-    applyZoneAmbient(ambientConfig) {
-        const audio = this.game?.audioManager;
-        if (!audio || !ambientConfig?.loopId) return;
-        audio.playAmbient(ambientConfig.loopId, ambientConfig.volume ?? 0.25);
+    /** Zone ambient loop swap on map load (disabled — wind/noise loops clash with music). */
+    applyZoneAmbient(_ambientConfig) {
+        this.game?.audioManager?.stopAmbient();
     }
 
     getState() {

@@ -58,6 +58,9 @@ export const STORAGE_KEYS = {
     PLAYER_QUICK_STATE: 'monk_journey_player_quick_state',
     CHUNK_PREFIX: 'monk_journey_chunk_',
     CHUNK_INDEX: 'monk_journey_chunk_index',
+
+    /** Daily shrine challenge reset + streak (also in save) */
+    DAILY_QUEST_STATE: 'monk_journey_daily_quest',
     
     // Google authentication keys
     GOOGLE_AUTO_LOGIN: 'monk_journey_google_auto_login',

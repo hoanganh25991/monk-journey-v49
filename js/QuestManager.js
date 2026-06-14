@@ -7,8 +7,10 @@ import {
 } from './config/quests/index.js';
 import { getMapMasteryCoachElement } from './config/map-mastery.js';
 import { COMBAT_EVENTS } from './CombatJuice.js';
+import { DailyQuestState, DAILY_SURVIVE_SEC } from './quest/DailyQuestState.js';
 
 const SURVIVE_DURATION_SEC = 45;
+const COMBO_WINDOW_SEC = 2.0;
 
 export class QuestManager {
     constructor(game) {
@@ -17,6 +19,9 @@ export class QuestManager {
         this.quests = [];
         this.activeQuests = [];
         this.completedQuests = [];
+        this.dailyState = new DailyQuestState();
+        this._hitComboChain = 0;
+        this._hitComboTimer = 0;
 
         this.initializeQuests();
         this.bindEvents();
@@ -26,10 +31,17 @@ export class QuestManager {
         if (!this.game?.events || this._eventsBound) return;
         this._eventsBound = true;
         this.game.events.addEventListener(COMBAT_EVENTS.PLAYER_DEATH, () => this.onPlayerDeath());
+        this.game.events.addEventListener(COMBAT_EVENTS.ENEMY_HIT, () => this.onEnemyHitCombo());
+        this.game.events.addEventListener(COMBAT_EVENTS.ATTACK_CRIT, () => this.onEnemyHitCombo());
     }
 
     initializeQuests() {
-        this.quests = this.questTemplates.map(template => cloneQuestTemplate(template));
+        this.quests = this.questTemplates
+            .filter(template => template.category !== 'daily')
+            .map(template => cloneQuestTemplate(template));
+
+        this.dailyState.loadFromStorage();
+        this.dailyState.refreshTodayFlag();
     }
 
     getQuestById(questId) {
@@ -68,6 +80,14 @@ export class QuestManager {
         if (activeQuest.objective.type === 'survive') {
             activeQuest._surviveElapsed = 0;
             activeQuest._surviveFailed = false;
+        }
+
+        if (activeQuest.category === 'daily') {
+            this.activeQuests.push(activeQuest);
+            this.game.hudManager.updateQuestLog(this.activeQuests);
+            this.game.hudManager.showNotification(`Daily challenge accepted: ${activeQuest.name}`);
+            this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: activeQuest });
+            return true;
         }
 
         this.activeQuests.push(activeQuest);
@@ -131,10 +151,47 @@ export class QuestManager {
         const mapId = context.mapId || this.game?.world?.currentMap?.id || null;
 
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type !== 'interact' || quest.objective.target !== objectType) return;
-            if (!this.questAppliesOnCurrentMap(quest, mapId)) return;
-            this.incrementObjectiveProgress(quest, `${objectType}s found`);
+            if (quest.objective.type === 'interact' && quest.objective.target === objectType) {
+                if (!this.questAppliesOnCurrentMap(quest, mapId)) return;
+                this.incrementObjectiveProgress(quest, `${objectType}s found`);
+                return;
+            }
+            if (quest.objective.type === 'visit' && quest.objective.target === objectType) {
+                this.incrementObjectiveProgress(quest, 'locations visited');
+            }
         });
+    }
+
+    updateGather(itemId) {
+        this.activeQuests.forEach(quest => {
+            if (quest.objective.type !== 'gather' || quest.objective.target !== itemId) return;
+            this.incrementObjectiveProgress(quest, 'items gathered');
+        });
+    }
+
+    updateCombo(hitCount) {
+        this.activeQuests.forEach(quest => {
+            if (quest.objective.type !== 'combo') return;
+            const required = parseInt(quest.objective.target, 10) || 10;
+            if (hitCount >= required) {
+                quest.objective.progress = quest.objective.count;
+                this.completeQuest(quest);
+            }
+        });
+    }
+
+    onEnemyHitCombo() {
+        this._hitComboTimer = COMBO_WINDOW_SEC;
+        this._hitComboChain += 1;
+        this.updateCombo(this._hitComboChain);
+    }
+
+    tickComboWindow(delta) {
+        if (this._hitComboTimer <= 0) return;
+        this._hitComboTimer -= delta;
+        if (this._hitComboTimer <= 0) {
+            this._hitComboChain = 0;
+        }
     }
 
     updateExploration(zoneName) {
@@ -175,11 +232,15 @@ export class QuestManager {
 
         this.activeQuests.forEach(quest => {
             if (quest.objective.type !== 'survive') return;
-            if (quest.objective.target !== mapId) return;
+            const target = quest.objective.target;
+            const onDaily = target === 'daily';
+            const onMap = target === mapId;
+            if (!onDaily && !onMap) return;
             if (quest._surviveFailed) return;
 
             quest._surviveElapsed = (quest._surviveElapsed || 0) + delta;
-            if (quest._surviveElapsed >= SURVIVE_DURATION_SEC) {
+            const duration = onDaily ? DAILY_SURVIVE_SEC : SURVIVE_DURATION_SEC;
+            if (quest._surviveElapsed >= duration) {
                 this.incrementObjectiveProgress(quest, 'vigil complete');
             }
         });
@@ -193,6 +254,8 @@ export class QuestManager {
             quest._surviveElapsed = 0;
             reset = true;
         });
+        this._hitComboChain = 0;
+        this._hitComboTimer = 0;
         if (reset && this.game?.hudManager) {
             this.game.hudManager.showNotification('Survival contract failed — try again.', 3000);
         }
@@ -200,17 +263,106 @@ export class QuestManager {
 
     resetSurvivalForMap(mapId) {
         this.activeQuests.forEach(quest => {
-            if (quest.objective.type !== 'survive' || quest.objective.target !== mapId) return;
+            if (quest.objective.type !== 'survive') return;
+            if (quest.objective.target !== mapId && quest.objective.target !== 'daily') return;
             quest._surviveFailed = false;
             quest._surviveElapsed = 0;
         });
     }
 
+    hasActiveDailyQuest() {
+        return this.activeQuests.some(q => q.category === 'daily');
+    }
+
+    canOfferDailyQuest() {
+        this.dailyState.refreshTodayFlag();
+        if (this.dailyState.completedToday) return false;
+        if (this.hasActiveDailyQuest()) return false;
+        return true;
+    }
+
+    offerDailyQuest() {
+        if (!this.canOfferDailyQuest() || !this.game?.hudManager) return false;
+
+        const template = this.dailyState.getTemplateForToday();
+        const hint = template.objective?.hint ? `\n\n${template.objective.hint}` : '';
+        const streakLine = this.dailyState.streak > 0
+            ? `\n\n🔥 Streak: ${this.dailyState.streak} day(s)`
+            : '';
+
+        this.game.hudManager.showDialog(
+            `Daily Shrine Challenge`,
+            `${template.description}${hint}${streakLine}\n\nTap continue to accept.`,
+            () => {
+                const daily = this.dailyState.createActiveDailyQuest(template);
+                this.activeQuests.push(daily);
+                this.game.hudManager.updateQuestLog(this.activeQuests);
+                this.game.hudManager.showNotification(`Daily accepted: ${daily.name}`);
+                this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: daily });
+            }
+        );
+        return true;
+    }
+
+    completeDailyQuest(quest) {
+        this.dailyState.markCompleted(quest._dailyTemplateId || quest.id);
+        const bonus = this.dailyState.getStreakBonusGold();
+        if (bonus > 0) {
+            this.game.player.addGold(bonus);
+            this.game.hudManager.showNotification(`Streak bonus: +${bonus} gold (${this.dailyState.streak} days)`);
+        }
+        if (this.dailyState.streak >= 7) {
+            this.game.hudManager.showNotification('✨ 7-day streak — devoted pilgrim aura!', 4000);
+        }
+    }
+
+    getSideQuestsForBoard(structureType) {
+        const playerLevel = this.game.player.getLevel();
+        return this.quests.filter(quest => {
+            if (quest.category !== 'side') return false;
+            if (quest.offer?.type !== 'board') return false;
+            if (quest.offer?.structure !== structureType) return false;
+            if (playerLevel < getQuestMinLevel(quest)) return false;
+            if (!this.meetsPrerequisites(quest)) return false;
+            return true;
+        });
+    }
+
+    offerQuestBoard(structureType, boardIndex = 0) {
+        const available = this.getSideQuestsForBoard(structureType);
+        if (!available.length) {
+            this.game.hudManager?.showNotification('No tasks posted on this board right now.', 2500);
+            return false;
+        }
+
+        const idx = boardIndex % available.length;
+        const quest = available[idx];
+        const hint = quest.objective?.hint ? `\n\n${quest.objective.hint}` : '';
+        const more = available.length > 1
+            ? `\n\n(${available.length} tasks on this board — interact again for another)`
+            : '';
+
+        this.game.hudManager.showDialog(
+            `Quest Board: ${quest.name}`,
+            `${quest.description}${hint}${more}\n\nTap continue to accept.`,
+            () => this.startQuest(quest)
+        );
+        return true;
+    }
+
     completeQuest(quest) {
+        const isDaily = quest.category === 'daily';
+
         this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
-        this.completedQuests.push(quest);
+        if (!isDaily) {
+            this.completedQuests.push(quest);
+        }
 
         this.game.events?.dispatch(COMBAT_EVENTS.QUEST_COMPLETE, { quest });
+
+        if (isDaily) {
+            this.completeDailyQuest(quest);
+        }
 
         this.awardQuestRewards(quest);
 
@@ -219,15 +371,20 @@ export class QuestManager {
         }
 
         this.game.hudManager.updateQuestLog(this.activeQuests);
-        const completeBody = quest.category === 'zone'
-            ? `Contract sealed! Map mastery unlocked — your coach glows on this realm.`
-            : `You have completed the quest and received your rewards!`;
+        let completeBody = `You have completed the quest and received your rewards!`;
+        if (quest.category === 'zone') {
+            completeBody = `Contract sealed! Map mastery unlocked — your coach glows on this realm.`;
+        } else if (isDaily) {
+            completeBody = `Daily challenge complete! Streak: ${this.dailyState.streak} day(s). Return tomorrow for a new trial.`;
+        }
         this.game.hudManager.showDialog(
             `Quest Completed: ${quest.name}`,
             completeBody
         );
 
-        this.checkForNextQuest(quest);
+        if (!isDaily) {
+            this.checkForNextQuest(quest);
+        }
     }
 
     checkForNextQuest(completedQuest) {
@@ -343,6 +500,7 @@ export class QuestManager {
         const playerLevel = this.game.player.getLevel();
 
         return this.quests.filter(quest => {
+            if (quest.category === 'zone' || quest.category === 'daily') return false;
             if (this.completedQuests.some(q => q.id === quest.id)) return false;
             if (this.activeQuests.some(q => q.id === quest.id)) return false;
             if (playerLevel < getQuestMinLevel(quest)) return false;
@@ -366,7 +524,7 @@ export class QuestManager {
             return;
         }
 
-        const sideQuests = availableQuests.filter(q => !q.isMainQuest);
+        const sideQuests = availableQuests.filter(q => q.category === 'side');
         if (sideQuests.length > 0) {
             const randomIndex = Math.floor(Math.random() * sideQuests.length);
             const sideQuest = sideQuests[randomIndex];

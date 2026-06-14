@@ -167,6 +167,37 @@ export class InteractiveObjectManager {
             this.createQuestMarker(entry.position.x, entry.position.z, questId || 'main_01');
         });
 
+        (questsData.boards || []).forEach(entry => {
+            if (!entry?.position) return;
+            placements.push({
+                x: entry.position.x,
+                z: entry.position.z,
+                type: 'board',
+                structureType: entry.structure || 'village'
+            });
+            this.createQuestBoard(
+                entry.position.x,
+                entry.position.z,
+                entry.structure || 'village',
+                entry.questIds || []
+            );
+        });
+
+        (questsData.gather || []).forEach(entry => {
+            if (!entry?.position) return;
+            placements.push({
+                x: entry.position.x,
+                z: entry.position.z,
+                type: 'gather',
+                itemId: entry.itemId || 'lotus'
+            });
+            this.createGatherNode(
+                entry.position.x,
+                entry.position.z,
+                entry.itemId || 'lotus'
+            );
+        });
+
         console.debug(`Loaded ${placements.length} quest placements from map data`);
         return placements;
     }
@@ -323,6 +354,88 @@ export class InteractiveObjectManager {
         });
 
         return shrineGroup;
+    }
+
+    /**
+     * Quest board at village / tavern — offers side quests.
+     * @param {number} x
+     * @param {number} z
+     * @param {'village'|'tavern'} structureType
+     * @param {string[]} [_questIds]
+     */
+    createQuestBoard(x, z, structureType = 'village', _questIds = []) {
+        const y = this.worldManager.getTerrainHeight(x, z);
+        const boardGroup = new THREE.Group();
+        boardGroup.name = 'quest-board';
+
+        const postGeo = new THREE.BoxGeometry(0.3, 2.2, 0.3);
+        const postMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.y = 1.1;
+        boardGroup.add(post);
+
+        const signGeo = new THREE.BoxGeometry(1.8, 1.2, 0.12);
+        const signMat = new THREE.MeshStandardMaterial({ color: 0x8b6914 });
+        const sign = new THREE.Mesh(signGeo, signMat);
+        sign.position.set(0, 2.0, 0);
+        boardGroup.add(sign);
+
+        boardGroup.position.set(x, y, z);
+        (this.game?.getWorldGroup?.() || this.scene).add(boardGroup);
+
+        const boardObj = {
+            type: 'quest_board',
+            structureType,
+            mesh: boardGroup,
+            position: new THREE.Vector3(x, y, z),
+            interactionRadius: 4,
+            _boardIndex: 0,
+            onInteract: () => ({
+                type: 'quest_board',
+                structureType,
+                message: 'Tasks are posted on the board.'
+            })
+        };
+        this.interactiveObjects.push(boardObj);
+        return boardGroup;
+    }
+
+    /**
+     * Gather node (lotus bloom, etc.)
+     * @param {number} x
+     * @param {number} z
+     * @param {string} itemId
+     */
+    createGatherNode(x, z, itemId = 'lotus') {
+        const y = this.worldManager.getTerrainHeight(x, z);
+        const group = new THREE.Group();
+        group.name = `gather-${itemId}`;
+
+        const petalMat = new THREE.MeshStandardMaterial({
+            color: itemId === 'lotus' ? 0xffb7c5 : 0x90ee90,
+            emissive: 0x331122,
+            emissiveIntensity: 0.15
+        });
+        const core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), petalMat);
+        core.position.y = 0.5;
+        group.add(core);
+
+        group.position.set(x, y, z);
+        (this.game?.getWorldGroup?.() || this.scene).add(group);
+
+        this.interactiveObjects.push({
+            type: 'gather',
+            itemId,
+            mesh: group,
+            position: new THREE.Vector3(x, y, z),
+            interactionRadius: 2.5,
+            onInteract: () => ({
+                type: 'gather',
+                itemId,
+                message: `You gather ${itemId.replace('_', ' ')}.`
+            })
+        });
+        return group;
     }
     
     /**
