@@ -434,6 +434,7 @@ export class MiniMapUI extends UIComponent {
         this.drawCaves(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawTeleportPortals(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawEnemies(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawQuestObjectivePins(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawRemotePlayers(centerWorldX, centerWorldZ, centerX, centerY);
         
         // Player marker at position relative to virtual center (so it moves when you drag)
@@ -872,6 +873,53 @@ export class MiniMapUI extends UIComponent {
                 }
             }
         }
+    }
+    
+    /**
+     * Draw gold pins for active quest objectives with known world positions.
+     */
+    drawQuestObjectivePins(centerWorldX, centerWorldZ, centerX, centerY) {
+        const questManager = this.game?.questManager;
+        const world = this.game?.world;
+        if (!questManager || !world?.getQuestPinPosition) return;
+
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+        const margin = this.mapSize / 2 - 2;
+        const pulse = 0.55 + 0.45 * Math.sin(Date.now() * 0.004);
+
+        questManager.getActiveQuests().forEach(quest => {
+            const pin = world.getQuestPinPosition(quest.id);
+            if (!pin) return;
+
+            const dx = pin.x - centerWorldX;
+            const dz = pin.z - centerWorldZ;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
+            const relX = (pin.x - centerWorldX) * this.scale;
+            const relY = (pin.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
+            const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+            if (distSq > margin * margin) return;
+
+            const outer = quest.isMainQuest ? 7 : 6;
+
+            this.ctx.fillStyle = `rgba(255, 215, 80, ${0.25 * pulse})`;
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, outer + 2, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.fillStyle = quest.isMainQuest ? '#ffd54f' : '#f0c060';
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, outer * 0.55, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, outer * 0.55, 0, Math.PI * 2);
+            this.ctx.stroke();
+        });
     }
     
     /**

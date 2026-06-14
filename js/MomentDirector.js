@@ -7,6 +7,7 @@ export class MomentDirector {
     constructor(game) {
         this.game = game;
         this._titleTimer = null;
+        this._questCompleteTimer = null;
     }
 
     init() {
@@ -16,6 +17,8 @@ export class MomentDirector {
         this.game.events.addEventListener(COMBAT_EVENTS.PLAYER_LEVEL_UP, (d) => this.onLevelUp(d));
         this.game.events.addEventListener(COMBAT_EVENTS.SKILL_UNLOCK, (d) => this.onSkillUnlock(d));
         this.game.events.addEventListener(COMBAT_EVENTS.MULTIPLAYER_JOIN, (d) => this.onMultiplayerJoin(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.QUEST_ACCEPT, (d) => this.onQuestAccept(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.QUEST_COMPLETE, (d) => this.onQuestComplete(d));
     }
 
     onZoneEntry(data) {
@@ -60,6 +63,37 @@ export class MomentDirector {
             this.game.hudManager.showNotification(msg, 3500);
         }
         this.game?.audioManager?.playSound('teleport', 0.7);
+    }
+
+    onQuestAccept(data) {
+        const quest = data?.quest;
+        this.game?.audioManager?.playSound('levelUp', 0.35);
+        this.flashQuestLog();
+        if (quest?.name && this.game?.hudManager?.showNotification) {
+            this.game.hudManager.showNotification(`📜 ${quest.name}`, 1800);
+        }
+    }
+
+    onQuestComplete(data) {
+        const juice = this.game?.combatJuice;
+        if (juice?.setMomentTimeScale) {
+            juice.setMomentTimeScale(0.35);
+            if (this._questCompleteTimer) clearTimeout(this._questCompleteTimer);
+            this._questCompleteTimer = setTimeout(() => {
+                juice.setMomentTimeScale(1);
+            }, 900);
+        }
+
+        this.game?.effectsManager?.createLevelUpSpiritBurst?.();
+    }
+
+    flashQuestLog() {
+        const panel = document.getElementById('quest-log');
+        if (!panel) return;
+        panel.classList.remove('quest-accept-flash');
+        void panel.offsetWidth;
+        panel.classList.add('quest-accept-flash');
+        setTimeout(() => panel.classList.remove('quest-accept-flash'), 900);
     }
 
     flashSkillTree() {

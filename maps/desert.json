@@ -1040,5 +1040,24 @@
       },
       "scale": 0.9806748670525849
     }
-  ]
+  ],
+  "quests": {
+    "chests": [
+      {
+        "questId": "main_07",
+        "position": { "x": 268, "z": -67 }
+      },
+      {
+        "questId": "main_07",
+        "position": { "x": 116, "z": 339 }
+      }
+    ],
+    "bossSpawns": [
+      {
+        "questId": "main_09",
+        "bossType": "inferno_lord",
+        "position": { "x": -25, "z": -331 }
+      }
+    ]
+  }
 }

@@ -32,6 +32,9 @@ export class InteractionResultHandler {
                 
             case 'boss_spawn':
                 return this.handleBossSpawnInteraction(result, interactiveObject);
+
+            case 'shrine':
+                return this.handleShrineInteraction(result);
                 
             default:
                 console.warn(`Unknown interaction type: ${result.type}`);
@@ -67,7 +70,9 @@ export class InteractionResultHandler {
             this.game.player.addToInventory(result.item);
 
             if (result.type === 'treasure' && this.game.questManager) {
-                this.game.questManager.updateInteraction('chest');
+                this.game.questManager.updateInteraction('chest', {
+                    mapId: this.game.world?.currentMap?.id || null
+                });
             }
 
             if (this.game.hudManager) {
@@ -105,5 +110,24 @@ export class InteractionResultHandler {
         }
         
         return false;
+    }
+
+    /**
+     * Handle shrine interaction (main path cleanse + future zone contracts).
+     * @param {Object} result
+     * @returns {boolean}
+     */
+    handleShrineInteraction(result) {
+        if (this.game?.questManager) {
+            this.game.questManager.updateInteraction('shrine', {
+                mapId: this.game.world?.currentMap?.id || null
+            });
+        }
+
+        if (this.game?.hudManager) {
+            this.game.hudManager.showNotification(result.message || 'The shrine accepts your offering.', 2500);
+        }
+
+        return true;
     }
 }

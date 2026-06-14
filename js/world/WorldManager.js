@@ -43,6 +43,9 @@ export class WorldManager {
         this.lodManager = this.performanceProfile.lodEnabled ? new LodManager(this, this.qualityLevel) : null;
         this.teleportManager = new TeleportManager(scene, this, game);
         
+        /** @type {Array<{ questId: string, x: number, z: number, type: string }>} */
+        this.questPlacements = [];
+        
         // Performance monitoring
         this.performance = {
             frameRate: 60,
@@ -106,8 +109,10 @@ export class WorldManager {
     applyMap(mapData) {
         if (!mapData) {
             this.currentMap = null;
+            this.questPlacements = [];
             this.structureManager?.clear();
             this.environmentManager?.clear();
+            this.interactiveManager?.clear();
             this._chunkGenCache.chunkX = -9999;
             this._chunkGenCache.chunkZ = -9999;
             return;
@@ -115,6 +120,7 @@ export class WorldManager {
         this.currentMap = mapData;
         this.currentSensory = getMapSensoryProfile(mapData);
         this.applySensory(this.currentSensory);
+        this.loadQuestPlacements(mapData.quests);
 
         // Ground texture splat from map theme (Terrant / Forest / Desert)
         if (this.terrainManager?.setTerrainTheme) {
@@ -190,6 +196,44 @@ export class WorldManager {
             }
         };
         requestAnimationFrame(tick);
+    }
+
+    /**
+     * Spawn interactive quest objects from map JSON and cache pin positions.
+     * @param {Object|null} questsData
+     */
+    loadQuestPlacements(questsData) {
+        this.questPlacements = [];
+        if (!this.interactiveManager?.loadFromQuestData) return;
+
+        if (questsData) {
+            this.questPlacements = this.interactiveManager.loadFromQuestData(questsData);
+        } else {
+            this.interactiveManager.clear();
+        }
+    }
+
+    /**
+     * Resolve a minimap pin for an active quest on the current map.
+     * @param {string} questId
+     * @returns {{ x: number, z: number }|null}
+     */
+    getQuestPinPosition(questId) {
+        const placement = this.questPlacements.find(p => p.questId === questId);
+        if (placement) {
+            return { x: placement.x, z: placement.z };
+        }
+
+        const quest = this.game?.questManager?.getQuestById(questId);
+        if (quest?.mapId && this.currentMap?.id && quest.mapId !== this.currentMap.id) {
+            return null;
+        }
+
+        if (quest?.offer?.position) {
+            return quest.offer.position;
+        }
+
+        return null;
     }
 
     /**

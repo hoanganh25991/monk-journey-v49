@@ -5,6 +5,7 @@ import {
     getQuestMinLevel,
     getQuestPrerequisiteIds
 } from './config/quests/index.js';
+import { COMBAT_EVENTS } from './CombatJuice.js';
 
 export class QuestManager {
     constructor(game) {
@@ -58,19 +59,33 @@ export class QuestManager {
         this.quests = this.quests.filter(q => q.id !== questToStart.id);
         this.game.hudManager.updateQuestLog(this.activeQuests);
         this.game.hudManager.showNotification(`Quest accepted: ${activeQuest.name}`);
+        this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: activeQuest });
 
         return true;
     }
 
     matchesKillObjective(objective, enemy) {
+        const matchesTarget = (target) => {
+            if (target === 'any') return true;
+            if (typeof target === 'string' && target.includes('|')) {
+                return target.split('|').includes(enemy.type);
+            }
+            return target === enemy.type;
+        };
+
         if (objective.type === 'kill_boss') {
-            return enemy.isBoss && (objective.target === 'any' || objective.target === enemy.type);
+            return enemy.isBoss && matchesTarget(objective.target);
         }
         if (objective.type === 'kill') {
             if (objective.target === 'boss') return enemy.isBoss;
-            return objective.target === 'any' || objective.target === enemy.type;
+            return matchesTarget(objective.target);
         }
         return false;
+    }
+
+    questAppliesOnCurrentMap(quest, mapId) {
+        if (!quest?.mapId || !mapId) return true;
+        return quest.mapId === mapId;
     }
 
     incrementObjectiveProgress(quest, label) {
@@ -94,9 +109,12 @@ export class QuestManager {
         });
     }
 
-    updateInteraction(objectType) {
+    updateInteraction(objectType, context = {}) {
+        const mapId = context.mapId || this.game?.world?.currentMap?.id || null;
+
         this.activeQuests.forEach(quest => {
             if (quest.objective.type !== 'interact' || quest.objective.target !== objectType) return;
+            if (!this.questAppliesOnCurrentMap(quest, mapId)) return;
             this.incrementObjectiveProgress(quest, `${objectType}s found`);
         });
     }
@@ -115,6 +133,9 @@ export class QuestManager {
     completeQuest(quest) {
         this.activeQuests = this.activeQuests.filter(q => q.id !== quest.id);
         this.completedQuests.push(quest);
+
+        this.game.events?.dispatch(COMBAT_EVENTS.QUEST_COMPLETE, { quest });
+
         this.awardQuestRewards(quest);
 
         if (this.game?.audioManager) {

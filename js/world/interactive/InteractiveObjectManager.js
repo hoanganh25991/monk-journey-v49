@@ -2,6 +2,7 @@ import * as THREE from '../../../libs/three/three.module.js';
 import { TreasureChest } from './TreasureChest.js';
 import { QuestMarker } from './QuestMarker.js';
 import { BossSpawnPoint } from './BossSpawnPoint.js';
+import { Shrine } from '../structures/Shrine.js';
 import { distanceSq2D } from 'utils/FastMath.js';
 
 /**
@@ -81,7 +82,7 @@ export class InteractiveObjectManager {
                         this.createQuestMarker(
                             objData.position.x,
                             objData.position.z,
-                            objData.questId || objData.name || 'main_quest_1'
+                            objData.questId || objData.name || 'main_01'
                         );
                         break;
                     case 'boss_spawn':
@@ -99,6 +100,76 @@ export class InteractiveObjectManager {
         
         console.debug(`Successfully loaded ${this.interactiveObjects.length} interactive objects`);
     }
+
+    /**
+     * Load quest-driven placements from map JSON `quests` block.
+     * @param {Object} questsData
+     * @returns {Array<{ questId: string, x: number, z: number, type: string }>}
+     */
+    loadFromQuestData(questsData) {
+        this.clear();
+        const placements = [];
+        if (!questsData) return placements;
+
+        (questsData.shrines || []).forEach(entry => {
+            if (!entry?.position) return;
+            placements.push({
+                questId: entry.questId,
+                x: entry.position.x,
+                z: entry.position.z,
+                type: 'shrine'
+            });
+            this.createShrine(entry.position.x, entry.position.z, entry.questId);
+        });
+
+        (questsData.bossSpawns || []).forEach(entry => {
+            if (!entry?.position) return;
+            if (entry.questId) {
+                placements.push({
+                    questId: entry.questId,
+                    x: entry.position.x,
+                    z: entry.position.z,
+                    type: 'boss'
+                });
+            }
+            this.createBossSpawnPoint(
+                entry.position.x,
+                entry.position.z,
+                entry.bossType || 'generic_boss',
+                entry.questId
+            );
+        });
+
+        (questsData.chests || []).forEach(entry => {
+            if (!entry?.position) return;
+            if (entry.questId) {
+                placements.push({
+                    questId: entry.questId,
+                    x: entry.position.x,
+                    z: entry.position.z,
+                    type: 'chest'
+                });
+            }
+            this.createTreasureChest(entry.position.x, entry.position.z);
+        });
+
+        (questsData.markers || []).forEach(entry => {
+            if (!entry?.position) return;
+            const questId = entry.questId || entry.name;
+            if (questId) {
+                placements.push({
+                    questId,
+                    x: entry.position.x,
+                    z: entry.position.z,
+                    type: 'marker'
+                });
+            }
+            this.createQuestMarker(entry.position.x, entry.position.z, questId || 'main_01');
+        });
+
+        console.debug(`Loaded ${placements.length} quest placements from map data`);
+        return placements;
+    }
     
     /**
      * Create default interactive objects (for backward compatibility)
@@ -110,7 +181,7 @@ export class InteractiveObjectManager {
         this.createTreasureChest(5, -15);
         
         // Create quest markers
-        this.createQuestMarker(25, 15, 'main_quest_1');
+        this.createQuestMarker(25, 15, 'main_01');
         this.createQuestMarker(-10, -20, 'side_quest_1');
         this.createQuestMarker(15, -5, 'side_quest_2');
     }
@@ -180,7 +251,7 @@ export class InteractiveObjectManager {
      * @param {string} questId - Quest id from QuestManager
      * @returns {THREE.Group} - The quest marker group
      */
-    createQuestMarker(x, z, questId = 'main_quest_1') {
+    createQuestMarker(x, z, questId = 'main_01') {
         const questDef = this.game?.questManager?.getQuestById(questId);
         const markerLabel = questDef?.name || questId;
         const questMarker = new QuestMarker(questId, this.game);
@@ -219,15 +290,49 @@ export class InteractiveObjectManager {
 
         return markerGroup;
     }
+
+    /**
+     * Create an interactive shrine at the specified position.
+     * @param {number} x
+     * @param {number} z
+     * @param {string|null} questId
+     * @returns {THREE.Group}
+     */
+    createShrine(x, z, questId = null) {
+        const zoneStyle = this.worldManager?.currentMap?.zoneStyle || 'Terrant';
+        const shrine = new Shrine(zoneStyle, { hasOfferings: true, hasTorches: true });
+        const shrineGroup = shrine.createMesh();
+        const y = this.worldManager.getTerrainHeight(x, z);
+
+        shrineGroup.position.set(x, y, z);
+        shrineGroup.userData.interactive = true;
+        (this.game?.getWorldGroup?.() || this.scene).add(shrineGroup);
+
+        this.interactiveObjects.push({
+            type: 'shrine',
+            questId,
+            mesh: shrineGroup,
+            position: new THREE.Vector3(x, y, z),
+            interactionRadius: 4,
+            onInteract: () => ({
+                type: 'shrine',
+                questId,
+                message: 'The shrine stirs as you offer a cleansing touch.'
+            })
+        });
+
+        return shrineGroup;
+    }
     
     /**
      * Create a boss spawn point at the specified position
      * @param {number} x - X coordinate
      * @param {number} z - Z coordinate
      * @param {string} bossType - Type of boss
+     * @param {string|null} questId - Optional linked quest id
      * @returns {THREE.Group} - The boss spawn point group
      */
-    createBossSpawnPoint(x, z, bossType) {
+    createBossSpawnPoint(x, z, bossType, questId = null) {
         const bossSpawn = new BossSpawnPoint(bossType);
         const markerGroup = bossSpawn.createMesh();
         
@@ -240,6 +345,7 @@ export class InteractiveObjectManager {
         // Add to interactive objects
         this.interactiveObjects.push({
             type: 'boss_spawn',
+            questId,
             name: `${bossType} Spawn`,
             mesh: markerGroup,
             position: new THREE.Vector3(x, this.worldManager.getTerrainHeight(x, z), z),

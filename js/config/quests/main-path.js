@@ -1,5 +1,5 @@
 /**
- * Main storyline quests — Path of the Monk (legacy IDs; Phase 2 replaces with main_01–main_14)
+ * Main storyline quests — Path of the Monk (Acts I–III: main_01–main_09)
  */
 
 /** @typedef {import('./index.js').QuestDefinition} QuestDefinition */
@@ -7,10 +7,11 @@
 /** @type {QuestDefinition[]} */
 export const MAIN_PATH_QUESTS = [
     {
-        id: 'main_quest_1',
-        name: 'The Beginning of the Journey',
-        description: 'Defeat the enemies in the forest to prove your worth.',
+        id: 'main_01',
+        name: 'First Steps',
+        description: 'Prove your path by defeating the foes that block the road.',
         category: 'main',
+        mapId: 'terrant',
         offer: {
             type: 'auto',
             minLevel: 1,
@@ -30,29 +31,31 @@ export const MAIN_PATH_QUESTS = [
         },
         isMainQuest: true,
         requiredLevel: 1,
-        nextQuestId: 'main_quest_2',
+        nextQuestId: 'main_02',
         onComplete: 'moment:quest.complete'
     },
     {
-        id: 'main_quest_2',
-        name: 'The Skeleton Threat',
-        description: 'Skeletons have been spotted in the ruins. Defeat them to secure the area.',
+        id: 'main_02',
+        name: 'The Broken Shrine',
+        description: 'A fallen shrine near the trail still holds corruption. Cleanse it.',
         category: 'main',
+        mapId: 'terrant',
         offer: {
             type: 'auto',
             minLevel: 2,
-            prerequisiteQuestIds: ['main_quest_1']
+            prerequisiteQuestIds: ['main_01'],
+            position: { x: 35, z: 25 }
         },
         objective: {
-            type: 'kill',
-            target: 'skeleton',
-            count: 8,
+            type: 'interact',
+            target: 'shrine',
+            count: 1,
             progress: 0,
-            hint: 'Search the ruins east of the village for bone warriors.'
+            hint: 'Find the broken shrine east of the spawn trail.'
         },
         reward: {
-            experience: 200,
-            gold: 100,
+            experience: 150,
+            gold: 75,
             items: [{
                 name: 'Monk Bracers',
                 type: 'accessory',
@@ -63,26 +66,54 @@ export const MAIN_PATH_QUESTS = [
         },
         isMainQuest: true,
         requiredLevel: 2,
-        nextQuestId: 'main_quest_3',
+        nextQuestId: 'main_03',
         onComplete: 'moment:quest.complete'
     },
     {
-        id: 'main_quest_3',
-        name: 'The Skeleton King',
-        description: 'The Skeleton King has risen in the ancient ruins. Defeat him to restore peace.',
+        id: 'main_03',
+        name: 'Whispers in the Woods',
+        description: 'Forest predators stalk the border. Thin their numbers.',
         category: 'main',
         mapId: 'forest',
         offer: {
             type: 'auto',
-            minLevel: 4,
-            prerequisiteQuestIds: ['main_quest_2']
+            minLevel: 3,
+            prerequisiteQuestIds: ['main_02']
+        },
+        objective: {
+            type: 'kill',
+            target: 'forest_spider|feral_wolf',
+            count: 8,
+            progress: 0,
+            hint: 'Hunt spiders and wolves in the Forest.'
+        },
+        reward: {
+            experience: 250,
+            gold: 100
+        },
+        isMainQuest: true,
+        requiredLevel: 3,
+        nextQuestId: 'main_04',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_04',
+        name: 'King of Bones',
+        description: 'The Skeleton King has risen in the ancient ruins. End his reign.',
+        category: 'main',
+        mapId: 'forest',
+        offer: {
+            type: 'auto',
+            minLevel: 5,
+            prerequisiteQuestIds: ['main_03'],
+            position: { x: -41, z: -335 }
         },
         objective: {
             type: 'kill_boss',
             target: 'skeleton_king',
             count: 1,
             progress: 0,
-            hint: 'Seek the Skeleton King in the Forest ruins.'
+            hint: 'Search the ruins in the Forest for the Skeleton King.'
         },
         reward: {
             experience: 500,
@@ -96,31 +127,31 @@ export const MAIN_PATH_QUESTS = [
             }]
         },
         isMainQuest: true,
-        requiredLevel: 4,
-        nextQuestId: 'main_quest_4',
+        requiredLevel: 5,
+        nextQuestId: 'main_05',
         onComplete: 'moment:quest.complete'
     },
     {
-        id: 'main_quest_4',
-        name: 'The Swamp of Despair',
-        description: 'Zombies have infested the swamp. Clear them out to make the area safe again.',
+        id: 'main_05',
+        name: 'Bog Lanterns',
+        description: 'Lantern-lit bog paths are choked with the walking dead. Purge them.',
         category: 'main',
         mapId: 'swamp',
         offer: {
             type: 'auto',
             minLevel: 6,
-            prerequisiteQuestIds: ['main_quest_3']
+            prerequisiteQuestIds: ['main_04']
         },
         objective: {
             type: 'kill',
             target: 'zombie',
-            count: 12,
+            count: 10,
             progress: 0,
-            hint: 'Enter the Swamp zone and purge the wandering dead.'
+            hint: 'Enter the Swamp and defeat the wandering dead.'
         },
         reward: {
-            experience: 800,
-            gold: 350,
+            experience: 700,
+            gold: 300,
             items: [{
                 name: 'Monk Robe',
                 type: 'armor',
@@ -131,26 +162,87 @@ export const MAIN_PATH_QUESTS = [
         },
         isMainQuest: true,
         requiredLevel: 6,
-        nextQuestId: 'main_quest_5',
+        nextQuestId: 'main_06',
         onComplete: 'moment:quest.complete'
     },
     {
-        id: 'main_quest_5',
-        name: 'The Demon Invasion',
-        description: 'Demons have begun invading from the mountains. Defeat them to protect the realm.',
+        id: 'main_06',
+        name: 'The Swamp Witch',
+        description: 'A swamp witch brews poison at the heart of the mire. Silence her.',
         category: 'main',
-        mapId: 'mountains',
+        mapId: 'swamp',
+        offer: {
+            type: 'auto',
+            minLevel: 7,
+            prerequisiteQuestIds: ['main_05']
+        },
+        objective: {
+            type: 'kill_boss',
+            target: 'swamp_witch',
+            count: 1,
+            progress: 0,
+            hint: 'Track the Swamp Witch deeper into the bog.'
+        },
+        reward: {
+            experience: 900,
+            gold: 400,
+            items: [{
+                name: 'Poison Ward Trinket',
+                type: 'accessory',
+                damage: 0,
+                damageReduction: 0.08,
+                amount: 1
+            }]
+        },
+        isMainQuest: true,
+        requiredLevel: 7,
+        nextQuestId: 'main_07',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_07',
+        name: 'Desert of Silence',
+        description: 'Buried chests in the desert sands hold clues to the next seal.',
+        category: 'main',
+        mapId: 'desert',
         offer: {
             type: 'auto',
             minLevel: 8,
-            prerequisiteQuestIds: ['main_quest_4']
+            prerequisiteQuestIds: ['main_06']
+        },
+        objective: {
+            type: 'interact',
+            target: 'chest',
+            count: 2,
+            progress: 0,
+            hint: 'Open treasure chests among the Desert ruins.'
+        },
+        reward: {
+            experience: 1000,
+            gold: 450
+        },
+        isMainQuest: true,
+        requiredLevel: 8,
+        nextQuestId: 'main_08',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_08',
+        name: 'Ash Demons',
+        description: 'Ash demons crawl from the wastes. Drive them back.',
+        category: 'main',
+        mapId: 'desert',
+        offer: {
+            type: 'auto',
+            minLevel: 9,
+            prerequisiteQuestIds: ['main_07']
         },
         objective: {
             type: 'kill',
-            target: 'demon',
-            count: 15,
+            target: 'ash_demon|demon',
+            count: 12,
             progress: 0,
-            hint: 'Drive demons back from the mountain passes.'
+            hint: 'Hunt ash demons and lesser demons in the Desert.'
         },
         reward: {
             experience: 1200,
@@ -164,26 +256,28 @@ export const MAIN_PATH_QUESTS = [
             }]
         },
         isMainQuest: true,
-        requiredLevel: 8,
-        nextQuestId: 'main_quest_6',
+        requiredLevel: 9,
+        nextQuestId: 'main_09',
         onComplete: 'moment:quest.complete'
     },
     {
-        id: 'main_quest_6',
-        name: 'The Final Battle',
-        description: 'The Demon Lord has appeared. Defeat him to save the world from destruction.',
+        id: 'main_09',
+        name: 'Lord of Cinder',
+        description: 'The Inferno Lord commands the burning wastes. Face him.',
         category: 'main',
+        mapId: 'desert',
         offer: {
             type: 'auto',
             minLevel: 10,
-            prerequisiteQuestIds: ['main_quest_5']
+            prerequisiteQuestIds: ['main_08'],
+            position: { x: -25, z: -331 }
         },
         objective: {
             type: 'kill_boss',
-            target: 'demon_lord',
+            target: 'inferno_lord|demon_lord',
             count: 1,
             progress: 0,
-            hint: 'Confront the Demon Lord where corruption burns brightest.'
+            hint: 'Confront the Inferno Lord at the desert temple.'
         },
         reward: {
             experience: 2000,

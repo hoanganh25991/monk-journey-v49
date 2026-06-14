@@ -94,7 +94,7 @@ export const SIDE_TASK_QUESTS = [
             type: 'board',
             structure: 'tavern',
             minLevel: 5,
-            prerequisiteQuestIds: ['main_quest_3']
+            prerequisiteQuestIds: ['main_04']
         },
         objective: {
             type: 'kill',
@@ -120,7 +120,7 @@ export const SIDE_TASK_QUESTS = [
             type: 'board',
             structure: 'tavern',
             minLevel: 7,
-            prerequisiteQuestIds: ['main_quest_4']
+            prerequisiteQuestIds: ['main_05']
         },
         objective: {
             type: 'kill',
@@ -178,7 +178,7 @@ export const SIDE_TASK_QUESTS = [
             type: 'board',
             structure: 'tavern',
             minLevel: 8,
-            prerequisiteQuestIds: ['main_quest_3']
+            prerequisiteQuestIds: ['main_04']
         },
         objective: {
             type: 'kill_boss',

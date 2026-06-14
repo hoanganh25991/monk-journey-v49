@@ -18,7 +18,9 @@ export const COMBAT_EVENTS = {
     PLAYER_HIT: 'player.hit',
     PLAYER_DEATH: 'player.death',
     PLAYER_LEVEL_UP: 'player.levelUp',
-    ZONE_ENTRY: 'zone.entry'
+    ZONE_ENTRY: 'zone.entry',
+    QUEST_ACCEPT: 'quest.accept',
+    QUEST_COMPLETE: 'quest.complete'
 };
 
 /**

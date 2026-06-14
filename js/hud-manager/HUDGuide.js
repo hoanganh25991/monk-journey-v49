@@ -52,7 +52,7 @@ export function startHUDGuide() {
         return document.getElementById('quest-log');
       },
       title: 'Quest Log',
-      desc: 'Track your active quests and objectives here.',
+      desc: 'Your current objective appears here. Follow the gold pin on the minimap.',
     },
     {
       key: 'mapSelector',

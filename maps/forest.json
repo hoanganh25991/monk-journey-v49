@@ -1568,5 +1568,14 @@
       },
       "scale": 0.93697648094967
     }
-  ]
+  ],
+  "quests": {
+    "bossSpawns": [
+      {
+        "questId": "main_04",
+        "bossType": "skeleton_king",
+        "position": { "x": -41, "z": -335 }
+      }
+    ]
+  }
 }
