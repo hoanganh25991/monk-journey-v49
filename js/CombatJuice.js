@@ -228,7 +228,7 @@ export class CombatJuice {
         setTimeout(() => this.setMomentTimeScale(1), 300);
     }
 
-    /** Brief white/gold emissive flash on enemy mesh. */
+    /** Brief white/gold flash on enemy mesh (color + emissive when available). */
     flashEnemy(enemy, color = 0xffffff) {
         if (!enemy?.modelGroup) return;
         const enemyKey = enemy.id || enemy.uuid || enemy.name;
@@ -239,17 +239,31 @@ export class CombatJuice {
         if (this._flashTimestamps.size > 64) {
             this._flashTimestamps.clear();
         }
+        const flashColor = color;
         enemy.modelGroup.traverse((child) => {
             if (!child.isMesh || !child.material) return;
             const mats = Array.isArray(child.material) ? child.material : [child.material];
             mats.forEach((mat) => {
-                if (!mat.emissive) return;
-                const orig = mat.emissive.getHex();
-                mat.emissive.setHex(color);
-                mat.emissiveIntensity = 0.6;
+                const hasColor = !!mat.color;
+                const hasEmissive = !!mat.emissive;
+                if (!hasColor && !hasEmissive) return;
+
+                const origColor = hasColor ? mat.color.getHex() : null;
+                const origEmissive = hasEmissive ? mat.emissive.getHex() : null;
+                const origEmissiveIntensity = hasEmissive ? mat.emissiveIntensity : undefined;
+
+                if (hasColor) mat.color.setHex(flashColor);
+                if (hasEmissive) {
+                    mat.emissive.setHex(flashColor);
+                    mat.emissiveIntensity = Math.max(mat.emissiveIntensity ?? 0, 0.85);
+                }
+
                 setTimeout(() => {
-                    mat.emissive.setHex(orig);
-                    mat.emissiveIntensity = mat.emissiveIntensity > 0 ? 0.2 : 0;
+                    if (hasColor && origColor !== null) mat.color.setHex(origColor);
+                    if (hasEmissive && origEmissive !== null) {
+                        mat.emissive.setHex(origEmissive);
+                        mat.emissiveIntensity = origEmissiveIntensity ?? 0;
+                    }
                 }, 80);
             });
         });

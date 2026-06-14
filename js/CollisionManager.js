@@ -372,6 +372,7 @@ export class CollisionManager {
         const actualDamage = enemy.takeDamage(damage, false, null, false, hitOptions);
 
         if (actualDamage > 0) {
+            this.player.game?.combatJuice?.flashEnemy?.(enemy);
             skill._impactHitCount = (skill._impactHitCount || 0) + 1;
             skill._impactTotalDamage = (skill._impactTotalDamage || 0) + actualDamage;
             if (!skill._impactFirstEnemy) skill._impactFirstEnemy = enemy;
