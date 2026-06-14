@@ -746,8 +746,8 @@ export class Enemy {
         // Reduce health by the actual damage
         this.health -= actualDamage;
         
-        // Show floating damage number (-XXX in red) for every hit
-        if (actualDamage > 0 && this.player?.game?.effectsManager) {
+        // Per-enemy damage numbers are skipped for skill hits (see CollisionManager batch summary)
+        if (actualDamage > 0 && !options.skipCombatFx && this.player?.game?.effectsManager) {
             const isKill = this.health <= 0;
             const isCrit = options.isCrit || options.isComboFinisher || false;
             this.player.game.effectsManager.createDamageNumberSprite(actualDamage, this.getPosition(), {
@@ -772,7 +772,7 @@ export class Enemy {
         
         // Check if dead
         if (this.health <= 0) {
-            this.die();
+            this.die({ skipCombatFx: options.skipCombatFx, fromSkill: options.fromSkill });
             return actualDamage;
         }
         
@@ -877,7 +877,7 @@ export class Enemy {
         }
     }
     
-    die() {
+    die(options = {}) {
         // Prevent multiple death animations - only check if animation is in progress
         if (this.deathAnimationInProgress) {
             return;
@@ -886,10 +886,12 @@ export class Enemy {
         // Set dead state
         this.state.isDead = true;
 
-        this.player?.game?.combatJuice?.emit(COMBAT_EVENTS.ENEMY_DEATH, {
-            enemy: this,
-            isBoss: this.isBoss
-        });
+        if (!options.skipCombatFx) {
+            this.player?.game?.combatJuice?.emit(COMBAT_EVENTS.ENEMY_DEATH, {
+                enemy: this,
+                isBoss: this.isBoss
+            });
+        }
         
         // Clean up any status effects this enemy applied to the player
         // Critical for Frost Titan: freeze/slow must end when Titan dies (unconditionally clear)
@@ -918,12 +920,14 @@ export class Enemy {
             const effectsManager = this.player.game.effectsManager;
             const deathPos = this.getPosition ? this.getPosition() : this.position;
             const pos = deathPos && typeof deathPos.x === 'number' ? { x: deathPos.x, y: (deathPos.y ?? 0) + 1, z: deathPos.z } : { x: 0, y: 1, z: 0 };
-            void effectsManager?.createExperienceNumberSprite(expPerPlayer, pos, { isBonus: false });
-            const bonusChance = 0.15;
-            if (Math.random() < bonusChance && effectsManager) {
-                const bonusAmount = Math.max(1, Math.floor(expPerPlayer * (0.25 + Math.random() * 0.25)));
-                hostExp += bonusAmount;
-                void effectsManager.createExperienceNumberSprite(bonusAmount, pos, { isBonus: true });
+            if (!options.skipCombatFx) {
+                void effectsManager?.createExperienceNumberSprite(expPerPlayer, pos, { isBonus: false });
+                const bonusChance = 0.15;
+                if (Math.random() < bonusChance && effectsManager) {
+                    const bonusAmount = Math.max(1, Math.floor(expPerPlayer * (0.25 + Math.random() * 0.25)));
+                    hostExp += bonusAmount;
+                    void effectsManager.createExperienceNumberSprite(bonusAmount, pos, { isBonus: true });
+                }
             }
             this.player.addExperience(hostExp);
             if (this.player.game.multiplayerManager.isHost) {
@@ -942,6 +946,12 @@ export class Enemy {
         // Set a flag to track animation completion
         this.deathAnimationInProgress = true;
         
+        // Skill AoE kills: skip animation so EnemyManager can batch-remove immediately
+        if (options.skipCombatFx && !this.isBoss) {
+            this.deathAnimationInProgress = false;
+            return;
+        }
+
         // For bosses, use a simplified death animation to prevent lag
         if (this.isBoss) {
             this.playSimplifiedDeathAnimation();

@@ -366,42 +366,21 @@ export class CollisionManager {
             isCrit: skill.isComboFinisher || false,
             isComboFinisher: skill.isComboFinisher || false,
             element: skill.element || skill.damageType,
-            fromSkill: true
+            fromSkill: true,
+            skipCombatFx: true
         };
         const actualDamage = enemy.takeDamage(damage, false, null, false, hitOptions);
 
-        // Debounced mass-impact juice: accumulate hits, flush once after burst settles
         if (actualDamage > 0) {
             skill._impactHitCount = (skill._impactHitCount || 0) + 1;
             skill._impactTotalDamage = (skill._impactTotalDamage || 0) + actualDamage;
             if (!skill._impactFirstEnemy) skill._impactFirstEnemy = enemy;
-            if (!skill._impactFlashEnemies) skill._impactFlashEnemies = [];
-            if (skill._impactFlashEnemies.length < 3) skill._impactFlashEnemies.push(enemy);
             this.scheduleSkillImpactJuice(skill);
         }
         
-        // Get enemy position for effects
-        const enemyPosition = enemy.getPosition();
-        
-        // Only show effects if damage was actually dealt (enemy not already dead)
         if (actualDamage > 0) {
-            // Damage number is created in Enemy.takeDamage so all hit paths show -XXX in red
-            skill._bleedEffectCount = (skill._bleedEffectCount || 0) + 1;
-            if (skill._bleedEffectCount <= 5 && this.player.game.hudManager) {
-                this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
-            }
-            
-            // Check for quest completion (only if enemy just died)
             if (enemy.state.isDead && this.player.game.questManager) {
                 this.player.game.questManager.updateEnemyKill(enemy);
-            }
-        }
-        
-        // Per-enemy hit VFX are expensive (new meshes + RAF loops); cap per skill cast
-        if (skill.effect && actualDamage > 0) {
-            skill._hitEffectCount = (skill._hitEffectCount || 0) + 1;
-            if (skill._hitEffectCount <= 3) {
-                skill.effect.createHitEffect(enemyPosition);
             }
         }
         
@@ -436,13 +415,26 @@ export class CollisionManager {
 
         this.player.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_IMPACT, {
             skill: skill.name,
-            soundId: skill.sounds?.impact,
             heavy: (skill.radius || 0) > 4,
-            enemy: skill._impactFirstEnemy,
-            enemies: skill._impactFlashEnemies,
             hitCount,
             damage: skill._impactTotalDamage || 0
         });
+
+        const totalDamage = skill._impactTotalDamage || 0;
+        if (totalDamage > 0 && this.player.game?.effectsManager) {
+            let pos = null;
+            try {
+                pos = skill.getPosition?.();
+            } catch (_) { /* ignore */ }
+            if (!pos && skill._impactFirstEnemy) {
+                pos = skill._impactFirstEnemy.getPosition();
+            }
+            if (pos) {
+                void this.player.game.effectsManager.createDamageNumberSprite(totalDamage, pos, {
+                    isCritical: hitCount >= 6
+                });
+            }
+        }
     }
     
     /**

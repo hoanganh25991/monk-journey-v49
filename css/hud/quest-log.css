@@ -54,6 +54,13 @@
     font-size: 14px;
 }
 
+#quest-list .quest-hint {
+    font-size: 12px;
+    color: rgba(255, 220, 160, 0.85);
+    font-style: italic;
+    margin-top: 2px;
+}
+
 #quest-list .no-quests {
     font-style: italic;
 }

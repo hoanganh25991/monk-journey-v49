@@ -189,26 +189,10 @@ export class CombatJuice {
     onSkillImpact(data) {
         const hitCount = data?.hitCount || 1;
         const mass = this.computeMassHitScale(hitCount);
-        const baseVol = data?.volume ?? 0.85;
-
-        if (data?.soundId) {
-            this._play(data.soundId, baseVol * mass.volumeScale);
+        // Perf cheat: no impact/travel sounds on batched skill hits — cast sound only
+        if (mass.shake > 0) {
+            this.requestShake(mass.shake * 0.65);
         }
-        // Layer a body hit when cleaving large groups
-        if (hitCount >= 8) {
-            this._play('enemyHit', Math.min(0.42 + hitCount * 0.025, 0.82));
-        }
-
-        const hitStop = data?.heavy
-            ? Math.max(mass.hitStopFrames, 3)
-            : mass.hitStopFrames;
-        this.requestHitStop(hitStop);
-
-        const shake = Math.max(mass.shake, data?.heavy ? 0.6 : 0);
-        if (shake > 0) this.requestShake(shake);
-
-        const flashTargets = data?.enemies?.length ? data.enemies : (data?.enemy ? [data.enemy] : []);
-        flashTargets.forEach((enemy) => this.flashEnemy(enemy));
     }
 
     onSkillEnd(data) {

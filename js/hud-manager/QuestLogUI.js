@@ -47,15 +47,17 @@ export class QuestLogUI extends UIComponent {
         } else {
             // Add active quests
             activeQuests.forEach(quest => {
-                // Create quest item HTML
+                const hintHtml = quest.objective?.hint
+                    ? `<div class="quest-hint">${quest.objective.hint}</div>`
+                    : '';
                 const questHTML = `
                     <div class="quest-item">
                         <div class="quest-name ${quest.isMainQuest ? 'main-quest' : ''}">${quest.name}</div>
                         <div class="quest-objective">${this.formatObjective(quest.objective)}</div>
+                        ${hintHtml}
                     </div>
                 `;
-                
-                // Add to quest list
+
                 this.questList.innerHTML += questHTML;
             });
         }

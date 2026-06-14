@@ -1003,7 +1003,8 @@ export class Game {
         } else if (objective.type === 'explore') {
             objectiveText = `Discover ${objectiveText} zones`;
         }
-        return `${quest.description}\n\nProgress: ${objectiveText}`;
+        const hint = objective.hint ? `\n\nHint: ${objective.hint}` : '';
+        return `${quest.description}\n\nProgress: ${objectiveText}${hint}`;
     }
 
     updateQuestZoneTracking() {
