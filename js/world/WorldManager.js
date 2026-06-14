@@ -16,6 +16,7 @@ import { ENVIRONMENT_OBJECTS } from '../config/environment.js';
 import { getPerformanceProfile } from '../config/performance-profile.js';
 import { getMapSensoryProfile } from '../config/map-sensory.js';
 import { getMapScatterProfile } from '../config/map-scatter.js';
+import { getZoneContractsForMap, isZoneContractQuest } from '../config/quests/index.js';
 
 /**
  * Optimized World Manager
@@ -211,6 +212,54 @@ export class WorldManager {
         } else {
             this.interactiveManager.clear();
         }
+
+        this.ensureZoneContractShrines();
+        this.game?.questManager?.resetSurvivalForMap?.(this.currentMap?.id);
+        this.game?.player?.model?.coachVisuals?.refreshCoachDisplay?.();
+        this.game?.hudManager?.playerUI?.updateCoachBadge?.();
+    }
+
+    /** Auto-spawn shrine contract givers when map JSON has no zone shrine yet. */
+    ensureZoneContractShrines() {
+        const mapId = this.currentMap?.id;
+        if (!mapId) return;
+
+        const contracts = getZoneContractsForMap(mapId);
+        if (!contracts.length) return;
+
+        const spawn = this.currentMap.spawn || { x: 0, z: -13 };
+
+        contracts.forEach((contract, index) => {
+            if (this.questPlacements.some(p => p.questId === contract.id)) return;
+
+            const x = spawn.x + 28 + index * 14;
+            const z = spawn.z + 38 + index * 10;
+            this.interactiveManager.createShrine(x, z, contract.id);
+            this.questPlacements.push({
+                questId: contract.id,
+                x,
+                z,
+                type: 'shrine',
+                zoneContract: true
+            });
+        });
+    }
+
+    /**
+     * Shrines that can offer an unaccepted zone contract on the current map.
+     * @returns {Array<{ questId: string, x: number, z: number }>}
+     */
+    getAvailableZoneContractShrines() {
+        const mapId = this.currentMap?.id;
+        const questManager = this.game?.questManager;
+        if (!mapId || !questManager) return [];
+
+        return this.questPlacements.filter(p =>
+            p.type === 'shrine'
+            && p.questId
+            && isZoneContractQuest(p.questId)
+            && questManager.canOfferZoneContract(p.questId)
+        );
     }
 
     /**
@@ -231,6 +280,13 @@ export class WorldManager {
 
         if (quest?.offer?.position) {
             return quest.offer.position;
+        }
+
+        if (quest?.category === 'zone' && quest.mapId === this.currentMap?.id) {
+            const shrine = this.questPlacements.find(
+                p => p.type === 'shrine' && p.questId === questId
+            );
+            if (shrine) return { x: shrine.x, z: shrine.z };
         }
 
         return null;

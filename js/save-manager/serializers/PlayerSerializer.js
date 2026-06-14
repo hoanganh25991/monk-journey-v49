@@ -18,6 +18,7 @@ export class PlayerSerializer {
             position: { x, y, z },
             level: player.stats.level,
             experience: player.stats.experience,
+            mapMasteries: { ...(player.mapMasteries || {}) },
             skills: player.skills.getSkills().map(skill => ({
                 name: skill.name,
                 cooldown: skill.cooldown,
@@ -66,6 +67,10 @@ export class PlayerSerializer {
         
         if (playerData.experience !== undefined) {
             player.stats.experience = playerData.experience;
+        }
+
+        if (playerData.mapMasteries && typeof playerData.mapMasteries === 'object') {
+            player.mapMasteries = { ...playerData.mapMasteries };
         }
         
         // Load skills if available

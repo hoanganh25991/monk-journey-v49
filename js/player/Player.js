@@ -64,6 +64,9 @@ export class Player {
 
         /** Active elemental effect from consumables: { id: string, endTime: number } - skills/attacks get elemental visuals */
         this.elementalEffect = { id: null, endTime: 0 };
+
+        /** Map ids → coach element id unlocked by zone contracts */
+        this.mapMasteries = {};
     }
     
     /**

@@ -103,11 +103,15 @@ export class PlayerUI extends UIComponent {
         this.updateCoachBadge();
     }
 
-    /** Show elemental coach badge from equipped weapon. */
+    /** Show elemental coach badge from weapon or map mastery tint. */
     updateCoachBadge() {
         if (!this.coachBadge) return;
         const weapon = this.game.player?.getEquipment?.()?.weapon;
-        const element = getCoachElementFromWeapon(weapon);
+        let element = getCoachElementFromWeapon(weapon);
+        if (!element || element === 'none') {
+            const mapId = this.game?.world?.currentMap?.id;
+            element = mapId && this.game.player?.mapMasteries?.[mapId];
+        }
         if (!element || element === 'none') {
             this.coachBadge.hidden = true;
             return;

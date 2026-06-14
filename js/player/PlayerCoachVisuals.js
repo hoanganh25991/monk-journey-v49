@@ -184,16 +184,39 @@ export class PlayerCoachVisuals {
     }
 
     /**
+     * Resolve coach element: weapon element wins, else map mastery tint.
+     * @param {Object} [weapon]
+     * @returns {string}
+     */
+    resolveCoachElement(weapon) {
+        const weaponEl = getCoachElementFromWeapon(weapon);
+        if (weaponEl !== 'none') return weaponEl;
+
+        const mapId = this.game?.world?.currentMap?.id;
+        const mastery = mapId && this.game?.player?.mapMasteries?.[mapId];
+        if (mastery && mastery !== 'none') return mastery;
+
+        return 'none';
+    }
+
+    refreshCoachDisplay() {
+        const weapon = this.game?.player?.inventory?.getEquipment?.()?.weapon;
+        this.updateFromWeapon(weapon);
+    }
+
+    /**
      * Update coach from equipped weapon (element) and game-derived strength.
      * @param {Object} [weapon] - Equipped weapon
      * @param {number} [strength] - 0–1 from player/weapon level
      */
     updateFromWeapon(weapon, strength) {
-        const element = getCoachElementFromWeapon(weapon);
+        const element = this.resolveCoachElement(weapon);
         const typeId = element === 'none' ? 'none' : element;
         const str = typeof strength === 'number' ? strength : this.computeStrength(weapon);
-        if (typeId !== this.currentTypeId || Math.abs(str - this.strength) > 0.05) {
-            this.setCoach(typeId, str);
+        const masteryBoost = element !== 'none' && getCoachElementFromWeapon(weapon) === 'none' ? 0.45 : 0;
+        const adjustedStr = Math.min(1, str + masteryBoost);
+        if (typeId !== this.currentTypeId || Math.abs(adjustedStr - this.strength) > 0.05) {
+            this.setCoach(typeId, adjustedStr);
         }
     }
 

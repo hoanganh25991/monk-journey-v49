@@ -435,6 +435,7 @@ export class MiniMapUI extends UIComponent {
         this.drawTeleportPortals(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawEnemies(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawQuestObjectivePins(centerWorldX, centerWorldZ, centerX, centerY);
+        this.drawAvailableZoneShrines(centerWorldX, centerWorldZ, centerX, centerY);
         this.drawRemotePlayers(centerWorldX, centerWorldZ, centerX, centerY);
         
         // Player marker at position relative to virtual center (so it moves when you drag)
@@ -919,6 +920,42 @@ export class MiniMapUI extends UIComponent {
             this.ctx.beginPath();
             this.ctx.arc(screenX, screenY, outer * 0.55, 0, Math.PI * 2);
             this.ctx.stroke();
+        });
+    }
+
+    /**
+     * Pulsing cyan markers for shrines offering an unaccepted zone contract.
+     */
+    drawAvailableZoneShrines(centerWorldX, centerWorldZ, centerX, centerY) {
+        const shrines = this.game?.world?.getAvailableZoneContractShrines?.() || [];
+        if (!shrines.length) return;
+
+        const visibleWorldRadius = this.getVisibleWorldRadius();
+        const margin = this.mapSize / 2 - 2;
+        const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.005);
+
+        shrines.forEach(shrine => {
+            const dx = shrine.x - centerWorldX;
+            const dz = shrine.z - centerWorldZ;
+            if (dx * dx + dz * dz > visibleWorldRadius * visibleWorldRadius) return;
+
+            const relX = (shrine.x - centerWorldX) * this.scale;
+            const relY = (shrine.z - centerWorldZ) * this.scale;
+            const screenX = centerX + relX;
+            const screenY = centerY + relY;
+            const distSq = (screenX - centerX) ** 2 + (screenY - centerY) ** 2;
+            if (distSq > margin * margin) return;
+
+            const r = 5 + pulse * 2;
+            this.ctx.fillStyle = `rgba(80, 200, 255, ${0.2 + pulse * 0.25})`;
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, r + 2, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.fillStyle = '#5ad4ff';
+            this.ctx.beginPath();
+            this.ctx.arc(screenX, screenY, 4, 0, Math.PI * 2);
+            this.ctx.fill();
         });
     }
     

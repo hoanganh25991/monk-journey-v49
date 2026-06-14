@@ -40,9 +40,12 @@ export class QuestLogUI extends UIComponent {
             const isFreshStart = questManager
                 && questManager.activeQuests.length === 0
                 && questManager.completedQuests.length === 0;
+            const hasZoneOffer = (this.game?.world?.getAvailableZoneContractShrines?.() || []).length > 0;
             noQuests.textContent = isFreshStart
                 ? 'Visit the shrine ahead'
-                : 'No active quests';
+                : hasZoneOffer
+                    ? 'A shrine contract awaits nearby'
+                    : 'No active quests';
             this.questList.appendChild(noQuests);
         } else {
             // Add active quests
@@ -50,9 +53,12 @@ export class QuestLogUI extends UIComponent {
                 const hintHtml = quest.objective?.hint
                     ? `<div class="quest-hint">${quest.objective.hint}</div>`
                     : '';
+                const nameClass = quest.isMainQuest
+                    ? 'main-quest'
+                    : (quest.category === 'zone' ? 'zone-quest' : '');
                 const questHTML = `
                     <div class="quest-item">
-                        <div class="quest-name ${quest.isMainQuest ? 'main-quest' : ''}">${quest.name}</div>
+                        <div class="quest-name ${nameClass}">${quest.name}</div>
                         <div class="quest-objective">${this.formatObjective(quest.objective)}</div>
                         ${hintHtml}
                     </div>
@@ -77,7 +83,12 @@ export class QuestLogUI extends UIComponent {
             case 'interact':
                 return `Find ${objective.progress}/${objective.count} ${objective.target}s`;
             case 'explore':
+                if (objective.target === 'region') {
+                    return `Explore ${objective.progress}/${objective.count} regions`;
+                }
                 return `Discover ${objective.progress}/${objective.count} zones`;
+            case 'survive':
+                return `Survive ${objective.progress}/${objective.count} vigil`;
             default:
                 return objective.description || 'Complete the objective';
         }

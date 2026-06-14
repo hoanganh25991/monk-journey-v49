@@ -1,6 +1,8 @@
 /**
  * Handles the results of interactions with interactive objects
  */
+import { isZoneContractQuest } from './config/quests/index.js';
+
 export class InteractionResultHandler {
     constructor(game) {
         this.game = game;
@@ -113,19 +115,40 @@ export class InteractionResultHandler {
     }
 
     /**
-     * Handle shrine interaction (main path cleanse + future zone contracts).
+     * Handle shrine interaction (main path cleanse + zone contracts).
      * @param {Object} result
      * @returns {boolean}
      */
     handleShrineInteraction(result) {
-        if (this.game?.questManager) {
-            this.game.questManager.updateInteraction('shrine', {
-                mapId: this.game.world?.currentMap?.id || null
-            });
+        const mapId = this.game.world?.currentMap?.id || null;
+        const questManager = this.game?.questManager;
+
+        if (questManager) {
+            questManager.updateInteraction('shrine', { mapId });
+        }
+
+        const contractId = result.zoneContractId
+            || (result.questId && isZoneContractQuest(result.questId) ? result.questId : null);
+
+        if (contractId && questManager?.canOfferZoneContract(contractId)) {
+            return questManager.offerZoneContract(contractId);
         }
 
         if (this.game?.hudManager) {
-            this.game.hudManager.showNotification(result.message || 'The shrine accepts your offering.', 2500);
+            const activeZone = questManager?.activeQuests?.find(
+                q => q.category === 'zone' && q.mapId === mapId
+            );
+            if (activeZone) {
+                this.game.hudManager.showNotification(
+                    `${activeZone.name}: ${activeZone.objective.progress}/${activeZone.objective.count}`,
+                    2200
+                );
+            } else {
+                this.game.hudManager.showNotification(
+                    result.message || 'The shrine accepts your offering.',
+                    2500
+                );
+            }
         }
 
         return true;

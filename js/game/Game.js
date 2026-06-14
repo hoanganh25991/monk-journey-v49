@@ -1008,13 +1008,17 @@ export class Game {
     }
 
     updateQuestZoneTracking() {
-        if (!this.questManager || !this.world?.zoneManager || !this.player) return;
+        if (!this.questManager || !this.player) return;
 
-        const zone = this.world.zoneManager.getZoneAt(this.player.getPosition());
-        if (!zone?.name || zone.name === this._lastQuestZone) return;
+        if (this.world?.zoneManager) {
+            const zone = this.world.zoneManager.getZoneAt(this.player.getPosition());
+            if (zone?.name && zone.name !== this._lastQuestZone) {
+                this._lastQuestZone = zone.name;
+                this.questManager.updateExploration(zone.name);
+            }
+        }
 
-        this._lastQuestZone = zone.name;
-        this.questManager.updateExploration(zone.name);
+        this.questManager.updateRegionExploration();
     }
 
     offerInitialQuests() {
@@ -1225,6 +1229,7 @@ export class Game {
         this.player.update(simDelta);
 
         this.updateQuestZoneTracking();
+        this.questManager?.updateSurvival?.(simDelta);
 
         if (this.combatJuice) {
             this.combatJuice.applyCameraShake(this.camera);

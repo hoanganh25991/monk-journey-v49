@@ -50,6 +50,10 @@
     color: var(--theme-gold);
 }
 
+#quest-list .quest-name.zone-quest {
+    color: #7ec8e3;
+}
+
 #quest-list .quest-objective {
     font-size: 14px;
 }

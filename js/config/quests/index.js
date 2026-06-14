@@ -82,4 +82,15 @@ export function getQuestPrerequisiteIds(quest) {
     return quest.prerequisiteQuestIds ?? quest.offer?.prerequisiteQuestIds ?? [];
 }
 
+/** @param {string} mapId @returns {QuestDefinition[]} */
+export function getZoneContractsForMap(mapId) {
+    return ZONE_CONTRACT_QUESTS.filter(q => q.mapId === mapId);
+}
+
+/** @param {string} questId @returns {boolean} */
+export function isZoneContractQuest(questId) {
+    const quest = QUEST_BY_ID.get(questId);
+    return quest?.category === 'zone';
+}
+
 export { MAIN_PATH_QUESTS, SIDE_TASK_QUESTS, ZONE_CONTRACT_QUESTS, DAILY_QUEST_POOL };

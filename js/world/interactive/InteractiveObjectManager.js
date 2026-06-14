@@ -317,6 +317,7 @@ export class InteractiveObjectManager {
             onInteract: () => ({
                 type: 'shrine',
                 questId,
+                zoneContractId: questId?.startsWith('zone_') ? questId : null,
                 message: 'The shrine stirs as you offer a cleansing touch.'
             })
         });
