@@ -20,7 +20,9 @@ export const COMBAT_EVENTS = {
     PLAYER_LEVEL_UP: 'player.levelUp',
     ZONE_ENTRY: 'zone.entry',
     QUEST_ACCEPT: 'quest.accept',
-    QUEST_COMPLETE: 'quest.complete'
+    QUEST_COMPLETE: 'quest.complete',
+    QUEST_PROGRESS: 'quest.progress',
+    QUEST_CHAPTER: 'quest.chapter'
 };
 
 /**

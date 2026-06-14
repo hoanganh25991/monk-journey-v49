@@ -379,8 +379,11 @@ export class CollisionManager {
         }
         
         if (actualDamage > 0) {
-            if (enemy.state.isDead && this.player.game.questManager) {
-                this.player.game.questManager.updateEnemyKill(enemy);
+            const qm = this.player.game.questManager;
+            const em = this.player.game.enemyManager;
+            const hostQuestAuthority = !em?.isMultiplayer || em?.isHost;
+            if (enemy.state.isDead && qm && hostQuestAuthority) {
+                qm.updateEnemyKill(enemy);
             }
         }
         

@@ -613,6 +613,9 @@ export class MultiplayerConnectionManager {
                     );
                 }
                 break;
+            case 'questSync':
+                this.multiplayerManager.game?.questManager?.applyQuestSyncPayload(data);
+                break;
             case 'shareExperience':
                 // Handle experience shared from killing an enemy + 3D notification + random bonus
                 if (data.amount && this.multiplayerManager.game.player) {
@@ -1316,6 +1319,10 @@ export class MultiplayerConnectionManager {
             enemies = result.data;
         }
         this.sendToPeer(peerId, { type: 'gameState', players, enemies, fullSync: true });
+        const questPayload = this.multiplayerManager.game?.questManager?.getQuestSyncPayload?.();
+        if (questPayload) {
+            this.sendToPeer(peerId, questPayload);
+        }
     }
 
     /**

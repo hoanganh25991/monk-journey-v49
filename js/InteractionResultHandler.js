@@ -130,7 +130,15 @@ export class InteractionResultHandler {
         const questManager = this.game?.questManager;
 
         if (questManager) {
-            questManager.updateInteraction('shrine', { mapId });
+            const pos = result.position || interactiveObject?.position;
+            questManager.updateInteraction('shrine', {
+                mapId,
+                x: pos?.x,
+                z: pos?.z,
+                interactKey: pos?.x != null && pos?.z != null
+                    ? `${Math.round(pos.x)},${Math.round(pos.z)}`
+                    : result.questId || undefined
+            });
         }
 
         const contractId = result.zoneContractId

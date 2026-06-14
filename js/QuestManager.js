@@ -5,6 +5,7 @@ import {
     getQuestMinLevel,
     getQuestPrerequisiteIds
 } from './config/quests/index.js';
+import { getActForMainQuest, MAIN_ACT_CHAPTERS } from './config/quests/act-chapters.js';
 import { getMapMasteryCoachElement } from './config/map-mastery.js';
 import { COMBAT_EVENTS } from './CombatJuice.js';
 import { DailyQuestState, DAILY_SURVIVE_SEC } from './quest/DailyQuestState.js';
@@ -82,6 +83,16 @@ export class QuestManager {
             activeQuest._surviveFailed = false;
         }
 
+        if (activeQuest.objective.type === 'zone_contracts') {
+            activeQuest.objective.progress = this.countCompletedZoneContracts();
+            if (activeQuest.objective.progress >= activeQuest.objective.count) {
+                this.activeQuests.push(activeQuest);
+                this.quests = this.quests.filter(q => q.id !== questToStart.id);
+                this.completeQuest(activeQuest);
+                return true;
+            }
+        }
+
         if (activeQuest.category === 'daily') {
             this.activeQuests.push(activeQuest);
             this.game.hudManager.updateQuestLog(this.activeQuests);
@@ -96,7 +107,107 @@ export class QuestManager {
         this.game.hudManager.showNotification(`Quest accepted: ${activeQuest.name}`);
         this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: activeQuest });
 
+        this.maybeShowActChapter(activeQuest.id);
+        this.broadcastQuestStateIfHost();
+
         return true;
+    }
+
+    maybeShowActChapter(questId) {
+        const actNum = getActForMainQuest(questId);
+        if (!actNum) return;
+        const chapter = MAIN_ACT_CHAPTERS[actNum];
+        if (!chapter) return;
+        this.game.events?.dispatch(COMBAT_EVENTS.QUEST_CHAPTER, {
+            act: actNum,
+            title: chapter.title,
+            subtitle: chapter.subtitle
+        });
+    }
+
+    countCompletedZoneContracts() {
+        return this.completedQuests.filter(q => q.category === 'zone').length;
+    }
+
+    refreshZoneContractObjective() {
+        this.activeQuests.forEach(quest => {
+            if (quest.objective.type !== 'zone_contracts') return;
+            const count = this.countCompletedZoneContracts();
+            const prev = quest.objective.progress;
+            quest.objective.progress = Math.min(count, quest.objective.count);
+            if (prev !== quest.objective.progress) {
+                this.game.hudManager.updateQuestLog(this.activeQuests);
+            }
+            if (quest.objective.progress >= quest.objective.count) {
+                this.completeQuest(quest);
+            }
+        });
+    }
+
+    getQuestSyncPayload() {
+        return {
+            type: 'questSync',
+            active: this.activeQuests
+                .filter(q => q.category !== 'daily')
+                .map(q => ({
+                    id: q.id,
+                    progress: q.objective.progress,
+                    discovered: q.objective.discovered ? [...q.objective.discovered] : undefined,
+                    surviveElapsed: q._surviveElapsed
+                })),
+            completedIds: this.completedQuests.map(q => q.id)
+        };
+    }
+
+    applyQuestSyncPayload(data) {
+        const mp = this.game?.multiplayerManager;
+        if (!mp?.connection || mp.isHost) return;
+        if (!Array.isArray(data?.active) || !Array.isArray(data?.completedIds)) return;
+
+        const completedIds = new Set(data.completedIds);
+        const dailies = this.activeQuests.filter(q => q.category === 'daily');
+
+        this.completedQuests = data.completedIds
+            .map(id => {
+                const template = getQuestTemplateById(id);
+                return template ? cloneQuestTemplate(template) : null;
+            })
+            .filter(Boolean);
+
+        this.activeQuests = [...dailies];
+        data.active.forEach(entry => {
+            const template = getQuestTemplateById(entry.id);
+            if (!template) return;
+            const quest = cloneQuestTemplate(template);
+            quest.objective.progress = entry.progress ?? 0;
+            if (entry.discovered?.length) {
+                quest.objective.discovered = [...entry.discovered];
+            }
+            if (entry.surviveElapsed != null) {
+                quest._surviveElapsed = entry.surviveElapsed;
+            }
+            if (quest.objective.type === 'survive') {
+                quest._surviveFailed = false;
+            }
+            this.activeQuests.push(quest);
+        });
+
+        this.rebuildAvailableQuestPool(completedIds);
+        this.game.hudManager?.updateQuestLog(this.activeQuests);
+    }
+
+    rebuildAvailableQuestPool(completedIds = null) {
+        const done = completedIds || new Set(this.completedQuests.map(q => q.id));
+        this.quests = this.questTemplates
+            .filter(template => template.category !== 'daily')
+            .map(template => cloneQuestTemplate(template))
+            .filter(q => !done.has(q.id) && !this.activeQuests.some(a => a.id === q.id));
+    }
+
+    broadcastQuestStateIfHost() {
+        const mp = this.game?.multiplayerManager;
+        if (!mp?.connection?.isHost) return;
+        mp.connection.broadcast(this.getQuestSyncPayload());
     }
 
     matchesKillObjective(objective, enemy) {
@@ -124,7 +235,19 @@ export class QuestManager {
     }
 
     incrementObjectiveProgress(quest, label) {
+        const prev = quest.objective.progress;
+        const total = quest.objective.count;
         quest.objective.progress++;
+
+        if (total > 1) {
+            const prevRatio = prev / total;
+            const nextRatio = quest.objective.progress / total;
+            if (prevRatio < 0.5 && nextRatio >= 0.5) {
+                this.game.events?.dispatch(COMBAT_EVENTS.QUEST_PROGRESS, { quest, milestone: 50 });
+            } else if (prevRatio < 0.75 && nextRatio >= 0.75) {
+                this.game.events?.dispatch(COMBAT_EVENTS.QUEST_PROGRESS, { quest, milestone: 75 });
+            }
+        }
 
         if (quest.objective.progress >= quest.objective.count) {
             this.completeQuest(quest);
@@ -135,6 +258,7 @@ export class QuestManager {
         this.game.hudManager.showNotification(
             `Quest progress: ${quest.objective.progress}/${quest.objective.count} ${label}`
         );
+        this.broadcastQuestStateIfHost();
     }
 
     updateEnemyKill(enemy) {
@@ -153,6 +277,17 @@ export class QuestManager {
         this.activeQuests.forEach(quest => {
             if (quest.objective.type === 'interact' && quest.objective.target === objectType) {
                 if (!this.questAppliesOnCurrentMap(quest, mapId)) return;
+
+                if (quest.objective.count > 1) {
+                    const key = context.interactKey
+                        || (context.x != null && context.z != null ? `${context.x},${context.z}` : null);
+                    if (key) {
+                        if (!quest.objective.discovered) quest.objective.discovered = [];
+                        if (quest.objective.discovered.includes(key)) return;
+                        quest.objective.discovered.push(key);
+                    }
+                }
+
                 this.incrementObjectiveProgress(quest, `${objectType}s found`);
                 return;
             }
@@ -358,6 +493,10 @@ export class QuestManager {
             this.completedQuests.push(quest);
         }
 
+        if (quest.category === 'zone') {
+            this.refreshZoneContractObjective();
+        }
+
         this.game.events?.dispatch(COMBAT_EVENTS.QUEST_COMPLETE, { quest });
 
         if (isDaily) {
@@ -385,6 +524,8 @@ export class QuestManager {
         if (!isDaily) {
             this.checkForNextQuest(quest);
         }
+
+        this.broadcastQuestStateIfHost();
     }
 
     checkForNextQuest(completedQuest) {

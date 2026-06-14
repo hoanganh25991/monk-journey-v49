@@ -19,6 +19,8 @@ export class MomentDirector {
         this.game.events.addEventListener(COMBAT_EVENTS.MULTIPLAYER_JOIN, (d) => this.onMultiplayerJoin(d));
         this.game.events.addEventListener(COMBAT_EVENTS.QUEST_ACCEPT, (d) => this.onQuestAccept(d));
         this.game.events.addEventListener(COMBAT_EVENTS.QUEST_COMPLETE, (d) => this.onQuestComplete(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.QUEST_PROGRESS, (d) => this.onQuestProgress(d));
+        this.game.events.addEventListener(COMBAT_EVENTS.QUEST_CHAPTER, (d) => this.onQuestChapter(d));
     }
 
     onZoneEntry(data) {
@@ -85,6 +87,32 @@ export class MomentDirector {
         }
 
         this.game?.effectsManager?.createLevelUpSpiritBurst?.();
+    }
+
+    onQuestProgress(data) {
+        const milestone = data?.milestone;
+        this.pulseQuestLog(milestone === 75 ? 'quest-progress-75' : 'quest-progress-50');
+        if (this.game?.hudManager?.showNotification && data?.quest?.name) {
+            this.game.hudManager.showNotification(
+                `${data.quest.name}: ${milestone}%`,
+                1400
+            );
+        }
+    }
+
+    onQuestChapter(data) {
+        if (data?.title) {
+            this.showZoneTitle(data.title, data.subtitle);
+        }
+    }
+
+    pulseQuestLog(className) {
+        const panel = document.getElementById('quest-log');
+        if (!panel) return;
+        panel.classList.remove('quest-progress-50', 'quest-progress-75');
+        void panel.offsetWidth;
+        panel.classList.add(className);
+        setTimeout(() => panel.classList.remove(className), 700);
     }
 
     flashQuestLog() {

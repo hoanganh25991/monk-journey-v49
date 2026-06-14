@@ -1399,5 +1399,21 @@
       },
       "scale": 1.240274384059012
     }
-  ]
+  ],
+  "quests": {
+    "shrines": [
+      {
+        "questId": "main_12",
+        "position": { "x": 100, "z": -314 }
+      },
+      {
+        "questId": "main_12",
+        "position": { "x": -257, "z": -44 }
+      },
+      {
+        "questId": "main_12",
+        "position": { "x": -48, "z": 170 }
+      }
+    ]
+  }
 }

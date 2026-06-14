@@ -1,5 +1,5 @@
 /**
- * Main storyline quests — Path of the Monk (Acts I–III: main_01–main_09)
+ * Main storyline quests — Path of the Monk (Acts I–V: main_01–main_14)
  */
 
 /** @typedef {import('./index.js').QuestDefinition} QuestDefinition */
@@ -292,6 +292,165 @@ export const MAIN_PATH_QUESTS = [
         },
         isMainQuest: true,
         requiredLevel: 10,
+        nextQuestId: 'main_10',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_10',
+        name: 'Frost Trial',
+        description: 'A frost titan guards the hollow basin. Break its icy reign.',
+        category: 'main',
+        mapId: 'frost-hollow',
+        offer: {
+            type: 'auto',
+            minLevel: 12,
+            prerequisiteQuestIds: ['main_09'],
+            position: { x: 57, z: -89 }
+        },
+        objective: {
+            type: 'kill_boss',
+            target: 'frost_titan',
+            count: 1,
+            progress: 0,
+            hint: 'Descend into the ice caves of Frost Hollow.'
+        },
+        reward: {
+            experience: 2800,
+            gold: 1400,
+            items: [{
+                name: 'Frost Monk Wraps',
+                type: 'accessory',
+                damage: 0,
+                damageReduction: 0.1,
+                amount: 1
+            }]
+        },
+        isMainQuest: true,
+        requiredLevel: 12,
+        nextQuestId: 'main_11',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_11',
+        name: 'Void Harbinger',
+        description: 'A void harbinger stalks the eldritch grove. Banish it before the veil tears.',
+        category: 'main',
+        mapId: 'eldritch-grove',
+        offer: {
+            type: 'auto',
+            minLevel: 14,
+            prerequisiteQuestIds: ['main_10'],
+            position: { x: -320, z: -320 }
+        },
+        objective: {
+            type: 'kill_boss',
+            target: 'void_harbinger',
+            count: 1,
+            progress: 0,
+            hint: 'Find the dark sanctum at the grove\'s edge.'
+        },
+        reward: {
+            experience: 3500,
+            gold: 1750,
+            items: [{
+                name: 'Void Ward Amulet',
+                type: 'accessory',
+                damage: 8,
+                damageReduction: 0.08,
+                amount: 1
+            }]
+        },
+        isMainQuest: true,
+        requiredLevel: 14,
+        nextQuestId: 'main_12',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_12',
+        name: 'Seal the Rift',
+        description: 'Three corrupted shrines anchor a rift in the Magical realm. Cleanse them all.',
+        category: 'main',
+        mapId: 'magical',
+        offer: {
+            type: 'auto',
+            minLevel: 16,
+            prerequisiteQuestIds: ['main_11']
+        },
+        objective: {
+            type: 'interact',
+            target: 'shrine',
+            count: 3,
+            progress: 0,
+            hint: 'Cleanse three shrines scattered across the Magical map.'
+        },
+        reward: {
+            experience: 4000,
+            gold: 2000,
+            items: [{ name: 'Health Potion', amount: 5 }]
+        },
+        isMainQuest: true,
+        requiredLevel: 16,
+        nextQuestId: 'main_13',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_13',
+        name: 'Demon Lord',
+        description: 'The demon lord marshals the mixed realms. End the invasion at its source.',
+        category: 'main',
+        mapId: 'mixed',
+        offer: {
+            type: 'auto',
+            minLevel: 18,
+            prerequisiteQuestIds: ['main_12'],
+            position: { x: 0, z: 0 }
+        },
+        objective: {
+            type: 'kill_boss',
+            target: 'demon_lord',
+            count: 1,
+            progress: 0,
+            hint: 'Confront the Demon Lord at the heart of the Mixed Realms.'
+        },
+        reward: {
+            experience: 5000,
+            gold: 2500,
+            items: [{
+                name: 'Legendary Monk Vestments',
+                type: 'armor',
+                damage: 10,
+                damageReduction: 0.2,
+                amount: 1
+            }]
+        },
+        isMainQuest: true,
+        requiredLevel: 18,
+        nextQuestId: 'main_14',
+        onComplete: 'moment:quest.complete'
+    },
+    {
+        id: 'main_14',
+        name: 'Master of the Journey',
+        description: 'Prove mastery by sealing five shrine contracts across the realms.',
+        category: 'main',
+        offer: {
+            type: 'auto',
+            minLevel: 20,
+            prerequisiteQuestIds: ['main_13']
+        },
+        objective: {
+            type: 'zone_contracts',
+            target: 'any',
+            count: 5,
+            progress: 0,
+            hint: 'Complete five zone shrine contracts on any maps.'
+        },
+        reward: {
+            experience: 8000,
+            gold: 5000
+        },
+        isMainQuest: true,
+        requiredLevel: 20,
         nextQuestId: null,
         onComplete: 'moment:quest.complete'
     }
