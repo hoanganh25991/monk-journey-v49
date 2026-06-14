@@ -29,14 +29,13 @@ export class LightingManager {
      * Create lights for the world
      */
     createLights() {
-        // Ambient light - darker for atmospheric mood
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.2);
+        const ambientLight = new THREE.AmbientLight(0x505050, 0.28);
         this.scene.add(ambientLight);
         this.lights.push(ambientLight);
         
         // Directional light (sun)
         // Positioned for longer shadows (like 15:00/3 PM sun angle)
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.62);
         directionalLight.position.set(120, 40, 50);
         directionalLight.castShadow = true;
         
@@ -64,8 +63,7 @@ export class LightingManager {
         this.lights.push(directionalLight);
         this.sunLight = directionalLight;
         
-        // Add a hemisphere light - darker for atmospheric mood
-        const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x3a7e4f, 0.25);
+        const hemisphereLight = new THREE.HemisphereLight(0x87CEEB, 0x4a9058, 0.34);
         this.scene.add(hemisphereLight);
         this.lights.push(hemisphereLight);
         this.skyLight = hemisphereLight;
@@ -137,12 +135,10 @@ export class LightingManager {
         const sunAngle = Math.PI * 2 * this.timeOfDay - Math.PI / 2;
         const sunHeight = Math.sin(sunAngle);
         
-        // Update sun intensity based on height - reduced for darker atmosphere
-        const sunIntensity = Math.max(0, sunHeight) * 0.5; // Reduced to 50% for darker mood
+        const sunIntensity = Math.max(0, sunHeight) * 0.62;
         this.sunLight.intensity = sunIntensity;
         
-        // Update ambient light based on time of day - darker
-        const ambientIntensity = 0.15 + sunIntensity * 0.2; // Reduced base and multiplier
+        const ambientIntensity = 0.2 + sunIntensity * 0.26;
         this.lights[0].intensity = ambientIntensity;
         
         // Update sky light based on time of day
@@ -150,18 +146,16 @@ export class LightingManager {
         const groundColor = new THREE.Color();
         
         if (sunHeight > 0) {
-            // Day - darker colors for atmospheric mood
-            skyColor.setHSL(0.6, 0.7, 0.35 + sunHeight * 0.3); // Reduced saturation and lightness
-            groundColor.setHSL(0.095, 0.4, 0.25 + sunHeight * 0.08); // Darker ground
+            skyColor.setHSL(0.6, 0.72, 0.42 + sunHeight * 0.35);
+            groundColor.setHSL(0.095, 0.45, 0.3 + sunHeight * 0.1);
         } else {
-            // Night - darker
-            skyColor.setHSL(0.7, 0.6, Math.max(0.08, 0.25 + sunHeight * 0.15));
-            groundColor.setHSL(0.095, 0.4, Math.max(0.08, 0.25 + sunHeight * 0.08));
+            skyColor.setHSL(0.7, 0.6, Math.max(0.1, 0.28 + sunHeight * 0.15));
+            groundColor.setHSL(0.095, 0.4, Math.max(0.1, 0.28 + sunHeight * 0.08));
         }
         
         this.skyLight.color.copy(skyColor);
         this.skyLight.groundColor.copy(groundColor);
-        this.skyLight.intensity = 0.2 + sunIntensity * 0.2; // Reduced from 0.3 + 0.3
+        this.skyLight.intensity = 0.28 + sunIntensity * 0.26;
     }
     
     /**

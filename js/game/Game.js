@@ -640,11 +640,16 @@ export class Game {
         }
 
         try {
+            const settings = RENDER_CONFIG[qualityLevel]?.settings ?? {};
             this.postProcessing = new HighQualityPostProcessing(
                 this.renderer,
                 this.scene,
                 this.camera,
-                bloomCfg
+                {
+                    ...bloomCfg,
+                    toneMapping: THREE.ACESFilmicToneMapping,
+                    toneMappingExposure: settings.toneMappingExposure ?? 1.0
+                }
             );
             const size = new THREE.Vector2();
             this.renderer.getSize(size);
@@ -973,6 +978,10 @@ export class Game {
 
         const availableQuest = questManager.quests.find(q => q.id === questId);
         if (availableQuest) {
+            if (availableQuest.offer?.type === 'auto' && availableQuest.isMainQuest) {
+                questManager.tryAutoStartQuest(availableQuest);
+                return;
+            }
             this.hudManager.showDialog(
                 `Quest Available: ${availableQuest.name}`,
                 `${availableQuest.description}\n\nTap continue to accept.`,
@@ -1534,7 +1543,14 @@ export class Game {
                 renderer.outputColorSpace = THREE.SRGBColorSpace;
         }
 
-        if (settings.toneMapping === 'ACESFilmic') {
+        const bloomCfg = RENDER_CONFIG[qualityLevel]?.settings?.bloom;
+        const usePostProcessing = qualityLevel === 'high' && bloomCfg?.enabled;
+
+        if (usePostProcessing) {
+            // Tone mapping + sRGB conversion handled by OutputPass in the composer chain
+            renderer.toneMapping = THREE.NoToneMapping;
+            renderer.toneMappingExposure = 1.0;
+        } else if (settings.toneMapping === 'ACESFilmic') {
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
             renderer.toneMappingExposure = settings.toneMappingExposure ?? 1.0;
         } else {

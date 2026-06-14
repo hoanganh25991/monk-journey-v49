@@ -5,6 +5,7 @@
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { getDailyTemplateForDay } from '../config/quests/daily-pool.js';
 import { cloneQuestTemplate } from '../config/quests/index.js';
+import { getDailyStreakBonusGold } from '../config/quests/quest-balance.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DAILY_SURVIVE_SEC = 30;
@@ -109,9 +110,7 @@ export class DailyQuestState {
     }
 
     getStreakBonusGold() {
-        if (this.streak >= 7) return 150;
-        if (this.streak >= 3) return 50;
-        return 0;
+        return getDailyStreakBonusGold(this.streak);
     }
 
     toJSON() {

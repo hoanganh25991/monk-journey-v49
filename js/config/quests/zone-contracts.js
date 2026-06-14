@@ -3,16 +3,24 @@
  */
 
 import { ZONE_TYPES } from '../zone.js';
+import { zoneQuestReward } from './quest-balance.js';
 
 /** @typedef {import('./index.js').QuestDefinition} QuestDefinition */
 
 /** @param {Partial<QuestDefinition>} def @returns {QuestDefinition} */
 function zoneContract(def) {
+    const minLevel = def.requiredLevel ?? def.offer?.minLevel ?? 1;
+    const count = def.objective?.count ?? 1;
+    const type = def.objective?.type ?? 'kill';
+    const baseReward = zoneQuestReward(type, minLevel, count);
+    const coachTint = def.reward?.coachTint;
+
     return {
         isMainQuest: false,
-        requiredLevel: def.requiredLevel ?? def.offer?.minLevel ?? 1,
+        requiredLevel: minLevel,
         onComplete: 'moment:quest.complete',
-        ...def
+        ...def,
+        reward: { ...baseReward, mapMastery: true, coachTint }
     };
 }
 
@@ -32,7 +40,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Track feral wolves across the Terrant grasslands.'
         },
-        reward: { experience: 120, gold: 80, mapMastery: true, coachTint: 'nature' }
+        reward: { coachTint: 'nature' }
     }),
     zoneContract({
         id: 'zone_forest_rotwood',
@@ -48,7 +56,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Seek corrupted treants among the oldest trees.'
         },
-        reward: { experience: 200, gold: 120, mapMastery: true, coachTint: 'nature' }
+        reward: { coachTint: 'nature' }
     }),
     zoneContract({
         id: 'zone_desert_relic',
@@ -64,7 +72,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Open chests scattered through the Desert ruins.'
         },
-        reward: { experience: 150, gold: 150, mapMastery: true, coachTint: 'earth' }
+        reward: { coachTint: 'earth' }
     }),
     zoneContract({
         id: 'zone_mountains_yeti',
@@ -80,7 +88,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Challenge the ancient yeti in the mountain peaks.'
         },
-        reward: { experience: 350, gold: 200, mapMastery: true, coachTint: 'water' }
+        reward: { coachTint: 'water' }
     }),
     zoneContract({
         id: 'zone_swamp_mirewalker',
@@ -96,7 +104,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Cull bog lurkers in the swamp shallows.'
         },
-        reward: { experience: 220, gold: 130, mapMastery: true, coachTint: 'shadow' }
+        reward: { coachTint: 'shadow' }
     }),
     zoneContract({
         id: 'zone_magical_runes',
@@ -113,7 +121,7 @@ export const ZONE_CONTRACT_QUESTS = [
             discovered: [],
             hint: 'Explore distant quadrants of the Magical realm.'
         },
-        reward: { experience: 250, gold: 140, mapMastery: true, coachTint: 'void' }
+        reward: { coachTint: 'void' }
     }),
     zoneContract({
         id: 'zone_mixed_pilgrim',
@@ -130,7 +138,7 @@ export const ZONE_CONTRACT_QUESTS = [
             discovered: [],
             hint: `Visit ${ZONE_TYPES.TERRANT}, ${ZONE_TYPES.FOREST}, ${ZONE_TYPES.DESERT}, and ${ZONE_TYPES.SWAMP}.`
         },
-        reward: { experience: 300, gold: 180, mapMastery: true, coachTint: 'light' }
+        reward: { coachTint: 'light' }
     }),
     zoneContract({
         id: 'zone_mixed_sentinel',
@@ -146,7 +154,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Defeat foes anywhere in the Mixed Realms.'
         },
-        reward: { experience: 400, gold: 220, mapMastery: true, coachTint: 'lightning' }
+        reward: { coachTint: 'lightning' }
     }),
     zoneContract({
         id: 'zone_highland_watch',
@@ -162,7 +170,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Hunt winter wolves across the highland snows.'
         },
-        reward: { experience: 200, gold: 110, mapMastery: true, coachTint: 'air' }
+        reward: { coachTint: 'air' }
     }),
     zoneContract({
         id: 'zone_ember_hunt',
@@ -178,7 +186,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Drive ash demons back in the Ember Wastes.'
         },
-        reward: { experience: 240, gold: 140, mapMastery: true, coachTint: 'fire' }
+        reward: { coachTint: 'fire' }
     }),
     zoneContract({
         id: 'zone_whisper_silent',
@@ -194,7 +202,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Stay alive in Whisper Woods for one vigil (45 seconds).'
         },
-        reward: { experience: 180, gold: 100, mapMastery: true, coachTint: 'air' }
+        reward: { coachTint: 'air' }
     }),
     zoneContract({
         id: 'zone_crimson_bloodroot',
@@ -210,7 +218,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Find and defeat the plague lord in Crimson Bog.'
         },
-        reward: { experience: 380, gold: 210, mapMastery: true, coachTint: 'shadow' }
+        reward: { coachTint: 'shadow' }
     }),
     zoneContract({
         id: 'zone_sky_offering',
@@ -226,7 +234,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Interact with the sky temple shrine after accepting this contract.'
         },
-        reward: { experience: 80, gold: 50, mapMastery: true, coachTint: 'light' }
+        reward: { coachTint: 'light' }
     }),
     zoneContract({
         id: 'zone_veil_petals',
@@ -242,7 +250,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Open bloom caches hidden among the veil petals.'
         },
-        reward: { experience: 210, gold: 120, mapMastery: true, coachTint: 'nature' }
+        reward: { coachTint: 'nature' }
     }),
     zoneContract({
         id: 'zone_frost_icebound',
@@ -258,7 +266,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Shatter frost elementals in the frozen basin.'
         },
-        reward: { experience: 260, gold: 150, mapMastery: true, coachTint: 'water' }
+        reward: { coachTint: 'water' }
     }),
     zoneContract({
         id: 'zone_sand_truth',
@@ -274,7 +282,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Find and open buried chests near the sand temples.'
         },
-        reward: { experience: 190, gold: 130, mapMastery: true, coachTint: 'earth' }
+        reward: { coachTint: 'earth' }
     }),
     zoneContract({
         id: 'zone_thorn_trail',
@@ -290,7 +298,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Clear poison toads along the thorn marsh trails.'
         },
-        reward: { experience: 280, gold: 160, mapMastery: true, coachTint: 'nature' }
+        reward: { coachTint: 'nature' }
     }),
     zoneContract({
         id: 'zone_eldritch_seal',
@@ -306,7 +314,7 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Break the ancient guardian in Eldritch Grove.'
         },
-        reward: { experience: 420, gold: 240, mapMastery: true, coachTint: 'void' }
+        reward: { coachTint: 'void' }
     }),
     zoneContract({
         id: 'zone_default_vigil',
@@ -322,6 +330,6 @@ export const ZONE_CONTRACT_QUESTS = [
             progress: 0,
             hint: 'Defeat enemies anywhere in the Default World.'
         },
-        reward: { experience: 200, gold: 120, mapMastery: true, coachTint: 'default' }
+        reward: { coachTint: 'default' }
     })
 ];

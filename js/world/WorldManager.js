@@ -217,6 +217,7 @@ export class WorldManager {
         this.ensureQuestBoards();
         this.ensureGatherNodes();
         this.game?.questManager?.resetSurvivalForMap?.(this.currentMap?.id);
+        this.game?.interactionSystem?.resetProximityOffers?.();
         this.game?.player?.model?.coachVisuals?.refreshCoachDisplay?.();
         this.game?.hudManager?.playerUI?.updateCoachBadge?.();
     }

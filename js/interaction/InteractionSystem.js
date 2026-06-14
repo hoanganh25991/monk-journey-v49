@@ -1,6 +1,7 @@
 import * as THREE from '../../libs/three/three.module.js';
 import { INTERACTION_RANGE } from '../config/input.js';
 import { InteractionResultHandler } from '../InteractionResultHandler.js';
+import { getTodayDateKey } from '../quest/DailyQuestState.js';
 import { distanceSq2D, distanceApprox2D, fastSin, fastCos } from 'utils/FastMath.js';
 
 /**
@@ -25,6 +26,16 @@ export class InteractionSystem {
         // Track interaction cooldown to prevent spam
         this.interactionCooldown = 0;
         this.cooldownDuration = 500; // ms
+
+        /** @type {Set<string>} Keys for one-shot proximity auto-offers */
+        this._proximityAutoOffered = new Set();
+        this._proximityShrineTick = 0;
+    }
+
+    /** Clear proximity offer memory when changing maps. */
+    resetProximityOffers() {
+        this._proximityAutoOffered.clear();
+        this._proximityShrineTick = 0;
     }
     
     /**
@@ -42,9 +53,76 @@ export class InteractionSystem {
         
         // Update nearby objects
         this.updateNearbyObjects();
+
+        // Auto-offer quests when walking up to shrines / quest markers
+        this.tryProximityQuestOffers(delta);
         
         // Update visual indicators for interactive objects
         this.updateVisualIndicators();
+    }
+
+    /**
+     * Auto-accept main quests and shrine offers when the player enters range.
+     * Manual interact (E / tap) still works for boards and optional review.
+     */
+    tryProximityQuestOffers(delta) {
+        const questManager = this.game?.questManager;
+        if (!questManager || this.game.isPaused) return;
+
+        for (const obj of this.nearbyInteractiveObjects) {
+            if (obj.type === 'quest' && obj.questId) {
+                const key = `quest:${obj.questId}`;
+                if (this._proximityAutoOffered.has(key)) continue;
+
+                const available = questManager.quests.find(q => q.id === obj.questId);
+                if (available?.offer?.type === 'auto' && available.isMainQuest) {
+                    if (questManager.tryAutoStartQuest(available)) {
+                        this._proximityAutoOffered.add(key);
+                    }
+                }
+            }
+        }
+
+        const shrine = this.nearbyInteractiveObjects.find(o => o.type === 'shrine');
+        if (!shrine || typeof shrine.onInteract !== 'function') return;
+
+        this._proximityShrineTick += delta;
+        if (this._proximityShrineTick < 0.35) return;
+        this._proximityShrineTick = 0;
+
+        const result = shrine.onInteract();
+        if (!result) return;
+        result.position = shrine.position;
+
+        const contractId = result.zoneContractId
+            || (result.questId?.startsWith('zone_') ? result.questId : null);
+        if (contractId && questManager.canOfferZoneContract(contractId)) {
+            const key = `shrine-contract:${contractId}`;
+            if (!this._proximityAutoOffered.has(key)) {
+                if (questManager.tryAutoStartZoneContract(contractId)) {
+                    this._proximityAutoOffered.add(key);
+                    return;
+                }
+            }
+        }
+
+        if (questManager.canOfferDailyQuest()) {
+            const dailyKey = `shrine-daily:${getTodayDateKey()}`;
+            if (!this._proximityAutoOffered.has(dailyKey)) {
+                if (questManager.tryAutoStartDailyQuest()) {
+                    this._proximityAutoOffered.add(dailyKey);
+                }
+            }
+        }
+
+        questManager.updateInteraction('shrine', {
+            mapId: this.game.world?.currentMap?.id || null,
+            x: shrine.position?.x,
+            z: shrine.position?.z,
+            interactKey: shrine.position?.x != null && shrine.position?.z != null
+                ? `${Math.round(shrine.position.x)},${Math.round(shrine.position.z)}`
+                : result.questId || undefined
+        });
     }
     
     /**

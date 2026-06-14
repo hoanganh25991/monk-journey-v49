@@ -19,8 +19,8 @@ export const FOG_CONFIG = {
     // Base fog settings
     enabled: true,
     type: 'exp2', // 'exp2' for exponential squared fog (more realistic), 'exp' for exponential, 'linear' for linear
-    color: 0x6B7B8C, // Darker blue-gray for atmospheric mood (was 0x87CEEB)
-    density: 0.008, // Increased for more visible fog effect
+    color: 0x7A90A0, // Light blue-gray (between moody 0x6B7B8C and vivid 0x87CEEB)
+    density: 0.0065,
     near: 10, // For linear fog only - distance where fog begins
     far: 55, // For linear fog only - reduced for closer fog
     
@@ -28,9 +28,9 @@ export const FOG_CONFIG = {
     transitionSpeed: 0.05, // How quickly fog color transitions between zones
     
     // Distance-based fog settings
-    distanceFalloff: 1.3, // Increased for more dramatic distance fade
-    maxVisibleDistance: 16 * 3.5, // Reduced for closer fog
-    darkeningFactor: 0.65, // Darker for more atmospheric mood
+    distanceFalloff: 1.2,
+    maxVisibleDistance: 16 * 3.75,
+    darkeningFactor: 0.72,
     
     // PERFORMANCE FIX: Add frustum culling distance
     frustumCullingDistance: 16 * 4, // Objects beyond this distance are not rendered at all
@@ -65,7 +65,7 @@ export const RENDER_CONFIG = {
             shadowNormalBias: 0.003, // Reduced for crisper edges (was 0.006)
             outputColorSpace: 'SRGBColorSpace',
             toneMapping: 'ACESFilmic',
-            toneMappingExposure: 1.08,
+            toneMappingExposure: 1.18,
             bloom: {
                 enabled: true,
                 strength: 0.32,

@@ -2,6 +2,8 @@
  * Main storyline quests — Path of the Monk (Acts I–V: main_01–main_14)
  */
 
+import { MAIN_QUEST_REWARDS } from './quest-balance.js';
+
 /** @typedef {import('./index.js').QuestDefinition} QuestDefinition */
 
 /** @type {QuestDefinition[]} */
@@ -25,8 +27,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Fight any foes near the path ahead.'
         },
         reward: {
-            experience: 100,
-            gold: 50,
+            ...MAIN_QUEST_REWARDS.main_01,
             items: [{ name: 'Health Potion', amount: 2 }]
         },
         isMainQuest: true,
@@ -54,8 +55,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Find the broken shrine east of the spawn trail.'
         },
         reward: {
-            experience: 150,
-            gold: 75,
+            ...MAIN_QUEST_REWARDS.main_02,
             items: [{
                 name: 'Monk Bracers',
                 type: 'accessory',
@@ -87,10 +87,7 @@ export const MAIN_PATH_QUESTS = [
             progress: 0,
             hint: 'Hunt spiders and wolves in the Forest.'
         },
-        reward: {
-            experience: 250,
-            gold: 100
-        },
+        reward: { ...MAIN_QUEST_REWARDS.main_03 },
         isMainQuest: true,
         requiredLevel: 3,
         nextQuestId: 'main_04',
@@ -116,8 +113,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Search the ruins in the Forest for the Skeleton King.'
         },
         reward: {
-            experience: 500,
-            gold: 250,
+            ...MAIN_QUEST_REWARDS.main_04,
             items: [{
                 name: 'Monk Staff',
                 type: 'weapon',
@@ -150,8 +146,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Enter the Swamp and defeat the wandering dead.'
         },
         reward: {
-            experience: 700,
-            gold: 300,
+            ...MAIN_QUEST_REWARDS.main_05,
             items: [{
                 name: 'Monk Robe',
                 type: 'armor',
@@ -184,8 +179,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Track the Swamp Witch deeper into the bog.'
         },
         reward: {
-            experience: 900,
-            gold: 400,
+            ...MAIN_QUEST_REWARDS.main_06,
             items: [{
                 name: 'Poison Ward Trinket',
                 type: 'accessory',
@@ -217,10 +211,7 @@ export const MAIN_PATH_QUESTS = [
             progress: 0,
             hint: 'Open treasure chests among the Desert ruins.'
         },
-        reward: {
-            experience: 1000,
-            gold: 450
-        },
+        reward: { ...MAIN_QUEST_REWARDS.main_07 },
         isMainQuest: true,
         requiredLevel: 8,
         nextQuestId: 'main_08',
@@ -245,8 +236,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Hunt ash demons and lesser demons in the Desert.'
         },
         reward: {
-            experience: 1200,
-            gold: 500,
+            ...MAIN_QUEST_REWARDS.main_08,
             items: [{
                 name: 'Monk Sandals',
                 type: 'boots',
@@ -280,8 +270,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Confront the Inferno Lord at the desert temple.'
         },
         reward: {
-            experience: 2000,
-            gold: 1000,
+            ...MAIN_QUEST_REWARDS.main_09,
             items: [{
                 name: 'Legendary Monk Helmet',
                 type: 'helmet',
@@ -315,8 +304,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Descend into the ice caves of Frost Hollow.'
         },
         reward: {
-            experience: 2800,
-            gold: 1400,
+            ...MAIN_QUEST_REWARDS.main_10,
             items: [{
                 name: 'Frost Monk Wraps',
                 type: 'accessory',
@@ -350,8 +338,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Find the dark sanctum at the grove\'s edge.'
         },
         reward: {
-            experience: 3500,
-            gold: 1750,
+            ...MAIN_QUEST_REWARDS.main_11,
             items: [{
                 name: 'Void Ward Amulet',
                 type: 'accessory',
@@ -384,8 +371,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Cleanse three shrines scattered across the Magical map.'
         },
         reward: {
-            experience: 4000,
-            gold: 2000,
+            ...MAIN_QUEST_REWARDS.main_12,
             items: [{ name: 'Health Potion', amount: 5 }]
         },
         isMainQuest: true,
@@ -413,8 +399,7 @@ export const MAIN_PATH_QUESTS = [
             hint: 'Confront the Demon Lord at the heart of the Mixed Realms.'
         },
         reward: {
-            experience: 5000,
-            gold: 2500,
+            ...MAIN_QUEST_REWARDS.main_13,
             items: [{
                 name: 'Legendary Monk Vestments',
                 type: 'armor',
@@ -445,10 +430,7 @@ export const MAIN_PATH_QUESTS = [
             progress: 0,
             hint: 'Complete five zone shrine contracts on any maps.'
         },
-        reward: {
-            experience: 8000,
-            gold: 5000
-        },
+        reward: { ...MAIN_QUEST_REWARDS.main_14 },
         isMainQuest: true,
         requiredLevel: 20,
         nextQuestId: null,

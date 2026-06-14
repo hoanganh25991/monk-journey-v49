@@ -428,15 +428,45 @@ export class QuestManager {
         this.game.hudManager.showDialog(
             `Daily Shrine Challenge`,
             `${template.description}${hint}${streakLine}\n\nTap continue to accept.`,
-            () => {
-                const daily = this.dailyState.createActiveDailyQuest(template);
-                this.activeQuests.push(daily);
-                this.game.hudManager.updateQuestLog(this.activeQuests);
-                this.game.hudManager.showNotification(`Daily accepted: ${daily.name}`);
-                this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: daily });
-            }
+            () => this.tryAutoStartDailyQuest()
         );
         return true;
+    }
+
+    /** Accept today's daily shrine challenge without a dialog (proximity auto-offer). */
+    tryAutoStartDailyQuest() {
+        if (!this.canOfferDailyQuest()) return false;
+
+        const template = this.dailyState.getTemplateForToday();
+        const daily = this.dailyState.createActiveDailyQuest(template);
+        this.activeQuests.push(daily);
+        this.game.hudManager?.updateQuestLog(this.activeQuests);
+        this.game.hudManager?.showNotification(`Daily accepted: ${daily.name}`, 2800);
+        this.game.events?.dispatch(COMBAT_EVENTS.QUEST_ACCEPT, { quest: daily });
+        return true;
+    }
+
+    /** Start a quest immediately when `offer.type === 'auto'` (main path). */
+    tryAutoStartQuest(quest) {
+        const questId = this.resolveQuestId(quest);
+        if (!questId) return false;
+
+        const questToStart = this.quests.find(q => q.id === questId);
+        if (!questToStart) return false;
+        if (this.activeQuests.some(q => q.id === questId)) return false;
+        if (!this.meetsPrerequisites(questToStart)) return false;
+
+        const isAutoMain = questToStart.isMainQuest && questToStart.offer?.type === 'auto';
+        if (!isAutoMain) return false;
+
+        return this.startQuest(questToStart);
+    }
+
+    tryAutoStartZoneContract(questId) {
+        if (!this.canOfferZoneContract(questId)) return false;
+        const quest = this.quests.find(q => q.id === questId);
+        if (!quest) return false;
+        return this.startQuest(quest);
     }
 
     completeDailyQuest(quest) {
@@ -536,6 +566,9 @@ export class QuestManager {
 
         if (this.game.player.getLevel() >= getQuestMinLevel(nextQuest)) {
             setTimeout(() => {
+                if (nextQuest.offer?.type === 'auto' && this.tryAutoStartQuest(nextQuest)) {
+                    return;
+                }
                 const hint = nextQuest.objective?.hint ? `\n\n${nextQuest.objective.hint}` : '';
                 this.game.hudManager.showDialog(
                     `New Quest Available: ${nextQuest.name}`,
@@ -656,6 +689,9 @@ export class QuestManager {
 
         if (mainQuests.length > 0) {
             const mainQuest = mainQuests[0];
+            if (mainQuest.offer?.type === 'auto' && this.tryAutoStartQuest(mainQuest)) {
+                return;
+            }
             const hint = mainQuest.objective?.hint ? `\n\n${mainQuest.objective.hint}` : '';
             this.game.hudManager.showDialog(
                 `New Main Quest Available: ${mainQuest.name}`,

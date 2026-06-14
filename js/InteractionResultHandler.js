@@ -36,7 +36,7 @@ export class InteractionResultHandler {
                 return this.handleBossSpawnInteraction(result, interactiveObject);
 
             case 'shrine':
-                return this.handleShrineInteraction(result);
+                return this.handleShrineInteraction(result, interactiveObject);
 
             case 'quest_board':
                 return this.handleQuestBoardInteraction(result, interactiveObject);
@@ -59,10 +59,17 @@ export class InteractionResultHandler {
         if (!this.game?.questManager || !result.quest) return false;
 
         const quest = result.quest;
+        const questManager = this.game.questManager;
+        const available = questManager.quests.find(q => q.id === quest.id);
+
+        if (available?.offer?.type === 'auto' && available.isMainQuest) {
+            return questManager.tryAutoStartQuest(available);
+        }
+
         this.game.hudManager.showDialog(
             `New Quest: ${quest.name}`,
             quest.description || 'Accept this quest to begin.',
-            () => this.game.questManager.startQuest(quest)
+            () => questManager.startQuest(quest)
         );
 
         return true;
@@ -125,31 +132,42 @@ export class InteractionResultHandler {
      * @param {Object} result
      * @returns {boolean}
      */
-    handleShrineInteraction(result) {
+    handleShrineInteraction(result, interactiveObject, options = {}) {
+        const { autoAccept = false } = options;
         const mapId = this.game.world?.currentMap?.id || null;
         const questManager = this.game?.questManager;
+        const pos = result?.position || interactiveObject?.position;
 
         if (questManager) {
-            const pos = result.position || interactiveObject?.position;
             questManager.updateInteraction('shrine', {
                 mapId,
                 x: pos?.x,
                 z: pos?.z,
                 interactKey: pos?.x != null && pos?.z != null
                     ? `${Math.round(pos.x)},${Math.round(pos.z)}`
-                    : result.questId || undefined
+                    : result?.questId || undefined
             });
         }
 
-        const contractId = result.zoneContractId
-            || (result.questId && isZoneContractQuest(result.questId) ? result.questId : null);
+        const contractId = result?.zoneContractId
+            || (result?.questId && isZoneContractQuest(result.questId) ? result.questId : null);
 
         if (contractId && questManager?.canOfferZoneContract(contractId)) {
+            if (autoAccept) {
+                return questManager.tryAutoStartZoneContract(contractId);
+            }
             return questManager.offerZoneContract(contractId);
         }
 
         if (questManager?.canOfferDailyQuest?.()) {
+            if (autoAccept) {
+                return questManager.tryAutoStartDailyQuest();
+            }
             return questManager.offerDailyQuest();
+        }
+
+        if (autoAccept) {
+            return true;
         }
 
         if (this.game?.hudManager) {

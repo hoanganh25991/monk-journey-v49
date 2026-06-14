@@ -2,6 +2,8 @@
  * Optional side quests — Wanderer's Tasks
  */
 
+import { sideQuestReward } from './quest-balance.js';
+
 /** @typedef {import('./index.js').QuestDefinition} QuestDefinition */
 
 /** @type {QuestDefinition[]} */
@@ -24,10 +26,7 @@ export const SIDE_TASK_QUESTS = [
             progress: 0,
             hint: 'Open chests near villages and along the road.'
         },
-        reward: {
-            experience: 50,
-            gold: 100
-        },
+        reward: sideQuestReward('interact', 1, 3),
         isMainQuest: false,
         requiredLevel: 1
     },
@@ -51,8 +50,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Walk into Terrant, Forest, Desert, and Swamp zones.'
         },
         reward: {
-            experience: 150,
-            gold: 75,
+            ...sideQuestReward('explore', 1, 4),
             items: [{ name: 'Map Fragment', amount: 1 }]
         },
         isMainQuest: false,
@@ -77,8 +75,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Hunt skeletons wherever bones litter the ground.'
         },
         reward: {
-            experience: 200,
-            gold: 150,
+            ...sideQuestReward('kill', 3, 20),
             items: [{ name: 'Bone Dust', amount: 5 }]
         },
         isMainQuest: false,
@@ -104,8 +101,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Stay in the Swamp and break the undead tide.'
         },
         reward: {
-            experience: 300,
-            gold: 200,
+            ...sideQuestReward('kill', 5, 25),
             items: [{ name: 'Putrid Essence', amount: 3 }]
         },
         isMainQuest: false,
@@ -130,8 +126,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Cull demons in the highlands and mountain approaches.'
         },
         reward: {
-            experience: 400,
-            gold: 300,
+            ...sideQuestReward('kill', 7, 30),
             items: [{ name: 'Demon Heart', amount: 2 }]
         },
         isMainQuest: false,
@@ -156,8 +151,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Search every biome for hidden chests.'
         },
         reward: {
-            experience: 500,
-            gold: 400,
+            ...sideQuestReward('interact', 5, 10),
             items: [{
                 name: 'Lucky Charm',
                 type: 'accessory',
@@ -188,8 +182,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Defeat three elite bosses — they bear crowns of power.'
         },
         reward: {
-            experience: 600,
-            gold: 500,
+            ...sideQuestReward('boss', 8, 3),
             items: [{ name: 'Enchanted Crystal', amount: 1 }]
         },
         isMainQuest: false,
@@ -213,10 +206,7 @@ export const SIDE_TASK_QUESTS = [
             progress: 0,
             hint: 'Chain 10 hits on enemies without a long pause.'
         },
-        reward: {
-            experience: 250,
-            gold: 175
-        },
+        reward: sideQuestReward('combo', 4),
         isMainQuest: false,
         requiredLevel: 4
     },
@@ -239,8 +229,7 @@ export const SIDE_TASK_QUESTS = [
             hint: 'Gather lotus from bloom nodes near villages.'
         },
         reward: {
-            experience: 180,
-            gold: 120,
+            ...sideQuestReward('gather', 3, 5),
             items: [{ name: 'Lotus Petal', amount: 5 }]
         },
         isMainQuest: false,
