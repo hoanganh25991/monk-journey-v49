@@ -735,7 +735,6 @@ export class Enemy {
             const reductionPercent = defenseValue / (defenseValue + 100);
             actualDamage = amount * (1 - reductionPercent);
             
-            console.debug(`Enemy ${this.name} defense: ${defenseValue}, damage reduction: ${(reductionPercent * 100).toFixed(1)}%, raw damage: ${amount}, actual damage: ${actualDamage.toFixed(1)}`);
         }
         
         // Round the damage to avoid floating point issues
@@ -759,7 +758,8 @@ export class Enemy {
             });
         }
 
-        if (actualDamage > 0 && this.player?.game?.combatJuice) {
+        // Skill collisions emit SKILL_IMPACT once per cast; skip duplicate per-enemy juice
+        if (actualDamage > 0 && this.player?.game?.combatJuice && !options.fromSkill) {
             const isCrit = options.isCrit || options.isComboFinisher || false;
             const event = isCrit ? COMBAT_EVENTS.ATTACK_CRIT : COMBAT_EVENTS.ENEMY_HIT;
             this.player.game.combatJuice.emit(event, {

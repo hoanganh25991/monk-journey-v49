@@ -365,17 +365,20 @@ export class CollisionManager {
         const hitOptions = {
             isCrit: skill.isComboFinisher || false,
             isComboFinisher: skill.isComboFinisher || false,
-            element: skill.element || skill.damageType
+            element: skill.element || skill.damageType,
+            fromSkill: true
         };
         const actualDamage = enemy.takeDamage(damage, false, null, false, hitOptions);
-        
-        this.player.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_IMPACT, {
-            skill: skill.name,
-            soundId: skill.sounds?.impact,
-            heavy: (skill.radius || 0) > 4,
-            enemy,
-            damage: actualDamage
-        });
+
+        // Debounced mass-impact juice: accumulate hits, flush once after burst settles
+        if (actualDamage > 0) {
+            skill._impactHitCount = (skill._impactHitCount || 0) + 1;
+            skill._impactTotalDamage = (skill._impactTotalDamage || 0) + actualDamage;
+            if (!skill._impactFirstEnemy) skill._impactFirstEnemy = enemy;
+            if (!skill._impactFlashEnemies) skill._impactFlashEnemies = [];
+            if (skill._impactFlashEnemies.length < 3) skill._impactFlashEnemies.push(enemy);
+            this.scheduleSkillImpactJuice(skill);
+        }
         
         // Get enemy position for effects
         const enemyPosition = enemy.getPosition();
@@ -383,7 +386,8 @@ export class CollisionManager {
         // Only show effects if damage was actually dealt (enemy not already dead)
         if (actualDamage > 0) {
             // Damage number is created in Enemy.takeDamage so all hit paths show -XXX in red
-            if (this.player.game.hudManager) {
+            skill._bleedEffectCount = (skill._bleedEffectCount || 0) + 1;
+            if (skill._bleedEffectCount <= 5 && this.player.game.hudManager) {
                 this.player.game.hudManager.createBleedingEffect(actualDamage, enemyPosition);
             }
             
@@ -393,17 +397,52 @@ export class CollisionManager {
             }
         }
         
-        // Call the skill's hit effect method
-        // This allows skills to create visual effects when they hit an enemy
-        if (skill.effect) {
-            // All skill effects inherit from SkillEffect which has a createHitEffect method
-            skill.effect.createHitEffect(enemyPosition);
+        // Per-enemy hit VFX are expensive (new meshes + RAF loops); cap per skill cast
+        if (skill.effect && actualDamage > 0) {
+            skill._hitEffectCount = (skill._hitEffectCount || 0) + 1;
+            if (skill._hitEffectCount <= 3) {
+                skill.effect.createHitEffect(enemyPosition);
+            }
         }
         
         // Clean up old entries from the hit registry occasionally
         if (Math.random() < 0.01) { // ~1% chance per frame
             this.cleanupHitRegistry();
         }
+    }
+
+    /**
+     * Debounce skill impact SFX/juice so AoE hits coalesce into one scaled burst.
+     * @param {import('./skills/Skill.js').Skill} skill
+     */
+    scheduleSkillImpactJuice(skill) {
+        if (skill._impactJuiceEmitted) return;
+        if (skill._impactJuiceTimer) {
+            clearTimeout(skill._impactJuiceTimer);
+        }
+        skill._impactJuiceTimer = setTimeout(() => this.flushSkillImpactJuice(skill), 50);
+    }
+
+    /**
+     * Emit a single SKILL_IMPACT with hitCount for volume/hit-stop/shake scaling.
+     * @param {import('./skills/Skill.js').Skill} skill
+     */
+    flushSkillImpactJuice(skill) {
+        skill._impactJuiceTimer = null;
+        if (skill._impactJuiceEmitted || !skill._impactHitCount) return;
+
+        skill._impactJuiceEmitted = true;
+        const hitCount = skill._impactHitCount;
+
+        this.player.game?.combatJuice?.emit(COMBAT_EVENTS.SKILL_IMPACT, {
+            skill: skill.name,
+            soundId: skill.sounds?.impact,
+            heavy: (skill.radius || 0) > 4,
+            enemy: skill._impactFirstEnemy,
+            enemies: skill._impactFlashEnemies,
+            hitCount,
+            damage: skill._impactTotalDamage || 0
+        });
     }
     
     /**

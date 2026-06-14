@@ -33,6 +33,9 @@ export class CombatJuice {
         this.shakeDecay = 8;
         this._shakeOffset = { x: 0, y: 0, z: 0 };
         this._listenersBound = false;
+        this._sfxLastPlayed = {};
+        this._flashTimestamps = new Map();
+        this._maxHitStopFrames = 4;
     }
 
     init() {
@@ -96,7 +99,8 @@ export class CombatJuice {
     }
 
     requestHitStop(frames) {
-        this.hitStopFrames = Math.max(this.hitStopFrames, frames);
+        if (this.hitStopFrames > 0) return;
+        this.hitStopFrames = Math.min(frames, this._maxHitStopFrames);
     }
 
     requestShake(intensity) {
@@ -104,7 +108,40 @@ export class CombatJuice {
     }
 
     _play(name, volume = 1) {
-        this.game?.audioManager?.playSound(name, volume);
+        if (!name || !this.game?.audioManager) return;
+        const now = performance.now();
+        const last = this._sfxLastPlayed[name] || 0;
+        if (now - last < 70) return;
+        this._sfxLastPlayed[name] = now;
+        this.game.audioManager.playSound(name, volume);
+    }
+
+    /**
+     * Scale impact juice for multi-target skill hits (single burst, louder/heavier at 10+).
+     * @param {number} hitCount
+     * @returns {{ volumeScale: number, hitStopFrames: number, shake: number }}
+     */
+    computeMassHitScale(hitCount) {
+        const count = Math.max(1, hitCount || 1);
+        let hitStopFrames = 2;
+        let shake = 0;
+
+        if (count >= 10) {
+            hitStopFrames = 4;
+            shake = 1.05;
+        } else if (count >= 6) {
+            hitStopFrames = 3;
+            shake = 0.75;
+        } else if (count >= 3) {
+            hitStopFrames = 2;
+            shake = 0.45;
+        }
+
+        return {
+            volumeScale: Math.min(1 + Math.log2(count) * 0.18, 1.55),
+            hitStopFrames,
+            shake
+        };
     }
 
     onAttackHit(data) {
@@ -150,11 +187,28 @@ export class CombatJuice {
     }
 
     onSkillImpact(data) {
+        const hitCount = data?.hitCount || 1;
+        const mass = this.computeMassHitScale(hitCount);
+        const baseVol = data?.volume ?? 0.85;
+
         if (data?.soundId) {
-            this._play(data.soundId, data.volume ?? 0.85);
+            this._play(data.soundId, baseVol * mass.volumeScale);
         }
-        this.requestHitStop(data?.isHeavy ? 3 : 2);
-        if (data?.heavy) this.requestShake(0.6);
+        // Layer a body hit when cleaving large groups
+        if (hitCount >= 8) {
+            this._play('enemyHit', Math.min(0.42 + hitCount * 0.025, 0.82));
+        }
+
+        const hitStop = data?.heavy
+            ? Math.max(mass.hitStopFrames, 3)
+            : mass.hitStopFrames;
+        this.requestHitStop(hitStop);
+
+        const shake = Math.max(mass.shake, data?.heavy ? 0.6 : 0);
+        if (shake > 0) this.requestShake(shake);
+
+        const flashTargets = data?.enemies?.length ? data.enemies : (data?.enemy ? [data.enemy] : []);
+        flashTargets.forEach((enemy) => this.flashEnemy(enemy));
     }
 
     onSkillEnd(data) {
@@ -189,6 +243,14 @@ export class CombatJuice {
     /** Brief white/gold emissive flash on enemy mesh. */
     flashEnemy(enemy, color = 0xffffff) {
         if (!enemy?.modelGroup) return;
+        const enemyKey = enemy.id || enemy.uuid || enemy.name;
+        const now = performance.now();
+        const lastFlash = this._flashTimestamps.get(enemyKey) || 0;
+        if (now - lastFlash < 180) return;
+        this._flashTimestamps.set(enemyKey, now);
+        if (this._flashTimestamps.size > 64) {
+            this._flashTimestamps.clear();
+        }
         enemy.modelGroup.traverse((child) => {
             if (!child.isMesh || !child.material) return;
             const mats = Array.isArray(child.material) ? child.material : [child.material];

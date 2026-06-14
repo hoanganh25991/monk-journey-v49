@@ -29,7 +29,9 @@ export class AudioManager {
         // Pooled sounds: multiple instances can play at once; pool is capped, oldest removed
         this.soundPools = {};
         this.soundBuffers = {};
-        this.soundPoolMax = { waveStrike: 30 };
+        this.soundPoolMax = { waveStrike: 12, enemyHit: 8 };
+        this._sfxGlobalLastPlayed = {};
+        this._sfxGlobalMinIntervalMs = 45;
         
         // Audio file availability tracking
         this.audioFilesAvailable = false;
@@ -474,6 +476,15 @@ export class AudioManager {
         // Alias: explosion → massiveExplosion
         if (name === 'explosion' && !this.sounds[name]) {
             name = 'massiveExplosion';
+        }
+
+        if (!this.soundPoolMax[name]) {
+            const now = performance.now();
+            const last = this._sfxGlobalLastPlayed[name] || 0;
+            if (now - last < this._sfxGlobalMinIntervalMs) {
+                return false;
+            }
+            this._sfxGlobalLastPlayed[name] = now;
         }
         
         if (this.soundPoolMax[name]) {
