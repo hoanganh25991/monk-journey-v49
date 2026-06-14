@@ -63,7 +63,15 @@ export const RENDER_CONFIG = {
             shadowMapType: 'PCFSoftShadowMap',
             shadowRadius: 0.2,      // Reduced for sharper shadows (was 0.5)
             shadowNormalBias: 0.003, // Reduced for crisper edges (was 0.006)
-            outputColorSpace: 'SRGBColorSpace'
+            outputColorSpace: 'SRGBColorSpace',
+            toneMapping: 'ACESFilmic',
+            toneMappingExposure: 1.08,
+            bloom: {
+                enabled: true,
+                strength: 0.32,
+                radius: 0.38,
+                threshold: 0.88
+            }
         },
         materials: {
             particleCount: 0.8,

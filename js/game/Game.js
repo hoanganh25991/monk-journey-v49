@@ -29,6 +29,7 @@ import { STORAGE_KEYS } from '../config/storage-keys.js';
 import storageService from '../save-manager/StorageService.js';
 import deviceCapabilities from '../utils/DeviceCapabilities.js';
 import shadowDebugger from '../debug/ShadowDebugger.js';
+import { HighQualityPostProcessing } from '../render/HighQualityPostProcessing.js';
 
 /**
  * Main Game class that serves as a facade to the underlying game systems
@@ -389,6 +390,8 @@ export class Game {
                 console.debug('No material quality setting found, using high as default');
                 this.applyInitialMaterialQuality('high');
             }
+
+            this.syncPostProcessing(this.materialQuality || 'high');
             
             // Set up event listeners
             this.setupEventListeners();
@@ -613,9 +616,47 @@ export class Game {
                 else if (qualityLevel === 'minimal') pixelRatio = Math.min(dpr, 0.75);
             }
             this.renderer.setPixelRatio(pixelRatio);
+
+            if (this.postProcessing) {
+                this.postProcessing.setSize(width, height);
+                this.postProcessing.setPixelRatio(pixelRatio);
+            }
         }
     }
-    
+
+    /**
+     * Enable bloom post-processing on high profile only (IMP0001 Phase 4).
+     * @param {string} qualityLevel
+     */
+    syncPostProcessing(qualityLevel) {
+        if (this.postProcessing) {
+            this.postProcessing.dispose();
+            this.postProcessing = null;
+        }
+
+        const bloomCfg = RENDER_CONFIG[qualityLevel]?.settings?.bloom;
+        if (qualityLevel !== 'high' || !bloomCfg?.enabled || !this.renderer || !this.scene || !this.camera) {
+            return;
+        }
+
+        try {
+            this.postProcessing = new HighQualityPostProcessing(
+                this.renderer,
+                this.scene,
+                this.camera,
+                bloomCfg
+            );
+            const size = new THREE.Vector2();
+            this.renderer.getSize(size);
+            this.postProcessing.setSize(size.x, size.y);
+            this.postProcessing.setPixelRatio(this.renderer.getPixelRatio());
+            console.debug('High-quality bloom post-processing enabled');
+        } catch (err) {
+            console.warn('Bloom post-processing unavailable:', err.message);
+            this.postProcessing = null;
+        }
+    }
+
     /**
      * Exit fullscreen mode
      * @returns {Promise} A promise that resolves when fullscreen is exited or rejects if there's an error
@@ -1420,6 +1461,16 @@ export class Game {
             default:
                 renderer.outputColorSpace = THREE.SRGBColorSpace;
         }
+
+        if (settings.toneMapping === 'ACESFilmic') {
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = settings.toneMappingExposure ?? 1.0;
+        } else {
+            renderer.toneMapping = THREE.NoToneMapping;
+            renderer.toneMappingExposure = 1.0;
+        }
+
+        this.syncPostProcessing(qualityLevel);
         
         // Apply special 8-bit mode settings for minimal quality
         if (qualityLevel === 'minimal' && settings.pixelatedMode) {
@@ -2074,7 +2125,11 @@ export class Game {
             }
             
             // Perform the render
-            this.renderer.render(scene, camera);
+            if (this.postProcessing?.enabled) {
+                this.postProcessing.render();
+            } else {
+                this.renderer.render(scene, camera);
+            }
             return true;
             
         } catch (error) {
