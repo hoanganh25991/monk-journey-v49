@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import { getSkillIcon, getSkillIconContent } from '../config/skill-icons.js';
+import { getSkillIcon, getSkillIconEmoji } from '../config/skill-icons.js';
 import { CAST_INTERVAL } from '../config/input.js';
 import { SkillEffectFactory } from '../skills/SkillEffectFactory.js';
 
@@ -44,7 +44,7 @@ export class SkillsUI extends UIComponent {
             
             // Get skill icon data
             const iconData = getSkillIcon(skill.name);
-            const icon = getSkillIconContent(skill.name, iconData);
+            const icon = getSkillIconEmoji(skill.name, iconData);
             
             // Get color for border styling from skill-icons.js
             const color = iconData.color || '#ffffff';

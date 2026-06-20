@@ -1,7 +1,7 @@
 /**
  * Skill Icons Configuration
  * This file serves as the source of truth for all skill icons in the game.
- * Icons are defined with both emoji and CSS class for flexibility.
+ * Icons are defined with emoji (display) and cssClass (border styling hooks).
  */
 
 export const SKILL_ICONS = {
@@ -858,23 +858,20 @@ export function getSkillIcon(name) {
     };
 }
 
-/** CSS glyph classes that render via ::before masks (emoji text must stay empty). */
-const GLYPH_ICON_CLASSES = new Set(
-    Object.values(SKILL_ICONS).map((icon) => icon.cssClass)
-);
-
 /**
- * Inner content for a skill icon element.
- * Returns empty string when a CSS SVG glyph handles rendering.
+ * Emoji text for a skill icon element — single source for all HUD/skill screens.
+ * Skill icons use emoji from SKILL_ICONS (not CSS SVG glyphs).
  * @param {string} name - Skill, variant, or buff key
  * @param {Object} [iconData] - Optional pre-fetched icon data from getSkillIcon/getBuffIcon
  * @returns {string}
  */
-export function getSkillIconContent(name, iconData = getSkillIcon(name)) {
-    if (GLYPH_ICON_CLASSES.has(iconData.cssClass)) {
-        return "";
-    }
+export function getSkillIconEmoji(name, iconData = getSkillIcon(name)) {
     return iconData.emoji ?? "✨";
+}
+
+/** @deprecated Use getSkillIconEmoji */
+export function getSkillIconContent(name, iconData = getSkillIcon(name)) {
+    return getSkillIconEmoji(name, iconData);
 }
 
 /**
