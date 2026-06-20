@@ -1,6 +1,6 @@
 import { UIComponent } from "../UIComponent.js";
 import { SKILLS } from "../config/skills.js";
-import { getSkillIcon, getBuffIcon } from "../config/skill-icons.js";
+import { getSkillIcon, getSkillIconContent, getBuffIcon } from "../config/skill-icons.js";
 import { SKILL_TREES } from "../config/skill-tree.js";
 import { applyBuffsToVariants } from "../utils/SkillTreeUtils.js";
 import { STORAGE_KEYS } from "../config/storage-keys.js";
@@ -359,7 +359,7 @@ export class SkillTreeUI extends UIComponent {
       const skillNode = `
 <div class="skill-node" data-skill="${skillName}">
 <div class="skill-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">
-${iconData.emoji}
+${getSkillIconContent(skillName, iconData)}
 </div>
 <div class="skill-info">
   <div class="skill-name">${skillName}</div>
@@ -511,8 +511,8 @@ ${iconData.emoji}
     // Create HTML for variant info
     variantInfoElement.innerHTML = `
       <div class="selected-variant-header">
-        <div class="variant-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">
-          ${iconData.emoji}
+        <div class="variant-icon skill-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">
+          ${getSkillIconContent(variantName === 'base' ? this.selectedSkill : variantName, iconData)}
         </div>
         <div class="variant-name">${variantName === 'base' ? `Base ${this.selectedSkill}` : variantName}</div>
       </div>
@@ -614,8 +614,8 @@ ${iconData.emoji}
     const baseSkillHtml = `
       <div class="skill-variant ${isBaseSkillActive ? "active" : ""}" data-variant="base">
         <div class="variant-header">
-          <div class="variant-icon ${baseSkillIconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${baseSkillIconData.color}; box-shadow: 0 0 10px ${baseSkillIconData.color}40;">
-            ${baseSkillIconData.emoji}
+          <div class="variant-icon skill-icon ${baseSkillIconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${baseSkillIconData.color}; box-shadow: 0 0 10px ${baseSkillIconData.color}40;">
+            ${getSkillIconContent(skillName, baseSkillIconData)}
           </div>
           <div class="variant-name">Base ${skillName}</div>
           <div class="variant-cost">0 points</div>
@@ -646,8 +646,8 @@ ${iconData.emoji}
       const variantHtml = `
         <div class="skill-variant ${isActive ? "active" : ""}" data-variant="${variantName}">
           <div class="variant-header">
-            <div class="variant-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">
-              ${iconData.emoji}
+            <div class="variant-icon skill-icon ${iconData.cssClass}" style="background-color: rgba(0, 0, 0, 0.7); border: 2px solid ${iconData.color}; box-shadow: 0 0 10px ${iconData.color}40;">
+              ${getSkillIconContent(variantName, iconData)}
             </div>
             <div class="variant-name">${variantName}</div>
             <div class="variant-cost">${cost} points</div>
@@ -858,11 +858,11 @@ ${iconData.emoji}
       const buffHtml = `
         <div class="skill-buff ${isActive ? "active" : ""}" data-buff="${buffName}">
           <div class="buff-header">
-            <div class="buff-icon ${iconData.cssClass}" 
+            <div class="buff-icon skill-icon ${iconData.cssClass}" 
                 style="background-color: rgba(0, 0, 0, 0.7); 
                         border: 2px solid ${iconData.color}; 
                         box-shadow: 0 0 10px ${iconData.color}40;">
-              ${iconData.emoji}
+              ${getSkillIconContent(null, iconData)}
             </div>
             <div class="buff-name">${buffName}</div>
             <div class="buff-cost">${cost} points</div>
@@ -1078,11 +1078,11 @@ ${iconData.emoji}
       const buffHtml = `
         <div class="skill-buff ${isActive ? "active" : ""}" data-buff="${buffName}">
           <div class="buff-header">
-            <div class="buff-icon ${iconData.cssClass}" 
+            <div class="buff-icon skill-icon ${iconData.cssClass}" 
                 style="background-color: rgba(0, 0, 0, 0.7); 
                         border: 2px solid ${iconData.color}; 
                         box-shadow: 0 0 10px ${iconData.color}40;">
-              ${iconData.emoji}
+              ${getSkillIconContent(null, iconData)}
             </div>
             <div class="buff-name">${buffName}</div>
             <div class="buff-cost">${cost} points</div>

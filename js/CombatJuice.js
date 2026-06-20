@@ -193,7 +193,25 @@ export class CombatJuice {
     onSkillImpact(data) {
         const hitCount = data?.hitCount || 1;
         const mass = this.computeMassHitScale(hitCount);
-        // Perf cheat: no impact/travel sounds on batched skill hits — cast sound only
+
+        // Explicit SFX from skill effects (e.g. Wave of Light bell ring on ground impact).
+        // Batched collision juice omits soundId to avoid per-enemy impact spam.
+        if (data?.soundId) {
+            const vol = (data.volume ?? 1) * (data.hitCount ? mass.volumeScale : 1);
+            this._play(data.soundId, vol);
+            if (data.shake != null) {
+                this.requestShake(data.shake);
+            } else if (data.soundId === 'bellRing') {
+                this.requestShake(1.0);
+            }
+            if (data.hitStopFrames != null) {
+                this.requestHitStop(data.hitStopFrames);
+            } else if (data.soundId === 'bellRing') {
+                this.requestHitStop(3);
+            }
+            return;
+        }
+
         if (mass.shake > 0) {
             this.requestShake(mass.shake * 0.65);
         }

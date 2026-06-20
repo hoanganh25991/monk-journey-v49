@@ -402,8 +402,8 @@ export const NORMAL_SKILLS = [
         range: 0, // Centered on player
         radius: 5, // Large radius for clones to operate in
         duration: 20, // Duration in seconds
-        get color() { return SKILL_ICONS["Shadow Allies"]?.color || "#ffdd00"; }, // Yellow theme color
-        get icon() { return SKILL_ICONS["Shadow Allies"]?.emoji || "👥"; }, // Shadow emoji as fallback
+        get color() { return SKILL_ICONS[this.name]?.color || "#ffdd00"; },
+        get icon() { return SKILL_ICONS[this.name]?.emoji; },
         sounds: {
             cast: SKILL_SOUNDS.mysticAlly.id, // Mystical summoning sound
             impact: SKILL_SOUNDS.allySummonComplete.id, // Sound of clone materializing

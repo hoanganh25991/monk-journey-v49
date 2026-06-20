@@ -104,6 +104,11 @@ export const SKILL_ICONS = {
         cssClass: "icon-bul-breath-of-heaven",
         color: "#33ff00"
     },
+    "Bul Shadow Clone": {
+        emoji: "👤",
+        cssClass: "icon-shadow-allies",
+        color: "#ffdd00"
+    },
 
     // Cyclone Strike variants
     "Mystic Winds": {
@@ -709,11 +714,6 @@ export const SKILL_ICONS = {
         cssClass: "icon-zens-retribution",
         color: "#000000"
     },
-    "Bul Palm": {
-        emoji: "👊",
-        cssClass: "icon-bul-palm",
-        color: "#1e90ff"
-    },
     "Palm Cross": {
         emoji: "➕",
         cssClass: "icon-palm-cross",
@@ -856,6 +856,25 @@ export function getSkillIcon(name) {
         cssClass: "icon-unknown",
         color: "#cccccc"
     };
+}
+
+/** CSS glyph classes that render via ::before masks (emoji text must stay empty). */
+const GLYPH_ICON_CLASSES = new Set(
+    Object.values(SKILL_ICONS).map((icon) => icon.cssClass)
+);
+
+/**
+ * Inner content for a skill icon element.
+ * Returns empty string when a CSS SVG glyph handles rendering.
+ * @param {string} name - Skill, variant, or buff key
+ * @param {Object} [iconData] - Optional pre-fetched icon data from getSkillIcon/getBuffIcon
+ * @returns {string}
+ */
+export function getSkillIconContent(name, iconData = getSkillIcon(name)) {
+    if (GLYPH_ICON_CLASSES.has(iconData.cssClass)) {
+        return "";
+    }
+    return iconData.emoji ?? "✨";
 }
 
 /**

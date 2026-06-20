@@ -1,5 +1,5 @@
 import { UIComponent } from '../UIComponent.js';
-import { getSkillIcon } from '../config/skill-icons.js';
+import { getSkillIcon, getSkillIconContent } from '../config/skill-icons.js';
 import { PRIMARY_ATTACKS, NORMAL_SKILLS } from '../config/skills.js';
 import { STORAGE_KEYS } from '../config/storage-keys.js';
 import { SKILL_TREES } from '../config/skill-tree.js';
@@ -277,7 +277,7 @@ export class SkillSelectionUI extends UIComponent {
             
             // Get skill icon data
             const iconData = getSkillIcon(skill.name);
-            const icon = skill.icon || iconData.emoji || '✨';
+            const icon = getSkillIconContent(skill.name, iconData);
             
             // Get color for border styling
             const color = iconData.color || '#ffffff';
@@ -323,7 +323,7 @@ export class SkillSelectionUI extends UIComponent {
             
             // Get skill icon data
             const iconData = getSkillIcon(skill.name);
-            const icon = skill.icon || iconData.emoji || '✨';
+            const icon = getSkillIconContent(skill.name, iconData);
             
             // Get color for border styling
             const color = iconData.color || '#ffffff';
@@ -524,7 +524,7 @@ export class SkillSelectionUI extends UIComponent {
         const battleSkillsHTML = battleSkills.map(skill => {
             // Get skill icon data
             const iconData = skill.isEmpty ? {} : (skill.isMore ? {} : getSkillIcon(skill.name));
-            const icon = skill.isEmpty ? "+" : (skill.isMore ? "..." : (skill.icon || iconData.emoji || '✨'));
+            const icon = skill.isEmpty ? "+" : (skill.isMore ? "..." : getSkillIconContent(skill.name, iconData));
             
             // Get color for border styling
             const color = skill.isEmpty ? '#555555' : 

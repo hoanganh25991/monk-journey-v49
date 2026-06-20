@@ -370,9 +370,9 @@ export class WaveOfLightEffect extends SkillEffect {
                     this.bellState.impactTime = 0;
                     this.bellState.hasImpacted = true; // Mark that bell has hit the ground
                     
-                    // Play bell ring sound
-                    if (this.skill && this.skill.game && this.skill.game.audioManager) {
-                        this.skill.playSound('impact');
+                    // Play bell ring sound with combat juice (shake + hit-stop)
+                    if (this.skill) {
+                        this.skill.playSound('impact', { volume: 1.0, shake: 1.0, hitStopFrames: 3 });
                     }
                     
                     // Make impact area visible and expand it
